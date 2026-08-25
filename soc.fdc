@@ -1,0 +1,264 @@
+#时序约束
+create_clock -period {37.037} [get_ports {clk}] -name clk
+
+# JTAG时钟约束 (10MHz, 100ns周期)
+create_clock -period {100.000} [get_ports {JTAG_TCK}] -name JTAG_CLK
+
+define_attribute {n:JTAG_TCK_in} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}
+# 异步时钟域声明
+set_clock_groups -asynchronous -group [get_clocks {clk}] -group [get_clocks {JTAG_CLK}]
+
+#IO引脚约束
+#----------------------系统时钟---------------------------
+define_attribute {p:clk} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:clk} {PAP_IO_LOC} {D18}
+define_attribute {p:clk} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:clk} {PAP_IO_STANDARD} {LVCMOS33}
+
+#----------------------系统复位---------------------------
+define_attribute {p:hard_rst_n} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:hard_rst_n} {PAP_IO_LOC} {C22}
+define_attribute {p:hard_rst_n} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:hard_rst_n} {PAP_IO_STANDARD} {LVCMOS33}
+
+#----------------------LED---------------------------
+define_attribute {p:core_active} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:core_active} {PAP_IO_LOC} {A20}
+define_attribute {p:core_active} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:core_active} {PAP_IO_STANDARD} {LVCMOS33}
+
+#----------------------JTAG---------------------------
+# JTAG_TDI: 扩展口4 -> J10: R20
+define_attribute {p:JTAG_TDI} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:JTAG_TDI} {PAP_IO_LOC} {R20}
+define_attribute {p:JTAG_TDI} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:JTAG_TDI} {PAP_IO_STANDARD} {LVCMOS33}
+
+# JTAG_TMS: 扩展口6 -> J10: P19
+define_attribute {p:JTAG_TMS} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:JTAG_TMS} {PAP_IO_LOC} {P19}
+define_attribute {p:JTAG_TMS} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:JTAG_TMS} {PAP_IO_STANDARD} {LVCMOS33}
+
+# JTAG_TCK: 扩展口8 -> J10: M24
+define_attribute {p:JTAG_TCK} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:JTAG_TCK} {PAP_IO_LOC} {M24}
+define_attribute {p:JTAG_TCK} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:JTAG_TCK} {PAP_IO_STANDARD} {LVCMOS33}
+
+# JTAG_TDO: 扩展口10 -> J10: T24
+define_attribute {p:JTAG_TDO} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:JTAG_TDO} {PAP_IO_LOC} {T24}
+define_attribute {p:JTAG_TDO} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:JTAG_TDO} {PAP_IO_STANDARD} {LVCMOS33}
+
+#----------------------SD---------------------------
+# sd_dat[0]: 扩展口3 -> J10: R21
+
+# sd_dat[1]: 扩展口5 -> J10: N19
+
+# sd_dat[2]: 扩展口7 -> J10: M25
+
+# sd_dat[3]: 扩展口9 -> J10: T25
+
+# sd_cmd: 扩展口11 -> J10: R22
+
+# sd_clk: 扩展口13 -> J10: K26
+
+#----------------------FPIOA---------------------------
+#----------------------uart0---------------------------
+#TX
+define_attribute {p:fpioa[0]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[0]} {PAP_IO_LOC} {C24}
+define_attribute {p:fpioa[0]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[0]} {PAP_IO_STANDARD} {LVCMOS33}
+
+#RX
+define_attribute {p:fpioa[1]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[1]} {PAP_IO_LOC} {B24}
+define_attribute {p:fpioa[1]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[1]} {PAP_IO_STANDARD} {LVCMOS33}
+
+#----------------------uart1---------------------------
+# fpioa[2]: 扩展口12 -> J10: T22
+define_attribute {p:fpioa[2]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[2]} {PAP_IO_LOC} {T22}
+define_attribute {p:fpioa[2]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[2]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[3]: 扩展口14 -> J10: K25
+define_attribute {p:fpioa[3]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[3]} {PAP_IO_LOC} {K25}
+define_attribute {p:fpioa[3]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[3]} {PAP_IO_STANDARD} {LVCMOS33}
+
+#----------------------spi0---------------------------
+# fpioa[4]: 扩展口18 -> J10: L22
+define_attribute {p:fpioa[4]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[4]} {PAP_IO_LOC} {L22}
+define_attribute {p:fpioa[4]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[4]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[5]: 扩展口20 -> J10: Y25
+define_attribute {p:fpioa[5]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[5]} {PAP_IO_LOC} {Y25}
+define_attribute {p:fpioa[5]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[5]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[6]: 扩展口22 -> J10: AA24
+define_attribute {p:fpioa[6]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[6]} {PAP_IO_LOC} {AA24}
+define_attribute {p:fpioa[6]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[6]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[7]: 扩展口24 -> J10: AB24
+define_attribute {p:fpioa[7]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[7]} {PAP_IO_LOC} {AB24}
+define_attribute {p:fpioa[7]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[7]} {PAP_IO_STANDARD} {LVCMOS33}
+
+#----------------------led---------------------------
+define_attribute {p:fpioa[8]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[8]} {PAP_IO_LOC} {C19}
+define_attribute {p:fpioa[8]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[8]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:fpioa[9]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[9]} {PAP_IO_LOC} {C18}
+define_attribute {p:fpioa[9]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[9]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:fpioa[10]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[10]} {PAP_IO_LOC} {E18}
+define_attribute {p:fpioa[10]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[10]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:fpioa[11]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[11]} {PAP_IO_LOC} {A17}
+define_attribute {p:fpioa[11]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[11]} {PAP_IO_STANDARD} {LVCMOS33}
+
+#----------------------按键---------------------------
+define_attribute {p:fpioa[12]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[12]} {PAP_IO_LOC} {C23}
+define_attribute {p:fpioa[12]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[12]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:fpioa[13]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[13]} {PAP_IO_LOC} {B22}
+define_attribute {p:fpioa[13]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[13]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:fpioa[14]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[14]} {PAP_IO_LOC} {A22}
+define_attribute {p:fpioa[14]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[14]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:fpioa[15]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[15]} {PAP_IO_LOC} {B20}
+define_attribute {p:fpioa[15]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[15]} {PAP_IO_STANDARD} {LVCMOS33}
+
+#----------------------pwm---------------------------
+# fpioa[16]: 扩展口17 -> J10: L23
+define_attribute {p:fpioa[16]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[16]} {PAP_IO_LOC} {L23}
+define_attribute {p:fpioa[16]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[16]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[17]: 扩展口19 -> J10: AA25
+define_attribute {p:fpioa[17]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[17]} {PAP_IO_LOC} {AA25}
+define_attribute {p:fpioa[17]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[17]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[18]: 扩展口21 -> J10: AB25
+define_attribute {p:fpioa[18]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[18]} {PAP_IO_LOC} {AB25}
+define_attribute {p:fpioa[18]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[18]} {PAP_IO_STANDARD} {LVCMOS33}
+
+#----------------------gpio---------------------------
+# fpioa[19]: 扩展口23 -> J10: AC24
+define_attribute {p:fpioa[19]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[19]} {PAP_IO_LOC} {AC24}
+define_attribute {p:fpioa[19]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[19]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[20]: 扩展口25 -> J10: R23
+define_attribute {p:fpioa[20]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[20]} {PAP_IO_LOC} {R23}
+define_attribute {p:fpioa[20]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[20]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[21]: 扩展口26 -> J10: T23
+define_attribute {p:fpioa[21]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[21]} {PAP_IO_LOC} {T23}
+define_attribute {p:fpioa[21]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[21]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[22]: 扩展口27 -> J10: P26
+define_attribute {p:fpioa[22]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[22]} {PAP_IO_LOC} {P26}
+define_attribute {p:fpioa[22]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[22]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[23]: 扩展口28 -> J10: R26
+define_attribute {p:fpioa[23]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[23]} {PAP_IO_LOC} {R26}
+define_attribute {p:fpioa[23]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[23]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[24]: 扩展口29 -> J10: M26
+define_attribute {p:fpioa[24]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[24]} {PAP_IO_LOC} {M26}
+define_attribute {p:fpioa[24]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[24]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[25]: 扩展口30 -> J10: N26
+define_attribute {p:fpioa[25]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[25]} {PAP_IO_LOC} {N26}
+define_attribute {p:fpioa[25]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[25]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[26]: 扩展口31 -> J10: M22
+define_attribute {p:fpioa[26]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[26]} {PAP_IO_LOC} {M22}
+define_attribute {p:fpioa[26]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[26]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[27]: 扩展口32 -> J10: M21
+define_attribute {p:fpioa[27]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[27]} {PAP_IO_LOC} {M21}
+define_attribute {p:fpioa[27]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[27]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[28]: 扩展口33 -> J10: U26
+define_attribute {p:fpioa[28]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[28]} {PAP_IO_LOC} {U26}
+define_attribute {p:fpioa[28]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[28]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[29]: 扩展口34 -> J10: U25
+define_attribute {p:fpioa[29]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[29]} {PAP_IO_LOC} {U25}
+define_attribute {p:fpioa[29]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[29]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[30]: 扩展口35 -> J10: AC26
+define_attribute {p:fpioa[30]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[30]} {PAP_IO_LOC} {AC26}
+define_attribute {p:fpioa[30]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[30]} {PAP_IO_STANDARD} {LVCMOS33}
+
+# fpioa[31]: 扩展口36 -> J10: AB26
+define_attribute {p:fpioa[31]} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:fpioa[31]} {PAP_IO_LOC} {AB26}
+define_attribute {p:fpioa[31]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:fpioa[31]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:JTAG_TDO} {PAP_IO_SLEW} {FAST}
+define_attribute {p:JTAG_TCK} {PAP_IO_NONE} {TRUE}
+define_attribute {p:JTAG_TDI} {PAP_IO_NONE} {TRUE}
+define_attribute {p:JTAG_TMS} {PAP_IO_NONE} {TRUE}
+

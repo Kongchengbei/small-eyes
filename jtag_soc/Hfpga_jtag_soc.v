@@ -1,0 +1,222 @@
+`timescale 1ns / 1ps
+
+// Board-facing top for the official Pango JTAG flow.
+// hard_rst_n is active-low, matching the supplied board constraints.
+module Hfpga_jtag_soc #(
+    parameter IMEM_BYTES = 32 * 1024,
+    parameter DMEM_BYTES = 16 * 1024,
+    parameter MEM_FILE   = `PROG_FPGA_PATH
+) (
+    input  clk/* synthesis PAP_MARK_DEBUG="<0/c0/0>" */,
+    input  hard_rst_n/* synthesis PAP_MARK_DEBUG="<0/r0/0>" */,
+    input  JTAG_TCK,
+    input  JTAG_TMS,
+    input  JTAG_TDI,
+    output JTAG_TDO,
+    output core_active,
+    inout  [31:0] fpioa
+);
+    wire [31:0] imem_addr;
+    wire [31:0] imem_rdata;
+    wire        dmem_valid/* synthesis PAP_MARK_DEBUG="<0/t5/0>" */;
+    wire        dmem_wen/* synthesis PAP_MARK_DEBUG="<0/t6/0>" */;
+    wire [31:0] dmem_addr/* synthesis PAP_MARK_DEBUG="<0/t2/0>" */;
+    wire [31:0] dmem_wdata/* synthesis PAP_MARK_DEBUG="<0/t3/0>" */;
+    wire [3:0]  dmem_wmask/* synthesis PAP_MARK_DEBUG="<0/t4/0>" */;
+    wire [31:0] dmem_rdata;
+    wire [31:0] ram_dmem_rdata;
+    wire [31:0] pc/* synthesis PAP_MARK_DEBUG="<0/t0/0>" */;
+    wire [31:0] ins/* synthesis PAP_MARK_DEBUG="<0/t1/0>" */;
+    wire        is_ebreak;
+/*Data channel 0~31     : pc
+Data channel 32~63    : ins
+Data channel 64~95    : dmem_addr
+Data channel 96~127   : dmem_wdata
+Data channel 128~131  : dmem_wmask
+Data channel 132       : dmem_wen
+Data channel 133       : dmem_valid
+*/
+
+   wire ram_dmem_valid = dmem_valid && !mmio_valid;
+   wire ram_dmem_wen   = ram_dmem_valid && dmem_wen;
+
+    wire        jtag_cmd_valid;
+    wire        jtag_cmd_ready;
+    wire [31:0] jtag_cmd_addr;
+    wire        jtag_cmd_read;
+    wire [31:0] jtag_cmd_wdata;
+    wire [3:0]  jtag_cmd_wmask;
+    wire        jtag_rsp_valid;
+    wire        jtag_rsp_ready;
+    wire        jtag_rsp_err;
+    wire [31:0] jtag_rsp_rdata;
+    wire        jtag_halt_req;
+    wire        jtag_reset_req;
+
+    localparam UART0_BASE = 32'h4000_0000;
+    localparam UART0_END  = 32'h4000_0100;
+    localparam LED_ADDR   = 32'h4000_0200;
+    wire mmio_valid = dmem_valid && (dmem_addr[31:28] == 4'h4);
+    wire uart_sel = mmio_valid &&
+                    (dmem_addr >= UART0_BASE) && (dmem_addr < UART0_END);
+    wire led_sel = mmio_valid && (dmem_addr == LED_ADDR);
+    wire fpioa_sel = mmio_valid &&
+                     (dmem_addr >= 32'h4000_0f00) &&
+                     (dmem_addr <  32'h4000_1000);
+    wire led_wr = led_sel && dmem_wen;
+    wire [31:0] uart_rdata;
+    wire [31:0] fpioa_rdata;
+    wire [3:0] led_value;
+    wire uart_tx;
+
+	// Match the board template: JTAG_TCK enters through the vendor input
+    // buffer before it is used as the JTAG clock.
+    wire JTAG_TCK_in;
+    GTP_INBUF #(
+        .IOSTANDARD("DEFAULT"),
+        .TERM_DDR("ON")
+    ) GTP_INBUF_inst (
+        .O (JTAG_TCK_in),
+        .I (JTAG_TCK)
+    );
+
+    jtag_top u_jtag (
+        .clk                 (clk),
+        .jtag_rst_n          (hard_rst_n),
+        .jtag_pin_TCK        (JTAG_TCK_in),
+        .jtag_pin_TMS        (JTAG_TMS),
+        .jtag_pin_TDI        (JTAG_TDI),
+        .jtag_pin_TDO        (JTAG_TDO),
+        .reg_we_o            (),
+        .reg_addr_o          (),
+        .reg_wdata_o         (),
+        .reg_rdata_i         (32'b0),
+        .jtag_icb_cmd_valid  (jtag_cmd_valid),
+        .jtag_icb_cmd_ready  (jtag_cmd_ready),
+        .jtag_icb_cmd_addr   (jtag_cmd_addr),
+        .jtag_icb_cmd_read   (jtag_cmd_read),
+        .jtag_icb_cmd_wdata  (jtag_cmd_wdata),
+        .jtag_icb_cmd_wmask  (jtag_cmd_wmask),
+        .jtag_icb_rsp_valid  (jtag_rsp_valid),
+        .jtag_icb_rsp_ready  (jtag_rsp_ready),
+        .jtag_icb_rsp_err    (jtag_rsp_err),
+        .jtag_icb_rsp_rdata  (jtag_rsp_rdata),
+        .halt_req_o          (jtag_halt_req),
+        .reset_req_o         (jtag_reset_req)
+    );
+
+
+    // The CPU has no debug halt input yet. Holding it in reset during a JTAG
+    // session gives the loader exclusive access to instruction memory.
+    wire cpu_rst = !hard_rst_n || jtag_reset_req || jtag_halt_req;
+
+    Htop u_cpu (
+        .clk        (clk),
+        .rst        (cpu_rst),
+        .imem_addr  (imem_addr),
+        .imem_rdata (imem_rdata),
+        .dmem_valid (dmem_valid),
+        .dmem_wen   (dmem_wen),
+        .dmem_addr  (dmem_addr),
+        .dmem_wdata (dmem_wdata),
+        .dmem_wmask (dmem_wmask),
+        .dmem_rdata (dmem_rdata),
+        .pc         (pc),
+        .ins        (ins),
+        .is_ebreak  (is_ebreak)
+    );
+
+	fpga_unified_memory_jtag #(
+	    .IMEM_BASE  (32'h0000_0000),
+	    .DMEM_BASE  (32'h2000_0000),
+	    .IMEM_BYTES (IMEM_BYTES),
+	    .DMEM_BYTES (DMEM_BYTES)
+	) u_memory (
+	    .clk             (clk),
+	    .rst_n           (hard_rst_n),
+	
+	    .cpu_imem_addr  (imem_addr),
+	    .cpu_imem_rdata (imem_rdata),
+	
+	    .cpu_dmem_addr  (dmem_addr),
+	    .cpu_dmem_rdata (ram_dmem_rdata),
+	    .cpu_dmem_valid (ram_dmem_valid),
+	    .cpu_dmem_wen   (ram_dmem_wen),
+	    .cpu_dmem_wdata (dmem_wdata),
+	    .cpu_dmem_wmask (dmem_wmask),
+	
+	    .jtag_cmd_valid (jtag_cmd_valid),
+	    .jtag_cmd_ready (jtag_cmd_ready),
+	    .jtag_cmd_addr  (jtag_cmd_addr),
+	    .jtag_cmd_read  (jtag_cmd_read),
+	    .jtag_cmd_wdata (jtag_cmd_wdata),
+	    .jtag_cmd_wmask (jtag_cmd_wmask),
+	
+	    .jtag_rsp_valid (jtag_rsp_valid),
+	    .jtag_rsp_ready (jtag_rsp_ready),
+	    .jtag_rsp_err   (jtag_rsp_err),
+	    .jtag_rsp_rdata (jtag_rsp_rdata)
+	);
+
+    Hled #(.WIDTH(4)) u_led (
+        .clk     (clk),
+        .rst_n   (hard_rst_n),
+        .wr_en   (led_wr),
+        .wr_data (dmem_wdata),
+        .wr_mask (dmem_wmask),
+        .led     (led_value)
+    );
+
+    Huart_tx u_uart0_tx (
+        .clk        (clk),
+        .rst_n      (hard_rst_n),
+        .mmio_valid (uart_sel),
+        .mmio_wen   (dmem_wen),
+        .mmio_addr  (dmem_addr[7:0]),
+        .mmio_wdata (dmem_wdata),
+        .mmio_wmask (dmem_wmask),
+        .mmio_rdata (uart_rdata),
+        .tx_pin     (uart_tx)
+    );
+
+    Hfpioa_simple u_fpioa (
+        .clk        (clk),
+        .rst_n      (hard_rst_n),
+        .mmio_valid (fpioa_sel),
+        .mmio_wen   (dmem_wen),
+        .mmio_addr  (dmem_addr[7:0]),
+        .mmio_wdata (dmem_wdata),
+        .mmio_wmask (dmem_wmask),
+        .mmio_rdata (fpioa_rdata),
+        .uart0_tx   (uart_tx),
+        .direct_led (led_value),
+        .fpioa      (fpioa)
+    );
+
+	wire mmio_read = mmio_valid && !dmem_wen;
+
+	wire [31:0] mmio_rdata_now = uart_sel  ? uart_rdata        :
+	                             led_sel   ? {28'b0, led_value}:
+	                             fpioa_sel ? fpioa_rdata       :
+	                			 32'b0;
+
+	reg        mmio_read_reg;
+	reg [31:0] mmio_rdata_reg;
+
+	always @(posedge clk) begin
+	    if (cpu_rst) begin
+	        mmio_read_reg  <= 1'b0;
+	        mmio_rdata_reg <= 32'b0;
+	    end else begin
+	        mmio_read_reg <= mmio_read;
+
+	        if (mmio_read)
+	            mmio_rdata_reg <= mmio_rdata_now;
+	    end
+	end
+
+    assign dmem_rdata = mmio_read_reg ? mmio_rdata_reg : ram_dmem_rdata;
+
+    assign core_active = !cpu_rst && !is_ebreak;
+
+endmodule
