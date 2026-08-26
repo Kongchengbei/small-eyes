@@ -41,7 +41,7 @@
 //综合阶段将程序固化到FPGA内部
 `define PROG_IN_FPGA 1'b1
 //固化到FPGA内部的程序路径，只能导入转换后的文本文件，反斜杠"\"的必须改为"/"
-`define PROG_FPGA_PATH "F:/Jichuang-small_eyes/small-eyes/small-eyes1/source/jtag_soc/running_led.mem"
+`define PROG_FPGA_PATH ""
 /*--------------------------------
  *          开关配置区           
  */

@@ -57,6 +57,22 @@ module fpga_unified_memory_jtag #(
 	wire cpu_dmem_in_range = (cpu_dmem_addr >= DMEM_BASE) &&
 						     (cpu_dmem_addr < DMEM_BASE + DMEM_BYTES);
 
+	// The BRAM read data returns one clock after the address is presented.
+	// Keep the address-space selection from that same request; cpu_dmem_addr
+	// may already belong to the following EX-stage instruction when data returns.
+	reg cpu_dmem_imem_range_d;
+	reg cpu_dmem_dmem_range_d;
+
+	always @(posedge clk or negedge rst_n) begin
+		if (!rst_n) begin
+			cpu_dmem_imem_range_d <= 1'b0;
+			cpu_dmem_dmem_range_d <= 1'b0;
+		end else if (cpu_dmem_valid && !cpu_dmem_wen) begin
+			cpu_dmem_imem_range_d <= cpu_dmem_imem_range;
+			cpu_dmem_dmem_range_d <= cpu_dmem_in_range;
+		end
+	end
+
 	wire jtag_imem_sel =(jtag_cmd_addr[1:0] == 2'b00) &&
 	    				(jtag_cmd_addr >= IMEM_BASE)  &&
 	    				(jtag_cmd_addr < IMEM_BASE + IMEM_BYTES);
@@ -67,8 +83,8 @@ module fpga_unified_memory_jtag #(
 
 
 	assign cpu_imem_rdata = cpu_imem_in_range ? imem_a_rdata : 32'h0000_0013;
-	assign cpu_dmem_rdata = cpu_dmem_imem_range ? imem_b_rdata : 
-						    cpu_dmem_in_range ? dmem_a_rdata : 32'b0;
+	assign cpu_dmem_rdata = cpu_dmem_imem_range_d ? imem_b_rdata :
+						    cpu_dmem_dmem_range_d ? dmem_a_rdata : 32'b0;
 
 	//JTAG 握手信号
 	reg jtag_read_pending;
