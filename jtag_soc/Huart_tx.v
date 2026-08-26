@@ -69,7 +69,7 @@ module Huart_tx #(
                     baud_count <= 16'b0;
                     tx_pin     <= shift_reg[1];
                     shift_reg  <= {1'b1, shift_reg[9:1]};
-                    if (bit_count == 4'd8)
+                    if (bit_count == 4'd9)
                         busy <= 1'b0;
                     else
                         bit_count <= bit_count + 1'b1;
