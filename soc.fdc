@@ -5,8 +5,16 @@ create_clock -period {37.037} [get_ports {clk}] -name clk
 create_clock -period {100.000} [get_ports {JTAG_TCK}] -name JTAG_CLK
 
 define_attribute {n:JTAG_TCK_in} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}
+
+
+create_generated_clock -name cpu_clk \
+    -source [get_ports {clk}] \
+    -master_clock clk \
+    -multiply_by 50 \
+    -divide_by 27 \
+    [get_pins {u_pll/u_gpll:CLKOUT0}]
 # 异步时钟域声明
-set_clock_groups -asynchronous -group [get_clocks {clk}] -group [get_clocks {JTAG_CLK}]
+set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {JTAG_CLK}]
 
 #IO引脚约束
 #----------------------系统时钟---------------------------
