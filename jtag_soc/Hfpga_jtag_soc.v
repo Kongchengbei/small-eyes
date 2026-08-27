@@ -7,7 +7,7 @@ module Hfpga_jtag_soc #(
     parameter DMEM_BYTES = 16 * 1024,
     parameter MEM_FILE   = `PROG_FPGA_PATH
 ) (
-    input  clk/* synthesis PAP_MARK_DEBUG="<0/c0/0>" */,
+    input  clk,
     input  hard_rst_n/* synthesis PAP_MARK_DEBUG="<0/r0/0>" */,
     input  JTAG_TCK,
     input  JTAG_TMS,
@@ -36,6 +36,7 @@ Data channel 128~131  : dmem_wmask
 Data channel 132       : dmem_wen
 Data channel 133       : dmem_valid
 */
+
 
    wire ram_dmem_valid = dmem_valid && !mmio_valid;
    wire ram_dmem_wen   = ram_dmem_valid && dmem_wen;
@@ -69,6 +70,18 @@ Data channel 133       : dmem_valid
     wire [3:0] led_value;
     wire uart_tx;
 
+	wire cpu_clk/* synthesis PAP_MARK_DEBUG="<0/c0/0>" */;
+	wire pll_locked;
+
+	clk_pll u_pll (
+	    .clkin1  (clk),
+	    .clkout0(cpu_clk),
+	    .lock   (pll_locked)
+	);
+
+	wire sys_rst_n = hard_rst_n && pll_locked;
+	wire cpu_rst   = !sys_rst_n || jtag_reset_req || jtag_halt_req;
+
 	// Match the board template: JTAG_TCK enters through the vendor input
     // buffer before it is used as the JTAG clock.
     wire JTAG_TCK_in;
@@ -81,8 +94,8 @@ Data channel 133       : dmem_valid
     );
 
     jtag_top u_jtag (
-        .clk                 (clk),
-        .jtag_rst_n          (hard_rst_n),
+        .clk                 (cpu_clk),
+        .jtag_rst_n          (sys_rst_n),
         .jtag_pin_TCK        (JTAG_TCK_in),
         .jtag_pin_TMS        (JTAG_TMS),
         .jtag_pin_TDI        (JTAG_TDI),
@@ -108,10 +121,10 @@ Data channel 133       : dmem_valid
 
     // The CPU has no debug halt input yet. Holding it in reset during a JTAG
     // session gives the loader exclusive access to instruction memory.
-    wire cpu_rst = !hard_rst_n || jtag_reset_req || jtag_halt_req;
+
 
     Htop u_cpu (
-        .clk        (clk),
+        .clk        (cpu_clk),
         .rst        (cpu_rst),
         .imem_addr  (imem_addr),
         .imem_rdata (imem_rdata),
@@ -132,8 +145,8 @@ Data channel 133       : dmem_valid
 	    .IMEM_BYTES (IMEM_BYTES),
 	    .DMEM_BYTES (DMEM_BYTES)
 	) u_memory (
-	    .clk             (clk),
-	    .rst_n           (hard_rst_n),
+	    .clk             (cpu_clk),
+	    .rst_n           (sys_rst_n),
 	
 	    .cpu_imem_addr  (imem_addr),
 	    .cpu_imem_rdata (imem_rdata),
@@ -159,17 +172,19 @@ Data channel 133       : dmem_valid
 	);
 
     Hled #(.WIDTH(4)) u_led (
-        .clk     (clk),
-        .rst_n   (hard_rst_n),
+        .clk     (cpu_clk),
+        .rst_n   (sys_rst_n),
         .wr_en   (led_wr),
         .wr_data (dmem_wdata),
         .wr_mask (dmem_wmask),
         .led     (led_value)
     );
 
-    Huart_tx u_uart0_tx (
-        .clk        (clk),
-        .rst_n      (hard_rst_n),
+    Huart_tx #(
+    	.CLK_HZ(50_000_000)
+	)u_uart0_tx (
+        .clk        (cpu_clk),
+        .rst_n      (sys_rst_n),
         .mmio_valid (uart_sel),
         .mmio_wen   (dmem_wen),
         .mmio_addr  (dmem_addr[7:0]),
@@ -180,8 +195,8 @@ Data channel 133       : dmem_valid
     );
 
     Hfpioa_simple u_fpioa (
-        .clk        (clk),
-        .rst_n      (hard_rst_n),
+        .clk        (cpu_clk),
+        .rst_n      (sys_rst_n),
         .mmio_valid (fpioa_sel),
         .mmio_wen   (dmem_wen),
         .mmio_addr  (dmem_addr[7:0]),
@@ -203,7 +218,7 @@ Data channel 133       : dmem_valid
 	reg        mmio_read_reg;
 	reg [31:0] mmio_rdata_reg;
 
-	always @(posedge clk) begin
+	always @(posedge cpu_clk) begin
 	    if (cpu_rst) begin
 	        mmio_read_reg  <= 1'b0;
 	        mmio_rdata_reg <= 32'b0;
