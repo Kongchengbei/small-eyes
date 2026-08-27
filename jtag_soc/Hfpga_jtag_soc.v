@@ -16,7 +16,8 @@ module Hfpga_jtag_soc #(
     output core_active,
     inout  [31:0] fpioa
 );
-    wire [31:0] imem_addr;
+ 
+	wire [31:0] imem_addr;
     wire [31:0] imem_rdata;
     wire        dmem_valid/* synthesis PAP_MARK_DEBUG="<0/t5/0>" */;
     wire        dmem_wen/* synthesis PAP_MARK_DEBUG="<0/t6/0>" */;
@@ -59,7 +60,10 @@ Data channel 133       : dmem_valid
     wire mmio_valid = dmem_valid && (dmem_addr[31:28] == 4'h4);
     wire uart_sel = mmio_valid &&
                     (dmem_addr >= UART0_BASE) && (dmem_addr < UART0_END);
-    wire led_sel = mmio_valid && (dmem_addr == LED_ADDR);
+	wire uart_ready;
+    // RAM 和其他外设都是当拍完成，只有 UART 会反压
+    wire dmem_ready = uart_sel ? uart_ready : 1'b1;   
+	wire led_sel = mmio_valid && (dmem_addr == LED_ADDR);
     wire fpioa_sel = mmio_valid &&
                      (dmem_addr >= 32'h4000_0f00) &&
                      (dmem_addr <  32'h4000_1000);
@@ -121,6 +125,7 @@ Data channel 133       : dmem_valid
         .dmem_wdata (dmem_wdata),
         .dmem_wmask (dmem_wmask),
         .dmem_rdata (dmem_rdata),
+		.dmem_ready  (dmem_ready),
         .pc         (pc),
         .ins        (ins),
         .is_ebreak  (is_ebreak)
@@ -176,6 +181,7 @@ Data channel 133       : dmem_valid
         .mmio_wdata (dmem_wdata),
         .mmio_wmask (dmem_wmask),
         .mmio_rdata (uart_rdata),
+		.mmio_ready  (uart_ready),
         .tx_pin     (uart_tx)
     );
 

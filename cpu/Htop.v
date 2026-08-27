@@ -15,6 +15,7 @@ module Htop #(
     output wire [31:0] dmem_wdata,
     output wire [3:0]  dmem_wmask,
     input       [31:0] dmem_rdata,
+	input	dmem_ready,
 
     output wire [31:0] pc,
     output wire [31:0] ins,
@@ -214,7 +215,8 @@ module Htop #(
         .dmem_wen             (dmem_wen),
         .dmem_addr            (dmem_addr),
         .dmem_wdata           (dmem_wdata),
-        .dmem_wmask           (dmem_wmask)
+        .dmem_wmask           (dmem_wmask),
+		.dmem_ready           (dmem_ready)
     );
 
     Hmemu u_memu (
