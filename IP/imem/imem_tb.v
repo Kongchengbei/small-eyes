@@ -69,7 +69,7 @@ localparam B_CLK_OR_POL_INV = 0 ; // @IPC bool
 
 localparam INIT_EN = 1 ; // @IPC bool
 
-localparam INIT_FILE = "F:/Jichuang-small_eyes/small-eyes/small-eyes1/source/jtag_soc/Coremark.dat" ; // @IPC string
+localparam INIT_FILE = "C:/Users/22427/Desktop/Coremark.dat" ; // @IPC string
 
 localparam INIT_FORMAT = "HEX" ; // @IPC enum BIN,HEX
 

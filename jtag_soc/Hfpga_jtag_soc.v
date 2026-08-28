@@ -186,7 +186,7 @@ Data channel 133       : dmem_valid
     );
 
     Huart_tx #(
-    	.CLK_HZ(50_000_000)
+    	.CLK_HZ(70_000_000)
 	)u_uart0_tx (
         .clk        (cpu_clk),
         .rst_n      (sys_rst_n),

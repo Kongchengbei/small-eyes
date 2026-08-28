@@ -10,7 +10,7 @@ define_attribute {n:JTAG_TCK_in} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}
 create_generated_clock -name cpu_clk \
     -source [get_ports {clk}] \
     -master_clock clk \
-    -multiply_by 50 \
+    -multiply_by 70 \
     -divide_by 27 \
     [get_pins {u_pll/u_gpll:CLKOUT0}]
 # 异步时钟域声明
