@@ -8,7 +8,7 @@ module Hfpga_jtag_soc #(
     parameter MEM_FILE   = `PROG_FPGA_PATH
 ) (
     input  clk,
-    input  hard_rst_n/* synthesis PAP_MARK_DEBUG="<0/r0/0>" */,
+    input  hard_rst_n,
     input  JTAG_TCK,
     input  JTAG_TMS,
     input  JTAG_TDI,
@@ -19,15 +19,19 @@ module Hfpga_jtag_soc #(
  
 	wire [31:0] imem_addr;
     wire [31:0] imem_rdata;
-    wire        dmem_valid/* synthesis PAP_MARK_DEBUG="<0/t5/0>" */;
-    wire        dmem_wen/* synthesis PAP_MARK_DEBUG="<0/t6/0>" */;
-    wire [31:0] dmem_addr/* synthesis PAP_MARK_DEBUG="<0/t2/0>" */;
-    wire [31:0] dmem_wdata/* synthesis PAP_MARK_DEBUG="<0/t3/0>" */;
-    wire [3:0]  dmem_wmask/* synthesis PAP_MARK_DEBUG="<0/t4/0>" */;
+    // 属性必须写成 Verilog-2001 前置形式 (* ... *)。
+    // 尾置的 /* synthesis ... */ 注释形式 Synplify 只对标量生效，
+    // 多位向量在综合时属性会被丢掉（syn.vm 里 pc/ins/dmem_addr 就没有标记），
+    // 结果是 Fabric Inserter 里这几条总线不会被自动列出来。
+    (* PAP_MARK_DEBUG="<0/t5/0>" *) wire        dmem_valid;
+    (* PAP_MARK_DEBUG="<0/t6/0>" *) wire        dmem_wen;
+    (* PAP_MARK_DEBUG="<0/t2/0>" *) wire [31:0] dmem_addr;
+    (* PAP_MARK_DEBUG="<0/t3/0>" *) wire [31:0] dmem_wdata;
+    (* PAP_MARK_DEBUG="<0/t4/0>" *) wire [3:0]  dmem_wmask;
     wire [31:0] dmem_rdata;
     wire [31:0] ram_dmem_rdata;
-    wire [31:0] pc/* synthesis PAP_MARK_DEBUG="<0/t0/0>" */;
-    wire [31:0] ins/* synthesis PAP_MARK_DEBUG="<0/t1/0>" */;
+    (* PAP_MARK_DEBUG="<0/t0/0>" *) wire [31:0] pc;
+    (* PAP_MARK_DEBUG="<0/t1/0>" *) wire [31:0] ins;
     wire        is_ebreak;
 /*Data channel 0~31     : pc
 Data channel 32~63    : ins
