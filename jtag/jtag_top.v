@@ -117,8 +117,3 @@ jtag_dm #(
 );
 
 endmodule
-
-/*
-"jtag_top.v is licensed under Apache-2.0 (http://www.apache.org/licenses/LICENSE-2.0)
-   by Blue Liang, liangkangnan@163.com.
-*/

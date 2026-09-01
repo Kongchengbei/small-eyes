@@ -106,9 +106,9 @@ module Hexu (
 	// 访存请求：只看 ex_valid 和指令类型，不看 ready_go —— 这是打断组合环的关键
     wire ex_mem_req = ex_valid && (ex_is_load || ex_is_store);
 	//控制信号
-     assign ex_ready_go = (!ex_valid || !ex_m_is_div || ex_div_done)   // 除法
-                    && (!ex_mem_req || dmem_ready);                 // 访存 ← 新增   
-	assign ex_allowin      = !ex_valid || (ex_ready_go && mem_allowin);
+	assign ex_ready_go     =(!ex_valid || !ex_m_is_div || ex_div_done) //除法
+						   && (!ex_mem_req || dmem_ready); //访存
+    assign ex_allowin      = !ex_valid || (ex_ready_go && mem_allowin);
     assign ex_to_mem_valid = ex_valid && ex_ready_go;
 	
 	//M指令
@@ -212,7 +212,7 @@ module Hexu (
     assign ex_forward_data    = ex_wb_value;
 
 
-    assign dmem_valid = ex_mem_req; 
+    assign dmem_valid = ex_to_mem_valid && (ex_is_load || ex_is_store);
     assign dmem_wen   = dmem_valid && ex_is_store;
     assign dmem_addr  = ex_result;
 

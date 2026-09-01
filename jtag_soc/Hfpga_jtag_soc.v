@@ -19,10 +19,8 @@ module Hfpga_jtag_soc #(
  
 	wire [31:0] imem_addr;
     wire [31:0] imem_rdata;
-    // 属性必须写成 Verilog-2001 前置形式 (* ... *)。
+    // 属性Verilog-2001 前置形式 (* ... *)。
     // 尾置的 /* synthesis ... */ 注释形式 Synplify 只对标量生效，
-    // 多位向量在综合时属性会被丢掉（syn.vm 里 pc/ins/dmem_addr 就没有标记），
-    // 结果是 Fabric Inserter 里这几条总线不会被自动列出来。
     (* PAP_MARK_DEBUG="<0/t5/0>" *) wire        dmem_valid;
     (* PAP_MARK_DEBUG="<0/t6/0>" *) wire        dmem_wen;
     (* PAP_MARK_DEBUG="<0/t2/0>" *) wire [31:0] dmem_addr;
@@ -93,7 +91,6 @@ Data channel 133       : dmem_valid
 	// 等于把一个异步信号当同步复位用：它可以在任意时刻跳变，五级流水各级的触发器
 	// 可能在同一个时钟沿上采到不同的值，出现 ex_valid=1 而 id_valid=0 这类不一致
 	// 状态 —— EX 里就多出一条带着旧 ex_is_store 的幽灵指令。
-	// 单周期设计只有一组状态，不会暴露这个问题；流水线必须保证各级同拍复位、同拍释放。
 	// 因此这里做"异步置位、同步释放"：断言不依赖时钟(PLL 未锁时同样有效)，
 	// 释放沿由 cpu_clk 打两拍对齐，各级触发器必然在同一个沿上一起解除复位。
 	wire rst_async_n = hard_rst_n && pll_locked;

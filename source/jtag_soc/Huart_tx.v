@@ -30,7 +30,7 @@ module Huart_tx #(
     wire txdata_req = mmio_valid && mmio_wen && (mmio_addr == 8'h0c) && mmio_wmask[0];
     wire tx_start = txdata_req && uart_ctrl[0] && !busy;
 	//唯一需要反压的情况：正在发送时又要写 TXDATA。其余访问一律当拍完成。
-	assign mmio_ready = !(txdata_req && busy);
+	assign mmio_ready = !(txdata_req && uart_ctrl[0] && busy);
 
     always @(*) begin
         mmio_rdata = 32'b0;
