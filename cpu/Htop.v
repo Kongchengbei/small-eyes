@@ -15,8 +15,7 @@ module Htop #(
     output wire [31:0] dmem_wdata,
     output wire [3:0]  dmem_wmask,
     input       [31:0] dmem_rdata,
-	input	dmem_ready,
-
+	input  wire        dmem_ready,	
     output wire [31:0] pc,
     output wire [31:0] ins,
     output wire        is_ebreak
@@ -96,10 +95,18 @@ module Htop #(
 
     //EX异常优先于id阶段。
     wire        flush    = ex_flush_req || id_flush_req;
-    wire [31:0] flush_pc = ex_flush_req ? ex_flush_pc : id_redirect_pc;
-
-
-
+    //wire [31:0] flush_pc = ex_flush_req ? ex_flush_pc : id_redirect_pc;
+    wire [31:0] flush_pc = ex_flush_req ? ex_flush_pc : actual_next_pc;
+    //增加btb模块
+    wire [31:0]  btb_lookup_pc;
+    wire         btb_lookup_hit;
+    wire [31:0]  btb_look_up_target;
+    wire         btb_update_valid;
+    wire [31:0]  btb_update_pc;
+    wire [31:0]  btb_update_target;
+    wire [31:0]  btb_predict_next_pc;
+    wire [31:0]  actual_next_pc;
+   
     Hifu #(.RESET_PC(RESET_PC)) u_ifu (
         .clk            (clk),
         .rst            (rst),
@@ -107,12 +114,31 @@ module Htop #(
         .flush          (flush),
         .redirect_pc    (flush_pc),
         .imem_rdata     (imem_rdata),
+        //btb
+        .btb_hit        (btb_lookup_hit),
+        .btb_target     (btb_look_up_target),
+        .predict_next_pc(btb_predict_next_pc),
+
         .imem_addr      (imem_addr),
         .if_ins         (if_ins),
         .if_pc          (if_pc),
         .if_to_id_valid (if_to_id_valid)
     );
 
+
+
+    assign btb_lookup_pc = if_pc;
+    Btb u_btb(
+        .clk            (clk),
+        .rst            (rst),
+        .lookup_pc      (btb_lookup_pc),
+        .update_valid   (btb_update_valid),
+        .update_pc      (btb_update_pc),
+        .update_target  (btb_update_target),
+        .lookup_hit     (btb_lookup_hit),
+        .lookup_target  (btb_look_up_target)
+    );
+   
     Hidu u_idu (
         .clk                (clk),
         .rst                (rst),
@@ -160,7 +186,14 @@ module Htop #(
         .id_csr_imm         (id_csr_imm),
         .id_wb_sel          (id_wb_sel),
         .id_flush_req       (id_flush_req),
-        .id_redirect_pc     (id_redirect_pc)
+        .id_redirect_pc     (id_redirect_pc),
+
+        //btb--更新逻辑
+        .btb_update_pc      (btb_update_pc),
+        .btb_update_valid   (btb_update_valid),
+        .btb_update_target  (btb_update_target),
+        .btb_predict_next_pc(btb_predict_next_pc),
+        .actual_next_pc     (actual_next_pc)
     );
 
     Hexu u_exu (

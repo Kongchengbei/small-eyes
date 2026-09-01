@@ -51,8 +51,13 @@ module Hidu (
     output wire [4:0]  id_csr_imm,
     output wire [1:0]  id_wb_sel,
     output wire        id_flush_req,
-    output wire [31:0] id_redirect_pc
-
+    output wire [31:0] id_redirect_pc,
+    //btb
+    output wire        btb_update_valid,
+    output wire [31:0] btb_update_pc,
+    output wire [31:0] btb_update_target,
+    input  wire  [31:0] btb_predict_next_pc,
+    output wire [31:0] actual_next_pc
 );
     localparam [1:0] WB_ALU  = 2'b00;
     localparam [1:0] WB_LOAD = 2'b01;
@@ -83,8 +88,13 @@ module Hidu (
     wire       id_uses_rs2;
     wire [4:0] id_rs1_addr;
     wire [4:0] id_rs2_addr;
-
-	//译码识别指令
+    
+    //btb -- 关于这个actual_next_pc和mispredict
+    wire [31:0] id_actual_next_pc;
+    wire        mispredict;
+    reg [31:0]  id_predict_next_pc;
+	
+    //译码识别指令
     wire [6:0] opcode = id_ins_reg[6:0];
     wire [2:0] funct3 = id_ins_reg[14:12];
     wire [6:0] funct7 = id_ins_reg[31:25];
@@ -261,17 +271,26 @@ module Hidu (
     assign id_to_ex_valid   = id_valid && id_ready_go;
 
     wire id_fire  = id_valid && id_ready_go && ex_allowin;//ID中这条指令的操作数已经正确，ID具备向下执行的条件
-    assign id_flush_req = id_fire &&(id_is_jal || id_is_jalr ||(id_is_branch && branch_taken));
+    assign id_flush_req =  mispredict;//(id_fire &&(id_is_jal || id_is_jalr ||(id_is_branch && branch_taken))) || mispredict;
     assign id_redirect_pc = id_is_jalr ? ((id_src1 + id_imm) & ~32'd1) :
                                          (id_pc_reg + id_imm);
 
 	assign id_ins = id_ins_reg;
-	//传递
+
+    //关于btb
+    assign btb_update_valid  = id_fire && (id_is_jal || id_is_jalr);
+    assign btb_update_pc     = id_pc_reg;
+    assign btb_update_target = id_redirect_pc;
+    assign id_actual_next_pc = (id_is_jal || id_is_jalr ||(id_is_branch && branch_taken)) ? id_redirect_pc : id_pc_reg+4;
+    assign mispredict        = id_fire &&( actual_next_pc != id_predict_next_pc);
+    assign actual_next_pc    = id_actual_next_pc;
+    //传递
     always @(posedge clk) begin
         if (rst) begin
             id_valid   <= 1'b0;
             id_pc_reg  <= 32'b0;
             id_ins_reg <= 32'h0000_0013;
+            id_predict_next_pc <= 32'h0;
         end else begin
             if (flush) begin
                 id_valid <= 1'b0;
@@ -280,8 +299,9 @@ module Hidu (
             end
 
             if (!flush && if_to_id_valid && id_allowin) begin
-                id_pc_reg  <= if_pc;
-                id_ins_reg <= if_ins;
+                id_pc_reg          <= if_pc;
+                id_ins_reg         <= if_ins;
+                id_predict_next_pc <= btb_predict_next_pc;
             end
         end
     end
