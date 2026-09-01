@@ -30,7 +30,7 @@ module Hcsr (
 	reg [4:0]  csr_mcctr;
 
 	localparam [31:0] CSR_MVENDORID_VALUE = 32'h0011_4514;
-	localparam [31:0] CSR_MIMPID_VALUE    = 32'h1020_0A8C;
+	localparam [31:0] CSR_MIMPID_VALUE    = 32'h1020_1B58; // 低17位是7000-》70MHz (10kHz为单位)
 	wire timer_pending  = (csr_mtime >= csr_mtimecmp);
 	wire [31:0] csr_mip = {20'b0, 1'b0, 3'b0, timer_pending, 3'b0, 1'b0, 3'b0};
 
