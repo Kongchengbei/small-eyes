@@ -26,6 +26,9 @@ module Hmemu (
     output wire        mem_to_wb_valid,
     output wire [31:0] mem_wb_data,
     output wire        mem_forward_valid,
+    // 调试观测：MEM 级 valid/完成条件
+    output wire        dbg_mem_valid,
+    output wire        dbg_mem_ready_go,
     output reg  [4:0]  mem_rd_addr,
     output reg         mem_reg_wen,
     output reg         mem_is_ebreak
@@ -44,6 +47,8 @@ module Hmemu (
     assign mem_ready_go    = 1'b1;
     assign mem_allowin     = !mem_valid || (mem_ready_go && wb_allowin);
     assign mem_to_wb_valid = mem_valid && mem_ready_go;
+    assign dbg_mem_valid   = mem_valid;
+    assign dbg_mem_ready_go = mem_ready_go;
 
 
 
@@ -97,4 +102,3 @@ module Hmemu (
 		end
 	end
 endmodule
-

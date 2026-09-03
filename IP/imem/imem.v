@@ -92,7 +92,7 @@ localparam B_FAB_REG = 0 ; // @IPC bool
 
 localparam INIT_EN = 1 ; // @IPC bool
 
-localparam INIT_FILE = "F:/Jichuang-small_eyes/small-eyes/small-eyes1/source/jtag_soc/Coremark.dat" ; // @IPC string
+localparam INIT_FILE = "F:/Jichuang-small_eyes/small-eyes/small-eyes1/source/running_led.dat" ; // @IPC string
 
 localparam INIT_FORMAT = "HEX" ; // @IPC enum BIN,HEX
 

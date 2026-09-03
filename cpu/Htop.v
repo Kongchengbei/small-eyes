@@ -18,7 +18,26 @@ module Htop #(
 	input  wire        dmem_ready,	
     output wire [31:0] pc,
     output wire [31:0] ins,
-    output wire        is_ebreak
+    output wire        is_ebreak,
+
+    // 逻辑字段调试接口：每个输出对应一个可读的 ILA Bus。
+    // 这样 Inserter 中会显示 if_pc/id_pc/...，而不是 debug_data0[bit]。
+    output wire [31:0] debug_if_pc,
+    output wire [31:0] debug_id_pc,
+    output wire [31:0] debug_ex_pc,
+    output wire [31:0] debug_mem_pc,
+    output wire [31:0] debug_wb_pc,
+    output wire [31:0] debug_if_ins,
+    output wire [31:0] debug_id_ins,
+    output wire [31:0] debug_ex_ins,
+    output wire [31:0] debug_mem_ins,
+    output wire [31:0] debug_wb_ins,
+    output wire [31:0] debug_dmem_addr,
+    output wire [31:0] debug_dmem_wdata,
+    output wire [31:0] debug_btb_predict_next_pc,
+    output wire [31:0] debug_actual_next_pc,
+    output wire [31:0] debug_flush_pc,
+    output wire [31:0] debug_ctrl
 );
     wire        if_to_id_valid;
     wire [31:0] if_pc;
@@ -106,6 +125,19 @@ module Htop #(
     wire [31:0]  btb_update_target;
     wire [31:0]  btb_predict_next_pc;
     wire [31:0]  actual_next_pc;
+
+    // Debug bus source signals.  These are deliberately kept as one packed
+    // interface so adding/removing an observation does not grow Hfpga's port
+    // list one signal at a time.
+    wire dbg_if_valid;
+    wire dbg_if_allowin;
+    wire dbg_id_valid;
+    wire dbg_id_stall;
+    wire dbg_id_ready_go;
+    wire dbg_mispredict;
+    wire dbg_ex_ready_go;
+    wire dbg_mem_valid;
+    wire dbg_mem_ready_go;
    
     Hifu #(.RESET_PC(RESET_PC)) u_ifu (
         .clk            (clk),
@@ -122,7 +154,9 @@ module Htop #(
         .imem_addr      (imem_addr),
         .if_ins         (if_ins),
         .if_pc          (if_pc),
-        .if_to_id_valid (if_to_id_valid)
+        .if_to_id_valid (if_to_id_valid),
+        .dbg_if_valid   (dbg_if_valid),
+        .dbg_if_allowin (dbg_if_allowin)
     );
 
 
@@ -193,7 +227,11 @@ module Htop #(
         .btb_update_valid   (btb_update_valid),
         .btb_update_target  (btb_update_target),
         .btb_predict_next_pc(btb_predict_next_pc),
-        .actual_next_pc     (actual_next_pc)
+        .actual_next_pc     (actual_next_pc),
+        .dbg_id_valid       (dbg_id_valid),
+        .dbg_id_stall       (dbg_id_stall),
+        .dbg_id_ready_go    (dbg_id_ready_go),
+        .dbg_mispredict     (dbg_mispredict)
     );
 
     Hexu u_exu (
@@ -243,7 +281,8 @@ module Htop #(
         .ex_forward_data      (ex_forward_data),
         .ex_flush_req         (ex_flush_req),
         .ex_flush_pc          (ex_flush_pc),
-		.ex_wb_value          (ex_wb_value),
+        .ex_wb_value          (ex_wb_value),
+        .dbg_ex_ready_go      (dbg_ex_ready_go),
         .dmem_valid           (dmem_valid),
         .dmem_wen             (dmem_wen),
         .dmem_addr            (dmem_addr),
@@ -275,7 +314,9 @@ module Htop #(
         .mem_reg_wen      (mem_reg_wen),
         .mem_is_ebreak    (mem_is_ebreak),
         .mem_wb_data      (mem_wb_data),
-        .mem_forward_valid(mem_forward_valid)
+        .mem_forward_valid(mem_forward_valid),
+        .dbg_mem_valid    (dbg_mem_valid),
+        .dbg_mem_ready_go (dbg_mem_ready_go)
     );
 
     Hwbu u_wbu (
@@ -298,8 +339,46 @@ module Htop #(
         .wb_is_ebreak    (wb_is_ebreak)
     );
 
-	assign pc        = wb_pc ;
+    assign pc        = wb_pc ;
     assign ins       = wb_ins;
     assign is_ebreak = wb_is_ebreak;
+
+    // 每个逻辑字段单独导出，便于 Inserter/ILA 直接按名称观察。
+    assign debug_if_pc               = if_pc;
+    assign debug_id_pc               = id_pc;
+    assign debug_ex_pc               = ex_pc;
+    assign debug_mem_pc              = mem_pc;
+    assign debug_wb_pc               = wb_pc;
+    assign debug_if_ins              = if_ins;
+    assign debug_id_ins              = id_ins;
+    assign debug_ex_ins              = ex_ins;
+    assign debug_mem_ins             = mem_ins;
+    assign debug_wb_ins              = wb_ins;
+    assign debug_dmem_addr           = dmem_addr;
+    assign debug_dmem_wdata          = dmem_wdata;
+    assign debug_btb_predict_next_pc = btb_predict_next_pc;
+    assign debug_actual_next_pc      = actual_next_pc;
+    assign debug_flush_pc            = flush_pc;
+
+    // ctrl bit map (LSB first):
+    // 0 if_valid, 1 if_to_id_valid, 2 if_allowin,
+    // 3 id_valid, 4 id_stall, 5 id_to_ex_valid, 6 id_allowin,
+    // 7 id_ready_go, 8 ex_valid, 9 ex_to_mem_valid, 10 ex_allowin,
+    // 11 ex_ready_go, 12 mem_valid, 13 mem_to_wb_valid, 14 mem_allowin,
+    // 15 mem_ready_go, 16 wb_valid, 17 wb_allowin,
+    // 18 dmem_valid, 19 dmem_wen, 20 dmem_ready,
+    // 21 flush, 22 id_flush_req, 23 ex_flush_req,
+    // 24 mispredict, 25 btb_lookup_hit, 26 btb_update_valid,
+    // [31:28] dmem_wmask, [27] reserved.
+    assign debug_ctrl = {dmem_wmask, 1'b0, btb_update_valid, btb_lookup_hit,
+                         dbg_mispredict, ex_flush_req, id_flush_req, flush,
+                         dmem_ready, dmem_wen, dmem_valid,
+                         wb_allowin, wb_valid,
+                         dbg_mem_ready_go, mem_allowin, mem_to_wb_valid,
+                         dbg_mem_valid,
+                         dbg_ex_ready_go, ex_allowin, ex_to_mem_valid, ex_valid,
+                         dbg_id_ready_go, id_allowin, id_to_ex_valid,
+                         dbg_id_stall, dbg_id_valid,
+                         dbg_if_allowin, if_to_id_valid, dbg_if_valid};
 
 endmodule
