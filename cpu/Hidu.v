@@ -53,10 +53,12 @@ module Hidu (
     output wire        id_flush_req,
     output wire [31:0] id_redirect_pc,
     //btb
-    output wire        btb_update_valid,
-    output wire [31:0] btb_update_pc,
-    output wire [31:0] btb_update_target,
-    input  wire  [31:0] btb_predict_next_pc,
+     output wire        btb_update_valid,
+     output wire [31:0] btb_update_pc,
+     output wire [31:0] btb_update_target,
+     output wire        btb_update_is_conditional,
+     output wire        btb_update_taken,
+     input  wire  [31:0] btb_predict_next_pc,
     output wire [31:0] actual_next_pc,
     // 调试观测：ID 级状态、暂停和 BTB 误预测
     output wire        dbg_id_valid,
@@ -287,9 +289,14 @@ module Hidu (
 	assign id_ins = id_ins_reg;
 
     //关于btb
-    assign btb_update_valid  = id_fire && (id_is_jal || id_is_jalr);
-    assign btb_update_pc     = id_pc_reg;
-    assign btb_update_target = id_redirect_pc;
+     // 无条件跳转和条件分支都在解析完成后更新 BTB；条件分支同时
+     // 更新方向计数器，JAL/JALR 则固定视为 taken。
+     assign btb_update_valid  = id_fire &&
+                                (id_is_jal || id_is_jalr || id_is_branch);
+     assign btb_update_pc     = id_pc_reg;
+     assign btb_update_target = id_redirect_pc;
+     assign btb_update_is_conditional = id_is_branch;
+     assign btb_update_taken  = id_is_branch ? branch_taken : 1'b1;
     assign id_actual_next_pc = (id_is_jal || id_is_jalr ||(id_is_branch && branch_taken)) ? id_redirect_pc : id_pc_reg+4;
     assign mispredict        = id_fire &&( actual_next_pc != id_predict_next_pc);
     assign actual_next_pc    = id_actual_next_pc;

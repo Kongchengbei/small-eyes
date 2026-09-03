@@ -121,9 +121,11 @@ module Htop #(
     wire         btb_lookup_hit;
     wire [31:0]  btb_look_up_target;
     wire         btb_update_valid;
-    wire [31:0]  btb_update_pc;
-    wire [31:0]  btb_update_target;
-    wire [31:0]  btb_predict_next_pc;
+     wire [31:0]  btb_update_pc;
+     wire [31:0]  btb_update_target;
+     wire         btb_update_is_conditional;
+     wire         btb_update_taken;
+     wire [31:0]  btb_predict_next_pc;
     wire [31:0]  actual_next_pc;
 
     // Debug bus source signals.  These are deliberately kept as one packed
@@ -166,10 +168,12 @@ module Htop #(
         .clk            (clk),
         .rst            (rst),
         .lookup_pc      (btb_lookup_pc),
-        .update_valid   (btb_update_valid),
-        .update_pc      (btb_update_pc),
-        .update_target  (btb_update_target),
-        .lookup_hit     (btb_lookup_hit),
+         .update_valid   (btb_update_valid),
+         .update_pc      (btb_update_pc),
+         .update_target  (btb_update_target),
+         .update_is_conditional (btb_update_is_conditional),
+         .update_taken   (btb_update_taken),
+         .lookup_hit     (btb_lookup_hit),
         .lookup_target  (btb_look_up_target)
     );
    
@@ -223,10 +227,12 @@ module Htop #(
         .id_redirect_pc     (id_redirect_pc),
 
         //btb--更新逻辑
-        .btb_update_pc      (btb_update_pc),
-        .btb_update_valid   (btb_update_valid),
-        .btb_update_target  (btb_update_target),
-        .btb_predict_next_pc(btb_predict_next_pc),
+         .btb_update_pc      (btb_update_pc),
+         .btb_update_valid   (btb_update_valid),
+         .btb_update_target  (btb_update_target),
+         .btb_update_is_conditional (btb_update_is_conditional),
+         .btb_update_taken   (btb_update_taken),
+         .btb_predict_next_pc(btb_predict_next_pc),
         .actual_next_pc     (actual_next_pc),
         .dbg_id_valid       (dbg_id_valid),
         .dbg_id_stall       (dbg_id_stall),
@@ -368,7 +374,7 @@ module Htop #(
     // 15 mem_ready_go, 16 wb_valid, 17 wb_allowin,
     // 18 dmem_valid, 19 dmem_wen, 20 dmem_ready,
     // 21 flush, 22 id_flush_req, 23 ex_flush_req,
-    // 24 mispredict, 25 btb_lookup_hit, 26 btb_update_valid,
+     // 24 mispredict, 25 btb_lookup_hit, 26 btb_update_valid,
     // [31:28] dmem_wmask, [27] reserved.
     assign debug_ctrl = {dmem_wmask, 1'b0, btb_update_valid, btb_lookup_hit,
                          dbg_mispredict, ex_flush_req, id_flush_req, flush,
