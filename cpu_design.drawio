@@ -1,23 +1,26 @@
 <mxfile host="65bd71144e">
     <diagram id="architecture" name="架构">
-        <mxGraphModel dx="323" dy="710" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1600" pageHeight="900" math="0" shadow="0">
+        <mxGraphModel dx="1661" dy="990" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1920" pageHeight="1200" math="0" shadow="0">
             <root>
                 <mxCell id="a0"/>
                 <mxCell id="a1" parent="a0"/>
-                <mxCell id="a_title" value="CPU 数据通路（五级流水线）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=28;fontStyle=1;fontColor=#17212b;" parent="a1" vertex="1">
-                    <mxGeometry x="60" y="20" width="700" height="45" as="geometry"/>
+                <mxCell id="a_title" value="CPU 数据通路（五级流水线，含 BTB 取指预测）" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=28;fontStyle=1;fontColor=#17212b;" parent="a1" vertex="1">
+                    <mxGeometry x="60" y="20" width="900" height="45" as="geometry"/>
                 </mxCell>
-                <mxCell id="a_pc" value="PC" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=14;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
-                    <mxGeometry x="190" y="470" width="70" height="40" as="geometry"/>
+                <mxCell id="a_f_btb" value="BTB（分支目标缓冲）&#xa;直接映射 16 项&#xa;命中 → 给出预测目标" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=13;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
+                    <mxGeometry x="300" y="120" width="100" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="a_add_pc4" value="PC + 4" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=13;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
-                    <mxGeometry x="45" y="380" width="90" height="40" as="geometry"/>
+                <mxCell id="a_f_add" value="PC + 4" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=13;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
+                    <mxGeometry x="40" y="210" width="90" height="45" as="geometry"/>
                 </mxCell>
-                <mxCell id="a_pc_mux" value="下一 PC 选择" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=13;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
-                    <mxGeometry x="40" y="470" width="100" height="40" as="geometry"/>
+                <mxCell id="a_f_mux" value="下一 PC 选择&#xa;重定向 / BTB 预测 / PC+4" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=12;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
+                    <mxGeometry x="40" y="300" width="90" height="55" as="geometry"/>
                 </mxCell>
-                <mxCell id="a_imem" value="指令存储器" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=14;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
-                    <mxGeometry x="300" y="455" width="100" height="70" as="geometry"/>
+                <mxCell id="a_f_pc" value="PC" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=14;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
+                    <mxGeometry x="150" y="300" width="90" height="55" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_f_imem" value="指令存储器" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=14;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
+                    <mxGeometry x="300" y="330" width="190" height="150" as="geometry"/>
                 </mxCell>
                 <mxCell id="a_if_id" value="IF/ID" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dde3ea;strokeColor=#2f3439;strokeWidth=1.5;fontSize=11;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
                     <mxGeometry x="500" y="320" width="16" height="300" as="geometry"/>
@@ -28,7 +31,7 @@
                 <mxCell id="a_rf" value="寄存器堆" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=13;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
                     <mxGeometry x="580" y="450" width="120" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="a_branch" value="分支判定 /&#xa;跳转目标" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=13;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
+                <mxCell id="a_branch" value="分支判定 / 跳转目标 / 预测校验" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=12;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
                     <mxGeometry x="565" y="610" width="155" height="70" as="geometry"/>
                 </mxCell>
                 <mxCell id="a_id_ex" value="ID/EX" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dde3ea;strokeColor=#2f3439;strokeWidth=1.5;fontSize=11;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
@@ -59,33 +62,75 @@
                     <mxGeometry x="1400" y="480" width="130" height="60" as="geometry"/>
                 </mxCell>
                 <mxCell id="a_ctrl" value="控制单元&#xa;（旁路 / 暂停 / 清空 / 重定向）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#eef1f4;strokeColor=#2f3439;strokeWidth=1.5;fontSize=12;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="a1" vertex="1">
-                    <mxGeometry x="640" y="70" width="220" height="80" as="geometry"/>
+                    <mxGeometry x="640" y="110" width="220" height="80" as="geometry"/>
                 </mxCell>
-                <mxCell id="a_e_pc_add" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;exitX=0.5;exitY=0;entryX=1;entryY=0.5;" parent="a1" source="a_pc" target="a_add_pc4" edge="1">
+                <mxCell id="a_e_mux_pc" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" parent="a1" source="a_f_mux" target="a_f_pc" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_e_pc_imem" value="取指地址" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;entryX=0;entryY=0.2;" parent="a1" source="a_f_pc" target="a_f_imem" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_e_pc_add" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;exitX=0.06;exitY=0;entryX=1;entryY=0.25;entryDx=0;entryDy=0;" parent="a1" source="a_f_pc" target="a_f_add" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <Array as="points">
-                            <mxPoint x="205" y="470"/>
-                            <mxPoint x="205" y="400"/>
+                            <mxPoint x="155" y="220"/>
+                            <mxPoint x="150" y="220"/>
+                            <mxPoint x="150" y="221"/>
+                        </Array>
+                        <mxPoint x="160" y="220" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="a_e_pc_btb" value="查询" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="a1" source="a_f_pc" target="a_f_btb" edge="1">
+                    <mxGeometry x="-0.2654" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="195" y="160"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="a_e_add_mux" value="PC+4" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="a1" source="a_f_add" target="a_f_mux" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="a_e_btb_mux" value="预测目标" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=0;entryX=-0.037;entryY=0.499;entryDx=0;entryDy=0;entryPerimeter=0;" parent="a1" source="a_f_btb" target="a_f_mux" edge="1">
+                    <mxGeometry x="-0.3811" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="350" y="100"/>
+                            <mxPoint x="20" y="100"/>
+                            <mxPoint x="20" y="327"/>
+                        </Array>
+                        <mxPoint x="20" y="340" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="a_e_branch_mux" value="实际下一 PC&#xa;（预测错误 → 重定向）" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.35;exitY=1;" parent="a1" source="a_branch" target="a_f_mux" edge="1">
+                    <mxGeometry x="-0.2938" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="619" y="700"/>
+                            <mxPoint x="80" y="700"/>
+                        </Array>
+                        <mxPoint x="90" y="410" as="targetPoint"/>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="a_e_btb_upd" value="更新：JAL / JALR 目标" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#68737d;fontColor=#52606d;fontSize=12;labelBackgroundColor=#ffffff;dashed=1;exitX=0;exitY=0.5;entryX=1.008;entryY=0.559;entryDx=0;entryDy=0;entryPerimeter=0;" parent="a1" source="a_branch" target="a_f_btb" edge="1">
+                    <mxGeometry x="0.7853" relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="540" y="645"/>
+                            <mxPoint x="540" y="165"/>
+                        </Array>
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="a_e_pc_ifid" value="PC 值" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.67;exitY=0;entryX=0.5;entryY=0;" parent="a1" source="a_f_pc" target="a_if_id" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="210" y="270"/>
+                            <mxPoint x="508" y="270"/>
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="a_e_pc_imem" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" parent="a1" source="a_pc" target="a_imem" edge="1">
+                <mxCell id="a_e_imem_ifid" value="指令" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;entryX=0;entryY=0.28;" parent="a1" source="a_f_imem" target="a_if_id" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="a_e_add_mux" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0.5;entryY=0;" parent="a1" source="a_add_pc4" target="a_pc_mux" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="a_e_mux_pc" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=1;exitY=0.5;entryX=0;entryY=0.5;" parent="a1" source="a_pc_mux" target="a_pc" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="a_e_pc_ifid" value="PC 值" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.83;exitY=0;" parent="a1" source="a_pc" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="225" y="470"/>
-                            <mxPoint x="225" y="370"/>
-                        </Array>
-                        <mxPoint x="500" y="370" as="targetPoint"/>
-                    </mxGeometry>
                 </mxCell>
                 <mxCell id="a_e_ifid_sext" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=1;exitY=0.27;entryX=0;entryY=0.5;" parent="a1" source="a_if_id" target="a_sext" edge="1">
                     <mxGeometry relative="1" as="geometry"/>
@@ -104,15 +149,6 @@
                         <mxPoint x="645" y="590" as="sourcePoint"/>
                         <Array as="points"/>
                         <mxPoint as="offset"/>
-                    </mxGeometry>
-                </mxCell>
-                <mxCell id="a_e_branch_mux" value="分支 / 跳转目标" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.5;exitY=1;entryX=0;entryY=0.5;" parent="a1" source="a_branch" target="a_pc_mux" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="643" y="735"/>
-                            <mxPoint x="20" y="735"/>
-                            <mxPoint x="20" y="490"/>
-                        </Array>
                     </mxGeometry>
                 </mxCell>
                 <mxCell id="a_e_idex_alu" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=block;endFill=1;strokeWidth=1.5;strokeColor=#2f3439;fontColor=#1f2428;fontSize=12;labelBackgroundColor=#ffffff;exitX=0.992;exitY=0.332;exitDx=0;exitDy=0;exitPerimeter=0;entryX=0.05;entryY=0.4;entryDx=0;entryDy=0;entryPerimeter=0;" parent="a1" source="a_id_ex" target="a_alu" edge="1">
@@ -199,15 +235,6 @@
                         <mxPoint x="1318" y="320" as="sourcePoint"/>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="a_cl_imem" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endFill=0;strokeWidth=1;strokeColor=#68737d;dashed=1;entryX=0;entryY=0.1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" parent="a1" source="a_ctrl" edge="1">
-                    <mxGeometry relative="1" as="geometry">
-                        <Array as="points">
-                            <mxPoint x="380" y="110"/>
-                        </Array>
-                        <mxPoint x="740" y="180" as="sourcePoint"/>
-                        <mxPoint x="380" y="430" as="targetPoint"/>
-                    </mxGeometry>
-                </mxCell>
                 <mxCell id="a_cl_rf" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endFill=0;strokeWidth=1;strokeColor=#68737d;dashed=1;exitX=0.45;exitY=1;entryX=0.993;entryY=0.129;entryDx=0;entryDy=0;entryPerimeter=0;" parent="a1" source="a_ctrl" target="a_rf" edge="1">
                     <mxGeometry relative="1" as="geometry">
                         <mxPoint x="720" y="460" as="targetPoint"/>
@@ -217,12 +244,11 @@
                         </Array>
                     </mxGeometry>
                 </mxCell>
-                <mxCell id="a_cl_alu" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endFill=0;strokeWidth=1;strokeColor=#68737d;dashed=1;exitX=0.91;exitY=1;entryX=0.07;entryY=0;" parent="a1" source="a_ctrl" target="a_alu" edge="1">
-                    <mxGeometry relative="1" as="geometry"/>
-                </mxCell>
-                <mxCell id="Fe2cj7kqMLfvxd_Gkoyb-0" style="edgeStyle=none;html=1;" parent="a1" source="a_imem" edge="1">
+                <mxCell id="a_cl_alu" value="" style="edgeStyle=orthogonalEdgeStyle;rounded=0;orthogonalLoop=1;jettySize=auto;html=1;endArrow=open;endFill=0;strokeWidth=1;strokeColor=#68737d;dashed=1;exitX=1;exitY=0.5;entryX=0.07;entryY=0;exitDx=0;exitDy=0;" parent="a1" source="a_ctrl" target="a_alu" edge="1">
                     <mxGeometry relative="1" as="geometry">
-                        <mxPoint x="500" y="494" as="targetPoint"/>
+                        <Array as="points">
+                            <mxPoint x="872" y="150"/>
+                        </Array>
                     </mxGeometry>
                 </mxCell>
             </root>
@@ -239,7 +265,7 @@
                 <mxCell id="p_sub" value="结构图 + 时空图：多条指令在流水线上重叠执行" style="text;html=1;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;fontSize=15;fontColor=#52606d;" parent="p1" vertex="1">
                     <mxGeometry x="62" y="62" width="900" height="25" as="geometry"/>
                 </mxCell>
-                <mxCell id="p_if" value="IF&#xa;取指" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=15;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="p1" vertex="1">
+                <mxCell id="p_if" value="IF&#xa;取指&#xa;（BTB 预测）" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#ffffff;strokeColor=#2f3439;strokeWidth=1.5;fontSize=15;fontColor=#1f2428;align=center;verticalAlign=middle;" parent="p1" vertex="1">
                     <mxGeometry x="120" y="140" width="170" height="80" as="geometry"/>
                 </mxCell>
                 <mxCell id="p_r1" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#dde3ea;strokeColor=#2f3439;strokeWidth=1.5;fontSize=10;fontColor=#1f2428;" parent="p1" vertex="1">
@@ -299,7 +325,7 @@
                 <mxCell id="p_grid" value="&lt;table border=&quot;1&quot; cellspacing=&quot;0&quot; cellpadding=&quot;5&quot; style=&quot;border-collapse:collapse;font-size:14px;border-color:#2f3439&quot;&gt;&lt;tr&gt;&lt;td style=&quot;font-weight:bold;background-color:#eef1f4&quot; align=&quot;center&quot;&gt;指令&lt;/td&gt;&lt;td style=&quot;background-color:#eef1f4&quot; align=&quot;center&quot;&gt;1&lt;/td&gt;&lt;td style=&quot;background-color:#eef1f4&quot; align=&quot;center&quot;&gt;2&lt;/td&gt;&lt;td style=&quot;background-color:#eef1f4&quot; align=&quot;center&quot;&gt;3&lt;/td&gt;&lt;td style=&quot;background-color:#eef1f4&quot; align=&quot;center&quot;&gt;4&lt;/td&gt;&lt;td style=&quot;background-color:#eef1f4&quot; align=&quot;center&quot;&gt;5&lt;/td&gt;&lt;td style=&quot;background-color:#eef1f4&quot; align=&quot;center&quot;&gt;6&lt;/td&gt;&lt;td style=&quot;background-color:#eef1f4&quot; align=&quot;center&quot;&gt;7&lt;/td&gt;&lt;td style=&quot;background-color:#eef1f4&quot; align=&quot;center&quot;&gt;8&lt;/td&gt;&lt;td style=&quot;background-color:#eef1f4&quot; align=&quot;center&quot;&gt;9&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;lw  r2, 0(r1)&lt;/td&gt;&lt;td style=&quot;background-color:#eef4fb;font-weight:bold&quot;&gt;IF&lt;/td&gt;&lt;td style=&quot;background-color:#eef7f0;font-weight:bold&quot;&gt;ID&lt;/td&gt;&lt;td style=&quot;background-color:#fdf6ea;font-weight:bold&quot;&gt;EX&lt;/td&gt;&lt;td style=&quot;background-color:#fdeeee;font-weight:bold&quot;&gt;MEM&lt;/td&gt;&lt;td style=&quot;background-color:#f6f1f9;font-weight:bold&quot;&gt;WB&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;add r5, r2, r3&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td style=&quot;background-color:#eef4fb;font-weight:bold&quot;&gt;IF&lt;/td&gt;&lt;td style=&quot;background-color:#eef7f0;font-weight:bold&quot;&gt;ID&lt;/td&gt;&lt;td style=&quot;background-color:#fdf6ea;font-weight:bold&quot;&gt;EX&lt;/td&gt;&lt;td style=&quot;background-color:#fdeeee;font-weight:bold&quot;&gt;MEM&lt;/td&gt;&lt;td style=&quot;background-color:#f6f1f9;font-weight:bold&quot;&gt;WB&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;sub r6, r4, r2&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td style=&quot;background-color:#eef4fb;font-weight:bold&quot;&gt;IF&lt;/td&gt;&lt;td style=&quot;background-color:#eef7f0;font-weight:bold&quot;&gt;ID&lt;/td&gt;&lt;td style=&quot;background-color:#fdf6ea;font-weight:bold&quot;&gt;EX&lt;/td&gt;&lt;td style=&quot;background-color:#fdeeee;font-weight:bold&quot;&gt;MEM&lt;/td&gt;&lt;td style=&quot;background-color:#f6f1f9;font-weight:bold&quot;&gt;WB&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;and r7, r2, r1&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td style=&quot;background-color:#eef4fb;font-weight:bold&quot;&gt;IF&lt;/td&gt;&lt;td style=&quot;background-color:#eef7f0;font-weight:bold&quot;&gt;ID&lt;/td&gt;&lt;td style=&quot;background-color:#fdf6ea;font-weight:bold&quot;&gt;EX&lt;/td&gt;&lt;td style=&quot;background-color:#fdeeee;font-weight:bold&quot;&gt;MEM&lt;/td&gt;&lt;td style=&quot;background-color:#f6f1f9;font-weight:bold&quot;&gt;WB&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td align=&quot;center&quot;&gt;or  r8, r2, r6&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td style=&quot;background-color:#eef4fb;font-weight:bold&quot;&gt;IF&lt;/td&gt;&lt;td style=&quot;background-color:#eef7f0;font-weight:bold&quot;&gt;ID&lt;/td&gt;&lt;td style=&quot;background-color:#fdf6ea;font-weight:bold&quot;&gt;EX&lt;/td&gt;&lt;td style=&quot;background-color:#fdeeee;font-weight:bold&quot;&gt;MEM&lt;/td&gt;&lt;td style=&quot;background-color:#f6f1f9;font-weight:bold&quot;&gt;WB&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;" style="text;html=1;align=center;verticalAlign=middle;" parent="p1" vertex="1">
                     <mxGeometry x="120" y="320" width="600" height="230" as="geometry"/>
                 </mxCell>
-                <mxCell id="p_note" value="说明：&lt;br&gt;· 图中假设无冲突的理想情况；实际遇到数据、控制或结构冲突时会插入气泡或清空（见“冲突处理”页）。&lt;br&gt;· 本 CPU 的分支 / 跳转在 ID 阶段判定，异常 / ecall / mret 在 EX 阶段触发，都会造成流水线停顿。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f6f7f8;strokeColor=#d5dbe0;strokeWidth=1;fontSize=14;fontColor=#52606d;align=left;verticalAlign=middle;spacingLeft=14;" parent="p1" vertex="1">
+                <mxCell id="p_note" value="说明：&lt;br&gt;· 图中假设无冲突的理想情况；实际遇到数据、控制或结构冲突时会插入气泡或清空（见“冲突处理”页）。&lt;br&gt;· 本 CPU 的分支 / 跳转在 ID 阶段判定，异常 / ecall / mret 在 EX 阶段触发，都会造成流水线停顿。&lt;br&gt;· IF 用 BTB 预测下一取指地址（命中取预测目标，未命中顺序取 PC+4）；ID 阶段校验预测，预测错误时清空并重定向，并将 JAL / JALR 目标写回 BTB。" style="rounded=0;whiteSpace=wrap;html=1;fillColor=#f6f7f8;strokeColor=#d5dbe0;strokeWidth=1;fontSize=14;fontColor=#52606d;align=left;verticalAlign=middle;spacingLeft=14;" parent="p1" vertex="1">
                     <mxGeometry x="120" y="590" width="1250" height="90" as="geometry"/>
                 </mxCell>
                 <mxCell id="p_hint" value="阶段之间：上一阶段把结果写入级间寄存器，下一阶段从级间寄存器读取" style="text;html=1;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;fontSize=13;fontColor=#68737d;" parent="p1" vertex="1">
