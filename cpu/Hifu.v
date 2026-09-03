@@ -17,6 +17,10 @@ module Hifu #(
     output wire [31:0] if_pc,
     output wire        if_to_id_valid,
 
+    // 调试观测：保留 IF 级真实 valid/allowin，供 Htop 打包到调试总线
+    output wire        dbg_if_valid,
+    output wire        dbg_if_allowin,
+
     //增加btb的
     input  wire [31:0] btb_target,
     input  wire        btb_hit,
@@ -38,6 +42,8 @@ module Hifu #(
 	assign if_ready_go    =  1'b1;
     assign if_allowin     = !if_valid || (if_ready_go && id_allowin);
     assign if_to_id_valid = if_valid && if_ready_go;
+    assign dbg_if_valid   = if_valid;
+    assign dbg_if_allowin = if_allowin;
     assign if_predict_next_pc = (btb_hit ? btb_target : (if_pc_reg + 32'd4));
     assign pf_next_pc = flush ? redirect_pc : if_predict_next_pc;
     assign pf_issue   = flush || if_allowin;

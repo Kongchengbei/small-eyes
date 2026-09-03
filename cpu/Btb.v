@@ -25,7 +25,7 @@ assign lookup_tag   = lookup_pc[31:6];
 assign lookup_hit    = valid[lookup_index] && tag[lookup_index] == lookup_tag;
 assign lookup_target = lookup_hit ? target[lookup_index] : 32'h0;
 
-//更新逻辑 --- 更新和查询是两个概念
+//更新逻辑
 wire [3:0]  update_index;
 wire [25:0] update_tag;
 assign update_index = update_pc[5:2];

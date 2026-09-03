@@ -53,7 +53,10 @@ module Hexu (
     output wire [31:0] ex_forward_data,
     output wire        ex_flush_req,
     output wire [31:0] ex_flush_pc,
-	output wire [31:0] ex_wb_value,
+    output wire [31:0] ex_wb_value,
+
+    // 调试观测：EX 级完成条件
+    output wire        dbg_ex_ready_go,
 
     //EX阶段生成Dmem请求
     output wire        dmem_valid,
@@ -108,6 +111,7 @@ module Hexu (
 	//控制信号
 	assign ex_ready_go     =(!ex_valid || !ex_m_is_div || ex_div_done) //除法
 						   && (!ex_mem_req || dmem_ready); //访存
+    assign dbg_ex_ready_go = ex_ready_go;
     assign ex_allowin      = !ex_valid || (ex_ready_go && mem_allowin);
     assign ex_to_mem_valid = ex_valid && ex_ready_go;
 	

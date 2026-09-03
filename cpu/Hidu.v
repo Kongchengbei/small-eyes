@@ -57,7 +57,12 @@ module Hidu (
     output wire [31:0] btb_update_pc,
     output wire [31:0] btb_update_target,
     input  wire  [31:0] btb_predict_next_pc,
-    output wire [31:0] actual_next_pc
+    output wire [31:0] actual_next_pc,
+    // 调试观测：ID 级状态、暂停和 BTB 误预测
+    output wire        dbg_id_valid,
+    output wire        dbg_id_stall,
+    output wire        dbg_id_ready_go,
+    output wire        dbg_mispredict
 );
     localparam [1:0] WB_ALU  = 2'b00;
     localparam [1:0] WB_LOAD = 2'b01;
@@ -270,7 +275,11 @@ module Hidu (
     assign id_allowin       = !id_valid || (id_ready_go && ex_allowin);
     assign id_to_ex_valid   = id_valid && id_ready_go;
 
-    wire id_fire  = id_valid && id_ready_go && ex_allowin;//ID中这条指令的操作数已经正确，ID具备向下执行的条件
+    assign dbg_id_valid     = id_valid;
+    assign dbg_id_stall     = id_stall;
+    assign dbg_id_ready_go  = id_ready_go;
+
+    wire id_fire  = id_valid && id_ready_go && ex_allowin;//已经正确，ID具备向下执行的条件
     assign id_flush_req =  mispredict;//(id_fire &&(id_is_jal || id_is_jalr ||(id_is_branch && branch_taken))) || mispredict;
     assign id_redirect_pc = id_is_jalr ? ((id_src1 + id_imm) & ~32'd1) :
                                          (id_pc_reg + id_imm);
@@ -284,6 +293,7 @@ module Hidu (
     assign id_actual_next_pc = (id_is_jal || id_is_jalr ||(id_is_branch && branch_taken)) ? id_redirect_pc : id_pc_reg+4;
     assign mispredict        = id_fire &&( actual_next_pc != id_predict_next_pc);
     assign actual_next_pc    = id_actual_next_pc;
+    assign dbg_mispredict    = mispredict;
     //传递
     always @(posedge clk) begin
         if (rst) begin

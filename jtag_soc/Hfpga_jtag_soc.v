@@ -1,7 +1,5 @@
 `timescale 1ns / 1ps
 
-// Board-facing top for the official Pango JTAG flow.
-// hard_rst_n is active-low, matching the supplied board constraints.
 module Hfpga_jtag_soc #(
     parameter IMEM_BYTES = 32 * 1024,
     parameter DMEM_BYTES = 16 * 1024,
@@ -21,24 +19,53 @@ module Hfpga_jtag_soc #(
     wire [31:0] imem_rdata;
     // 属性Verilog-2001 前置形式 (* ... *)。
     // 尾置的 /* synthesis ... */ 注释形式 Synplify 只对标量生效，
-    (* PAP_MARK_DEBUG="<0/t5/0>" *) wire        dmem_valid;
-    (* PAP_MARK_DEBUG="<0/t6/0>" *) wire        dmem_wen;
-    (* PAP_MARK_DEBUG="<0/t2/0>" *) wire [31:0] dmem_addr;
-    (* PAP_MARK_DEBUG="<0/t3/0>" *) wire [31:0] dmem_wdata;
-    (* PAP_MARK_DEBUG="<0/t4/0>" *) wire [3:0]  dmem_wmask;
+    wire        dmem_valid;
+    wire        dmem_wen;
+    wire [31:0] dmem_addr;
+    wire [31:0] dmem_wdata;
+    wire [3:0]  dmem_wmask;
     wire [31:0] dmem_rdata;
     wire [31:0] ram_dmem_rdata;
-    (* PAP_MARK_DEBUG="<0/t0/0>" *) wire [31:0] pc;
-    (* PAP_MARK_DEBUG="<0/t1/0>" *) wire [31:0] ins;
+    wire [31:0] pc;
+    wire [31:0] ins;
     wire        is_ebreak;
-/*Data channel 0~31     : pc
-Data channel 32~63    : ins
-Data channel 64~95    : dmem_addr
-Data channel 96~127   : dmem_wdata
-Data channel 128~131  : dmem_wmask
-Data channel 132       : dmem_wen
-Data channel 133       : dmem_valid
-*/
+    // 逻辑字段调试出口；真正的 DebugCore 仍由 Inserter 插入。
+    // 16 个端口不超过 PANGO DebugCore 的触发端口上限，且总位宽基本不变。
+    // t0~t15 的名称会直接出现在 Inserter 的 Net Connections 中。
+    (* PAP_MARK_DEBUG="<0/t0/0>"  *) wire [31:0] debug_if_pc;
+    (* PAP_MARK_DEBUG="<0/t1/0>"  *) wire [31:0] debug_id_pc;
+    (* PAP_MARK_DEBUG="<0/t2/0>"  *) wire [31:0] debug_ex_pc;
+    (* PAP_MARK_DEBUG="<0/t3/0>"  *) wire [31:0] debug_mem_pc;
+    (* PAP_MARK_DEBUG="<0/t4/0>"  *) wire [31:0] debug_wb_pc;
+    (* PAP_MARK_DEBUG="<0/t5/0>"  *) wire [31:0] debug_if_ins;
+    (* PAP_MARK_DEBUG="<0/t6/0>"  *) wire [31:0] debug_id_ins;
+    (* PAP_MARK_DEBUG="<0/t7/0>"  *) wire [31:0] debug_ex_ins;
+    (* PAP_MARK_DEBUG="<0/t8/0>"  *) wire [31:0] debug_mem_ins;
+    (* PAP_MARK_DEBUG="<0/t9/0>"  *) wire [31:0] debug_wb_ins;
+    (* PAP_MARK_DEBUG="<0/t10/0>" *) wire [31:0] debug_dmem_addr;
+    (* PAP_MARK_DEBUG="<0/t11/0>" *) wire [31:0] debug_dmem_wdata;
+    (* PAP_MARK_DEBUG="<0/t12/0>" *) wire [31:0] debug_btb_predict_next_pc;
+    (* PAP_MARK_DEBUG="<0/t13/0>" *) wire [31:0] debug_actual_next_pc;
+    (* PAP_MARK_DEBUG="<0/t14/0>" *) wire [31:0] debug_flush_pc;
+     // ILA exposes 31 meaningful control bits.  CPU bit 27 is reserved and
+     // is removed by Debug_core so the remote platform sees 511 channels.
+     (* PAP_MARK_DEBUG="<0/t15/0>" *) wire [30:0] debug_ctrl;
+    wire [31:0] cpu_debug_if_pc;
+    wire [31:0] cpu_debug_id_pc;
+    wire [31:0] cpu_debug_ex_pc;
+    wire [31:0] cpu_debug_mem_pc;
+    wire [31:0] cpu_debug_wb_pc;
+    wire [31:0] cpu_debug_if_ins;
+    wire [31:0] cpu_debug_id_ins;
+    wire [31:0] cpu_debug_ex_ins;
+    wire [31:0] cpu_debug_mem_ins;
+    wire [31:0] cpu_debug_wb_ins;
+    wire [31:0] cpu_debug_dmem_addr;
+    wire [31:0] cpu_debug_dmem_wdata;
+    wire [31:0] cpu_debug_btb_predict_next_pc;
+    wire [31:0] cpu_debug_actual_next_pc;
+    wire [31:0] cpu_debug_flush_pc;
+    wire [31:0] cpu_debug_ctrl;
 
 
    wire ram_dmem_valid = dmem_valid && !mmio_valid;
@@ -158,10 +185,8 @@ Data channel 133       : dmem_valid
     );
 
 
-    // The CPU has no debug halt input yet. Holding it in reset during a JTAG
-    // session gives the loader exclusive access to instruction memory.
-
-
+//CPU没有调试暂停输入。在JTAG会话期间保持复位状态，可使加载器获得对指令内存的独占访问权限。
+//会话为加载器提供对指令内存的独占访问。
     Htop u_cpu (
         .clk        (cpu_clk),
         .rst        (cpu_rst),
@@ -176,7 +201,58 @@ Data channel 133       : dmem_valid
 		.dmem_ready  (dmem_ready),
         .pc         (pc),
         .ins        (ins),
-        .is_ebreak  (is_ebreak)
+        .is_ebreak  (is_ebreak),
+        .debug_if_pc               (cpu_debug_if_pc),
+        .debug_id_pc               (cpu_debug_id_pc),
+        .debug_ex_pc               (cpu_debug_ex_pc),
+        .debug_mem_pc              (cpu_debug_mem_pc),
+        .debug_wb_pc               (cpu_debug_wb_pc),
+        .debug_if_ins              (cpu_debug_if_ins),
+        .debug_id_ins              (cpu_debug_id_ins),
+        .debug_ex_ins              (cpu_debug_ex_ins),
+        .debug_mem_ins             (cpu_debug_mem_ins),
+        .debug_wb_ins              (cpu_debug_wb_ins),
+        .debug_dmem_addr           (cpu_debug_dmem_addr),
+        .debug_dmem_wdata          (cpu_debug_dmem_wdata),
+        .debug_btb_predict_next_pc (cpu_debug_btb_predict_next_pc),
+        .debug_actual_next_pc      (cpu_debug_actual_next_pc),
+        .debug_flush_pc            (cpu_debug_flush_pc),
+        .debug_ctrl                (cpu_debug_ctrl)
+    );
+
+    Debug_core u_debug_core (
+        .cpu_if_pc               (cpu_debug_if_pc),
+        .cpu_id_pc               (cpu_debug_id_pc),
+        .cpu_ex_pc               (cpu_debug_ex_pc),
+        .cpu_mem_pc              (cpu_debug_mem_pc),
+        .cpu_wb_pc               (cpu_debug_wb_pc),
+        .cpu_if_ins              (cpu_debug_if_ins),
+        .cpu_id_ins              (cpu_debug_id_ins),
+        .cpu_ex_ins              (cpu_debug_ex_ins),
+        .cpu_mem_ins             (cpu_debug_mem_ins),
+        .cpu_wb_ins              (cpu_debug_wb_ins),
+        .cpu_dmem_addr           (cpu_debug_dmem_addr),
+        .cpu_dmem_wdata          (cpu_debug_dmem_wdata),
+        .cpu_btb_predict_next_pc (cpu_debug_btb_predict_next_pc),
+        .cpu_actual_next_pc      (cpu_debug_actual_next_pc),
+        .cpu_flush_pc            (cpu_debug_flush_pc),
+        .cpu_ctrl                (cpu_debug_ctrl),
+        .if_pc                   (debug_if_pc),
+        .id_pc                   (debug_id_pc),
+        .ex_pc                   (debug_ex_pc),
+        .mem_pc                  (debug_mem_pc),
+        .wb_pc                   (debug_wb_pc),
+        .if_ins                  (debug_if_ins),
+        .id_ins                  (debug_id_ins),
+        .ex_ins                  (debug_ex_ins),
+        .mem_ins                 (debug_mem_ins),
+        .wb_ins                  (debug_wb_ins),
+        .dmem_addr               (debug_dmem_addr),
+        .dmem_wdata              (debug_dmem_wdata),
+        .btb_predict_next_pc     (debug_btb_predict_next_pc),
+        .actual_next_pc          (debug_actual_next_pc),
+        .flush_pc                (debug_flush_pc),
+        .ctrl                    (debug_ctrl)
     );
 
 	fpga_unified_memory_jtag #(
