@@ -291,12 +291,12 @@ module Hidu (
     //关于btb
      // 无条件跳转和条件分支都在解析完成后更新 BTB；条件分支同时
      // 更新方向计数器，JAL/JALR 则固定视为 taken。
-     assign btb_update_valid  = id_fire &&
-                                (id_is_jal || id_is_jalr || id_is_branch);
-     assign btb_update_pc     = id_pc_reg;
-     assign btb_update_target = id_redirect_pc;
-     assign btb_update_is_conditional = id_is_branch;
-     assign btb_update_taken  = id_is_branch ? branch_taken : 1'b1;
+	assign btb_update_valid  = id_fire &&
+                        	(id_is_jal || id_is_jalr || id_is_branch);
+	assign btb_update_pc     = id_pc_reg;
+	assign btb_update_target = id_redirect_pc;
+	assign btb_update_is_conditional = id_is_branch;
+	assign btb_update_taken  = id_is_branch ? branch_taken : 1'b1;
     assign id_actual_next_pc = (id_is_jal || id_is_jalr ||(id_is_branch && branch_taken)) ? id_redirect_pc : id_pc_reg+4;
     assign mispredict        = id_fire &&( actual_next_pc != id_predict_next_pc);
     assign actual_next_pc    = id_actual_next_pc;

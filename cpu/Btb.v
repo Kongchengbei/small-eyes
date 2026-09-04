@@ -27,7 +27,6 @@ reg        is_conditional [0:15];
 assign lookup_index = lookup_pc[5:2];
 assign lookup_tag   = lookup_pc[31:6];
 
-
 wire lookup_match = valid[lookup_index] && tag[lookup_index] == lookup_tag;
 wire lookup_taken = !is_conditional[lookup_index] || direction[lookup_index][1];
 
@@ -42,7 +41,7 @@ wire [25:0] update_tag;
 assign update_index = update_pc[5:2];
 assign update_tag   = update_pc[31:6];
 
-always @(posedge clk) begin
+always @(posedge clk) begin : update_block
 	integer i;
 	if(rst) begin
         for (i = 0; i < 16; i = i + 1) begin
