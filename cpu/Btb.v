@@ -9,6 +9,11 @@ module Btb(
 	input  wire        update_is_conditional,
 	input  wire        update_taken,
 
+	// lookup_match means the indexed entry is valid and its tag matches.
+	// lookup_hit additionally requires a taken prediction and is the signal
+	// consumed by Hifu to select the BTB target.
+	output wire        lookup_match,
+	output wire        lookup_predict_taken,
 	output wire        lookup_hit,
 	output wire [31:0] lookup_target
 );
@@ -27,12 +32,14 @@ reg        is_conditional [0:15];
 assign lookup_index = lookup_pc[5:2];
 assign lookup_tag   = lookup_pc[31:6];
 
-wire lookup_match = valid[lookup_index] && tag[lookup_index] == lookup_tag;
-wire lookup_taken = !is_conditional[lookup_index] || direction[lookup_index][1];
+assign lookup_match = valid[lookup_index] && tag[lookup_index] == lookup_tag;
+// Direction state is reported independently of tag match for debugging;
+// lookup_hit is the qualified prediction-valid signal used by the IF stage.
+assign lookup_predict_taken = !is_conditional[lookup_index] || direction[lookup_index][1];
 
 // 对无条件跳转，命中即使用目标；对条件分支，仅在方向计数器预测
 // taken 时报告命中，否则由 Hifu 回退到 PC+4（静态不跳转路径）。
-assign lookup_hit    = lookup_match && lookup_taken;
+assign lookup_hit    = lookup_match && lookup_predict_taken;
 assign lookup_target = lookup_hit ? target[lookup_index] : 32'h0;
 
 //更新逻辑

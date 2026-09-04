@@ -289,8 +289,8 @@ module Hidu (
 	assign id_ins = id_ins_reg;
 
     //关于btb
-     // 无条件跳转和条件分支都在解析完成后更新 BTB；条件分支同时
-     // 更新方向计数器，JAL/JALR 则固定视为 taken。
+	// 无条件跳转和条件分支都在解析完成后更新 BTB；条件分支同时
+	// 更新方向计数器，JAL/JALR 则固定视为 taken。
 	assign btb_update_valid  = id_fire &&
                         	(id_is_jal || id_is_jalr || id_is_branch);
 	assign btb_update_pc     = id_pc_reg;

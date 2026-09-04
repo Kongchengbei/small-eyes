@@ -35,8 +35,9 @@ module Debug_core (
     output wire [31:0] actual_next_pc,
     output wire [31:0] flush_pc,
     // The CPU control bus contains one deliberately reserved bit (bit 27).
-    // Do not expose that bit to the ILA: the remote platform accepts at most
-    // 511 channels, so this port is compressed to 31 meaningful bits.
+    // Keep the 31 meaningful control bits in the debug wrapper.  The FPGA
+    // top-level marks only the BTB profile as PAP_MARK_DEBUG; the other fields
+    // remain available to RTL simulation without consuming FIC trigger bits.
     output wire [30:0] ctrl
 );
     assign if_pc               = cpu_if_pc;

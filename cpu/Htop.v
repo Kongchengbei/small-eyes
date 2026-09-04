@@ -119,8 +119,11 @@ module Htop #(
     //增加btb模块
     wire [31:0]  btb_lookup_pc;
     wire         btb_lookup_hit;
+    wire         btb_lookup_match;
+    wire         btb_lookup_predict_taken;
     wire [31:0]  btb_look_up_target;
     wire         btb_update_valid;
+    wire         btb_update_valid_id;
      wire [31:0]  btb_update_pc;
      wire [31:0]  btb_update_target;
      wire         btb_update_is_conditional;
@@ -173,9 +176,18 @@ module Htop #(
          .update_target  (btb_update_target),
          .update_is_conditional (btb_update_is_conditional),
          .update_taken   (btb_update_taken),
+         .lookup_match   (btb_lookup_match),
+         .lookup_predict_taken (btb_lookup_predict_taken),
          .lookup_hit     (btb_lookup_hit),
         .lookup_target  (btb_look_up_target)
     );
+
+    // If an older EX-stage CSR/exception redirect is active, the ID-stage
+    // instruction is on the wrong path.  It may still satisfy id_fire because
+    // EX is accepting a cycle, so prevent that younger instruction from
+    // training the predictor.  A normal ID misprediction is intentionally not
+    // blocked: that branch is the instruction whose outcome must be learned.
+    assign btb_update_valid = btb_update_valid_id && !ex_flush_req;
    
     Hidu u_idu (
         .clk                (clk),
@@ -228,7 +240,7 @@ module Htop #(
 
         //btb--更新逻辑
          .btb_update_pc      (btb_update_pc),
-         .btb_update_valid   (btb_update_valid),
+         .btb_update_valid   (btb_update_valid_id),
          .btb_update_target  (btb_update_target),
          .btb_update_is_conditional (btb_update_is_conditional),
          .btb_update_taken   (btb_update_taken),
@@ -373,11 +385,13 @@ module Htop #(
     // 11 ex_ready_go, 12 mem_valid, 13 mem_to_wb_valid, 14 mem_allowin,
     // 15 mem_ready_go, 16 wb_valid, 17 wb_allowin,
     // 18 dmem_valid, 19 dmem_wen, 20 dmem_ready,
-    // 21 flush, 22 id_flush_req, 23 ex_flush_req,
-     // 24 mispredict, 25 btb_lookup_hit, 26 btb_update_valid,
+    // 21 flush, 22 ex_flush_req, 23 mispredict, 24 btb_lookup_match,
+    // 25 btb_lookup_predict_taken, 26 btb_update_valid,
+    // 27 reserved.  id_flush_req is omitted because it is represented by
+    // mispredict in the current ID redirect scheme.
     // [31:28] dmem_wmask, [27] reserved.
-    assign debug_ctrl = {dmem_wmask, 1'b0, btb_update_valid, btb_lookup_hit,
-                         dbg_mispredict, ex_flush_req, id_flush_req, flush,
+    assign debug_ctrl = {dmem_wmask, 1'b0, btb_update_valid, btb_lookup_predict_taken,
+                         btb_lookup_match, dbg_mispredict, ex_flush_req, flush,
                          dmem_ready, dmem_wen, dmem_valid,
                          wb_allowin, wb_valid,
                          dbg_mem_ready_go, mem_allowin, mem_to_wb_valid,

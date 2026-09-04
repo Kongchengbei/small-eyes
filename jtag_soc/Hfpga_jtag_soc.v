@@ -30,26 +30,30 @@ module Hfpga_jtag_soc #(
     wire [31:0] ins;
     wire        is_ebreak;
     // 逻辑字段调试出口；真正的 DebugCore 仍由 Inserter 插入。
-    // 16 个端口不超过 PANGO DebugCore 的触发端口上限，且总位宽基本不变。
-    // t0~t15 的名称会直接出现在 Inserter 的 Net Connections 中。
+    // FIC 的触发编码不是按采样通道原始位宽计算：当前平台每个触发位
+    // 需要约 3 个编码位，触发编码上限为 800 位。因此这里只把 BTB
+    // 诊断所需的 7 个端口标记给 Inserter，总宽度为 223 位（约 669 位编码）。
+    // 其余字段仍保留为 CPU/仿真调试出口，但不占用 FIC 触发资源。
     (* PAP_MARK_DEBUG="<0/t0/0>"  *) wire [31:0] debug_if_pc;
     (* PAP_MARK_DEBUG="<0/t1/0>"  *) wire [31:0] debug_id_pc;
-    (* PAP_MARK_DEBUG="<0/t2/0>"  *) wire [31:0] debug_ex_pc;
-    (* PAP_MARK_DEBUG="<0/t3/0>"  *) wire [31:0] debug_mem_pc;
-    (* PAP_MARK_DEBUG="<0/t4/0>"  *) wire [31:0] debug_wb_pc;
-    (* PAP_MARK_DEBUG="<0/t5/0>"  *) wire [31:0] debug_if_ins;
-    (* PAP_MARK_DEBUG="<0/t6/0>"  *) wire [31:0] debug_id_ins;
-    (* PAP_MARK_DEBUG="<0/t7/0>"  *) wire [31:0] debug_ex_ins;
-    (* PAP_MARK_DEBUG="<0/t8/0>"  *) wire [31:0] debug_mem_ins;
-    (* PAP_MARK_DEBUG="<0/t9/0>"  *) wire [31:0] debug_wb_ins;
-    (* PAP_MARK_DEBUG="<0/t10/0>" *) wire [31:0] debug_dmem_addr;
-    (* PAP_MARK_DEBUG="<0/t11/0>" *) wire [31:0] debug_dmem_wdata;
-    (* PAP_MARK_DEBUG="<0/t12/0>" *) wire [31:0] debug_btb_predict_next_pc;
-    (* PAP_MARK_DEBUG="<0/t13/0>" *) wire [31:0] debug_actual_next_pc;
-    (* PAP_MARK_DEBUG="<0/t14/0>" *) wire [31:0] debug_flush_pc;
-     // ILA exposes 31 meaningful control bits.  CPU bit 27 is reserved and
-     // is removed by Debug_core so the remote platform sees 511 channels.
-     (* PAP_MARK_DEBUG="<0/t15/0>" *) wire [30:0] debug_ctrl;
+    (* PAP_MARK_DEBUG="<0/t2/0>"  *) wire [31:0] debug_id_ins;
+    (* PAP_MARK_DEBUG="<0/t3/0>"  *) wire [31:0] debug_btb_predict_next_pc;
+    (* PAP_MARK_DEBUG="<0/t4/0>"  *) wire [31:0] debug_actual_next_pc;
+    (* PAP_MARK_DEBUG="<0/t5/0>"  *) wire [31:0] debug_flush_pc;
+    // ILA exposes 31 meaningful control bits.  The reserved CPU bit is
+    // omitted by Debug_core, so this selected profile is 6*32+31=223 bits.
+    (* PAP_MARK_DEBUG="<0/t6/0>"  *) wire [30:0] debug_ctrl;
+    // Unmarked fields remain declared because Debug_core still exposes them
+    // for RTL simulation and optional future debug profiles.
+    wire [31:0] debug_ex_pc;
+    wire [31:0] debug_mem_pc;
+    wire [31:0] debug_wb_pc;
+    wire [31:0] debug_if_ins;
+    wire [31:0] debug_ex_ins;
+    wire [31:0] debug_mem_ins;
+    wire [31:0] debug_wb_ins;
+    wire [31:0] debug_dmem_addr;
+    wire [31:0] debug_dmem_wdata;
     wire [31:0] cpu_debug_if_pc;
     wire [31:0] cpu_debug_id_pc;
     wire [31:0] cpu_debug_ex_pc;
