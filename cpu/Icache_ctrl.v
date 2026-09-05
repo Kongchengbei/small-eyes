@@ -19,7 +19,6 @@ module Icache_ctrl(
     // 防止 IF 阻塞时，返回的指令数据丢失。   
     output wire        cpu_req_ready,
     input  wire        cpu_resp_ready,//IFU 说“我能接收"
-    
 	//给这个ram取指令数据
 	output wire         mem_req_valid,
 	output wire  [31:0] mem_req_addr,
@@ -51,9 +50,6 @@ Icache u_Icache(
 	.lookup_hit   	( cache_hit  ),
 	.lookup_data  	( cache_data )
 );
-
-
-
 always @(posedge clk) begin
 	if(rst)begin
 		state   <= State_look_up;

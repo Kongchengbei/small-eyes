@@ -12,7 +12,27 @@ module Hfpga_jtag_soc #(
     input  JTAG_TDI,
     output JTAG_TDO,
     output core_active,
-    inout  [31:0] fpioa
+    inout  [31:0] fpioa,
+
+    // 板载 DDR3（MINI-200H 原理图中的 32-bit DDR3 通道）。本阶段只做
+    // PHY/控制器初始化，CPU 仍只访问 BRAM；后续再把 CPU 数据总线桥接到 AXI。
+    input         clk_p,
+    input         clk_n,
+    output        mem_rst_n,
+    output        mem_ck,
+    output        mem_ck_n,
+    output        mem_cke,
+    output        mem_cs_n,
+    output        mem_ras_n,
+    output        mem_cas_n,
+    output        mem_we_n,
+    output        mem_odt,
+    output [14:0] mem_a,
+    output [2:0]  mem_ba,
+    inout  [3:0]  mem_dqs,
+    inout  [3:0]  mem_dqs_n,
+    inout  [31:0] mem_dq,
+    output [3:0]  mem_dm
 );
  
 	wire [31:0] imem_addr;
@@ -26,6 +46,15 @@ module Hfpga_jtag_soc #(
     wire [3:0]  dmem_wmask;
     wire [31:0] dmem_rdata;
     wire [31:0] ram_dmem_rdata;
+    wire [31:0] ddr_dmem_rdata;
+    wire        ddr_dmem_rsp_valid;
+    wire        ddr_dmem_rsp_is_read;
+    wire        ddr_dmem_req_ready;
+    wire        dmem_rsp_valid;
+    reg         local_load_rsp_valid;
+    wire        ddr_addr_sel = (dmem_addr[31:30] == 2'b10);
+    wire        mmio_addr_sel = (dmem_addr[31:28] == 4'h4);
+    wire        ddr_dmem_valid = dmem_valid && ddr_addr_sel;
     wire [31:0] pc;
     wire [31:0] ins;
     wire        is_ebreak;
@@ -70,9 +99,9 @@ module Hfpga_jtag_soc #(
     wire [31:0] cpu_debug_actual_next_pc;
     wire [31:0] cpu_debug_flush_pc;
     wire [31:0] cpu_debug_ctrl;
-
-
-   wire ram_dmem_valid = dmem_valid && !mmio_valid;
+   // 0x8000_0000--0xBFFF_FFFF is the 1 GiB byte-addressed DDR3 window.
+   // BRAM and MMIO keep their original address maps.
+   wire ram_dmem_valid = dmem_valid && !mmio_addr_sel && !ddr_addr_sel;
    wire ram_dmem_wen   = ram_dmem_valid && dmem_wen;
 
     wire        jtag_cmd_valid;
@@ -91,12 +120,15 @@ module Hfpga_jtag_soc #(
     localparam UART0_BASE = 32'h4000_0000;
     localparam UART0_END  = 32'h4000_0100;
     localparam LED_ADDR   = 32'h4000_0200;
-    wire mmio_valid = dmem_valid && (dmem_addr[31:28] == 4'h4);
-    wire uart_sel = mmio_valid &&
-                    (dmem_addr >= UART0_BASE) && (dmem_addr < UART0_END);
+    wire mmio_valid = dmem_valid && mmio_addr_sel;
+    wire uart_addr_sel = (dmem_addr >= UART0_BASE) &&
+                         (dmem_addr < UART0_END);
+    wire uart_sel = mmio_valid && uart_addr_sel;
 	wire uart_ready;
-    // RAM 和其他外设都是当拍完成，只有 UART 会反压
-    wire dmem_ready = uart_sel ? uart_ready : 1'b1;
+    // Do not qualify the select by dmem_valid: Hexu derives dmem_valid from
+    // dmem_ready, so doing that would create a loop during a DDR stall.
+    wire dmem_ready = ddr_addr_sel  ? ddr_dmem_req_ready :
+                      uart_addr_sel ? uart_ready         : 1'b1;
 	wire led_sel = mmio_valid && (dmem_addr == LED_ADDR);
     wire fpioa_sel = mmio_valid &&
                      (dmem_addr >= 32'h4000_0f00) &&
@@ -109,6 +141,198 @@ module Hfpga_jtag_soc #(
 
 	wire cpu_clk/* synthesis PAP_MARK_DEBUG="<0/c0/0>" */;
 	wire pll_locked;
+
+    // DDR3 使用板载 125 MHz 差分参考时钟（N3/N2），与 CPU 的 27 MHz
+    // 系统时钟完全独立。控制器内部产生 core_clk/PHY 时钟。
+    wire ddr_ref_clk;
+    wire ddr_core_clk;
+    wire ddr_init_done;
+    wire [29:0]  ddr_axi_awaddr;
+    wire [7:0]   ddr_axi_awid;
+    wire [7:0]   ddr_axi_awlen;
+    wire [2:0]   ddr_axi_awsize;
+    wire [1:0]   ddr_axi_awburst;
+    wire         ddr_axi_awvalid;
+    wire         ddr_axi_awready;
+    wire [255:0] ddr_axi_wdata;
+    wire [31:0]  ddr_axi_wstrb;
+    wire         ddr_axi_wlast;
+    wire         ddr_axi_wvalid;
+    wire         ddr_axi_wready;
+    wire [7:0]   ddr_axi_bid;
+    wire [1:0]   ddr_axi_bresp;
+    wire         ddr_axi_bvalid;
+    wire         ddr_axi_bready;
+    wire [29:0]  ddr_axi_araddr;
+    wire [7:0]   ddr_axi_arid;
+    wire [7:0]   ddr_axi_arlen;
+    wire [2:0]   ddr_axi_arsize;
+    wire [1:0]   ddr_axi_arburst;
+    wire         ddr_axi_arvalid;
+    wire         ddr_axi_arready;
+    wire [255:0] ddr_axi_rdata;
+    wire [7:0]   ddr_axi_rid;
+    wire [1:0]   ddr_axi_rresp;
+    wire         ddr_axi_rlast;
+    wire         ddr_axi_rvalid;
+    wire         ddr_axi_rready;
+    GTP_INBUFGDS #(
+        .IOSTANDARD("DEFAULT"),
+        .TERM_DIFF("ON")
+    ) u_ddr_refclk_buf (
+        .O  (ddr_ref_clk),
+        .I  (clk_p),
+        .IB (clk_n)
+    );
+
+    // CPU and DDR controller use unrelated clocks.  The bridge keeps one
+    // transaction in flight, handles the 32-bit/256-bit width conversion, and
+    // gates CPU requests until PHY training has completed.
+    ddr_axi_bridge u_ddr_axi_bridge (
+        .cpu_clk          (cpu_clk),
+        .ddr_clk          (ddr_core_clk),
+        .rst_n            (hard_rst_n),
+        .ddr_init_done    (ddr_init_done),
+        .cpu_req_valid    (ddr_dmem_valid),
+        .cpu_req_ready    (ddr_dmem_req_ready),
+        .cpu_req_write    (dmem_wen),
+        .cpu_req_addr     (dmem_addr),
+        .cpu_req_wdata    (dmem_wdata),
+        .cpu_req_wmask    (dmem_wmask),
+        .cpu_rsp_rdata    (ddr_dmem_rdata),
+        .cpu_rsp_valid    (ddr_dmem_rsp_valid),
+        .cpu_rsp_is_read  (ddr_dmem_rsp_is_read),
+        .axi_awaddr       (ddr_axi_awaddr),
+        .axi_awid         (ddr_axi_awid),
+        .axi_awlen        (ddr_axi_awlen),
+        .axi_awsize       (ddr_axi_awsize),
+        .axi_awburst      (ddr_axi_awburst),
+        .axi_awvalid      (ddr_axi_awvalid),
+        .axi_awready      (ddr_axi_awready),
+        .axi_wdata        (ddr_axi_wdata),
+        .axi_wstrb        (ddr_axi_wstrb),
+        .axi_wlast        (ddr_axi_wlast),
+        .axi_wvalid       (ddr_axi_wvalid),
+        .axi_wready       (ddr_axi_wready),
+        .axi_bid          (ddr_axi_bid),
+        .axi_bresp        (ddr_axi_bresp),
+        .axi_bvalid       (ddr_axi_bvalid),
+        .axi_bready       (ddr_axi_bready),
+        .axi_araddr       (ddr_axi_araddr),
+        .axi_arid         (ddr_axi_arid),
+        .axi_arlen        (ddr_axi_arlen),
+        .axi_arsize       (ddr_axi_arsize),
+        .axi_arburst      (ddr_axi_arburst),
+        .axi_arvalid      (ddr_axi_arvalid),
+        .axi_arready      (ddr_axi_arready),
+        .axi_rdata        (ddr_axi_rdata),
+        .axi_rid          (ddr_axi_rid),
+        .axi_rresp        (ddr_axi_rresp),
+        .axi_rlast        (ddr_axi_rlast),
+        .axi_rvalid       (ddr_axi_rvalid),
+        .axi_rready       (ddr_axi_rready)
+    );
+
+    // ddr_init_done also drives A20 as an immediate hardware-health signal.
+    ddr3_ctrl_v116 u_ddr3_ctrl (
+        .ref_clk                 (ddr_ref_clk),
+        .resetn                  (hard_rst_n),
+        .core_clk                (ddr_core_clk),
+        .pll_lock                (),
+        .phy_pll_lock            (),
+        .gpll_lock               (),
+        .rst_gpll_lock           (),
+        .ddrphy_cpd_lock         (),
+        .ddr_init_done           (ddr_init_done),
+
+        .axi_awaddr              (ddr_axi_awaddr),
+        .axi_awid                (ddr_axi_awid),
+        .axi_awlen               (ddr_axi_awlen),
+        .axi_awsize              (ddr_axi_awsize),
+        .axi_awburst             (ddr_axi_awburst),
+        .axi_awready             (ddr_axi_awready),
+        .axi_awvalid             (ddr_axi_awvalid),
+        .axi_wdata               (ddr_axi_wdata),
+        .axi_wstrb               (ddr_axi_wstrb),
+        .axi_wlast               (ddr_axi_wlast),
+        .axi_wvalid              (ddr_axi_wvalid),
+        .axi_wready              (ddr_axi_wready),
+        .axi_bready              (ddr_axi_bready),
+        .axi_bid                 (ddr_axi_bid),
+        .axi_bresp               (ddr_axi_bresp),
+        .axi_bvalid              (ddr_axi_bvalid),
+        .axi_araddr              (ddr_axi_araddr),
+        .axi_arid                (ddr_axi_arid),
+        .axi_arlen               (ddr_axi_arlen),
+        .axi_arsize              (ddr_axi_arsize),
+        .axi_arburst             (ddr_axi_arburst),
+        .axi_arready             (ddr_axi_arready),
+        .axi_arvalid             (ddr_axi_arvalid),
+        .axi_rready              (ddr_axi_rready),
+        .axi_rdata               (ddr_axi_rdata),
+        .axi_rid                 (ddr_axi_rid),
+        .axi_rlast               (ddr_axi_rlast),
+        .axi_rvalid              (ddr_axi_rvalid),
+        .axi_rresp               (ddr_axi_rresp),
+
+        .apb_clk                 (1'b0),
+        .apb_rst_n               (1'b1),
+        .apb_sel                 (1'b0),
+        .apb_enable              (1'b0),
+        .apb_addr                (8'd0),
+        .apb_write               (1'b0),
+        .apb_ready               (),
+        .apb_wdata               (16'd0),
+        .apb_rdata               (),
+
+        .mem_rst_n               (mem_rst_n),
+        .mem_ck                  (mem_ck),
+        .mem_ck_n                (mem_ck_n),
+        .mem_cke                 (mem_cke),
+        .mem_cs_n                (mem_cs_n),
+        .mem_ras_n               (mem_ras_n),
+        .mem_cas_n               (mem_cas_n),
+        .mem_we_n                (mem_we_n),
+        .mem_odt                 (mem_odt),
+        .mem_a                   (mem_a),
+        .mem_ba                  (mem_ba),
+        .mem_dqs                 (mem_dqs),
+        .mem_dqs_n               (mem_dqs_n),
+        .mem_dq                  (mem_dq),
+        .mem_dm                  (mem_dm),
+
+        .dbg_gate_start          (1'b0),
+        .dbg_cpd_start           (1'b0),
+        .dbg_ddrphy_rst_n        (1'b1),
+        .dbg_gpll_scan_rst       (1'b0),
+        .samp_position_dyn_adj   (1'b0),
+        .init_samp_position_even (32'd0),
+        .wrcal_position_dyn_adj  (1'b0),
+        .init_wrcal_position     (32'd0),
+        .force_read_clk_ctrl     (1'b0),
+        .init_slip_step          (16'd0),
+        .init_read_clk_ctrl      (12'd0),
+        .debug_calib_ctrl        (),
+        .dbg_slice_status        (),
+        .dbg_slice_state         (),
+        .debug_data              (),
+        .dbg_dll_upd_state       (),
+        .debug_gpll_dps_phase    (),
+        .dbg_rst_dps_state       (),
+        .dbg_tran_err_rst_cnt    (),
+        .dbg_ddrphy_init_fail    (),
+        .debug_cpd_offset_adj    (1'b0),
+        .debug_cpd_offset_dir    (1'b0),
+        .debug_cpd_offset        (10'd0),
+        .debug_dps_cnt_dir0      (),
+        .debug_dps_cnt_dir1      (),
+        .ck_dly_en               (1'b0),
+        .init_ck_dly_step        (8'd0),
+        .ck_dly_set_bin          (),
+        .align_error             (),
+        .debug_rst_state         (),
+        .debug_cpd_state         ()
+    );
 
 	clk_pll u_pll (
 	    .clkin1  (clk),
@@ -151,6 +375,17 @@ module Hfpga_jtag_soc #(
 	// 这两个信号来自 jtag_dm，已是 cpu_clk 域的寄存器输出，无需再同步
 	wire cpu_rst = !sys_rst_n || (cpu_rst_cnt != 4'hF) ||
 	               jtag_reset_req || jtag_halt_req;
+
+    // Existing BRAM and MMIO reads respond in the CPU clock following their
+    // request.  DDR reads supply their own response pulse from the bridge.
+    always @(posedge cpu_clk) begin
+        if (cpu_rst)
+            local_load_rsp_valid <= 1'b0;
+        else
+            local_load_rsp_valid <= dmem_valid && !dmem_wen && !ddr_addr_sel;
+    end
+    assign dmem_rsp_valid = local_load_rsp_valid ||
+                            (ddr_dmem_rsp_valid && ddr_dmem_rsp_is_read);
 
 	// Match the board template: JTAG_TCK enters through the vendor input
     // buffer before it is used as the JTAG clock.
@@ -203,6 +438,7 @@ module Hfpga_jtag_soc #(
         .dmem_wmask (dmem_wmask),
         .dmem_rdata (dmem_rdata),
 		.dmem_ready  (dmem_ready),
+        .dmem_rsp_valid (dmem_rsp_valid),
         .pc         (pc),
         .ins        (ins),
         .is_ebreak  (is_ebreak),
@@ -351,8 +587,12 @@ module Hfpga_jtag_soc #(
 	    end
 	end
 
-    assign dmem_rdata = mmio_read_reg ? mmio_rdata_reg : ram_dmem_rdata;
+    assign dmem_rdata = (ddr_dmem_rsp_valid && ddr_dmem_rsp_is_read) ?
+                        ddr_dmem_rdata :
+                        mmio_read_reg ? mmio_rdata_reg : ram_dmem_rdata;
 
-    assign core_active = !cpu_rst && !is_ebreak;
+    // A20 原本只表示 CPU 在运行。第一阶段改为 DDR3 初始化状态，便于
+    // 单独确认 IP、差分时钟、DDR3 引脚和训练都正常；CPU 逻辑并不依赖它。
+    assign core_active = ddr_init_done;
 
 endmodule
