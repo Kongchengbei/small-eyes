@@ -1,4 +1,4 @@
-`include "../jtag_soc/defines.v"
+`include "../soc/defines.v"
 module jtag_dm #(
     parameter DMI_ADDR_BITS = 6,
     parameter DMI_DATA_BITS = 32,

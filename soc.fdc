@@ -784,7 +784,7 @@ define_attribute {p:clk_p} {PAP_IO_STANDARD} {HSTL15D_I}
 define_attribute {p:clk_p} {PAP_IO_NONE} {TRUE}
 
 # DDR3 IP timing and placement constraints.  Instance paths match the
-# generated DDR3 Interface v1.16a instance u_ddr3_ctrl in Hfpga_jtag_soc.v.
+# generated DDR3 Interface v1.16a instance u_ddr3_ctrl in Hfpga_soc.v.
 create_clock -name {ddr_ref_clk} [get_ports {clk_p}] -period {8.0} -waveform {0 4.0}
 create_generated_clock -name {ddr_rst_clk} -source [get_ports {clk_p}] [get_pins {u_ddr3_ctrl.u_ddrphy_top.rst_clk_gpll/clkout0}] -master_clock [get_clocks {ddr_ref_clk}] -multiply_by {16} -divide_by {16}
 create_generated_clock -name {ddrphy_sysclk} -source [get_ports {clk_p}] [get_pins {u_ddr3_ctrl.u_ddrphy_top.ddrphy_gpll/clkout0}] -master_clock [get_clocks {ddr_ref_clk}] -multiply_by {16} -divide_by {16}

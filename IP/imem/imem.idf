@@ -15,11 +15,59 @@
     </header>
     <param_list>
         <param>
-            <name>SAMEWIDTH_EN</name>
-            <value>true</value>
+            <name>A_WRITE_MODE</name>
+            <value>NORMAL_WRITE</value>
         </param>
         <param>
-            <name>B_OUTPUT_REG</name>
+            <name>A_ADDR_STROBE_EN</name>
+            <value>false</value>
+        </param>
+        <param>
+            <name>POWER_OPT</name>
+            <value>false</value>
+        </param>
+        <param>
+            <name>RSTA_VAL</name>
+            <value>0</value>
+        </param>
+        <param>
+            <name>B_DATA_WIDTH</name>
+            <value>32</value>
+        </param>
+        <param>
+            <name>B_CLK_EN</name>
+            <value>false</value>
+        </param>
+        <param>
+            <name>BYTE_SIZE</name>
+            <value>8</value>
+        </param>
+        <param>
+            <name>RST_VAL_EN</name>
+            <value>false</value>
+        </param>
+        <param>
+            <name>A_BE_WIDTH</name>
+            <value>4</value>
+        </param>
+        <param>
+            <name>CAS_MODE_SEL</name>
+            <value>AUTO</value>
+        </param>
+        <param>
+            <name>B_BE_WIDTH</name>
+            <value>4</value>
+        </param>
+        <param>
+            <name>INIT_FORMAT</name>
+            <value>HEX</value>
+        </param>
+        <param>
+            <name>B_RD_OCE_EN</name>
+            <value>false</value>
+        </param>
+        <param>
+            <name>A_CLK_EN</name>
             <value>false</value>
         </param>
         <param>
@@ -27,23 +75,19 @@
             <value>13</value>
         </param>
         <param>
+            <name>WR_BYTE_EN</name>
+            <value>true</value>
+        </param>
+        <param>
             <name>RESET_TYPE</name>
             <value>SYNC</value>
         </param>
         <param>
-            <name>RST_VAL_EN</name>
-            <value>false</value>
+            <name>A_ADDR_WIDTH</name>
+            <value>13</value>
         </param>
         <param>
-            <name>INIT_FORMAT</name>
-            <value>HEX</value>
-        </param>
-        <param>
-            <name>BYTE_SIZE</name>
-            <value>8</value>
-        </param>
-        <param>
-            <name>A_CLK_EN</name>
+            <name>A_OUTPUT_REG</name>
             <value>false</value>
         </param>
         <param>
@@ -51,39 +95,15 @@
             <value>false</value>
         </param>
         <param>
-            <name>A_OUTPUT_REG</name>
-            <value>false</value>
-        </param>
-        <param>
-            <name>B_CLK_EN</name>
-            <value>false</value>
-        </param>
-        <param>
-            <name>INIT_FILE</name>
-            <value>F:/Jichuang-small_eyes/small-eyes/small-eyes1/source/Coremark.dat</value>
+            <name>RSTB_VAL</name>
+            <value>0</value>
         </param>
         <param>
             <name>A_RD_OCE_EN</name>
             <value>false</value>
         </param>
         <param>
-            <name>B_DATA_WIDTH</name>
-            <value>32</value>
-        </param>
-        <param>
-            <name>CAS_MODE</name>
-            <value>36K</value>
-        </param>
-        <param>
-            <name>A_BE_WIDTH</name>
-            <value>4</value>
-        </param>
-        <param>
-            <name>A_ADDR_STROBE_EN</name>
-            <value>false</value>
-        </param>
-        <param>
-            <name>WR_BYTE_EN</name>
+            <name>INIT_EN</name>
             <value>true</value>
         </param>
         <param>
@@ -91,15 +111,31 @@
             <value>NORMAL_WRITE</value>
         </param>
         <param>
-            <name>RSTB_VAL</name>
-            <value>0</value>
+            <name>CAS_MODE</name>
+            <value>36K</value>
+        </param>
+        <param>
+            <name>INIT_FILE</name>
+            <value>F:/Jichuang-small_eyes/small-eyes/small-eyes1/source/running_led.dat</value>
+        </param>
+        <param>
+            <name>B_CLK_OR_POL_INV</name>
+            <value>false</value>
+        </param>
+        <param>
+            <name>B_OUTPUT_REG</name>
+            <value>false</value>
+        </param>
+        <param>
+            <name>A_CLK_OR_POL_INV</name>
+            <value>false</value>
         </param>
         <param>
             <name>A_FAB_REG</name>
             <value>false</value>
         </param>
         <param>
-            <name>INIT_EN</name>
+            <name>SAMEWIDTH_EN</name>
             <value>true</value>
         </param>
         <param>
@@ -109,42 +145,6 @@
         <param>
             <name>B_FAB_REG</name>
             <value>false</value>
-        </param>
-        <param>
-            <name>RSTA_VAL</name>
-            <value>0</value>
-        </param>
-        <param>
-            <name>A_CLK_OR_POL_INV</name>
-            <value>false</value>
-        </param>
-        <param>
-            <name>B_BE_WIDTH</name>
-            <value>4</value>
-        </param>
-        <param>
-            <name>B_CLK_OR_POL_INV</name>
-            <value>false</value>
-        </param>
-        <param>
-            <name>B_RD_OCE_EN</name>
-            <value>false</value>
-        </param>
-        <param>
-            <name>POWER_OPT</name>
-            <value>false</value>
-        </param>
-        <param>
-            <name>A_ADDR_WIDTH</name>
-            <value>13</value>
-        </param>
-        <param>
-            <name>A_WRITE_MODE</name>
-            <value>NORMAL_WRITE</value>
-        </param>
-        <param>
-            <name>CAS_MODE_SEL</name>
-            <value>AUTO</value>
         </param>
     </param_list>
     <pin_list>

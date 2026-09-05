@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module Hfpga_jtag_soc #(
+module Hfpga_soc #(
     parameter IMEM_BYTES = 32 * 1024,
     parameter DMEM_BYTES = 16 * 1024,
     parameter MEM_FILE   = `PROG_FPGA_PATH
@@ -370,7 +370,7 @@ module Hfpga_jtag_soc #(
 	end
 
 	// jtag_reset_req / jtag_halt_req 只复位 CPU，不能并进 sys_rst_n ——
-	// fpga_unified_memory_jtag 的 jtag_cmd_ready 依赖 rst_n( 98 line)
+	// fpga_unified_memory 的 jtag_cmd_ready 依赖 rst_n( 98 line)
 	// 一旦折进全局复位，JTAG 下载器在 CPU 停住时就无法访问 imem
 	// 这两个信号来自 jtag_dm，已是 cpu_clk 域的寄存器输出，无需再同步
 	wire cpu_rst = !sys_rst_n || (cpu_rst_cnt != 4'hF) ||
@@ -495,7 +495,7 @@ module Hfpga_jtag_soc #(
         .ctrl                    (debug_ctrl)
     );
 
-	fpga_unified_memory_jtag #(
+	fpga_unified_memory #(
 	    .IMEM_BASE  (32'h0000_0000),
 	    .DMEM_BASE  (32'h2000_0000),
 	    .IMEM_BYTES (IMEM_BYTES),
@@ -537,7 +537,7 @@ module Hfpga_jtag_soc #(
     );
 
     Huart_tx #(
-    	.CLK_HZ(95_000_000)
+    	.CLK_HZ(90_000_000)
 	)u_uart0_tx (
         .clk        (cpu_clk),
         .rst_n      (sys_rst_n),

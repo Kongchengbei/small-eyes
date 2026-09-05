@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module fpga_unified_memory_jtag #(
+module fpga_unified_memory #(
     parameter IMEM_BASE  = 32'h0000_0000,
     parameter DMEM_BASE  = 32'h2000_0000,
     parameter IMEM_BYTES = 32 * 1024,
