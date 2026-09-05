@@ -34,39 +34,39 @@ module clk_pll (
     
     localparam integer STATIC_RATIOM    = 2; //@IPC int 1,128 
     
-    localparam real    STATIC_RATIO0    = 13.5; //@IPC int 1.0000,128.0000 
+    localparam real    STATIC_RATIO0    = 6.75; //@IPC int 1.0000,128.0000 
         
-    localparam integer STATIC_RATIO1    = 19; //@IPC int 1,128 
+    localparam integer STATIC_RATIO1    = 13; //@IPC int 1,128 
     
-    localparam integer STATIC_RATIO2    = 19; //@IPC int 1,128 
+    localparam integer STATIC_RATIO2    = 13; //@IPC int 1,128 
     
-    localparam integer STATIC_RATIO3    = 19; //@IPC int 1,128 
+    localparam integer STATIC_RATIO3    = 13; //@IPC int 1,128 
     
-    localparam integer STATIC_RATIO4    = 19; //@IPC int 1,128 
+    localparam integer STATIC_RATIO4    = 13; //@IPC int 1,128 
     
-    localparam integer STATIC_RATIO5    = 19; //@IPC int 1,128 
+    localparam integer STATIC_RATIO5    = 13; //@IPC int 1,128 
     
-    localparam integer STATIC_RATIO6    = 19; //@IPC int 1,128 
+    localparam integer STATIC_RATIO6    = 13; //@IPC int 1,128 
     
-    localparam real    STATIC_RATIOF    = 17.5; //@IPC int 1.0000,128.0000 
+    localparam real    STATIC_RATIOF    = 11.875; //@IPC int 1.0000,128.0000 
         
     localparam integer STATIC_RATIOPHY  = 1; //@IPC int 1,128 
     
-    localparam integer STATIC_DUTY0     = 13; //@IPC int 2,255
+    localparam integer STATIC_DUTY0     = 6; //@IPC int 2,255
     
-    localparam integer STATIC_DUTY1     = 19; //@IPC int 2,255
+    localparam integer STATIC_DUTY1     = 13; //@IPC int 2,255
     
-    localparam integer STATIC_DUTY2     = 19; //@IPC int 2,255
+    localparam integer STATIC_DUTY2     = 13; //@IPC int 2,255
     
-    localparam integer STATIC_DUTY3     = 19; //@IPC int 2,255
+    localparam integer STATIC_DUTY3     = 13; //@IPC int 2,255
     
-    localparam integer STATIC_DUTY4     = 19; //@IPC int 2,255
+    localparam integer STATIC_DUTY4     = 13; //@IPC int 2,255
     
-    localparam integer STATIC_DUTY5     = 19; //@IPC int 2,255
+    localparam integer STATIC_DUTY5     = 13; //@IPC int 2,255
     
-    localparam integer STATIC_DUTY6     = 19; //@IPC int 2,255
+    localparam integer STATIC_DUTY6     = 13; //@IPC int 2,255
     
-    localparam integer STATIC_DUTYF     = 17; //@IPC int 2,255
+    localparam integer STATIC_DUTYF     = 11; //@IPC int 2,255
     
     localparam integer STATIC_DUTYPHY   = 2; //@IPC int 2,255
     

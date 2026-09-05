@@ -537,7 +537,7 @@ module Hfpga_jtag_soc #(
     );
 
     Huart_tx #(
-    	.CLK_HZ(70_000_000)
+    	.CLK_HZ(95_000_000)
 	)u_uart0_tx (
         .clk        (cpu_clk),
         .rst_n      (sys_rst_n),
