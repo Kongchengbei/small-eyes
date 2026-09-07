@@ -85,6 +85,9 @@ module Hexu (
 	//div状态
 	reg        ex_div_started;
 	reg        ex_div_done;
+	//乘法器为固定两拍流水，EX 在结果有效前保持本条指令。
+	reg        ex_mul_started;
+	reg        ex_mul_done;
 
 
     reg [31:0] ex_imm;
@@ -108,13 +111,6 @@ module Hexu (
 	wire       ex_ready_go;
 	// 访存请求：只看 ex_valid 和指令类型，不看 ready_go —— 这是打断组合环的关键
     wire ex_mem_req = ex_valid && (ex_is_load || ex_is_store);
-	//控制信号
-	assign ex_ready_go     =(!ex_valid || !ex_m_is_div || ex_div_done) //除法
-						   && (!ex_mem_req || dmem_ready); //访存
-    assign dbg_ex_ready_go = ex_ready_go;
-    assign ex_allowin      = !ex_valid || (ex_ready_go && mem_allowin);
-    assign ex_to_mem_valid = ex_valid && ex_ready_go;
-	
 	//M指令
 	wire ex_m_valid = ex_valid && (ex_m_op != M_NONE);
 	//mul
@@ -125,15 +121,25 @@ module Hexu (
 
 	wire mul_x_signed =(ex_m_op == M_MUL)||(ex_m_op == M_MULH)||(ex_m_op == M_MULHSU);
 	wire mul_y_signed =(ex_m_op == M_MUL)||(ex_m_op == M_MULH);
+	wire mul_start = ex_m_is_mul && !ex_mul_started && !ex_mul_done;
+	wire mul_done;
+	wire mul_done_fire = ex_m_is_mul && ex_mul_started && mul_done;
+	// mul_done 是脉冲。若 MEM 可接收，直接放行；若 MEM 背压，则把
+	// 完成状态锁存到 ex_mul_done，直到本条指令离开 EX。
+	wire ex_mul_ready = ex_mul_done || mul_done_fire;
 	wire [31:0] mul_result_selected = (ex_m_op == M_MUL) ? mul_result[31:0] : mul_result[63:32];
 
 	wire [63:0] mul_result;
 	mul u_mul (
+	    .clk          (clk),
+	    .rst          (rst),
+	    .start        (mul_start),
 	    .x_signed     (mul_x_signed),
 	    .y_signed     (mul_y_signed),
 	    .x            (ex_src1),
 	    .y            (ex_src2),
-	    .result       (mul_result)
+	    .result       (mul_result),
+	    .done         (mul_done)
 	);
 
 	//div
@@ -161,6 +167,14 @@ module Hexu (
 	    .r          (div_remainder),
 	    .done       (div_done)
 	);
+
+	//控制信号。乘法、除法和访存均可让 EX 保持当前指令。
+	assign ex_ready_go     =(!ex_valid || !ex_m_is_mul || ex_mul_ready)
+						   && (!ex_valid || !ex_m_is_div || ex_div_done)
+						   && (!ex_mem_req || dmem_ready);
+    assign dbg_ex_ready_go = ex_ready_go;
+    assign ex_allowin      = !ex_valid || (ex_ready_go && mem_allowin);
+    assign ex_to_mem_valid = ex_valid && ex_ready_go;
 
 	
 	//alu计算
@@ -210,6 +224,7 @@ module Hexu (
                                                        32'b0;
     assign ex_forward_valid   = ex_valid && ex_reg_wen && !ex_is_load &&
                                 (ex_rd_addr != 5'd0) &&
+								(!ex_m_is_mul || ex_mul_ready) &&
                                 (!ex_m_is_div || ex_div_done);
 
     assign ex_forward_rd_addr = ex_rd_addr;
@@ -274,6 +289,8 @@ module Hexu (
 				ex_m_op         <= M_NONE;
 				ex_div_started  <= 1'b0;
 				ex_div_done     <= 1'b0;
+				ex_mul_started  <= 1'b0;
+				ex_mul_done     <= 1'b0;
         end else begin
             if (flush) begin
 				ex_valid      <= 1'b0;
@@ -316,6 +333,16 @@ module Hexu (
 				ex_div_done   <= 1'b1;
 			end else if (div_start) begin
 				ex_div_started <= 1'b1;
+			end
+
+			// 乘法状态寄存器，行为与除法握手一致。
+			if (flush || ex_allowin) begin
+				ex_mul_started <= 1'b0;
+				ex_mul_done    <= 1'b0;
+			end else if (mul_done_fire) begin
+				ex_mul_done    <= 1'b1;
+			end else if (mul_start) begin
+				ex_mul_started <= 1'b1;
 			end
 			// M-EXT MODIFIED END
         end

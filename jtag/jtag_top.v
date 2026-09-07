@@ -1,4 +1,4 @@
-`include "../jtag_soc/defines.v"
+`include "../soc/defines.v"
 // JTAG顶层模块
 module jtag_top (
 //时钟与复位

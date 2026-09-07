@@ -19,6 +19,7 @@ module Hmemu (
 	input      [31:0] ex_wb_value,
 
     input      [31:0] dmem_rdata,
+    input             dmem_rsp_valid,
 
 	output reg [31:0]  mem_pc,
 	output reg [31:0]  mem_ins,
@@ -41,10 +42,13 @@ module Hmemu (
     reg [2:0]  mem_funct3;
     reg [1:0]  mem_wb_sel;
     reg [1:0]  mem_offset;
+	reg        mem_is_load;
 	reg [31:0] mem_ex_wb_value;
 
 
-    assign mem_ready_go    = 1'b1;
+    // A BRAM/MMIO load responds one cpu_clk after its request.  A DDR3 load
+    // remains in MEM until the AXI bridge returns its selected 32-bit word.
+    assign mem_ready_go    = !mem_valid || !mem_is_load || dmem_rsp_valid;
     assign mem_allowin     = !mem_valid || (mem_ready_go && wb_allowin);
     assign mem_to_wb_valid = mem_valid && mem_ready_go;
     assign dbg_mem_valid   = mem_valid;
@@ -79,6 +83,7 @@ module Hmemu (
             mem_funct3      <= 3'b0;
             mem_reg_wen     <= 1'b0;
             mem_wb_sel      <= 2'b0;
+			mem_is_load     <= 1'b0;
             mem_is_ebreak   <= 1'b0;
             mem_offset      <= 2'b0;
 			mem_pc          <= 32'b0;
@@ -96,6 +101,7 @@ module Hmemu (
 			mem_funct3     <= ex_mem_funct3;
 			mem_reg_wen    <= ex_reg_wen;
 			mem_wb_sel     <= ex_wb_sel;
+			mem_is_load    <= (ex_wb_sel == WB_LOAD);
 			mem_is_ebreak  <= ex_is_ebreak;
 			mem_offset     <= ex_alu_result[1:0];
 			mem_ex_wb_value<= ex_wb_value;
