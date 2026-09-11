@@ -1,12 +1,22 @@
 `timescale 1ns / 1ps
 
+// ===========================================================================
+// Hfpga_soc
+//
+// CPU + cache subsystem now talk to the outside world through one 32-bit AXI4
+// master (Htop / axi_bridge).  axi_mem_backend implements the memory map:
+//   MMIO (0x4000_0000): peripherals (UART/LED/FPIOA), uncached
+//   DDR  (0x8000_0000): forwarded through ddr_axi_bridge to the DDR3 IP
+//
+// The DDR3 controller is connected through ddr_axi_bridge.  core_active still
+// reports the controller's initialization-complete status.
+// ===========================================================================
 module Hfpga_soc #(
-    parameter IMEM_BYTES = 32 * 1024,
-    parameter DMEM_BYTES = 16 * 1024,
     parameter MEM_FILE   = `PROG_FPGA_PATH
 ) (
     input  clk,
     input  hard_rst_n,
+    //JTAG标准接口
     input  JTAG_TCK,
     input  JTAG_TMS,
     input  JTAG_TDI,
@@ -14,8 +24,7 @@ module Hfpga_soc #(
     output core_active,
     inout  [31:0] fpioa,
 
-    // 板载 DDR3（MINI-200H 原理图中的 32-bit DDR3 通道）。本阶段只做
-    // PHY/控制器初始化，CPU 仍只访问 BRAM；后续再把 CPU 数据总线桥接到 AXI。
+    //DDR3
     input         clk_p,
     input         clk_n,
     output        mem_rst_n,
@@ -34,119 +43,82 @@ module Hfpga_soc #(
     inout  [31:0] mem_dq,
     output [3:0]  mem_dm
 );
- 
-	wire [31:0] imem_addr;
-    wire [31:0] imem_rdata;
-    // 属性Verilog-2001 前置形式 (* ... *)。
-    // 尾置的 /* synthesis ... */ 注释形式 Synplify 只对标量生效，
-    wire        dmem_valid;
-    wire        dmem_wen;
-    wire [31:0] dmem_addr;
-    wire [31:0] dmem_wdata;
-    wire [3:0]  dmem_wmask;
-    wire [31:0] dmem_rdata;
-    wire [31:0] ram_dmem_rdata;
-    wire [31:0] ddr_dmem_rdata;
-    wire        ddr_dmem_rsp_valid;
-    wire        ddr_dmem_rsp_is_read;
-    wire        ddr_dmem_req_ready;
-    wire        dmem_rsp_valid;
-    reg         local_load_rsp_valid;
-    wire        ddr_addr_sel = (dmem_addr[31:30] == 2'b10);
-    wire        mmio_addr_sel = (dmem_addr[31:28] == 4'h4);
-    wire        ddr_dmem_valid = dmem_valid && ddr_addr_sel;
+
+    // ---------------- AXI master from the CPU / caches ----------------
+    wire [3:0]  axi_awid;
+    wire [31:0] axi_awaddr;
+    wire [7:0]  axi_awlen;
+    wire [2:0]  axi_awsize;
+    wire [1:0]  axi_awburst;
+    wire        axi_awvalid;
+    wire        axi_awready;
+    wire [3:0]  axi_wid;
+    wire [31:0] axi_wdata;
+    wire [3:0]  axi_wstrb;
+    wire        axi_wlast;
+    wire        axi_wvalid;
+    wire        axi_wready;
+    wire [3:0]  axi_bid;
+    wire [1:0]  axi_bresp;
+    wire        axi_bvalid;
+    wire        axi_bready;
+    wire [3:0]  axi_arid;
+    wire [31:0] axi_araddr;
+    wire [7:0]  axi_arlen;
+    wire [2:0]  axi_arsize;
+    wire [1:0]  axi_arburst;
+    wire        axi_arvalid;
+    wire        axi_arready;
+    wire [3:0]  axi_rid;
+    wire [31:0] axi_rdata;
+    wire [1:0]  axi_rresp;
+    wire        axi_rlast;
+    wire        axi_rvalid;
+    wire        axi_rready;
+
     wire [31:0] pc;
     wire [31:0] ins;
     wire        is_ebreak;
-    // 逻辑字段调试出口；真正的 DebugCore 仍由 Inserter 插入。
-    // FIC 的触发编码不是按采样通道原始位宽计算：当前平台每个触发位
-    // 需要约 3 个编码位，触发编码上限为 800 位。因此这里只把 BTB
-    // 诊断所需的 7 个端口标记给 Inserter，总宽度为 223 位（约 669 位编码）。
-    // 其余字段仍保留为 CPU/仿真调试出口，但不占用 FIC 触发资源。
-    (* PAP_MARK_DEBUG="<0/t0/0>"  *) wire [31:0] debug_if_pc;
-    (* PAP_MARK_DEBUG="<0/t1/0>"  *) wire [31:0] debug_id_pc;
-    (* PAP_MARK_DEBUG="<0/t2/0>"  *) wire [31:0] debug_id_ins;
-    (* PAP_MARK_DEBUG="<0/t3/0>"  *) wire [31:0] debug_btb_predict_next_pc;
-    (* PAP_MARK_DEBUG="<0/t4/0>"  *) wire [31:0] debug_actual_next_pc;
-    (* PAP_MARK_DEBUG="<0/t5/0>"  *) wire [31:0] debug_flush_pc;
-    // ILA exposes 31 meaningful control bits.  The reserved CPU bit is
-    // omitted by Debug_core, so this selected profile is 6*32+31=223 bits.
-    (* PAP_MARK_DEBUG="<0/t6/0>"  *) wire [30:0] debug_ctrl;
-    // Unmarked fields remain declared because Debug_core still exposes them
-    // for RTL simulation and optional future debug profiles.
+
+    // ---------------- debug / status exports (unchanged) ---------------
+    wire [31:0] debug_if_pc;
+    wire [31:0] debug_id_pc;
     wire [31:0] debug_ex_pc;
     wire [31:0] debug_mem_pc;
     wire [31:0] debug_wb_pc;
     wire [31:0] debug_if_ins;
+    wire [31:0] debug_id_ins;
     wire [31:0] debug_ex_ins;
     wire [31:0] debug_mem_ins;
     wire [31:0] debug_wb_ins;
     wire [31:0] debug_dmem_addr;
     wire [31:0] debug_dmem_wdata;
-    wire [31:0] cpu_debug_if_pc;
-    wire [31:0] cpu_debug_id_pc;
-    wire [31:0] cpu_debug_ex_pc;
-    wire [31:0] cpu_debug_mem_pc;
-    wire [31:0] cpu_debug_wb_pc;
-    wire [31:0] cpu_debug_if_ins;
-    wire [31:0] cpu_debug_id_ins;
-    wire [31:0] cpu_debug_ex_ins;
-    wire [31:0] cpu_debug_mem_ins;
-    wire [31:0] cpu_debug_wb_ins;
-    wire [31:0] cpu_debug_dmem_addr;
-    wire [31:0] cpu_debug_dmem_wdata;
-    wire [31:0] cpu_debug_btb_predict_next_pc;
-    wire [31:0] cpu_debug_actual_next_pc;
-    wire [31:0] cpu_debug_flush_pc;
+    wire [31:0] debug_btb_predict_next_pc;
+    wire [31:0] debug_actual_next_pc;
+    wire [31:0] debug_flush_pc;
     wire [31:0] cpu_debug_ctrl;
-   // 0x8000_0000--0xBFFF_FFFF is the 1 GiB byte-addressed DDR3 window.
-   // BRAM and MMIO keep their original address maps.
-   wire ram_dmem_valid = dmem_valid && !mmio_addr_sel && !ddr_addr_sel;
-   wire ram_dmem_wen   = ram_dmem_valid && dmem_wen;
 
-    wire        jtag_cmd_valid;
-    wire        jtag_cmd_ready;
-    wire [31:0] jtag_cmd_addr;
-    wire        jtag_cmd_read;
-    wire [31:0] jtag_cmd_wdata;
-    wire [3:0]  jtag_cmd_wmask;
-    wire        jtag_rsp_valid;
-    wire        jtag_rsp_ready;
-    wire        jtag_rsp_err;
-    wire [31:0] jtag_rsp_rdata;
-    wire        jtag_halt_req;
-    wire        jtag_reset_req;
+    // ============ clock / reset (unchanged) =============================
+    wire cpu_clk;
+    wire pll_locked;
 
-    localparam UART0_BASE = 32'h4000_0000;
-    localparam UART0_END  = 32'h4000_0100;
-    localparam LED_ADDR   = 32'h4000_0200;
-    wire mmio_valid = dmem_valid && mmio_addr_sel;
-    wire uart_addr_sel = (dmem_addr >= UART0_BASE) &&
-                         (dmem_addr < UART0_END);
-    wire uart_sel = mmio_valid && uart_addr_sel;
-	wire uart_ready;
-    // Do not qualify the select by dmem_valid: Hexu derives dmem_valid from
-    // dmem_ready, so doing that would create a loop during a DDR stall.
-    wire dmem_ready = ddr_addr_sel  ? ddr_dmem_req_ready :
-                      uart_addr_sel ? uart_ready         : 1'b1;
-	wire led_sel = mmio_valid && (dmem_addr == LED_ADDR);
-    wire fpioa_sel = mmio_valid &&
-                     (dmem_addr >= 32'h4000_0f00) &&
-                     (dmem_addr <  32'h4000_1000);
-    wire led_wr = led_sel && dmem_wen;
-    wire [31:0] uart_rdata;
-    wire [31:0] fpioa_rdata;
-    wire [3:0] led_value;
-    wire uart_tx;
-
-	wire cpu_clk/* synthesis PAP_MARK_DEBUG="<0/c0/0>" */;
-	wire pll_locked;
-
-    // DDR3 使用板载 125 MHz 差分参考时钟（N3/N2），与 CPU 的 27 MHz
-    // 系统时钟完全独立。控制器内部产生 core_clk/PHY 时钟。
     wire ddr_ref_clk;
     wire ddr_core_clk;
     wire ddr_init_done;
+
+    // Backend-side 32-bit DDR request channel.  ddr_axi_bridge converts one
+    // request at a time to the DDR controller's 256-bit AXI clock domain.
+    wire        ddr_req_valid;
+    wire        ddr_req_ready;
+    wire        ddr_req_write;
+    wire [31:0] ddr_req_addr;
+    wire [31:0] ddr_req_wdata;
+    wire [3:0]  ddr_req_wstrb;
+    wire        ddr_rsp_valid;
+    wire        ddr_rsp_ready;
+    wire        ddr_rsp_is_read;
+    wire [31:0] ddr_rsp_rdata;
+
     wire [29:0]  ddr_axi_awaddr;
     wire [7:0]   ddr_axi_awid;
     wire [7:0]   ddr_axi_awlen;
@@ -176,6 +148,7 @@ module Hfpga_soc #(
     wire         ddr_axi_rlast;
     wire         ddr_axi_rvalid;
     wire         ddr_axi_rready;
+
     GTP_INBUFGDS #(
         .IOSTANDARD("DEFAULT"),
         .TERM_DIFF("ON")
@@ -185,23 +158,359 @@ module Hfpga_soc #(
         .IB (clk_n)
     );
 
-    // CPU and DDR controller use unrelated clocks.  The bridge keeps one
-    // transaction in flight, handles the 32-bit/256-bit width conversion, and
-    // gates CPU requests until PHY training has completed.
+    clk_pll u_pll (
+        .clkin1  (clk),
+        .clkout0 (cpu_clk),
+        .lock    (pll_locked)
+    );
+
+    wire rst_async_n = hard_rst_n && pll_locked;
+
+    reg rst_sync_q1, rst_sync_q2;
+    always @(posedge cpu_clk or negedge rst_async_n) begin
+        if (!rst_async_n) begin
+            rst_sync_q1 <= 1'b0;
+            rst_sync_q2 <= 1'b0;
+        end else begin
+            rst_sync_q1 <= 1'b1;
+            rst_sync_q2 <= rst_sync_q1;
+        end
+    end
+    wire sys_rst_n = rst_sync_q2;
+
+    reg [3:0] cpu_rst_cnt;
+    always @(posedge cpu_clk) begin
+        if (!sys_rst_n)               cpu_rst_cnt <= 4'd0;
+        else if (cpu_rst_cnt != 4'hF) cpu_rst_cnt <= cpu_rst_cnt + 4'd1;
+    end
+
+    wire jtag_cmd_valid;
+    wire jtag_cmd_ready;
+    wire [31:0] jtag_cmd_addr;
+    wire        jtag_cmd_read;
+    wire [31:0] jtag_cmd_wdata;
+    wire [3:0]  jtag_cmd_wmask;
+    wire        jtag_rsp_valid;
+    wire        jtag_rsp_ready;
+    wire        jtag_rsp_err;
+    wire [31:0] jtag_rsp_rdata;
+    wire        jtag_halt_req;
+    wire        jtag_reset_req;
+
+    wire cpu_rst = !sys_rst_n || (cpu_rst_cnt != 4'hF) ||
+                   jtag_reset_req || jtag_halt_req;
+
+    // ============ CPU + caches + axi_bridge =============================
+    Htop #(
+        .RESET_PC  (32'h8000_0000),
+        .DDR_BASE  (32'h8000_0000),
+        .DDR_BYTES (32'h4000_0000)
+    ) u_cpu (
+        .clk        (cpu_clk),
+        .rst        (cpu_rst),
+
+        .axi_awid   (axi_awid),
+        .axi_awaddr (axi_awaddr),
+        .axi_awlen  (axi_awlen),
+        .axi_awsize (axi_awsize),
+        .axi_awburst(axi_awburst),
+        .axi_awvalid(axi_awvalid),
+        .axi_awready(axi_awready),
+
+        .axi_wid    (axi_wid),
+        .axi_wdata  (axi_wdata),
+        .axi_wstrb  (axi_wstrb),
+        .axi_wlast  (axi_wlast),
+        .axi_wvalid (axi_wvalid),
+        .axi_wready (axi_wready),
+
+        .axi_bid    (axi_bid),
+        .axi_bresp  (axi_bresp),
+        .axi_bvalid (axi_bvalid),
+        .axi_bready (axi_bready),
+
+        .axi_arid   (axi_arid),
+        .axi_araddr (axi_araddr),
+        .axi_arlen  (axi_arlen),
+        .axi_arsize (axi_arsize),
+        .axi_arburst(axi_arburst),
+        .axi_arvalid(axi_arvalid),
+        .axi_arready(axi_arready),
+
+        .axi_rid    (axi_rid),
+        .axi_rdata  (axi_rdata),
+        .axi_rresp  (axi_rresp),
+        .axi_rlast  (axi_rlast),
+        .axi_rvalid (axi_rvalid),
+        .axi_rready (axi_rready),
+
+        .pc         (pc),
+        .ins        (ins),
+        .is_ebreak  (is_ebreak),
+
+        .debug_if_pc               (debug_if_pc),
+        .debug_id_pc               (debug_id_pc),
+        .debug_ex_pc               (debug_ex_pc),
+        .debug_mem_pc              (debug_mem_pc),
+        .debug_wb_pc               (debug_wb_pc),
+        .debug_if_ins              (debug_if_ins),
+        .debug_id_ins              (debug_id_ins),
+        .debug_ex_ins              (debug_ex_ins),
+        .debug_mem_ins             (debug_mem_ins),
+        .debug_wb_ins              (debug_wb_ins),
+        .debug_dmem_addr           (debug_dmem_addr),
+        .debug_dmem_wdata          (debug_dmem_wdata),
+        .debug_btb_predict_next_pc (debug_btb_predict_next_pc),
+        .debug_actual_next_pc      (debug_actual_next_pc),
+        .debug_flush_pc            (debug_flush_pc),
+        .debug_ctrl                (cpu_debug_ctrl)
+    );
+
+    // ============ unified AXI memory backend =============================
+    wire mmio_req_valid;
+    wire mmio_req_wen;
+    wire [31:0] mmio_req_addr;
+    wire [31:0] mmio_req_wdata;
+    wire [3:0]  mmio_req_wstrb;
+    wire        mmio_req_ready;
+    wire [31:0] mmio_req_rdata;
+
+    axi_mem_backend #(
+        .MMIO_BASE  (32'h4000_0000),
+        .MMIO_BYTES (32'h0000_1000),
+        .DDR_BASE   (32'h8000_0000),
+        .DDR_BYTES  (32'h4000_0000)
+    ) u_mem (
+        .clk            (cpu_clk),
+        .rst_n          (sys_rst_n),
+
+        .axi_awid       (axi_awid),
+        .axi_awaddr     (axi_awaddr),
+        .axi_awlen      (axi_awlen),
+        .axi_awsize     (axi_awsize),
+        .axi_awburst    (axi_awburst),
+        .axi_awvalid    (axi_awvalid),
+        .axi_awready    (axi_awready),
+        .axi_wdata      (axi_wdata),
+        .axi_wstrb      (axi_wstrb),
+        .axi_wlast      (axi_wlast),
+        .axi_wvalid     (axi_wvalid),
+        .axi_wready     (axi_wready),
+        .axi_bid        (axi_bid),
+        .axi_bresp      (axi_bresp),
+        .axi_bvalid     (axi_bvalid),
+        .axi_bready     (axi_bready),
+        .axi_arid       (axi_arid),
+        .axi_araddr     (axi_araddr),
+        .axi_arlen      (axi_arlen),
+        .axi_arsize     (axi_arsize),
+        .axi_arburst    (axi_arburst),
+        .axi_arvalid    (axi_arvalid),
+        .axi_arready    (axi_arready),
+        .axi_rid        (axi_rid),
+        .axi_rdata      (axi_rdata),
+        .axi_rresp      (axi_rresp),
+        .axi_rlast      (axi_rlast),
+        .axi_rvalid     (axi_rvalid),
+        .axi_rready     (axi_rready),
+
+        .mmio_req_valid (mmio_req_valid),
+        .mmio_req_wen   (mmio_req_wen),
+        .mmio_req_addr  (mmio_req_addr),
+        .mmio_req_wdata (mmio_req_wdata),
+        .mmio_req_wstrb (mmio_req_wstrb),
+        .mmio_req_ready (mmio_req_ready),
+        .mmio_req_rdata (mmio_req_rdata),
+
+        .ddr_req_valid (ddr_req_valid),
+        .ddr_req_ready (ddr_req_ready),
+        .ddr_req_write (ddr_req_write),
+        .ddr_req_addr  (ddr_req_addr),
+        .ddr_req_wdata (ddr_req_wdata),
+        .ddr_req_wstrb (ddr_req_wstrb),
+        .ddr_rsp_valid (ddr_rsp_valid),
+        .ddr_rsp_ready (ddr_rsp_ready),
+        .ddr_rsp_is_read(ddr_rsp_is_read),
+        .ddr_rsp_rdata (ddr_rsp_rdata),
+
+        .jtag_cmd_valid (jtag_cmd_valid),
+        .jtag_cmd_ready (jtag_cmd_ready),
+        .jtag_cmd_addr  (jtag_cmd_addr),
+        .jtag_cmd_read  (jtag_cmd_read),
+        .jtag_cmd_wdata (jtag_cmd_wdata),
+        .jtag_cmd_wmask (jtag_cmd_wmask),
+        .jtag_rsp_valid (jtag_rsp_valid),
+        .jtag_rsp_ready (jtag_rsp_ready),
+        .jtag_rsp_err   (jtag_rsp_err),
+        .jtag_rsp_rdata (jtag_rsp_rdata)
+    );
+
+    // ============ JTAG =====================================================
+    wire JTAG_TCK_in;
+    GTP_INBUF #(
+        .IOSTANDARD("DEFAULT"),
+        .TERM_DDR("ON")
+    ) GTP_INBUF_inst (
+        .O (JTAG_TCK_in),
+        .I (JTAG_TCK)
+    );
+
+    jtag_top u_jtag (
+        .clk                 (cpu_clk),
+        .jtag_rst_n          (sys_rst_n),
+        .jtag_pin_TCK        (JTAG_TCK_in),
+        .jtag_pin_TMS        (JTAG_TMS),
+        .jtag_pin_TDI        (JTAG_TDI),
+        .jtag_pin_TDO        (JTAG_TDO),
+        .reg_we_o            (),
+        .reg_addr_o          (),
+        .reg_wdata_o         (),
+        .reg_rdata_i         (32'b0),
+        .jtag_icb_cmd_valid  (jtag_cmd_valid),
+        .jtag_icb_cmd_ready  (jtag_cmd_ready),
+        .jtag_icb_cmd_addr   (jtag_cmd_addr),
+        .jtag_icb_cmd_read   (jtag_cmd_read),
+        .jtag_icb_cmd_wdata  (jtag_cmd_wdata),
+        .jtag_icb_cmd_wmask  (jtag_cmd_wmask),
+        .jtag_icb_rsp_valid  (jtag_rsp_valid),
+        .jtag_icb_rsp_ready  (jtag_rsp_ready),
+        .jtag_icb_rsp_err    (jtag_rsp_err),
+        .jtag_icb_rsp_rdata  (jtag_rsp_rdata),
+        .halt_req_o          (jtag_halt_req),
+        .reset_req_o         (jtag_reset_req)
+    );
+
+    // ============ MMIO peripherals ========================================
+    localparam [31:0] UART0_BASE = 32'h4000_0000;
+    localparam [31:0] UART0_END  = 32'h4000_0100;
+    localparam [31:0] LED_ADDR   = 32'h4000_0200;
+
+    wire uart_addr_sel = (mmio_req_addr >= UART0_BASE) &&
+                         (mmio_req_addr <  UART0_END);
+    wire uart_sel = mmio_req_valid && uart_addr_sel;
+    wire led_sel  = mmio_req_valid && (mmio_req_addr == LED_ADDR);
+    wire fpioa_sel = mmio_req_valid &&
+                     (mmio_req_addr >= 32'h4000_0f00) &&
+                     (mmio_req_addr <  32'h4000_1000);
+
+    // UART TX data writes are the only peripheral access that can be busy.
+    assign mmio_req_ready = uart_addr_sel ? uart_ready : 1'b1;
+
+    wire [31:0] uart_rdata;
+    wire uart_ready;
+    wire uart_tx;
+    wire [3:0] led_value;
+    wire [31:0] fpioa_rdata;
+
+    Huart_tx #(
+        .CLK_HZ(90_000_000)
+    ) u_uart0_tx (
+        .clk        (cpu_clk),
+        .rst_n      (sys_rst_n),
+        .mmio_valid (uart_sel),
+        .mmio_wen   (mmio_req_wen),
+        .mmio_addr  (mmio_req_addr[7:0]),
+        .mmio_wdata (mmio_req_wdata),
+        .mmio_wmask (mmio_req_wstrb),
+        .mmio_rdata (uart_rdata),
+        .mmio_ready (uart_ready),
+        .tx_pin     (uart_tx)
+    );
+
+    Hled #(.WIDTH(4)) u_led (
+        .clk     (cpu_clk),
+        .rst_n   (sys_rst_n),
+        .wr_en   (led_sel && mmio_req_wen),
+        .wr_data (mmio_req_wdata),
+        .wr_mask (mmio_req_wstrb),
+        .led     (led_value)
+    );
+
+    Hfpioa_simple u_fpioa (
+        .clk        (cpu_clk),
+        .rst_n      (sys_rst_n),
+        .mmio_valid (fpioa_sel),
+        .mmio_wen   (mmio_req_wen),
+        .mmio_addr  (mmio_req_addr[7:0]),
+        .mmio_wdata (mmio_req_wdata),
+        .mmio_wmask (mmio_req_wstrb),
+        .mmio_rdata (fpioa_rdata),
+        .uart0_tx   (uart_tx),
+        .direct_led (led_value),
+        .fpioa      (fpioa)
+    );
+
+    assign mmio_req_rdata =
+        uart_sel   ? uart_rdata        :
+        led_sel    ? {28'b0, led_value}:
+        fpioa_sel  ? fpioa_rdata       : 32'b0;
+
+    // ============ Debug export ============================================
+    // Keep the same externally-visible debug bundles (ILA/FIC) as before.
+    (* PAP_MARK_DEBUG="<0/t0/0>"  *) wire [31:0] dbg_if_pc;
+    (* PAP_MARK_DEBUG="<0/t1/0>"  *) wire [31:0] dbg_id_pc;
+    (* PAP_MARK_DEBUG="<0/t2/0>"  *) wire [31:0] dbg_id_ins;
+    (* PAP_MARK_DEBUG="<0/t3/0>"  *) wire [31:0] dbg_btb_predict_next_pc;
+    (* PAP_MARK_DEBUG="<0/t4/0>"  *) wire [31:0] dbg_actual_next_pc;
+    (* PAP_MARK_DEBUG="<0/t5/0>"  *) wire [31:0] dbg_flush_pc;
+    (* PAP_MARK_DEBUG="<0/t6/0>"  *) wire [30:0] dbg_ctrl;
+
+    Debug_core u_debug_core (
+        .cpu_if_pc               (debug_if_pc),
+        .cpu_id_pc               (debug_id_pc),
+        .cpu_ex_pc               (debug_ex_pc),
+        .cpu_mem_pc              (debug_mem_pc),
+        .cpu_wb_pc               (debug_wb_pc),
+        .cpu_if_ins              (debug_if_ins),
+        .cpu_id_ins              (debug_id_ins),
+        .cpu_ex_ins              (debug_ex_ins),
+        .cpu_mem_ins             (debug_mem_ins),
+        .cpu_wb_ins              (debug_wb_ins),
+        .cpu_dmem_addr           (debug_dmem_addr),
+        .cpu_dmem_wdata          (debug_dmem_wdata),
+        .cpu_btb_predict_next_pc (debug_btb_predict_next_pc),
+        .cpu_actual_next_pc      (debug_actual_next_pc),
+        .cpu_flush_pc            (debug_flush_pc),
+        .cpu_ctrl                (cpu_debug_ctrl),
+        .if_pc                   (dbg_if_pc),
+        .id_pc                   (dbg_id_pc),
+        .ex_pc                   (dbg_ex_pc),
+        .mem_pc                  (dbg_mem_pc),
+        .wb_pc                   (dbg_wb_pc),
+        .if_ins                  (dbg_if_ins),
+        .id_ins                  (dbg_id_ins),
+        .ex_ins                  (dbg_ex_ins),
+        .mem_ins                 (dbg_mem_ins),
+        .wb_ins                  (dbg_wb_ins),
+        .dmem_addr               (dbg_dmem_addr),
+        .dmem_wdata              (dbg_dmem_wdata),
+        .btb_predict_next_pc     (dbg_btb_predict_next_pc),
+        .actual_next_pc          (dbg_actual_next_pc),
+        .flush_pc                (dbg_flush_pc),
+        .ctrl                    (dbg_ctrl)
+    );
+
+    // ============ DDR3 request bridge =====================================
+    // The backend is clocked by cpu_clk and emits one 32-bit request at a
+    // time. This bridge waits for DDR initialization, crosses to ddr_core_clk,
+    // expands writes to one 256-bit beat, and selects one word from each
+    // 256-bit read response.
     ddr_axi_bridge u_ddr_axi_bridge (
         .cpu_clk          (cpu_clk),
         .ddr_clk          (ddr_core_clk),
         .rst_n            (hard_rst_n),
         .ddr_init_done    (ddr_init_done),
-        .cpu_req_valid    (ddr_dmem_valid),
-        .cpu_req_ready    (ddr_dmem_req_ready),
-        .cpu_req_write    (dmem_wen),
-        .cpu_req_addr     (dmem_addr),
-        .cpu_req_wdata    (dmem_wdata),
-        .cpu_req_wmask    (dmem_wmask),
-        .cpu_rsp_rdata    (ddr_dmem_rdata),
-        .cpu_rsp_valid    (ddr_dmem_rsp_valid),
-        .cpu_rsp_is_read  (ddr_dmem_rsp_is_read),
+        .cpu_req_valid    (ddr_req_valid),
+        .cpu_req_ready    (ddr_req_ready),
+        .cpu_req_write    (ddr_req_write),
+        .cpu_req_addr     (ddr_req_addr),
+        .cpu_req_wdata    (ddr_req_wdata),
+        .cpu_req_wmask    (ddr_req_wstrb),
+        .cpu_rsp_rdata    (ddr_rsp_rdata),
+        .cpu_rsp_valid    (ddr_rsp_valid),
+        .cpu_rsp_is_read  (ddr_rsp_is_read),
+        .cpu_rsp_ready    (ddr_rsp_ready),
+
         .axi_awaddr       (ddr_axi_awaddr),
         .axi_awid         (ddr_axi_awid),
         .axi_awlen        (ddr_axi_awlen),
@@ -233,7 +542,6 @@ module Hfpga_soc #(
         .axi_rready       (ddr_axi_rready)
     );
 
-    // ddr_init_done also drives A20 as an immediate hardware-health signal.
     ddr3_ctrl_v116 u_ddr3_ctrl (
         .ref_clk                 (ddr_ref_clk),
         .resetn                  (hard_rst_n),
@@ -334,265 +642,6 @@ module Hfpga_soc #(
         .debug_cpd_state         ()
     );
 
-	clk_pll u_pll (
-	    .clkin1  (clk),
-	    .clkout0(cpu_clk),
-	    .lock   (pll_locked)
-	);
-
-	// ---------------- 复位控制 ----------------
-	// hard_rst_n(外部按键) 与 pll_locked 都与 cpu_clk 异步。
-	// 原写法 sys_rst_n = hard_rst_n && pll_locked，再由它组合出同步复位 cpu_rst，
-	// 等于把一个异步信号当同步复位用：它可以在任意时刻跳变，五级流水各级的触发器
-	// 可能在同一个时钟沿上采到不同的值，出现 ex_valid=1 而 id_valid=0 这类不一致
-	// 状态 —— EX 里就多出一条带着旧 ex_is_store 的幽灵指令。
-	// 因此这里做"异步置位、同步释放"：断言不依赖时钟(PLL 未锁时同样有效)，
-	// 释放沿由 cpu_clk 打两拍对齐，各级触发器必然在同一个沿上一起解除复位。
-	wire rst_async_n = hard_rst_n && pll_locked;
-
-	reg rst_sync_q1, rst_sync_q2;
-	always @(posedge cpu_clk or negedge rst_async_n) begin
-	    if (!rst_async_n) begin
-	        rst_sync_q1 <= 1'b0;
-	        rst_sync_q2 <= 1'b0;
-	    end else begin
-	        rst_sync_q1 <= 1'b1;
-	        rst_sync_q2 <= rst_sync_q1;
-	    end
-	end
-	wire sys_rst_n = rst_sync_q2;
-
-	// CPU 比外设多复位 16 拍：等存储器与 JTAG 的状态机先就绪，再放 CPU 去取指
-	reg [3:0] cpu_rst_cnt;
-	always @(posedge cpu_clk) begin
-	    if (!sys_rst_n)               cpu_rst_cnt <= 4'd0;
-	    else if (cpu_rst_cnt != 4'hF) cpu_rst_cnt <= cpu_rst_cnt + 4'd1;
-	end
-
-	// jtag_reset_req / jtag_halt_req 只复位 CPU，不能并进 sys_rst_n ——
-	// fpga_unified_memory 的 jtag_cmd_ready 依赖 rst_n( 98 line)
-	// 一旦折进全局复位，JTAG 下载器在 CPU 停住时就无法访问 imem
-	// 这两个信号来自 jtag_dm，已是 cpu_clk 域的寄存器输出，无需再同步
-	wire cpu_rst = !sys_rst_n || (cpu_rst_cnt != 4'hF) ||
-	               jtag_reset_req || jtag_halt_req;
-
-    // Existing BRAM and MMIO reads respond in the CPU clock following their
-    // request.  DDR reads supply their own response pulse from the bridge.
-    always @(posedge cpu_clk) begin
-        if (cpu_rst)
-            local_load_rsp_valid <= 1'b0;
-        else
-            local_load_rsp_valid <= dmem_valid && !dmem_wen && !ddr_addr_sel;
-    end
-    assign dmem_rsp_valid = local_load_rsp_valid ||
-                            (ddr_dmem_rsp_valid && ddr_dmem_rsp_is_read);
-
-	// Match the board template: JTAG_TCK enters through the vendor input
-    // buffer before it is used as the JTAG clock.
-    wire JTAG_TCK_in;
-    GTP_INBUF #(
-        .IOSTANDARD("DEFAULT"),
-        .TERM_DDR("ON")
-    ) GTP_INBUF_inst (
-        .O (JTAG_TCK_in),
-        .I (JTAG_TCK)
-    );
-
-    jtag_top u_jtag (
-        .clk                 (cpu_clk),
-        .jtag_rst_n          (sys_rst_n),
-        .jtag_pin_TCK        (JTAG_TCK_in),
-        .jtag_pin_TMS        (JTAG_TMS),
-        .jtag_pin_TDI        (JTAG_TDI),
-        .jtag_pin_TDO        (JTAG_TDO),
-        .reg_we_o            (),
-        .reg_addr_o          (),
-        .reg_wdata_o         (),
-        .reg_rdata_i         (32'b0),
-        .jtag_icb_cmd_valid  (jtag_cmd_valid),
-        .jtag_icb_cmd_ready  (jtag_cmd_ready),
-        .jtag_icb_cmd_addr   (jtag_cmd_addr),
-        .jtag_icb_cmd_read   (jtag_cmd_read),
-        .jtag_icb_cmd_wdata  (jtag_cmd_wdata),
-        .jtag_icb_cmd_wmask  (jtag_cmd_wmask),
-        .jtag_icb_rsp_valid  (jtag_rsp_valid),
-        .jtag_icb_rsp_ready  (jtag_rsp_ready),
-        .jtag_icb_rsp_err    (jtag_rsp_err),
-        .jtag_icb_rsp_rdata  (jtag_rsp_rdata),
-        .halt_req_o          (jtag_halt_req),
-        .reset_req_o         (jtag_reset_req)
-    );
-
-
-//CPU没有调试暂停输入。在JTAG会话期间保持复位状态，可使加载器获得对指令内存的独占访问权限。
-//会话为加载器提供对指令内存的独占访问。
-    Htop u_cpu (
-        .clk        (cpu_clk),
-        .rst        (cpu_rst),
-        .imem_addr  (imem_addr),
-        .imem_rdata (imem_rdata),
-        .dmem_valid (dmem_valid),
-        .dmem_wen   (dmem_wen),
-        .dmem_addr  (dmem_addr),
-        .dmem_wdata (dmem_wdata),
-        .dmem_wmask (dmem_wmask),
-        .dmem_rdata (dmem_rdata),
-		.dmem_ready  (dmem_ready),
-        .dmem_rsp_valid (dmem_rsp_valid),
-        .pc         (pc),
-        .ins        (ins),
-        .is_ebreak  (is_ebreak),
-        .debug_if_pc               (cpu_debug_if_pc),
-        .debug_id_pc               (cpu_debug_id_pc),
-        .debug_ex_pc               (cpu_debug_ex_pc),
-        .debug_mem_pc              (cpu_debug_mem_pc),
-        .debug_wb_pc               (cpu_debug_wb_pc),
-        .debug_if_ins              (cpu_debug_if_ins),
-        .debug_id_ins              (cpu_debug_id_ins),
-        .debug_ex_ins              (cpu_debug_ex_ins),
-        .debug_mem_ins             (cpu_debug_mem_ins),
-        .debug_wb_ins              (cpu_debug_wb_ins),
-        .debug_dmem_addr           (cpu_debug_dmem_addr),
-        .debug_dmem_wdata          (cpu_debug_dmem_wdata),
-        .debug_btb_predict_next_pc (cpu_debug_btb_predict_next_pc),
-        .debug_actual_next_pc      (cpu_debug_actual_next_pc),
-        .debug_flush_pc            (cpu_debug_flush_pc),
-        .debug_ctrl                (cpu_debug_ctrl)
-    );
-
-    Debug_core u_debug_core (
-        .cpu_if_pc               (cpu_debug_if_pc),
-        .cpu_id_pc               (cpu_debug_id_pc),
-        .cpu_ex_pc               (cpu_debug_ex_pc),
-        .cpu_mem_pc              (cpu_debug_mem_pc),
-        .cpu_wb_pc               (cpu_debug_wb_pc),
-        .cpu_if_ins              (cpu_debug_if_ins),
-        .cpu_id_ins              (cpu_debug_id_ins),
-        .cpu_ex_ins              (cpu_debug_ex_ins),
-        .cpu_mem_ins             (cpu_debug_mem_ins),
-        .cpu_wb_ins              (cpu_debug_wb_ins),
-        .cpu_dmem_addr           (cpu_debug_dmem_addr),
-        .cpu_dmem_wdata          (cpu_debug_dmem_wdata),
-        .cpu_btb_predict_next_pc (cpu_debug_btb_predict_next_pc),
-        .cpu_actual_next_pc      (cpu_debug_actual_next_pc),
-        .cpu_flush_pc            (cpu_debug_flush_pc),
-        .cpu_ctrl                (cpu_debug_ctrl),
-        .if_pc                   (debug_if_pc),
-        .id_pc                   (debug_id_pc),
-        .ex_pc                   (debug_ex_pc),
-        .mem_pc                  (debug_mem_pc),
-        .wb_pc                   (debug_wb_pc),
-        .if_ins                  (debug_if_ins),
-        .id_ins                  (debug_id_ins),
-        .ex_ins                  (debug_ex_ins),
-        .mem_ins                 (debug_mem_ins),
-        .wb_ins                  (debug_wb_ins),
-        .dmem_addr               (debug_dmem_addr),
-        .dmem_wdata              (debug_dmem_wdata),
-        .btb_predict_next_pc     (debug_btb_predict_next_pc),
-        .actual_next_pc          (debug_actual_next_pc),
-        .flush_pc                (debug_flush_pc),
-        .ctrl                    (debug_ctrl)
-    );
-
-	fpga_unified_memory #(
-	    .IMEM_BASE  (32'h0000_0000),
-	    .DMEM_BASE  (32'h2000_0000),
-	    .IMEM_BYTES (IMEM_BYTES),
-	    .DMEM_BYTES (DMEM_BYTES)
-	) u_memory (
-	    .clk             (cpu_clk),
-	    .rst_n           (sys_rst_n),
-	
-	    .cpu_imem_addr  (imem_addr),
-	    .cpu_imem_rdata (imem_rdata),
-	
-	    .cpu_dmem_addr  (dmem_addr),
-	    .cpu_dmem_rdata (ram_dmem_rdata),
-	    .cpu_dmem_valid (ram_dmem_valid),
-	    .cpu_dmem_wen   (ram_dmem_wen),
-	    .cpu_dmem_wdata (dmem_wdata),
-	    .cpu_dmem_wmask (dmem_wmask),
-	
-	    .jtag_cmd_valid (jtag_cmd_valid),
-	    .jtag_cmd_ready (jtag_cmd_ready),
-	    .jtag_cmd_addr  (jtag_cmd_addr),
-	    .jtag_cmd_read  (jtag_cmd_read),
-	    .jtag_cmd_wdata (jtag_cmd_wdata),
-	    .jtag_cmd_wmask (jtag_cmd_wmask),
-	
-	    .jtag_rsp_valid (jtag_rsp_valid),
-	    .jtag_rsp_ready (jtag_rsp_ready),
-	    .jtag_rsp_err   (jtag_rsp_err),
-	    .jtag_rsp_rdata (jtag_rsp_rdata)
-	);
-
-    Hled #(.WIDTH(4)) u_led (
-        .clk     (cpu_clk),
-        .rst_n   (sys_rst_n),
-        .wr_en   (led_wr),
-        .wr_data (dmem_wdata),
-        .wr_mask (dmem_wmask),
-        .led     (led_value)
-    );
-
-    Huart_tx #(
-    	.CLK_HZ(90_000_000)
-	)u_uart0_tx (
-        .clk        (cpu_clk),
-        .rst_n      (sys_rst_n),
-        .mmio_valid (uart_sel),
-        .mmio_wen   (dmem_wen),
-        .mmio_addr  (dmem_addr[7:0]),
-        .mmio_wdata (dmem_wdata),
-        .mmio_wmask (dmem_wmask),
-        .mmio_rdata (uart_rdata),
-		.mmio_ready  (uart_ready),
-        .tx_pin     (uart_tx)
-    );
-
-    Hfpioa_simple u_fpioa (
-        .clk        (cpu_clk),
-        .rst_n      (sys_rst_n),
-        .mmio_valid (fpioa_sel),
-        .mmio_wen   (dmem_wen),
-        .mmio_addr  (dmem_addr[7:0]),
-        .mmio_wdata (dmem_wdata),
-        .mmio_wmask (dmem_wmask),
-        .mmio_rdata (fpioa_rdata),
-        .uart0_tx   (uart_tx),
-        .direct_led (led_value),
-        .fpioa      (fpioa)
-    );
-
-	wire mmio_read = mmio_valid && !dmem_wen;
-
-	wire [31:0] mmio_rdata_now = uart_sel  ? uart_rdata        :
-	                             led_sel   ? {28'b0, led_value}:
-	                             fpioa_sel ? fpioa_rdata       :
-	                			 32'b0;
-
-	reg        mmio_read_reg;
-	reg [31:0] mmio_rdata_reg;
-
-	always @(posedge cpu_clk) begin
-	    if (cpu_rst) begin
-	        mmio_read_reg  <= 1'b0;
-	        mmio_rdata_reg <= 32'b0;
-	    end else begin
-	        mmio_read_reg <= mmio_read;
-
-	        if (mmio_read)
-	            mmio_rdata_reg <= mmio_rdata_now;
-	    end
-	end
-
-    assign dmem_rdata = (ddr_dmem_rsp_valid && ddr_dmem_rsp_is_read) ?
-                        ddr_dmem_rdata :
-                        mmio_read_reg ? mmio_rdata_reg : ram_dmem_rdata;
-
-    // A20 原本只表示 CPU 在运行。第一阶段改为 DDR3 初始化状态，便于
-    // 单独确认 IP、差分时钟、DDR3 引脚和训练都正常；CPU 逻辑并不依赖它。
     assign core_active = ddr_init_done;
 
 endmodule

@@ -62,8 +62,8 @@ module Hexu (
     output wire        dmem_valid,
     output wire        dmem_wen,
     output wire [31:0] dmem_addr,
-    output reg  [31:0] dmem_wdata,
-    output reg  [3:0]  dmem_wmask
+    output wire [31:0] dmem_wdata,
+    output wire [3:0]  dmem_wmask
 );
     localparam [1:0] WB_ALU  = 2'b00;
     localparam [1:0] WB_LOAD = 2'b01;
@@ -235,30 +235,40 @@ module Hexu (
     assign dmem_wen   = dmem_valid && ex_is_store;
     assign dmem_addr  = ex_result;
 
-	//生成掩码和数据
-    always @(*) begin
-        dmem_wdata = 32'b0;
-        dmem_wmask = 4'b0000;
-        if (dmem_valid && dmem_wen) begin
-            case (ex_mem_funct3)
-                3'b000: begin
-                    dmem_wmask = 4'b0001 << ex_result[1:0];
-                    dmem_wdata = (ex_src2 & 32'h0000_00ff) <<
-                                 (ex_result[1:0] * 8);
-                end
-                3'b001: begin
-                    dmem_wmask = 4'b0011 << ex_result[1:0];
-                    dmem_wdata = (ex_src2 & 32'h0000_ffff) <<
-                                 (ex_result[1:0] * 8);
-                end
-                3'b010: begin
-                    dmem_wmask = 4'b1111;
-                    dmem_wdata = ex_src2;
-                end
-                default: ;
-            endcase
-        end
-    end
+	// Store formatting is written as explicit combinations instead of
+	// variable shifts.  Some Fabric Compiler releases incorrectly optimize
+	// the old always/case mux into a second driver of the internal GND net.
+    wire        store_active = dmem_valid && dmem_wen;
+    wire        store_byte   = store_active && (ex_mem_funct3 == 3'b000);
+    wire        store_half   = store_active && (ex_mem_funct3 == 3'b001);
+    wire        store_word   = store_active && (ex_mem_funct3 == 3'b010);
+
+    wire [3:0] store_byte_mask =
+        (ex_result[1:0] == 2'd0) ? 4'b0001 :
+        (ex_result[1:0] == 2'd1) ? 4'b0010 :
+        (ex_result[1:0] == 2'd2) ? 4'b0100 : 4'b1000;
+    wire [3:0] store_half_mask =
+        (ex_result[1:0] == 2'd0) ? 4'b0011 :
+        (ex_result[1:0] == 2'd1) ? 4'b0110 :
+        (ex_result[1:0] == 2'd2) ? 4'b1100 : 4'b1000;
+
+    wire [31:0] store_byte_data =
+        (ex_result[1:0] == 2'd0) ? {24'b0, ex_src2[7:0]} :
+        (ex_result[1:0] == 2'd1) ? {16'b0, ex_src2[7:0], 8'b0} :
+        (ex_result[1:0] == 2'd2) ? {8'b0, ex_src2[7:0], 16'b0} :
+                                    {ex_src2[7:0], 24'b0};
+    wire [31:0] store_half_data =
+        (ex_result[1:0] == 2'd0) ? {16'b0, ex_src2[15:0]} :
+        (ex_result[1:0] == 2'd1) ? {8'b0, ex_src2[15:0], 8'b0} :
+        (ex_result[1:0] == 2'd2) ? {ex_src2[15:0], 16'b0} :
+                                    {ex_src2[7:0], 24'b0};
+
+    assign dmem_wmask = store_word ? 4'b1111 :
+                        store_half ? store_half_mask :
+                        store_byte ? store_byte_mask : 4'b0000;
+    assign dmem_wdata = store_word ? ex_src2 :
+                        store_half ? store_half_data :
+                        store_byte ? store_byte_data : 32'b0;
 
     always @(posedge clk) begin
         if (rst) begin

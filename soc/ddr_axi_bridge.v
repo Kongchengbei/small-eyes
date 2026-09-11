@@ -19,6 +19,7 @@ module ddr_axi_bridge (
     output reg [31:0]  cpu_rsp_rdata,
     output reg         cpu_rsp_valid,
     output reg         cpu_rsp_is_read,
+    input              cpu_rsp_ready,
 
     output     [29:0]  axi_awaddr,
     output     [7:0]   axi_awid,
@@ -70,7 +71,8 @@ module ddr_axi_bridge (
     reg        ddr_rsp_is_read;
     reg        ack_toggle_ddr;
 
-    assign cpu_req_ready = init_done_cpu_sync && !req_busy_cpu;
+    assign cpu_req_ready = init_done_cpu_sync && !req_busy_cpu &&
+                           !cpu_rsp_valid;
 
     always @(posedge cpu_clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -92,8 +94,6 @@ module ddr_axi_bridge (
             init_done_cpu_sync <= init_done_cpu_meta;
             ack_cpu_meta       <= ack_toggle_ddr;
             ack_cpu_sync       <= ack_cpu_meta;
-            cpu_rsp_valid      <= 1'b0;
-
             // A new request flips req_toggle_cpu.  DDR completes it by
             // copying that same token to ack_toggle_ddr, so equality (not
             // inequality) is the completion condition.
@@ -103,6 +103,9 @@ module ddr_axi_bridge (
                 cpu_rsp_is_read <= ddr_rsp_is_read;
                 cpu_rsp_valid   <= 1'b1;
             end
+
+            if (cpu_rsp_valid && cpu_rsp_ready)
+                cpu_rsp_valid <= 1'b0;
 
             if (!req_busy_cpu && cpu_req_valid && cpu_req_ready) begin
                 req_addr_cpu   <= cpu_req_addr;

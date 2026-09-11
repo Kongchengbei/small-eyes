@@ -5,7 +5,7 @@
         <id>042003</id>
         <display_name>DDR3 Interface</display_name>
         <name>Logos2 HMIC_S</name>
-        <version>1.16a</version>
+        <version>1.10</version>
         <instance>ddr3_ctrl_v116</instance>
         <family>Logos2</family>
         <device>PG2L200H</device>

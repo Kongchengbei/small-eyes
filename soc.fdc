@@ -10,13 +10,14 @@ define_attribute {n:JTAG_TCK_in} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}
 create_generated_clock -name cpu_clk \
     -source [get_ports {clk}] \
     -master_clock clk \
-    -multiply_by 95 \
+    -multiply_by 70 \
     -divide_by 27 \
     [get_pins {u_pll/u_gpll:CLKOUT0}]
 # 异步时钟域声明
 set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {JTAG_CLK}]
 
-#IO引脚约束
+# IO 引脚约束：这里只保留 Hfpga_soc 顶层实际存在的外部端口。
+# DDR3 端口使用板卡原理图/引脚表中的专用资源位置，不能改用普通 IO。
 #----------------------系统时钟---------------------------
 define_attribute {p:clk} {PAP_IO_DIRECTION} {INPUT}
 define_attribute {p:clk} {PAP_IO_LOC} {D18}
@@ -29,13 +30,14 @@ define_attribute {p:hard_rst_n} {PAP_IO_LOC} {C22}
 define_attribute {p:hard_rst_n} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:hard_rst_n} {PAP_IO_STANDARD} {LVCMOS33}
 
-#----------------------LED---------------------------
+#----------------------DDR 初始化状态 LED---------------------------
 define_attribute {p:core_active} {PAP_IO_DIRECTION} {OUTPUT}
 define_attribute {p:core_active} {PAP_IO_LOC} {A20}
 define_attribute {p:core_active} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:core_active} {PAP_IO_STANDARD} {LVCMOS33}
 
-#----------------------JTAG---------------------------
+#----------------------JTAG 调试接口---------------------------
+# JTAG 用于调试以及通过 system bus 装载 DDR 中的程序。
 # JTAG_TDI: 扩展口4 -> J10: R20
 define_attribute {p:JTAG_TDI} {PAP_IO_DIRECTION} {INPUT}
 define_attribute {p:JTAG_TDI} {PAP_IO_LOC} {R20}
@@ -60,34 +62,25 @@ define_attribute {p:JTAG_TDO} {PAP_IO_LOC} {T24}
 define_attribute {p:JTAG_TDO} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:JTAG_TDO} {PAP_IO_STANDARD} {LVCMOS33}
 
-#----------------------SD---------------------------
-# sd_dat[0]: 扩展口3 -> J10: R21
-
-# sd_dat[1]: 扩展口5 -> J10: N19
-
-# sd_dat[2]: 扩展口7 -> J10: M25
-
-# sd_dat[3]: 扩展口9 -> J10: T25
-
-# sd_cmd: 扩展口11 -> J10: R22
-
-# sd_clk: 扩展口13 -> J10: K26
-
 #----------------------FPIOA---------------------------
-#----------------------uart0---------------------------
-#TX
+# fpioa[31:0] 是 Hfpga_soc 的一个完整双向可复用 IO 总线，32 位均为真实顶层端口，
+# 因此全部保留约束。UART/LED/按键/PWM/GPIO 等功能由运行时 FPIOA 复用寄存器选择，
+# 下列注释中的扩展口编号只表示 PCB 连接关系，不代表固定的 RTL 外设接口。
+#----------------------FPIOA[0:31]---------------------------
+# 每个位都是板卡通用 IO，实际功能由 FPIOA 复用寄存器决定；这里仅记录 PCB 位置。
+# fpioa[0]: C24，通用 IO（不固定绑定 UART TX）
 define_attribute {p:fpioa[0]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:fpioa[0]} {PAP_IO_LOC} {C24}
 define_attribute {p:fpioa[0]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[0]} {PAP_IO_STANDARD} {LVCMOS33}
 
-#RX
+# fpioa[1]: B24，通用 IO（不固定绑定 UART RX）
 define_attribute {p:fpioa[1]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:fpioa[1]} {PAP_IO_LOC} {B24}
 define_attribute {p:fpioa[1]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[1]} {PAP_IO_STANDARD} {LVCMOS33}
 
-#----------------------uart1---------------------------
+# fpioa[2:7]: 扩展口 12/14/18/20/22/24，板卡通用 IO（由 FPIOA 复用）
 # fpioa[2]: 扩展口12 -> J10: T22
 define_attribute {p:fpioa[2]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:fpioa[2]} {PAP_IO_LOC} {T22}
@@ -100,7 +93,6 @@ define_attribute {p:fpioa[3]} {PAP_IO_LOC} {K25}
 define_attribute {p:fpioa[3]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[3]} {PAP_IO_STANDARD} {LVCMOS33}
 
-#----------------------spi0---------------------------
 # fpioa[4]: 扩展口18 -> J10: L22
 define_attribute {p:fpioa[4]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:fpioa[4]} {PAP_IO_LOC} {L22}
@@ -125,7 +117,8 @@ define_attribute {p:fpioa[7]} {PAP_IO_LOC} {AB24}
 define_attribute {p:fpioa[7]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[7]} {PAP_IO_STANDARD} {LVCMOS33}
 
-#----------------------led---------------------------
+#----------------------FPIOA[8:11]---------------------------
+# 板载 LED/通用 IO，由 FPIOA 复用寄存器决定最终功能。
 define_attribute {p:fpioa[8]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:fpioa[8]} {PAP_IO_LOC} {C19}
 define_attribute {p:fpioa[8]} {PAP_IO_VCCIO} {3.3}
@@ -146,7 +139,8 @@ define_attribute {p:fpioa[11]} {PAP_IO_LOC} {A17}
 define_attribute {p:fpioa[11]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[11]} {PAP_IO_STANDARD} {LVCMOS33}
 
-#----------------------按键---------------------------
+#----------------------FPIOA[12:15]---------------------------
+# 板载按键/通用 IO，由 FPIOA 复用寄存器决定最终功能。
 define_attribute {p:fpioa[12]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:fpioa[12]} {PAP_IO_LOC} {C23}
 define_attribute {p:fpioa[12]} {PAP_IO_VCCIO} {3.3}
@@ -167,7 +161,8 @@ define_attribute {p:fpioa[15]} {PAP_IO_LOC} {B20}
 define_attribute {p:fpioa[15]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[15]} {PAP_IO_STANDARD} {LVCMOS33}
 
-#----------------------pwm---------------------------
+#----------------------FPIOA[16:18]---------------------------
+# 扩展口 17/19/21：PWM/板卡通用 IO，由 FPIOA 复用。
 # fpioa[16]: 扩展口17 -> J10: L23
 define_attribute {p:fpioa[16]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:fpioa[16]} {PAP_IO_LOC} {L23}
@@ -186,7 +181,8 @@ define_attribute {p:fpioa[18]} {PAP_IO_LOC} {AB25}
 define_attribute {p:fpioa[18]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[18]} {PAP_IO_STANDARD} {LVCMOS33}
 
-#----------------------gpio---------------------------
+#----------------------FPIOA[19:31]---------------------------
+# 扩展口 23/25/26/27/28/29/30/31/32/33/34/35/36：板卡通用 IO，由 FPIOA 复用。
 # fpioa[19]: 扩展口23 -> J10: AC24
 define_attribute {p:fpioa[19]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:fpioa[19]} {PAP_IO_LOC} {AC24}
@@ -270,9 +266,9 @@ define_attribute {p:JTAG_TCK} {PAP_IO_NONE} {TRUE}
 define_attribute {p:JTAG_TDI} {PAP_IO_NONE} {TRUE}
 define_attribute {p:JTAG_TMS} {PAP_IO_NONE} {TRUE}
 
-
-#====================== DDR3 (MINI-200H reference design) ======================
-# Generated pin constraints copied unchanged from the matching PG2L200H-FBB676 DDR3 demo.
+#----------------------DDR3 数据/地址/控制---------------------------
+# 以下约束来自板卡 DDR3 引脚表；DQS/DQ/CK 等信号必须成组使用 DDR 专用 IO。
+# 不要删除未被当前 RTL 逻辑“单独使用”的位，它们由 DDR PHY 统一驱动/采样。
 define_attribute {p:mem_dq[31]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dq[31]} {PAP_IO_LOC} {C2}
 define_attribute {p:mem_dq[31]} {PAP_IO_VCCIO} {1.5}
@@ -771,7 +767,7 @@ define_attribute {p:mem_we_n} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_we_n} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_we_n} {PAP_IO_SLEW} {SLOW}
 
-# DDR3 125 MHz differential reference clock (N3/N2).
+# DDR3 差分参考时钟：clk_p=N3，clk_n=N2；该时钟只供 DDR PHY 使用。
 define_attribute {p:clk_n} {PAP_IO_DIRECTION} {INPUT}
 define_attribute {p:clk_n} {PAP_IO_LOC} {N2}
 define_attribute {p:clk_n} {PAP_IO_VCCIO} {1.5}
@@ -782,23 +778,3 @@ define_attribute {p:clk_p} {PAP_IO_LOC} {N3}
 define_attribute {p:clk_p} {PAP_IO_VCCIO} {1.5}
 define_attribute {p:clk_p} {PAP_IO_STANDARD} {HSTL15D_I}
 define_attribute {p:clk_p} {PAP_IO_NONE} {TRUE}
-
-# DDR3 IP timing and placement constraints.  Instance paths match the
-# generated DDR3 Interface v1.16a instance u_ddr3_ctrl in Hfpga_soc.v.
-create_clock -name {ddr_ref_clk} [get_ports {clk_p}] -period {8.0} -waveform {0 4.0}
-create_generated_clock -name {ddr_rst_clk} -source [get_ports {clk_p}] [get_pins {u_ddr3_ctrl.u_ddrphy_top.rst_clk_gpll/clkout0}] -master_clock [get_clocks {ddr_ref_clk}] -multiply_by {16} -divide_by {16}
-create_generated_clock -name {ddrphy_sysclk} -source [get_ports {clk_p}] [get_pins {u_ddr3_ctrl.u_ddrphy_top.ddrphy_gpll/clkout0}] -master_clock [get_clocks {ddr_ref_clk}] -multiply_by {16} -divide_by {16}
-create_generated_clock -name {phy_dq_clk_0} -source [get_ports {clk_p}] [get_pins {u_ddr3_ctrl.u_ddrphy_top.ddrphy_slice_top.i_dqs_bank[0].ddrphy_ppll/clkoutphy}] -master_clock [get_clocks {ddr_ref_clk}] -multiply_by {16} -divide_by {2}
-create_generated_clock -name {phy_dq_sysclk_0} -source [get_pins {u_ddr3_ctrl.u_ddrphy_top.ddrphy_slice_top.i_dqs_bank[0].ddrphy_ppll/clkoutphy}] [get_pins {u_ddr3_ctrl.u_ddrphy_top.ddrphy_slice_top.i_dqs_bank[0].u_ddrphy_ioclkdiv/CLKDIVOUT}] -master_clock [get_clocks {phy_dq_clk_0}] -edges {5 13 21} -edge_shift {0 0 0}
-set_multicycle_path 2 -from [get_clocks ddrphy_sysclk] -to [get_clocks phy_dq_sysclk_0]
-create_generated_clock -name {phy_dq_clk_1} -source [get_ports {clk_p}] [get_pins {u_ddr3_ctrl.u_ddrphy_top.ddrphy_slice_top.i_dqs_bank[1].ddrphy_ppll/clkoutphy}] -master_clock [get_clocks {ddr_ref_clk}] -multiply_by {16} -divide_by {2}
-create_generated_clock -name {phy_dq_sysclk_1} -source [get_pins {u_ddr3_ctrl.u_ddrphy_top.ddrphy_slice_top.i_dqs_bank[1].ddrphy_ppll/clkoutphy}] [get_pins {u_ddr3_ctrl.u_ddrphy_top.ddrphy_slice_top.i_dqs_bank[1].u_ddrphy_ioclkdiv/CLKDIVOUT}] -master_clock [get_clocks {phy_dq_clk_1}] -edges {5 13 21} -edge_shift {0 0 0}
-set_multicycle_path 2 -from [get_clocks ddrphy_sysclk] -to [get_clocks phy_dq_sysclk_1]
-set_clock_uncertainty {0.4} -from [get_clocks {ddrphy_sysclk}] -to [get_clocks {phy_dq_sysclk_0}] -setup -hold
-set_clock_uncertainty {0.4} -from [get_clocks {phy_dq_sysclk_0}] -to [get_clocks {ddrphy_sysclk}] -setup -hold
-set_clock_uncertainty {0.4} -from [get_clocks {ddrphy_sysclk}] -to [get_clocks {phy_dq_sysclk_1}] -setup -hold
-set_clock_uncertainty {0.4} -from [get_clocks {phy_dq_sysclk_1}] -to [get_clocks {ddrphy_sysclk}] -setup -hold
-set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {ddr_ref_clk ddr_rst_clk ddrphy_sysclk phy_dq_clk_0 phy_dq_sysclk_0 phy_dq_clk_1 phy_dq_sysclk_1}]
-define_attribute {i:u_ddr3_ctrl.u_ddrphy_top.u_ddrphy_cpd} {PAP_LOC} {DDRPHY_CPD_729_772}
-define_attribute {i:u_ddr3_ctrl.u_ddrphy_top.ddrphy_reset_ctrl.ddrphy_ioclk_gate[0]} {PAP_LOC} {CLMA_717_672:FF3}
-define_attribute {i:u_ddr3_ctrl.u_ddrphy_top.ddrphy_reset_ctrl.ddrphy_ioclk_gate[1]} {PAP_LOC} {CLMA_717_978:FF3}
