@@ -52,7 +52,16 @@ def run_test(simulator: Path, program: Path, timeout: int) -> tuple[str, str]:
         return "FAIL", f"case={match.group(1)}"
     if "TEST_TIMEOUT" in output:
         return "TIMEOUT", ""
-    return "ERROR", f"exit={result.returncode}"
+
+    detail = f"exit={result.returncode}"
+    meaningful_output = [
+        line.strip()
+        for line in output.splitlines()
+        if line.strip() and not line.startswith("-Info:")
+    ]
+    if meaningful_output:
+        detail += f" output={meaningful_output[-1]}"
+    return "ERROR", detail
 
 
 def main() -> int:

@@ -349,7 +349,7 @@ assign rd_addr  = request_buffer_uncache_en ? {request_buffer_tag, request_buffe
 //反应
 wire data_ok = (main_state_is_lookup && cache_hit) ||
                (main_state_is_miss && uncache_wr_buffer && wr_rdy) ||
-               (main_state_is_refill && !request_buffer_op && ret_valid && //store
+               (main_state_is_refill && ret_valid &&
                 ((miss_buffer_ret_num == request_buffer_offset[3:2]) || //cwf
                  request_buffer_uncache_en));
 
