@@ -1,1 +1,14 @@
 test/
+
+# Ignore the BSP tree by default.
+/bsp/*
+
+# Keep the bsp_app directory reachable, then ignore its contents.
+!/bsp/bsp_app/
+/bsp/bsp_app/*
+
+# Track only the linker script from bsp_app.
+!/bsp/bsp_app/link.lds
+
+# Ignore generated build output.
+/build/
