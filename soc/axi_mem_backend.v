@@ -1,10 +1,12 @@
 `timescale 1ns / 1ps
 
-// Serialized 32-bit AXI slave for the unified memory map.
-// Normal memory is external DDR only. MMIO is deliberately uncached by the
-// CPU caches and is presented to the peripheral bus one beat at a time.
-// JTAG uses the same DDR request channel as the CPU and is admitted only while
-// the AXI side is idle.
+// 统一地址映射的 32 位 AXI 从机。
+// 正常内存只使用外部 DDR；MMIO 被 CPU Cache 标记为非缓存区，并且每次只
+// 发送一个数据拍。JTAG 与 CPU 共用 DDR 请求通道，仅在 AXI 一侧空闲时进入。
+//
+// 读请求有一个两项、按序服务的队列：A burst 正在执行时，后来的 B burst
+// 可以先等待。这是“读事务在途”优化，不是乱序引擎：A 的所有数据拍和 RLAST
+// 都返回后，才会开始返回 B。
 module axi_mem_backend #(
     parameter [31:0] MMIO_BASE  = 32'h4000_0000,
     parameter [31:0] MMIO_BYTES = 32'h0000_1000,
@@ -100,6 +102,13 @@ reg [31:0] ar_base_reg;
 reg [7:0]  ar_len_reg;
 reg [7:0]  read_beat;
 reg [31:0] read_data_reg;
+
+// 等待中的第二笔读事务。正在执行的 A 存在上方 ar_*_reg 中；只有 A 的最后
+// 一个 R 通道握手完成后，才会把这里保存的 B 提升为当前事务。
+reg        read_pending_valid;
+reg [3:0]  read_pending_id;
+reg [31:0] read_pending_base;
+reg [7:0]  read_pending_len;
 reg [3:0]  aw_id_reg;
 reg [31:0] aw_base_reg;
 reg [7:0]  aw_len_reg;
@@ -129,12 +138,15 @@ wire        write_last = (write_beat == aw_len_reg);
 wire [2:0]  read_region  = region_of(read_addr);
 wire [2:0]  write_region = region_of(write_addr);
 wire        jtag_cmd_fire = jtag_cmd_valid && jtag_cmd_ready;
+wire read_can_queue = !read_pending_valid &&
+                      ((state == S_R_ISSUE) || (state == S_R_DDR) ||
+                       ((state == S_R_RESPONSE) && !read_last));
 
-// AXI has priority over JTAG whenever both request sources are active.
+// AXI 与 JTAG 同时请求时，优先服务 AXI。
 assign axi_awready = rst_n && (state == S_IDLE) && (jtag_state == J_IDLE) &&
                      !jtag_rsp_valid;
-assign axi_arready = rst_n && (state == S_IDLE) && (jtag_state == J_IDLE) &&
-                     !jtag_rsp_valid && !axi_awvalid;
+assign axi_arready = rst_n && (jtag_state == J_IDLE) && !jtag_rsp_valid &&
+                     (((state == S_IDLE) && !axi_awvalid) || read_can_queue);
 assign jtag_cmd_ready = rst_n && (state == S_IDLE) &&
                         (jtag_state == J_IDLE) && !jtag_rsp_valid &&
                         !axi_awvalid && !axi_arvalid;
@@ -189,6 +201,10 @@ always @(posedge clk or negedge rst_n) begin
         ar_len_reg       <= 8'b0;
         read_beat        <= 8'b0;
         read_data_reg    <= 32'b0;
+        read_pending_valid <= 1'b0;
+        read_pending_id    <= 4'b0;
+        read_pending_base  <= 32'b0;
+        read_pending_len   <= 8'b0;
         aw_id_reg        <= 4'b0;
         aw_base_reg      <= 32'b0;
         aw_len_reg       <= 8'b0;
@@ -202,6 +218,15 @@ always @(posedge clk or negedge rst_n) begin
         jtag_rsp_rdata   <= 32'b0;
     end
     else begin
+        // A 仍在执行时接收的新读请求成为等待的 B。保存原始 AXI ID，后续
+        // 返回时仍能正确携带该 ID；但服务顺序始终保持 A 后才是 B。
+        if (axi_arvalid && axi_arready && (state != S_IDLE)) begin
+            read_pending_valid <= 1'b1;
+            read_pending_id    <= axi_arid;
+            read_pending_base  <= axi_araddr;
+            read_pending_len   <= axi_arlen;
+        end
+
         case (state)
             S_IDLE: begin
                 if (axi_awvalid && axi_awready) begin
@@ -246,8 +271,22 @@ always @(posedge clk or negedge rst_n) begin
 
             S_R_RESPONSE: begin
                 if (axi_rvalid && axi_rready) begin
-                    if (read_last)
-                        state <= S_IDLE;
+                    if (read_last) begin
+                        if (read_pending_valid) begin
+                            // 仅在 A 的最后一个返回拍握手后，才将 B 提升为
+                            // 当前事务。这样完成次序确定，控制逻辑也很小，
+                            // 更适合当前以 CoreMark 为重点的 CPU 路径。
+                            ar_id_reg          <= read_pending_id;
+                            ar_base_reg        <= read_pending_base;
+                            ar_len_reg         <= read_pending_len;
+                            read_beat          <= 8'b0;
+                            read_pending_valid <= 1'b0;
+                            state              <= S_R_ISSUE;
+                        end
+                        else begin
+                            state <= S_IDLE;
+                        end
+                    end
                     else begin
                         read_beat <= read_beat + 8'd1;
                         state <= S_R_ISSUE;
