@@ -129,6 +129,7 @@ module tb_Htop;
         .axi_rlast  (axi_rlast),
         .axi_rvalid (axi_rvalid),
         .axi_rready (axi_rready),
+		.irq_external(1'b0),
         .pc         (pc),
         .ins        (ins),
         .is_ebreak  (is_ebreak),

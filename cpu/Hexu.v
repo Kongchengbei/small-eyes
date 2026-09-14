@@ -3,6 +3,8 @@
 module Hexu (
     input             clk,
     input             rst,
+    // Aggregated platform interrupt (camera/DMA/etc. will connect here).
+    input             irq_external,
 
     input             id_to_ex_valid,
     input             mem_allowin,
@@ -193,7 +195,20 @@ module Hexu (
 	//csr
     wire csr_valid    = ex_valid && ex_is_csr   && ex_allowin;
     wire csr_is_ecall = ex_valid && ex_is_ecall && ex_allowin;
+    wire csr_is_ebreak= ex_valid && ex_is_ebreak&& ex_allowin;
     wire csr_is_mret  = ex_valid && ex_is_mret  && ex_allowin;
+    // Taking an asynchronous interrupt after the current EX instruction
+    // lets that instruction finish once; mepc will point at its successor.
+    // CSR writes are left to complete first, then the following instruction
+    // is the interrupt boundary, so an enable write is never lost.
+    wire csr_interrupt_boundary = ex_valid && ex_allowin &&
+                                  !ex_is_csr && !ex_is_ecall &&
+                                  !ex_is_ebreak && !ex_is_mret &&
+                                  // A branch/jump's architectural successor
+                                  // is its resolved target, not ex_pc + 4.
+                                  (ex_ins[6:0] != 7'b1100011) &&
+                                  (ex_ins[6:0] != 7'b1101111) &&
+                                  (ex_ins[6:0] != 7'b1100111);
     wire        csr_redirect_valid;
     wire [31:0] csr_redirect_pc;
 
@@ -206,7 +221,10 @@ module Hexu (
         .csr_rs1_data   (ex_src1),
         .csr_imm        (ex_csr_imm),
         .is_ecall       (csr_is_ecall),
+        .is_ebreak      (csr_is_ebreak),
         .is_mret        (csr_is_mret),
+        .interrupt_boundary(csr_interrupt_boundary),
+        .irq_external   (irq_external),
         .current_pc     (ex_pc),
         .csr_rdata      (ex_csr_data),
         .redirect_valid (csr_redirect_valid),

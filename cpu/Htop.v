@@ -7,6 +7,8 @@ module Htop #(
 ) (
     input         clk,
     input         rst,
+    // Aggregated M-mode external interrupt, active high.
+    input         irq_external,
 
     // ---- AXI4 master (32-bit data) ----
     output wire [3:0]  axi_awid,
@@ -365,6 +367,7 @@ module Htop #(
     Hexu u_exu (
         .clk                 (clk),
         .rst                 (rst),
+        .irq_external        (irq_external),
         .id_to_ex_valid      (id_to_ex_valid),
         .mem_allowin         (mem_allowin),
         .flush               (ex_flush_req),

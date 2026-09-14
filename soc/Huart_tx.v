@@ -46,8 +46,9 @@ module Huart_tx #(
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
+            // 初始化所有寄存器
             uart_ctrl  <= 4'b0001;
-            baud_div   <= DEFAULT_DIV;
+            baud_div   <= DEFAULT_DIV;//一字节：1 个起始位 + 8 个数据位 + 1 个停止位
             baud_count <= 16'b0;
             shift_reg  <= 10'b1111111111;
             bit_count  <= 4'b0;
