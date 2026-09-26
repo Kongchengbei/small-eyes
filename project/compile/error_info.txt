@@ -1,0 +1,2 @@
+Verilog-4146: [F:/SocFpga/cpu/cache_sram_beh.v(line number: 7)] Duplicate module name data_bank_sram is not allowed. Enable Allow Duplicate Modules first.
+Verilog-4146: [F:/SocFpga/cpu/cache_sram_beh.v(line number: 39)] Duplicate module name tagv_sram is not allowed. Enable Allow Duplicate Modules first.

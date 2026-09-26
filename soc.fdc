@@ -1,3 +1,7 @@
+# 板型核对（2026-09-25）：以下 J10 扩展口(sd卡）映射来自 MINI-100HP(200H) 底板资料。
+# 用户实物底板的 J10 是 SD 卡槽，不能把 R20/P19/M24/T24 当作可从 J10
+# 接入的自定义 JTAG 引脚。请按实物板卡重新核对这些普通 IO 的用途。
+# 实装 FPGA 已确认 PG2L200H；工程及 IP 均选 PG2L200H-FBB676。
 #时序约束
 create_clock -period {37.037} [get_ports {clk}] -name clk
 

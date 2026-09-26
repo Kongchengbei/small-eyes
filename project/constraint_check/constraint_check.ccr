@@ -1,0 +1,184 @@
+##### Written on 2026/09/26 16:06:13 ###############################
+
+
+##### INFO ##################################################
+
+Current device : 
+	PG2L200H-6FBB676
+
+Top Module : 
+	Hfpga_soc
+
+Constraint File(s) : 
+	F:/SocFpga/soc.fdc
+
+##### SUMMARY ######################################################
+
+Found 0 error(s), 93 critical warning(s), 0 warning(s), out of 672 constraint(s)
+
+
+Inapplicable constraints(except overwritten constraints):
+********************************************
+
+define_attribute {p:JTAG_TDI} {PAP_IO_LOC} {R20}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 47)] | Port JTAG_TDI has been placed at location R20, whose type is share pin.
+
+define_attribute {p:JTAG_TMS} {PAP_IO_LOC} {P19}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 53)] | Port JTAG_TMS has been placed at location P19, whose type is share pin.
+
+define_attribute {p:JTAG_TCK} {PAP_IO_LOC} {M24}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 59)] | Port JTAG_TCK has been placed at location M24, whose type is share pin.
+
+define_attribute {p:fpioa[2]} {PAP_IO_LOC} {T22}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 90)] | Port fpioa[2] has been placed at location T22, whose type is share pin.
+
+define_attribute {p:fpioa[3]} {PAP_IO_LOC} {K25}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 96)] | Port fpioa[3] has been placed at location K25, whose type is share pin.
+
+define_attribute {p:fpioa[20]} {PAP_IO_LOC} {R23}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 198)] | Port fpioa[20] has been placed at location R23, whose type is share pin.
+
+define_attribute {p:fpioa[21]} {PAP_IO_LOC} {T23}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 204)] | Port fpioa[21] has been placed at location T23, whose type is share pin.
+
+define_attribute {p:fpioa[22]} {PAP_IO_LOC} {P26}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 210)] | Port fpioa[22] has been placed at location P26, whose type is share pin.
+
+define_attribute {p:fpioa[23]} {PAP_IO_LOC} {R26}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 216)] | Port fpioa[23] has been placed at location R26, whose type is share pin.
+
+define_attribute {p:fpioa[24]} {PAP_IO_LOC} {M26}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 222)] | Port fpioa[24] has been placed at location M26, whose type is share pin.
+
+define_attribute {p:fpioa[25]} {PAP_IO_LOC} {N26}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 228)] | Port fpioa[25] has been placed at location N26, whose type is share pin.
+
+define_attribute {p:mem_dq[15]} {PAP_IO_LOC} {G6}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 389)] | Port mem_dq[15] has been placed at location G6, whose type is share pin.
+
+define_attribute {p:mem_dq[13]} {PAP_IO_LOC} {E6}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 403)] | Port mem_dq[13] has been placed at location E6, whose type is share pin.
+
+define_attribute {p:mem_dq[12]} {PAP_IO_LOC} {G8}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 410)] | Port mem_dq[12] has been placed at location G8, whose type is share pin.
+
+define_attribute {p:mem_dq[11]} {PAP_IO_LOC} {D6}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 417)] | Port mem_dq[11] has been placed at location D6, whose type is share pin.
+
+define_attribute {p:mem_dq[10]} {PAP_IO_LOC} {H8}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 424)] | Port mem_dq[10] has been placed at location H8, whose type is share pin.
+
+define_attribute {p:mem_dq[8]} {PAP_IO_LOC} {H6}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 438)] | Port mem_dq[8] has been placed at location H6, whose type is share pin.
+
+define_attribute {p:mem_dq[7]} {PAP_IO_LOC} {J5}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 445)] | Port mem_dq[7] has been placed at location J5, whose type is share pin.
+
+define_attribute {p:mem_dq[5]} {PAP_IO_LOC} {K7}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 459)] | Port mem_dq[5] has been placed at location K7, whose type is share pin.
+
+define_attribute {p:mem_dq[3]} {PAP_IO_LOC} {L8}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 473)] | Port mem_dq[3] has been placed at location L8, whose type is share pin.
+
+define_attribute {p:mem_dq[1]} {PAP_IO_LOC} {J6}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 487)] | Port mem_dq[1] has been placed at location J6, whose type is share pin.
+
+define_attribute {p:mem_dqs[1]} {PAP_IO_LOC} {H7}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 620)] | Port mem_dqs[1] has been placed at location H7, whose type is share pin.
+
+define_attribute {p:mem_dqs[0]} {PAP_IO_LOC} {J4}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 627)] | Port mem_dqs[0] has been placed at location J4, whose type is share pin.
+
+define_attribute {p:mem_dqs_n[1]} {PAP_IO_LOC} {G7}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 648)] | Port mem_dqs_n[1] has been placed at location G7, whose type is share pin.
+
+define_attribute {p:mem_dqs_n[0]} {PAP_IO_LOC} {H4}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 655)] | Port mem_dqs_n[0] has been placed at location H4, whose type is share pin.
+
+define_attribute {p:mem_dm[0]} {PAP_IO_LOC} {K6}
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 704)] | Port mem_dm[0] has been placed at location K6, whose type is share pin.
+
+
+Constraints with issues:
+********************************************
+
+
+Issues without commands:
+********************************************
+
+C: ConstraintEditor-2009: p:core_active is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:core_active is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:JTAG_TDO is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[0] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[0] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[1] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[1] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[2] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[2] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[3] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[3] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[4] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[4] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[5] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[5] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[6] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[6] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[7] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[7] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[8] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[8] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[9] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[9] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[10] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[10] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[11] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[11] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[12] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[12] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[13] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[13] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[14] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[14] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[15] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[15] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[16] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[16] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[17] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[17] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[18] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[18] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[19] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[19] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[20] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[20] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[21] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[21] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[22] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[22] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[23] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[23] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[24] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[24] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[25] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[25] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[26] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[26] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[27] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[27] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[28] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[28] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[29] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[29] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[30] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[30] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:fpioa[31] is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
+C: ConstraintEditor-2009: p:fpioa[31] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+
+Unconstrained ports:
+********************************************
+
+
+Constraints with matching wildcard expressions:
+********************************************
+
+

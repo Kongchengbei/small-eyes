@@ -1,0 +1,33 @@
+[Info] [2026-9-26 15:26:23] /***************************Start Configuration***************************/
+[Info] [2026-9-26 15:26:23] Path: F:/PDS_2022.2-SP6.4/bin
+[Info] [2026-9-26 15:26:23] Version: 146967
+[Info] [2026-9-26 15:26:24] Current Path: F:/SocFpga/project
+[Info] [2026-9-26 15:26:24] PDS Dir Path: F:/SocFpga/project
+[Debug] [2026-9-26 15:27:13] Begin to Converte file.
+[Debug] [2026-9-26 15:27:42] End to Converte file.
+[Info] [2026-9-26 15:27:44] /***************************End Configration***************************/
+[Info] [2026-9-26 15:39:34] /***************************Start Configuration***************************/
+[Info] [2026-9-26 15:39:34] Path: F:/PDS_2022.2-SP6.4/bin
+[Info] [2026-9-26 15:39:34] Version: 146967
+[Info] [2026-9-26 15:39:35] Current Path: F:/SocFpga/project
+[Info] [2026-9-26 15:39:35] PDS Dir Path: F:/SocFpga/project
+[Debug] [2026-9-26 15:39:39] Begin to Converte file.
+[Debug] [2026-9-26 16:01:12] begin to parse sfc file.
+[Debug] [2026-9-26 16:01:12] begin to get device info from CFG file...
+[Debug] [2026-9-26 16:01:12] end to get device info from CFG file...
+[Debug] [2026-9-26 16:01:12] begin to get device info from CFG file...
+[Debug] [2026-9-26 16:01:12] end to get device info from CFG file...
+[Debug] [2026-9-26 16:01:12] end to parse sfc file.
+[Debug] [2026-9-26 16:01:12] Log::Print : The Start Address of bit file F:/SocFpga/project/generate_bitstream/Hfpga_soc.sbit: 0x0
+[Debug] [2026-9-26 16:01:12] Log::Print : The Start Address of User Data F:/SocFpga/test/running_led_test.bin: 0xa00000
+[Debug] [2026-9-26 16:01:14] End to Converte file.
+[Debug] [2026-9-26 16:01:23] Begin to Converte file.
+[Debug] [2026-9-26 16:01:23] End to Converte file.
+[Debug] [2026-9-26 16:01:26] begin to parse sfc file.
+[Debug] [2026-9-26 16:01:26] begin to get device info from CFG file...
+[Debug] [2026-9-26 16:01:26] end to get device info from CFG file...
+[Debug] [2026-9-26 16:01:26] begin to get device info from CFG file...
+[Debug] [2026-9-26 16:01:26] end to get device info from CFG file...
+[Debug] [2026-9-26 16:01:26] end to parse sfc file.
+[Debug] [2026-9-26 16:01:26] Log::Print : The Start Address of bit file F:/SocFpga/project/generate_bitstream/Hfpga_soc.sbit: 0x0
+[Debug] [2026-9-26 16:01:26] Log::Print : The Start Address of User Data F:/SocFpga/test/running_led_test.bin: 0xa00000

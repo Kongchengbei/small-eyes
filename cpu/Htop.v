@@ -3,7 +3,11 @@
 module Htop #(
     parameter RESET_PC = 32'h8000_0000,
     parameter [31:0] DDR_BASE   = 32'h8000_0000,
-    parameter [31:0] DDR_BYTES  = 32'h4000_0000
+    parameter [31:0] DDR_BYTES  = 32'h4000_0000,
+    // 仅 DCache 使用此窗口判断是否允许分配 Cache Line；完整 DDR 窗口仍
+    // 传给 ICache 和 AXI backend。默认值保持旧设计的“全部 DDR 可缓存”。
+    parameter [31:0] DCACHEABLE_DDR_BASE  = DDR_BASE,
+    parameter [31:0] DCACHEABLE_DDR_BYTES = DDR_BYTES
 ) (
     input         clk,
     input         rst,
@@ -423,8 +427,8 @@ module Htop #(
     );
 
     dcache #(
-        .DDR_BASE   (DDR_BASE),
-        .DDR_BYTES  (DDR_BYTES)
+        .CACHEABLE_DDR_BASE      (DCACHEABLE_DDR_BASE),
+        .CACHEABLE_DDR_BYTES     (DCACHEABLE_DDR_BYTES)
     ) u_dcache (
         .clk             (clk),
         .rst             (rst),

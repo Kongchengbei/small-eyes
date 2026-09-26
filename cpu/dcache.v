@@ -1,8 +1,10 @@
 `timescale 1ns / 1ps
 
 module dcache #(
-    parameter [31:0] DDR_BASE   = 32'h8000_0000,
-    parameter [31:0] DDR_BYTES  = 32'h4000_0000
+    // DDR 物理窗口可以大于 CPU 可缓存窗口。例如 NPU 共享缓冲区仍在 DDR
+    // 中，但 CPU 必须以非缓存方式访问，避免它与 DCache 形成两个副本。
+    parameter [31:0] CACHEABLE_DDR_BASE  = 32'h8000_0000,
+    parameter [31:0] CACHEABLE_DDR_BYTES = 32'h4000_0000
 ) (
     input              clk,
     input              rst,
@@ -65,8 +67,12 @@ wire [3:0]  proc_offset  = {proc_addr[3:2], 2'b00};
 wire [7:0]  proc_index   = proc_addr[11:4];
 wire [19:0] proc_tag     = proc_addr[31:12];
 
-wire addr_ddr  = (proc_addr >= DDR_BASE)  && (proc_addr < (DDR_BASE  + DDR_BYTES));
-wire uncache_addr = !addr_ddr;
+// 这里只决定是否分配 DCache Line，不决定地址是否能到达 DDR。完整 DDR
+// 窗口仍由 axi_mem_backend 译码；落在 NPU 共享区的访问将走下面既有的
+// uncache 单拍读写路径，因而不会更新 tag、valid 或 dirty。
+wire addr_cacheable_ddr = (proc_addr >= CACHEABLE_DDR_BASE) &&
+                          (proc_addr < (CACHEABLE_DDR_BASE + CACHEABLE_DDR_BYTES));
+wire uncache_addr = !addr_cacheable_ddr;
 
 
 //脏位

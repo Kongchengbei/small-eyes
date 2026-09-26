@@ -1,18 +1,39 @@
 `timescale 1ns / 1ps
+// PDS 的工作目录为 project/，故这里显式指向唯一的 soc 地址映射头文件，
+// 不依赖 PDS 是否把普通 Verilog 源目录自动加入 include 搜索路径。
+`include "../soc/soc_addr_map.vh"
 
 // ===========================================================================
 // Hfpga_soc
 //
 // CPU + cache subsystem now talk to the outside world through one 32-bit AXI4
 // master (Htop / axi_bridge).  axi_mem_backend implements the memory map:
-//   MMIO (0x4000_0000): peripherals (UART/LED/FPIOA), uncached
-//   DDR  (0x8000_0000): forwarded through ddr_axi_bridge to the DDR3 IP
+//   MMIO (0x4000_0000): peripherals；0x4000_0100 预留给 NPU 控制器
+//   DDR  (0x8000_0000): forwarded through ddr_axi_bridge to the DDR3 IP；
+//                         最高 128 MiB 预留为 NPU 共享非缓存区。
 //
 // The DDR3 controller is connected through ddr_axi_bridge.  core_active still
 // reports the controller's initialization-complete status.
 // ===========================================================================
 module Hfpga_soc #(
-    parameter MEM_FILE   = `PROG_FPGA_PATH
+    parameter MEM_FILE                  = `PROG_FPGA_PATH,
+    // 地址映射默认值集中在 soc_addr_map.vh；此处保留参数覆盖能力，便于
+    // 更换 DDR 容量或重新划分 NPU 缓冲区时只改顶层实例。
+    parameter [31:0] DDR_BASE           = `SOC_DDR_BASE,
+    parameter [31:0] DDR_BYTES          = `SOC_DDR_BYTES,
+    parameter [31:0] CPU_CACHED_DDR_BASE  = `SOC_CPU_CACHED_DDR_BASE,
+    parameter [31:0] CPU_CACHED_DDR_BYTES = `SOC_CPU_CACHED_DDR_BYTES,
+    parameter [31:0] NPU_SHARED_BASE    = `SOC_NPU_SHARED_BASE,
+    parameter [31:0] NPU_SHARED_BYTES   = `SOC_NPU_SHARED_BYTES,
+    parameter [31:0] MMIO_BASE          = `SOC_MMIO_BASE,
+    parameter [31:0] MMIO_BYTES         = `SOC_MMIO_BYTES,
+    parameter [31:0] NPU_MMIO_BASE      = `SOC_NPU_MMIO_BASE,
+    parameter [31:0] NPU_MMIO_BYTES     = `SOC_NPU_MMIO_BYTES,
+    parameter [31:0] UART0_BASE         = `SOC_UART0_BASE,
+    parameter [31:0] UART0_BYTES        = `SOC_UART0_BYTES,
+    parameter [31:0] LED_ADDR           = `SOC_LED_ADDR,
+    parameter [31:0] FPIOA_BASE         = `SOC_FPIOA_BASE,
+    parameter [31:0] FPIOA_BYTES        = `SOC_FPIOA_BYTES
 ) (
     input  clk,
     input  hard_rst_n,
@@ -97,6 +118,16 @@ module Hfpga_soc #(
     wire [31:0] debug_actual_next_pc;
     wire [31:0] debug_flush_pc;
     wire [31:0] cpu_debug_ctrl;
+
+    // NPU 控制器仍在 cpu_clk 域。Task 4 将把这些 start/config 输出接到 DMA
+    // 引擎；在此之前 engine_done 固定为零，不能在可综合顶层伪造完成事件。
+    wire        npu_irq;
+    wire        npu_start_pulse;
+    wire [31:0] npu_engine_input_addr;
+    wire [31:0] npu_engine_weight_addr;
+    wire [31:0] npu_engine_output_addr;
+    wire [31:0] npu_engine_task_bytes;
+    wire        npu_engine_done = 1'b0;
 
     // ============ clock / reset (unchanged) =============================
     wire cpu_clk;
@@ -202,12 +233,15 @@ module Hfpga_soc #(
 
     // ============ CPU + caches + axi_bridge =============================
     Htop #(
-        .RESET_PC  (32'h8000_0000),
-        .DDR_BASE  (32'h8000_0000),
-        .DDR_BYTES (32'h4000_0000)
+        .RESET_PC                 (DDR_BASE),
+        .DDR_BASE                 (DDR_BASE),
+        .DDR_BYTES                (DDR_BYTES),
+        .DCACHEABLE_DDR_BASE      (CPU_CACHED_DDR_BASE),
+        .DCACHEABLE_DDR_BYTES     (CPU_CACHED_DDR_BYTES)
     ) u_cpu (
         .clk        (cpu_clk),
         .rst        (cpu_rst),
+        .irq_external(npu_irq),
 
         .axi_awid   (axi_awid),
         .axi_awaddr (axi_awaddr),
@@ -275,11 +309,16 @@ module Hfpga_soc #(
     wire        mmio_req_ready;
     wire [31:0] mmio_req_rdata;
 
+    wire        npu_addr_sel;
+    wire        npu_sel;
+    wire        npu_mmio_ready;
+    wire [31:0] npu_mmio_rdata;
+
     axi_mem_backend #(
-        .MMIO_BASE  (32'h4000_0000),
-        .MMIO_BYTES (32'h0000_1000),
-        .DDR_BASE   (32'h8000_0000),
-        .DDR_BYTES  (32'h4000_0000)
+        .MMIO_BASE  (MMIO_BASE),
+        .MMIO_BYTES (MMIO_BYTES),
+        .DDR_BASE   (DDR_BASE),
+        .DDR_BYTES  (DDR_BYTES)
     ) u_mem (
         .clk            (cpu_clk),
         .rst_n          (sys_rst_n),
@@ -381,20 +420,44 @@ module Hfpga_soc #(
     );
 
     // ============ MMIO peripherals ========================================
-    localparam [31:0] UART0_BASE = 32'h4000_0000;
-    localparam [31:0] UART0_END  = 32'h4000_0100;
-    localparam [31:0] LED_ADDR   = 32'h4000_0200;
+    localparam [31:0] UART0_END  = UART0_BASE + UART0_BYTES;
+    localparam [31:0] FPIOA_END  = FPIOA_BASE + FPIOA_BYTES;
 
     wire uart_addr_sel = (mmio_req_addr >= UART0_BASE) &&
                          (mmio_req_addr <  UART0_END);
     wire uart_sel = mmio_req_valid && uart_addr_sel;
     wire led_sel  = mmio_req_valid && (mmio_req_addr == LED_ADDR);
     wire fpioa_sel = mmio_req_valid &&
-                     (mmio_req_addr >= 32'h4000_0f00) &&
-                     (mmio_req_addr <  32'h4000_1000);
+                     (mmio_req_addr >= FPIOA_BASE) &&
+                     (mmio_req_addr <  FPIOA_END);
+
+    Hnpu_ctrl #(
+        .NPU_MMIO_BASE  (NPU_MMIO_BASE),
+        .NPU_MMIO_BYTES (NPU_MMIO_BYTES)
+    ) u_npu_ctrl (
+        .clk                (cpu_clk),
+        .rst_n              (sys_rst_n),
+        .mmio_valid         (mmio_req_valid),
+        .mmio_wen           (mmio_req_wen),
+        .mmio_addr          (mmio_req_addr),
+        .mmio_wdata         (mmio_req_wdata),
+        .mmio_wstrb         (mmio_req_wstrb),
+        .mmio_addr_sel      (npu_addr_sel),
+        .mmio_sel           (npu_sel),
+        .mmio_ready         (npu_mmio_ready),
+        .mmio_rdata         (npu_mmio_rdata),
+        .start_pulse        (npu_start_pulse),
+        .engine_done        (npu_engine_done),
+        .engine_input_addr  (npu_engine_input_addr),
+        .engine_weight_addr (npu_engine_weight_addr),
+        .engine_output_addr (npu_engine_output_addr),
+        .engine_task_bytes  (npu_engine_task_bytes),
+        .irq                (npu_irq)
+    );
 
     // UART TX data writes are the only peripheral access that can be busy.
-    assign mmio_req_ready = uart_addr_sel ? uart_ready : 1'b1;
+    assign mmio_req_ready = uart_addr_sel ? uart_ready :
+                            npu_addr_sel  ? npu_mmio_ready : 1'b1;
 
     wire [31:0] uart_rdata;
     wire uart_ready;
@@ -442,6 +505,7 @@ module Hfpga_soc #(
 
     assign mmio_req_rdata =
         uart_sel   ? uart_rdata        :
+        npu_sel    ? npu_mmio_rdata    :
         led_sel    ? {28'b0, led_value}:
         fpioa_sel  ? fpioa_rdata       : 32'b0;
 

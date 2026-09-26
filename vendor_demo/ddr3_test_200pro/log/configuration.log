@@ -1,0 +1,123 @@
+[Info] [2026-9-21 14:33:07] /***************************Start Configuration***************************/
+[Info] [2026-9-21 14:33:07] Path: F:/PDS_2022.2-SP6.4/bin
+[Info] [2026-9-21 14:33:07] Version: 146967
+[Info] [2026-9-21 14:33:08] Current Path: F:/SocFpga/vendor_demo/ddr3_test_200pro
+[Info] [2026-9-21 14:33:08] PDS Dir Path: F:/SocFpga/vendor_demo/ddr3_test_200pro
+[Info] [2026-9-21 14:33:18] Configuration is not connect with server. connect first then scan chain.
+[Debug] [2026-9-21 14:33:19] Client Local host name:ZHAO-Zhenxiang
+[Debug] [2026-9-21 14:33:19] Client Local Address:192.168.56.1
+[Debug] [2026-9-21 14:33:19] Client Local Address:192.168.202.1
+[Debug] [2026-9-21 14:33:19] Client Local Address:192.168.192.1
+[Debug] [2026-9-21 14:33:19] Client Local Address:192.168.1.108
+[Debug] [2026-9-21 14:33:19] Server Address:127.0.0.1, Port:65420
+[Debug] [2026-9-21 14:33:19] Log::Print : Connecting to server[127.0.0.1 : 65420].
+[Info] [2026-9-21 14:33:19] Connect OK, Server: 127.0.0.1  Port: 65420
+[Debug] [2026-9-21 14:33:19] Finish.
+[Info] [2026-9-21 14:33:19] Connect server succeeded
+[Debug] [2026-9-21 14:33:19] Send RPC:1
+[Debug] [2026-9-21 14:33:19] Send cmd [check version information:40004] OK
+[Debug] [2026-9-21 14:33:19] Log::Print : Connect to server[127.0.0.1 : 65420] successfully.
+[Debug] [2026-9-21 14:33:21] Send RPC:2
+[Debug] [2026-9-21 14:33:21] Send cmd [get_cable_paras:40010] OK
+[Debug] [2026-9-21 14:33:21] Begin to send initialize chain cmd...
+[Debug] [2026-9-21 14:33:21] Send RPC:3
+[Debug] [2026-9-21 14:33:21] Send cmd [Open config cable:20001] OK
+[Debug] [2026-9-21 14:33:21] End to send initialize chain cmd.
+[Debug] [2026-9-21 14:33:21] COMMAND[check version information] execute successfully, takes 1.7 secs.
+[Debug] [2026-9-21 14:33:21] Log::Print : COMMAND[check version information] execute successfully, takes 1.7 secs.
+[Debug] [2026-9-21 14:33:23] COMMAND[get_cable_paras] execute successfully, takes 1.9 secs.
+[Debug] [2026-9-21 14:33:23] Log::Print : The cable List : 
+Cable index 0:USB Cable II/fffffffffffffffe 
+
+[Debug] [2026-9-21 14:33:23] Log::Print : COMMAND[get_cable_paras] execute successfully, takes 1.9 secs.
+[Error] [2026-9-21 14:33:27] fail to exec Open config cable cmd...
+[Debug] [2026-9-21 14:33:27] Log::Print : PANGO USB CABLE II cable driver: D2XX DLL
+[Error] [2026-9-21 14:33:27] MsgOut: JtagServer-0306: No devices detected while scanning the JTAG chain, failed detecting JTAG device chain.
+[Warn] [2026-9-21 14:33:27] MsgOut: Please check the device power, cable connection situation and whether put the chip in the right way or not.
+   If these do not work, try to restart the software.
+[Error] [2026-9-21 14:33:27] MsgOut: Configuration-0008: The command 'Open config cable' execute fail.
+[Debug] [2026-9-21 14:33:49] Begin to send initialize chain cmd...
+[Debug] [2026-9-21 14:33:49] Send RPC:4
+[Debug] [2026-9-21 14:33:49] Send cmd [Open config cable:20001] OK
+[Debug] [2026-9-21 14:33:49] End to send initialize chain cmd.
+[Error] [2026-9-21 14:33:54] fail to exec Open config cable cmd...
+[Debug] [2026-9-21 14:33:54] Log::Print : PANGO USB CABLE II cable driver: D2XX DLL
+[Error] [2026-9-21 14:33:54] MsgOut: JtagServer-0306: No devices detected while scanning the JTAG chain, failed detecting JTAG device chain.
+[Warn] [2026-9-21 14:33:54] MsgOut: Please check the device power, cable connection situation and whether put the chip in the right way or not.
+   If these do not work, try to restart the software.
+[Error] [2026-9-21 14:33:54] MsgOut: Configuration-0008: The command 'Open config cable' execute fail.
+[Error] [2026-9-21 14:35:28] MsgOut: Configuration-0010: There is no device in Jtag chain, please check.
+[Debug] [2026-9-21 14:35:46] Begin to send initialize chain cmd...
+[Debug] [2026-9-21 14:35:46] Send RPC:5
+[Debug] [2026-9-21 14:35:46] Send cmd [Open config cable:20001] OK
+[Debug] [2026-9-21 14:35:46] End to send initialize chain cmd.
+[Debug] [2026-9-21 14:35:47] begin the exec of open cable cmd...
+[Debug] [2026-9-21 14:35:47] Begin to deal with chain from server...
+[Debug] [2026-9-21 14:35:47] Begin to set user chain...
+[Debug] [2026-9-21 14:35:47] End to set user chain.
+[Debug] [2026-9-21 14:35:47] Begin to update graphic item and tree item ...
+[Debug] [2026-9-21 14:35:47] End to update graphic item and tree item ...
+[Debug] [2026-9-21 14:35:47] Log::Print : PANGO USB CABLE II cable driver: D2XX DLL
+[Debug] [2026-9-21 14:35:47] Log::Print : PG2L200H
+[Debug] [2026-9-21 14:35:47] Log::Print : This device configure situation (done bit): 0
+[Debug] [2026-9-21 14:35:49] selected file name is empty and ignore.
+[Debug] [2026-9-21 14:35:49] Begin to update graphic item and tree item ...
+[Debug] [2026-9-21 14:35:49] End to update graphic item and tree item ...
+[Debug] [2026-9-21 14:35:49] End to deal wiht chain from server.
+[Debug] [2026-9-21 14:35:49] end the exec of open cable cmd.
+[Debug] [2026-9-21 14:35:49] COMMAND[Open config cable] execute successfully, takes 2.3 secs.
+[Debug] [2026-9-21 14:35:49] Log::Print : COMMAND[Open config cable] execute successfully, takes 2.3 secs.
+[Debug] [2026-9-21 14:35:51] Begin to send initialize chain cmd...
+[Debug] [2026-9-21 14:35:51] Send RPC:6
+[Debug] [2026-9-21 14:35:51] Send cmd [Open config cable:20001] OK
+[Debug] [2026-9-21 14:35:51] End to send initialize chain cmd.
+[Debug] [2026-9-21 14:35:51] begin the exec of open cable cmd...
+[Debug] [2026-9-21 14:35:51] Begin to deal with chain from server...
+[Debug] [2026-9-21 14:35:51] Begin to set user chain...
+[Debug] [2026-9-21 14:35:51] End to set user chain.
+[Debug] [2026-9-21 14:35:51] Begin to update graphic item and tree item ...
+[Debug] [2026-9-21 14:35:51] End to update graphic item and tree item ...
+[Debug] [2026-9-21 14:35:51] Log::Print : PANGO USB CABLE II cable driver: D2XX DLL
+[Debug] [2026-9-21 14:35:51] Log::Print : PG2L200H
+[Debug] [2026-9-21 14:35:51] Log::Print : This device configure situation (done bit): 0
+[Info] [2026-9-21 14:36:38] set OpenLastPath: F:/SocFpga/vendor_demo/ddr3_test_200pro/ipcore/ddr3_test/pnr/generate_bitstream/test_ddr.sbit
+[Debug] [2026-9-21 14:36:38] begin to get device info from CFG file...
+[Debug] [2026-9-21 14:36:38] end to get device info from CFG file...
+[Debug] [2026-9-21 14:36:38] Begin to update graphic item and tree item ...
+[Debug] [2026-9-21 14:36:38] End to update graphic item and tree item ...
+[Debug] [2026-9-21 14:36:38] Begin to update graphic item and tree item ...
+[Debug] [2026-9-21 14:36:38] End to update graphic item and tree item ...
+[Debug] [2026-9-21 14:36:38] End to deal wiht chain from server.
+[Debug] [2026-9-21 14:36:38] end the exec of open cable cmd.
+[Debug] [2026-9-21 14:36:38] COMMAND[Open config cable] execute successfully, takes 47.1 secs.
+[Debug] [2026-9-21 14:36:38] Log::Print : COMMAND[Open config cable] execute successfully, takes 47.1 secs.
+[Debug] [2026-9-21 14:37:26] Begin to send programming cmd...
+[Debug] [2026-9-21 14:37:26] Send RPC:7
+[Debug] [2026-9-21 14:37:26] Begin to send program data.
+[Debug] [2026-9-21 14:37:26] End to send program data.
+[Debug] [2026-9-21 14:37:26] Send cmd [Program:20002] OK
+[Debug] [2026-9-21 14:37:27] The value of Progress is 6
+[Debug] [2026-9-21 14:37:27] The value of Progress is 10
+[Debug] [2026-9-21 14:37:28] The value of Progress is 15
+[Debug] [2026-9-21 14:37:28] The value of Progress is 20
+[Debug] [2026-9-21 14:37:28] The value of Progress is 25
+[Debug] [2026-9-21 14:37:29] The value of Progress is 30
+[Debug] [2026-9-21 14:37:29] The value of Progress is 35
+[Debug] [2026-9-21 14:37:29] The value of Progress is 40
+[Debug] [2026-9-21 14:37:30] The value of Progress is 45
+[Debug] [2026-9-21 14:37:30] The value of Progress is 50
+[Debug] [2026-9-21 14:37:31] The value of Progress is 55
+[Debug] [2026-9-21 14:37:31] The value of Progress is 60
+[Debug] [2026-9-21 14:37:31] The value of Progress is 65
+[Debug] [2026-9-21 14:37:32] The value of Progress is 70
+[Debug] [2026-9-21 14:37:32] The value of Progress is 75
+[Debug] [2026-9-21 14:37:33] The value of Progress is 80
+[Debug] [2026-9-21 14:37:33] The value of Progress is 85
+[Debug] [2026-9-21 14:37:33] The value of Progress is 90
+[Debug] [2026-9-21 14:37:34] The value of Progress is 95
+[Debug] [2026-9-21 14:37:34] The value of Progress is 100
+[Debug] [2026-9-21 14:37:34] COMMAND[Program] execute successfully, takes 8.1 secs.
+[Debug] [2026-9-21 14:37:34] End to send programming cmd.
+[Debug] [2026-9-21 14:37:34] Log::Print : The done bit is 1
+[Debug] [2026-9-21 14:37:34] Log::Print : COMMAND[Program] execute successfully, takes 8.1 secs.
+[Info] [2026-9-21 14:42:05] /***************************End Configration***************************/

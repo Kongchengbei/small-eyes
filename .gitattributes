@@ -1,0 +1,3 @@
+# PDS 工程文件由 Fabric Compiler 以 CRLF 保存；将行尾 CR 视为行结束符，
+# 使 git diff --check 不把新增的正常 CRLF 误判为尾随空白。
+project/project.pds whitespace=cr-at-eol

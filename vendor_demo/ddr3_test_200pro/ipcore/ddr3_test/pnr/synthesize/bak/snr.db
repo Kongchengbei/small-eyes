@@ -1,0 +1,230 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<tables>
+    <table id="synthesize_runtime" title="Synthesize Runtime &amp; Memory" column_number="7">
+        <column_headers>
+            <data>Cpu Time</data>
+            <data>Process Cpu Time</data>
+            <data>Real Time</data>
+            <data>Peak Memory (MB)</data>
+            <data>Operation System</data>
+            <data>CPU</data>
+            <data>RAM(GB)</data>
+        </column_headers>
+        <row>
+            <data>0h:0m:7s</data>
+            <data>0h:0m:7s</data>
+            <data>0h:0m:8s</data>
+            <data>385</data>
+            <data>WINDOWS 10 x86_64</data>
+            <data>Intel(R) Core(TM) i9-9900KF CPU @ 3.60GHz</data>
+            <data>32</data>
+        </row>
+    </table>
+    <table id="synthesize_messages" title="Synthesize Messages" column_number="1">
+        <column_headers/>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 795)] PAP_IO_DIRECTION is already defined in p:free_clk, new value INPUT will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 796)] PAP_IO_LOC is already defined in p:free_clk, new value D18 will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 797)] PAP_IO_VCCIO is already defined in p:free_clk, new value 3.3 will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 798)] PAP_IO_STANDARD is already defined in p:free_clk, new value LVCMOS33 will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 799)] PAP_IO_NONE is already defined in p:free_clk, new value TRUE will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1304)] PAP_IO_DIRECTION is already defined in p:uart_txd, new value OUTPUT will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1305)] PAP_IO_LOC is already defined in p:uart_txd, new value C24 will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1306)] PAP_IO_VCCIO is already defined in p:uart_txd, new value 3.3 will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1307)] PAP_IO_STANDARD is already defined in p:uart_txd, new value LVCMOS33 will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1308)] PAP_IO_DRIVE is already defined in p:uart_txd, new value 8 will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1309)] PAP_IO_NONE is already defined in p:uart_txd, new value TRUE will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1310)] PAP_IO_SLEW is already defined in p:uart_txd, new value SLOW will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1316)] PAP_IO_DIRECTION is already defined in p:uart_rxd, new value INPUT will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1317)] PAP_IO_LOC is already defined in p:uart_rxd, new value B24 will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1318)] PAP_IO_VCCIO is already defined in p:uart_rxd, new value 3.3 will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4026: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1319)] PAP_IO_STANDARD is already defined in p:uart_rxd, new value LVCMOS33 will overwrite the current value.</data>
+        </row>
+        <row>
+            <data message="5">ConstraintEditor-4031: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 793)] BUS_KEEPER attribute have been defined already, current attribute PAP_IO_NONE will overwrite the old attribute PAP_IO_PULLUP.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 913)] | Port mem_dq[15] has been placed at location G6, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 927)] | Port mem_dq[13] has been placed at location E6, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 934)] | Port mem_dq[12] has been placed at location G8, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 941)] | Port mem_dq[11] has been placed at location D6, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 948)] | Port mem_dq[10] has been placed at location H8, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 962)] | Port mem_dq[8] has been placed at location H6, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 969)] | Port mem_dq[7] has been placed at location J5, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 983)] | Port mem_dq[5] has been placed at location K7, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 997)] | Port mem_dq[3] has been placed at location L8, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1011)] | Port mem_dq[1] has been placed at location J6, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1144)] | Port mem_dqs[1] has been placed at location H7, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1151)] | Port mem_dqs[0] has been placed at location J4, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1172)] | Port mem_dqs_n[1] has been placed at location G7, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1179)] | Port mem_dqs_n[0] has been placed at location H4, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="6">ConstraintEditor-2002: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 1228)] | Port mem_dm[0] has been placed at location K6, whose type is share pin.</data>
+        </row>
+        <row>
+            <data message="7">UserConstraintEditor-0044: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 33)] | DDRPHY_CPD_369_466 is invalid, value must be correct device instance.</data>
+        </row>
+        <row>
+            <data message="7">UserConstraintEditor-0044: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 34)] | CLMA_357_354:FF3 is invalid, value must be correct device instance.</data>
+        </row>
+        <row>
+            <data message="7">UserConstraintEditor-0044: [D:/Downloads/pg2l200/2_Demo/2_9_ddr3_test/2_9_ddr3_test/ddr3_test/ipcore/ddr3_test/pnr/ddr_test.fdc(line number: 35)] | CLMA_357_660:FF3 is invalid, value must be correct device instance.</data>
+        </row>
+    </table>
+    <general_container id="synthesize_settings">
+        <table_container>
+            <table id="synthesize_settings" title="Synthesize Settings" column_number="2">
+                <column_headers>
+                    <data>Name</data>
+                    <data>Value</data>
+                </column_headers>
+                <row>
+                    <data>Part</data>
+                    <data>PG2L200H-6FBB676</data>
+                </row>
+                <row>
+                    <data>Top Module</data>
+                    <data>test_ddr</data>
+                </row>
+            </table>
+        </table_container>
+        <general_container align="3">
+            <table_container>
+                <data>Option</data>
+                <table id="" title="" column_number="2">
+                    <column_headers>
+                        <data>Name</data>
+                        <data>Value</data>
+                    </column_headers>
+                    <row>
+                        <data>Fanout Guide</data>
+                        <data>10000</data>
+                    </row>
+                    <row>
+                        <data>Disable I/O Insertion</data>
+                        <data>false</data>
+                    </row>
+                    <row>
+                        <data>Enable Advanced LUT Combining</data>
+                        <data>true</data>
+                    </row>
+                    <row>
+                        <data>Automatic Read/Write Check Insertion for RAM</data>
+                        <data>false</data>
+                    </row>
+                    <row>
+                        <data>Resource Sharing</data>
+                        <data>true</data>
+                    </row>
+                    <row>
+                        <data>Pipelining</data>
+                        <data>true</data>
+                    </row>
+                    <row>
+                        <data>Retiming</data>
+                        <data>false</data>
+                    </row>
+                    <row>
+                        <data>Minimum Control-set Size</data>
+                        <data>2</data>
+                    </row>
+                </table>
+            </table_container>
+            <table_container>
+                <data>Timing Report</data>
+                <table id="" title="" column_number="2">
+                    <column_headers>
+                        <data>Name</data>
+                        <data>Value</data>
+                    </column_headers>
+                    <row>
+                        <data>Total Number of Paths (-max_path)</data>
+                        <data>3</data>
+                    </row>
+                    <row>
+                        <data>Number of Paths per Endpoint (-nworst)</data>
+                        <data>1</data>
+                    </row>
+                    <row>
+                        <data>Report Exception</data>
+                        <data>true</data>
+                    </row>
+                </table>
+            </table_container>
+            <table_container>
+                <data>Constraints</data>
+                <table id="" title="" column_number="2">
+                    <column_headers>
+                        <data>Name</data>
+                        <data>Value</data>
+                    </column_headers>
+                    <row>
+                        <data>Frequency (MHz)</data>
+                        <data>1</data>
+                    </row>
+                    <row>
+                        <data>Use Clock Period for Unconstrained IO</data>
+                        <data>false</data>
+                    </row>
+                </table>
+            </table_container>
+        </general_container>
+    </general_container>
+</tables>
