@@ -1,5 +1,9 @@
 # QSPI Flash 到 DDR3 启动搬运方案
 
+> **当前实现范围（2026-09-26）**：本文件主体是早期面向未来的 X8/QSPI 通用启动规划，其中 `6Bh`、双 Flash 交织、用户数据头、CRC、多镜像、AI 权重、256-bit burst 等不是当前实现。当前 RTL bring-up 设计为单颗 Outer Flash、SPI X1、模式 0、`03h` 普通读、24-bit byte address，从固定地址 `0x00A00000` 读取 56-byte 流水灯程序，写至 DDR `0x80000000` 并逐 word readback 后再放开 CPU。本次扫描 ID 为 `0x0B4018`，PDS 以 `xt25f128` 自定义器件和 WINBOND/W25Q NOR 兼容模板识别；实板已对一颗 Outer Flash 完成编程和 Verify，第二颗未写。未确认断电自主启动、DDR 搬运实测或 CPU 流水灯实板成功。板级 pin plan 不等于 PCB 连线证明。操作和证据详见 [PG2L200H Flash 烧写与 DDR 启动实板记录](PG2L200H_Flash烧写与DDR启动实板记录.md) 与 [Flash_DDR_Boot_Review.md](Flash_DDR_Boot_Review.md)。
+
+> `ddr_init_done` 是 DDR IP 的硬件初始化完成输出，启动搬运器是 FPGA 硬件 FSM；它们不是 CPU 软件。NPU engine 尚未实现，但这不阻止最小 CPU 流水灯程序启动。
+
 ## 1. 目标
 
 本方案用于盘古 200Pro+（PG2L200H-FBB676）：

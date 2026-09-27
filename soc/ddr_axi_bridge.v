@@ -53,6 +53,35 @@ module ddr_axi_bridge (
     output             axi_rready
 );
 
+    // Assert both clock-domain resets asynchronously from rst_n, then release
+    // each one only after two edges of its own clock.  sys_rst_n can assert
+    // asynchronously on CPU PLL loss; deassertion must not cross directly
+    // into the unrelated DDR clock domain.
+    reg cpu_rst_meta;
+    reg cpu_rst_sync;
+    reg ddr_rst_meta;
+    reg ddr_rst_sync;
+
+    always @(posedge cpu_clk or negedge rst_n) begin
+        if (!rst_n) begin
+            cpu_rst_meta <= 1'b0;
+            cpu_rst_sync <= 1'b0;
+        end else begin
+            cpu_rst_meta <= 1'b1;
+            cpu_rst_sync <= cpu_rst_meta;
+        end
+    end
+
+    always @(posedge ddr_clk or negedge rst_n) begin
+        if (!rst_n) begin
+            ddr_rst_meta <= 1'b0;
+            ddr_rst_sync <= 1'b0;
+        end else begin
+            ddr_rst_meta <= 1'b1;
+            ddr_rst_sync <= ddr_rst_meta;
+        end
+    end
+
     // CPU clock domain -----------------------------------------------------
     reg [31:0] req_addr_cpu;
     reg [31:0] req_wdata_cpu;
@@ -71,11 +100,11 @@ module ddr_axi_bridge (
     reg        ddr_rsp_is_read;
     reg        ack_toggle_ddr;
 
-    assign cpu_req_ready = init_done_cpu_sync && !req_busy_cpu &&
+    assign cpu_req_ready = cpu_rst_sync && init_done_cpu_sync && !req_busy_cpu &&
                            !cpu_rsp_valid;
 
-    always @(posedge cpu_clk or negedge rst_n) begin
-        if (!rst_n) begin
+    always @(posedge cpu_clk or negedge cpu_rst_sync) begin
+        if (!cpu_rst_sync) begin
             req_addr_cpu       <= 32'd0;
             req_wdata_cpu      <= 32'd0;
             req_wmask_cpu      <= 4'd0;
@@ -191,8 +220,8 @@ module ddr_axi_bridge (
     assign axi_arvalid = (state_ddr == ST_AR);
     assign axi_rready  = (state_ddr == ST_RDATA);
 
-    always @(posedge ddr_clk or negedge rst_n) begin
-        if (!rst_n) begin
+    always @(posedge ddr_clk or negedge ddr_rst_sync) begin
+        if (!ddr_rst_sync) begin
             req_ddr_meta    <= 1'b0;
             req_ddr_sync    <= 1'b0;
             req_seen_ddr    <= 1'b0;

@@ -1,14 +1,16 @@
 `timescale 1ns / 1ps
 
-// Platform-independent smoke loader. A board-specific Flash reader supplies
-// one byte per request; the DDR side is the same single-request/response
-// shape used by the SoC backend. No physical Flash mapping is implied here.
-module flash_ddr_smoke_loader #(
+//负责搬运和校验
+//它先等待 DDR 初始化完成，再不断向 reader 请求字节。每收到四个字节，就组成一个小端的 32 位数据。
+module flash_ddr_loader #(
     parameter [23:0] FLASH_BASE = 24'hA00000,
     parameter [31:0] DDR_BASE   = 32'h8000_0000,
     parameter [32:0] DDR_LIMIT  = 33'h0_c000_0000,
     parameter [31:0] IMAGE_BYTES = 32'd4,
-    parameter integer TIMEOUT_CYCLES = 100000
+    parameter integer TIMEOUT_CYCLES = 100000,
+    // Keep legacy testbench behavior unless integration sets a longer DDR
+    // training allowance explicitly.
+    parameter integer DDR_INIT_TIMEOUT_CYCLES = TIMEOUT_CYCLES
 ) (
     input  wire        clk,
     input  wire        rst_n,
@@ -57,7 +59,7 @@ module flash_ddr_smoke_loader #(
     reg [3:0] state;
     reg [31:0] byte_index;
     reg [1:0] byte_lane;
-    reg [31:0] word_buffer;
+    reg [23:0] word_buffer;
     reg [31:0] expected_word;
     reg [31:0] timeout_count;
     wire [32:0] flash_end_exclusive = {9'd0, FLASH_BASE} + {1'b0, IMAGE_BYTES};
@@ -73,6 +75,7 @@ module flash_ddr_smoke_loader #(
     task fail;
         input [3:0] code;
         begin
+            boot_done <= 1'b0;
             boot_error <= 1'b1;
             error_code <= code;
             state <= ST_ERROR;
@@ -91,7 +94,7 @@ module flash_ddr_smoke_loader #(
             state <= ST_WAIT_DDR;
             byte_index <= 32'd0;
             byte_lane <= 2'd0;
-            word_buffer <= 32'd0;
+            word_buffer <= 24'd0;
             expected_word <= 32'd0;
             timeout_count <= 32'd0;
             ddr_req_addr <= DDR_BASE;
@@ -100,19 +103,25 @@ module flash_ddr_smoke_loader #(
             boot_error <= 1'b0;
             error_code <= 4'd0;
         end else begin
-            case (state)
+			//一旦初始DDR训练完成，任何后续的损失意味着
+			//加载的图像不再可信,需要执行系统重置以重新运行复制。
+            if ((state != ST_WAIT_DDR) && (state != ST_ERROR) &&
+                !ddr_init_done) begin
+                fail(ERR_DDR_INIT);
+            end else case (state)
                 ST_WAIT_DDR: begin
                     if ((IMAGE_BYTES == 0) || (IMAGE_BYTES[1:0] != 0) ||
                         (DDR_BASE[1:0] != 0) ||
                         (flash_end_exclusive > 33'h1_000000) ||
                         (ddr_end_exclusive > 33'h1_00000000) ||
                         (ddr_end_exclusive > DDR_LIMIT) ||
-                        (TIMEOUT_CYCLES < 1))
+                        (TIMEOUT_CYCLES < 1) ||
+                        (DDR_INIT_TIMEOUT_CYCLES < 1))
                         fail(ERR_BAD_CONFIG);
                     else if (ddr_init_done) begin
                         timeout_count <= 32'd0;
                         state <= ST_FLASH_REQ;
-                    end else if (timeout_count >= TIMEOUT_CYCLES-1)
+                    end else if (timeout_count >= DDR_INIT_TIMEOUT_CYCLES-1)
                         fail(ERR_DDR_INIT);
                     else
                         timeout_count <= timeout_count + 1'b1;

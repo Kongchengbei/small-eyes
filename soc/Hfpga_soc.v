@@ -2,7 +2,10 @@
 // PDS 的工作目录为 project/，故这里显式指向唯一的 soc 地址映射头文件，
 // 不依赖 PDS 是否把普通 Verilog 源目录自动加入 include 搜索路径。
 `include "../soc/soc_addr_map.vh"
-
+// 支持 IDE 单文件解析；已有外部定义时保留调用方的程序路径。
+`ifndef PROG_FPGA_PATH
+`include "../soc/config.v"
+`endif
 // ===========================================================================
 // Hfpga_soc
 //
@@ -21,6 +24,10 @@ module Hfpga_soc #(
     // 更换 DDR 容量或重新划分 NPU 缓冲区时只改顶层实例。
     parameter [31:0] DDR_BASE           = `SOC_DDR_BASE,
     parameter [31:0] DDR_BYTES          = `SOC_DDR_BYTES,
+    parameter [23:0] FLASH_BASE         = 24'hA00000,
+    parameter [31:0] BOOT_IMAGE_BYTES   = 32'd56,
+    parameter integer SPI_DIV           = 4,
+    parameter integer DDR_INIT_TIMEOUT_CYCLES = 70000000,
     parameter [31:0] CPU_CACHED_DDR_BASE  = `SOC_CPU_CACHED_DDR_BASE,
     parameter [31:0] CPU_CACHED_DDR_BYTES = `SOC_CPU_CACHED_DDR_BYTES,
     parameter [31:0] NPU_SHARED_BASE    = `SOC_NPU_SHARED_BASE,
@@ -44,6 +51,15 @@ module Hfpga_soc #(
     output JTAG_TDO,
     output core_active,
     inout  [31:0] fpioa,
+
+    // Abstract single-bit SPI Flash pins.  The serial clock is driven through
+    // the device's dedicated configuration-clock primitive below.
+    output        flash_cs_n,
+    output        flash_cs2_n,
+    output        flash_mosi,
+    input         flash_miso,
+    output        flash_wp_n,
+    output        flash_hold_n,
 
     //DDR3
     input         clk_p,
@@ -150,6 +166,26 @@ module Hfpga_soc #(
     wire        ddr_rsp_is_read;
     wire [31:0] ddr_rsp_rdata;
 
+    // CPU/backend request channel.  It is isolated from the DDR bridge while
+    // the Flash loader owns the bridge-side channel above.
+    wire        run_req_valid;
+    wire        run_req_ready;
+    wire        run_req_write;
+    wire [31:0] run_req_addr;
+    wire [31:0] run_req_wdata;
+    wire [3:0]  run_req_wstrb;
+    wire        run_rsp_valid;
+    wire        run_rsp_ready;
+    wire        run_rsp_is_read;
+    wire [31:0] run_rsp_rdata;
+
+    wire        boot_done;
+    wire        boot_error;
+    wire [3:0]  boot_error_code;
+    wire        boot_ddr_ready_cpu;
+    wire        flash_clk_enable;
+    wire        flash_spi_sck;
+
     wire [29:0]  ddr_axi_awaddr;
     wire [7:0]   ddr_axi_awid;
     wire [7:0]   ddr_axi_awlen;
@@ -229,6 +265,7 @@ module Hfpga_soc #(
     wire        jtag_reset_req;
 
     wire cpu_rst = !sys_rst_n || (cpu_rst_cnt != 4'hF) ||
+                   !boot_done || boot_error || !boot_ddr_ready_cpu ||
                    jtag_reset_req || jtag_halt_req;
 
     // ============ CPU + caches + axi_bridge =============================
@@ -361,16 +398,16 @@ module Hfpga_soc #(
         .mmio_req_ready (mmio_req_ready),
         .mmio_req_rdata (mmio_req_rdata),
 
-        .ddr_req_valid (ddr_req_valid),
-        .ddr_req_ready (ddr_req_ready),
-        .ddr_req_write (ddr_req_write),
-        .ddr_req_addr  (ddr_req_addr),
-        .ddr_req_wdata (ddr_req_wdata),
-        .ddr_req_wstrb (ddr_req_wstrb),
-        .ddr_rsp_valid (ddr_rsp_valid),
-        .ddr_rsp_ready (ddr_rsp_ready),
-        .ddr_rsp_is_read(ddr_rsp_is_read),
-        .ddr_rsp_rdata (ddr_rsp_rdata),
+        .ddr_req_valid (run_req_valid),
+        .ddr_req_ready (run_req_ready),
+        .ddr_req_write (run_req_write),
+        .ddr_req_addr  (run_req_addr),
+        .ddr_req_wdata (run_req_wdata),
+        .ddr_req_wstrb (run_req_wstrb),
+        .ddr_rsp_valid (run_rsp_valid),
+        .ddr_rsp_ready (run_rsp_ready),
+        .ddr_rsp_is_read(run_rsp_is_read),
+        .ddr_rsp_rdata (run_rsp_rdata),
 
         .jtag_cmd_valid (jtag_cmd_valid),
         .jtag_cmd_ready (jtag_cmd_ready),
@@ -559,10 +596,67 @@ module Hfpga_soc #(
     // time. This bridge waits for DDR initialization, crosses to ddr_core_clk,
     // expands writes to one 256-bit beat, and selects one word from each
     // 256-bit read response.
+    flash_ddr_boot #(
+        .FLASH_BASE     (FLASH_BASE),
+        .DDR_BASE       (DDR_BASE),
+        .DDR_LIMIT      ({1'b0, DDR_BASE} + {1'b0, DDR_BYTES}),
+        .IMAGE_BYTES    (BOOT_IMAGE_BYTES),
+        .SPI_CLK_DIV    (SPI_DIV),
+        .TIMEOUT_CYCLES (100000),
+        .DDR_INIT_TIMEOUT_CYCLES (DDR_INIT_TIMEOUT_CYCLES)
+    ) u_flash_ddr_boot (
+        .clk             (cpu_clk),
+        .rst_n           (sys_rst_n),
+        .ddr_init_done   (ddr_init_done),
+        .flash_cs_n      (flash_cs_n),
+        .flash_cs2_n     (flash_cs2_n),
+        .flash_mosi      (flash_mosi),
+        .flash_miso      (flash_miso),
+        .flash_wp_n      (flash_wp_n),
+        .flash_hold_n    (flash_hold_n),
+        .flash_sck       (flash_spi_sck),
+        .run_req_valid   (run_req_valid),
+        .run_req_ready   (run_req_ready),
+        .run_req_write   (run_req_write),
+        .run_req_addr    (run_req_addr),
+        .run_req_wdata   (run_req_wdata),
+        .run_req_wstrb   (run_req_wstrb),
+        .run_rsp_valid   (run_rsp_valid),
+        .run_rsp_ready   (run_rsp_ready),
+        .run_rsp_is_read (run_rsp_is_read),
+        .run_rsp_rdata   (run_rsp_rdata),
+        .ddr_req_valid   (ddr_req_valid),
+        .ddr_req_ready   (ddr_req_ready),
+        .ddr_req_write   (ddr_req_write),
+        .ddr_req_addr    (ddr_req_addr),
+        .ddr_req_wdata   (ddr_req_wdata),
+        .ddr_req_wstrb   (ddr_req_wstrb),
+        .ddr_rsp_valid   (ddr_rsp_valid),
+        .ddr_rsp_ready   (ddr_rsp_ready),
+        .ddr_rsp_is_read (ddr_rsp_is_read),
+        .ddr_rsp_rdata   (ddr_rsp_rdata),
+        .boot_done       (boot_done),
+        .boot_error      (boot_error),
+        .boot_error_code (boot_error_code),
+        .ddr_ready_cpu   (boot_ddr_ready_cpu),
+        .flash_clk_enable(flash_clk_enable)
+    );
+
+    // GTP_CFGCLK drives the dedicated CFG_CLK pin; no ordinary SCK IO is
+    // consumed by the board pinout.
+    GTP_CFGCLK u_flash_cfgclk (
+        .CLKIN (flash_spi_sck),
+        .CE_N  (~flash_clk_enable)
+    );
+
     ddr_axi_bridge u_ddr_axi_bridge (
         .cpu_clk          (cpu_clk),
         .ddr_clk          (ddr_core_clk),
-        .rst_n            (hard_rst_n),
+        // Keep the bridge transaction state aligned with the boot wrapper's
+        // sys_rst_n reset (which also asserts when the CPU PLL loses lock).
+        // The DDR controller shares this PLL-aware reset below so stale AXI
+        // transactions cannot survive a CPU clock relock.
+        .rst_n            (sys_rst_n),
         .ddr_init_done    (ddr_init_done),
         .cpu_req_valid    (ddr_req_valid),
         .cpu_req_ready    (ddr_req_ready),
@@ -608,7 +702,7 @@ module Hfpga_soc #(
 
     ddr3_ctrl_v116 u_ddr3_ctrl (
         .ref_clk                 (ddr_ref_clk),
-        .resetn                  (hard_rst_n),
+        .resetn                  (sys_rst_n),
         .core_clk                (ddr_core_clk),
         .pll_lock                (),
         .phy_pll_lock            (),

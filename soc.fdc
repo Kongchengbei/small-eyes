@@ -782,3 +782,44 @@ define_attribute {p:clk_p} {PAP_IO_LOC} {N3}
 define_attribute {p:clk_p} {PAP_IO_VCCIO} {1.5}
 define_attribute {p:clk_p} {PAP_IO_STANDARD} {HSTL15D_I}
 define_attribute {p:clk_p} {PAP_IO_NONE} {TRUE}
+
+# -----------------------------------------------------------------------------
+# FLASH PIN PLAN — selected by the user for the confirmed PG2L200H-FBB676 board.
+# This uses the 200H package configuration-pin functions for single-device SPI
+# X1: FCS=P18, FCS2=F25, D0..D3=R14/R15/P14/N14. This records the selected
+# 200H plan; it is not a PCB schematic or continuity measurement.
+# H13 is the dedicated GTP_CFGCLK output, not a normal top port; do not add a
+# flash_sck PAP_IO_LOC constraint here.
+# Historical 100Pro+ U15/U9 candidate profiles remain in
+# manual/flash_pin_profiles/ for reference; they are not selected here.
+# All six top-level ports use 3.3-V LVCMOS33.
+#----------------------Flash SPI X1 (200H selected plan)----------------------
+define_attribute {p:flash_cs_n} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:flash_cs_n} {PAP_IO_LOC} {P18}
+define_attribute {p:flash_cs_n} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:flash_cs_n} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:flash_cs2_n} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:flash_cs2_n} {PAP_IO_LOC} {F25}
+define_attribute {p:flash_cs2_n} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:flash_cs2_n} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:flash_mosi} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:flash_mosi} {PAP_IO_LOC} {R14}
+define_attribute {p:flash_mosi} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:flash_mosi} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:flash_miso} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:flash_miso} {PAP_IO_LOC} {R15}
+define_attribute {p:flash_miso} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:flash_miso} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:flash_wp_n} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:flash_wp_n} {PAP_IO_LOC} {P14}
+define_attribute {p:flash_wp_n} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:flash_wp_n} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:flash_hold_n} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:flash_hold_n} {PAP_IO_LOC} {N14}
+define_attribute {p:flash_hold_n} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:flash_hold_n} {PAP_IO_STANDARD} {LVCMOS33}

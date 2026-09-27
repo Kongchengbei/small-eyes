@@ -30,7 +30,7 @@ module tb_flash_ddr_smoke;
     wire boot_done, boot_error, boot_busy;
     wire [3:0] boot_error_code;
 
-    flash_ddr_smoke_loader #(
+    flash_ddr_loader #(
         .FLASH_BASE(24'h000000),
         .DDR_BASE(DDR_BASE),
         .IMAGE_BYTES(SMOKE_BYTES),

@@ -1,0 +1,34 @@
+# ALTERNATE PIN PROFILE: 100Pro+ board-table U15 group, SPI X1.
+# Use only after matching the exact physical PCB / schematic. This independent
+# six-port fragment REPLACES the default Flash block in soc.fdc; do not load both.
+# Table evidence: U15 => P18 chip select, F25 idle second select,
+# N16 MOSI, N17 MISO, R16 WP_N, R17 HOLD_N. H13 remains GTP_CFGCLK.
+define_attribute {p:flash_cs_n} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:flash_cs_n} {PAP_IO_LOC} {P18}
+define_attribute {p:flash_cs_n} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:flash_cs_n} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:flash_cs2_n} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:flash_cs2_n} {PAP_IO_LOC} {F25}
+define_attribute {p:flash_cs2_n} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:flash_cs2_n} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:flash_mosi} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:flash_mosi} {PAP_IO_LOC} {N16}
+define_attribute {p:flash_mosi} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:flash_mosi} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:flash_miso} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:flash_miso} {PAP_IO_LOC} {N17}
+define_attribute {p:flash_miso} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:flash_miso} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:flash_wp_n} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:flash_wp_n} {PAP_IO_LOC} {R16}
+define_attribute {p:flash_wp_n} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:flash_wp_n} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:flash_hold_n} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:flash_hold_n} {PAP_IO_LOC} {R17}
+define_attribute {p:flash_hold_n} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:flash_hold_n} {PAP_IO_STANDARD} {LVCMOS33}

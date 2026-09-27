@@ -16,6 +16,8 @@ NPU_CTRL_BIN := $(BUILD_DIR)/obj_npu_ctrl/Vtb_npu_ctrl
 NPU_DMA_BIN := $(BUILD_DIR)/obj_npu_dma/Vtb_npu_dma
 NPU_ARBITER_BIN := $(BUILD_DIR)/obj_npu_arbiter/Vtb_axi_2m1s_arbiter
 FLASH_BOOT_BIN := $(BUILD_DIR)/obj_flash_boot/Vtb_flash_ddr_smoke
+SPI_FLASH_READER_BIN := $(BUILD_DIR)/obj_spi_flash_reader/Vtb_spi_flash_byte_reader
+FLASH_DDR_BOOT_BIN := $(BUILD_DIR)/obj_flash_ddr_boot_e2e/Vtb_flash_ddr_boot
 ISA_DIR   ?= sim/test
 ISA_OUT   := $(BUILD_DIR)/isa
 
@@ -28,7 +30,8 @@ NPU_CTRL_TB_RTL := soc/Hnpu_ctrl.v
 NPU_DMA_TB_RTL := soc/Hnpu_dma.v
 NPU_ARBITER_TB_RTL := soc/Haxi_2m1s_arbiter.v
 
-.PHONY: sim lint addr-map dcache-bypass npu-ctrl npu-dma npu-arbiter flash-boot-smoke clean
+.PHONY: sim lint addr-map dcache-bypass npu-ctrl npu-dma npu-arbiter \
+	flash-boot-smoke spi-flash-reader-test flash-ddr-boot-test clean
 
 sim: $(SIM_BIN)
 	@$(PYTHON) -B sim/test.py \
@@ -53,6 +56,16 @@ lint:
 		--Wno-BLKLOOPINIT \
 		--top-module Htop \
 		$(CPU_RTL) $(SIM_RTL)
+	$(VERILATOR) --lint-only \
+		--language 1800-2012 \
+		--top-module flash_ddr_boot \
+		soc/flash_boot/spi_flash_byte_reader.v \
+		soc/flash_boot/flash_ddr_loader.v \
+		soc/flash_boot/flash_ddr_boot.v
+	$(VERILATOR) --lint-only \
+		--language 1800-2012 \
+		--top-module ddr_axi_bridge \
+		soc/ddr_axi_bridge.v
 
 # 只检查地址常量的连续性、边界和 256-bit 对齐要求，不编译完整 SoC。
 addr-map:
@@ -112,10 +125,36 @@ flash-boot-smoke:
 		--Wno-BLKLOOPINIT \
 		--top-module tb_flash_ddr_smoke \
 		--Mdir "$(BUILD_DIR)/obj_flash_boot" \
-		$(CPU_RTL) $(SIM_RTL) soc/flash_boot/flash_ddr_smoke_loader.v \
+		$(CPU_RTL) $(SIM_RTL) soc/flash_boot/flash_ddr_loader.v \
 		sim/tb_flash_ddr_smoke.sv
 	@"$(FLASH_BOOT_BIN)"
 	@"$(FLASH_BOOT_BIN)" +EXPECT_FAILURE
+
+# True mode-0 SPI byte reader tested against a serial Flash behavior model.
+spi-flash-reader-test:
+	$(VERILATOR) --binary --timing \
+		--language 1800-2012 \
+		--top-module tb_spi_flash_byte_reader \
+		--Mdir "$(BUILD_DIR)/obj_spi_flash_reader" \
+		soc/flash_boot/spi_flash_byte_reader.v sim/tb_spi_flash_byte_reader.sv
+	@"$(SPI_FLASH_READER_BIN)"
+
+# End-to-end composition of the production Flash boot wrapper, SPI reader,
+# loader, AXI backend, DDR bridge, and Htop CPU. Only the serial Flash and the
+# external DDR-controller 256-bit AXI pins are behavioral models; this target
+# does not instantiate Hfpga_soc's board primitives or verify its pin wiring.
+flash-ddr-boot-test:
+	$(VERILATOR) --binary --timing \
+		--language 1800-2012 \
+		--Wno-WIDTHTRUNC \
+		--Wno-BLKLOOPINIT \
+		--top-module tb_flash_ddr_boot \
+		--Mdir "$(BUILD_DIR)/obj_flash_ddr_boot_e2e" \
+		$(CPU_RTL) $(SIM_RTL) soc/ddr_axi_bridge.v \
+		soc/flash_boot/spi_flash_byte_reader.v \
+		soc/flash_boot/flash_ddr_loader.v \
+		soc/flash_boot/flash_ddr_boot.v sim/tb_flash_ddr_boot.sv
+	@"$(FLASH_DDR_BOOT_BIN)"
 
 clean:
 	rm -rf -- "$(BUILD_DIR)" tb.vcd tb.view
