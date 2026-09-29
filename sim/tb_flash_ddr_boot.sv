@@ -33,30 +33,31 @@ module tb_flash_ddr_boot;
         end
     endfunction
 
-    function [23:0] flash_address_for_index;
-        input integer index;
-        reg [23:0] offset;
-        begin
-            offset = index % IMAGE_BYTES;
-            flash_address_for_index = FLASH_BASE + offset;
-        end
-    endfunction
-
     // SPI Flash model ------------------------------------------------------
     wire flash_cs_n;
+    wire flash_cs2_n;
+    wire flash_wp_n;
+    wire flash_hold_n;
     wire flash_mosi;
     wire flash_sck;
     reg flash_miso = 1'b0;
     reg [31:0] spi_tx_shift;
     integer spi_tx_count = 0;
     integer spi_rx_count = 0;
-    integer spi_rx_drive_count = 0;
+    integer spi_stream_bytes = 0;
     integer flash_bytes_seen = 0;
     integer flash_byte_index_this_boot = 0;
+    integer flash_transactions_seen = 0;
+    integer completed_flash_transactions = 0;
+    integer aborted_flash_transactions = 0;
+    integer failure_bytes_seen = 0;
     reg [23:0] spi_addr;
     reg [7:0] spi_opcode;
     reg spi_active = 1'b0;
-    wire [7:0] flash_model_byte = image_byte(spi_addr - FLASH_BASE);
+    reg [7:0] spi_rx_shift = 8'd0;
+    wire [23:0] spi_base_offset = spi_addr - FLASH_BASE;
+    wire [23:0] spi_byte_offset = spi_base_offset + spi_stream_bytes[23:0];
+    wire [7:0] flash_model_byte = image_byte(spi_byte_offset);
 
     always @(negedge flash_cs_n) begin
         if (rst_n) begin
@@ -65,10 +66,12 @@ module tb_flash_ddr_boot;
             spi_tx_shift = 32'd0;
             spi_tx_count = 0;
             spi_rx_count = 0;
-            spi_rx_drive_count = 0;
+            spi_stream_bytes = 0;
+            spi_rx_shift = 8'd0;
             spi_addr = 24'd0;
             spi_opcode = 8'd0;
             spi_active = 1'b1;
+            flash_transactions_seen = flash_transactions_seen + 1;
             flash_miso = 1'b0;
         end
     end
@@ -84,21 +87,27 @@ module tb_flash_ddr_boot;
                 spi_addr = spi_tx_shift[23:0];
                 if (spi_opcode !== 8'h03)
                     $fatal(1, "expected 03h Read Data, got %02x", spi_opcode);
-                if (spi_addr !== flash_address_for_index(flash_byte_index_this_boot))
-                    $fatal(1, "Flash address %06x at byte %0d", spi_addr, flash_bytes_seen);
+                if (spi_addr !== FLASH_BASE)
+                    $fatal(1, "expected one stream start address %06x, got %06x", FLASH_BASE, spi_addr);
             end
-        end else if (spi_rx_count < 8) begin
-            spi_rx_count = spi_rx_count + 1;
         end else begin
-            $fatal(1, "too many data bits in SPI transaction");
+            spi_rx_shift = {spi_rx_shift[6:0], flash_miso};
+            spi_rx_count = spi_rx_count + 1;
+            if (spi_rx_count == 8) begin
+                if (spi_rx_shift !== flash_model_byte)
+                    $fatal(1, "Flash stream byte %0d = %02x expected %02x", spi_stream_bytes, spi_rx_shift, flash_model_byte);
+                spi_rx_count = 0;
+                spi_rx_shift = 8'd0;
+                spi_stream_bytes = spi_stream_bytes + 1;
+                flash_bytes_seen = flash_bytes_seen + 1;
+                flash_byte_index_this_boot = flash_byte_index_this_boot + 1;
+            end
         end
     end
 
     always @(negedge flash_sck) begin
-        if (flash_cs_n === 1'b0 && spi_active && spi_tx_count == 32 &&
-            spi_rx_drive_count < 8) begin
-            flash_miso = flash_model_byte[7-spi_rx_drive_count];
-            spi_rx_drive_count = spi_rx_drive_count + 1;
+        if (flash_cs_n === 1'b0 && spi_active && spi_tx_count == 32) begin
+            flash_miso = flash_model_byte[7-spi_rx_count];
         end
     end
 
@@ -106,12 +115,10 @@ module tb_flash_ddr_boot;
         if (spi_active) begin
             if (flash_sck !== 1'b0)
                 $fatal(1, "Flash CS released while SCK high");
-            if (spi_tx_count != 32 || spi_rx_count != 8 ||
-                spi_rx_drive_count != 8)
-                $fatal(1, "incomplete SPI transaction: tx=%0d rx=%0d drove=%0d",
-                       spi_tx_count, spi_rx_count, spi_rx_drive_count);
-            flash_bytes_seen = flash_bytes_seen + 1;
-            flash_byte_index_this_boot = flash_byte_index_this_boot + 1;
+            if (spi_tx_count == 32 && spi_rx_count == 0 && spi_stream_bytes == IMAGE_BYTES)
+                completed_flash_transactions = completed_flash_transactions + 1;
+            else
+                aborted_flash_transactions = aborted_flash_transactions + 1;
             spi_active = 1'b0;
             flash_miso = 1'b0;
         end
@@ -141,8 +148,8 @@ module tb_flash_ddr_boot;
         .DDR_INIT_TIMEOUT_CYCLES(150000)
     ) boot (
         .clk(cpu_clk), .rst_n(rst_n), .ddr_init_done(ddr_init_done),
-        .flash_cs_n(flash_cs_n), .flash_cs2_n(), .flash_mosi(flash_mosi),
-        .flash_miso(flash_miso), .flash_wp_n(), .flash_hold_n(), .flash_sck(flash_sck),
+        .flash_cs_n(flash_cs_n), .flash_cs2_n(flash_cs2_n), .flash_mosi(flash_mosi),
+        .flash_miso(flash_miso), .flash_wp_n(flash_wp_n), .flash_hold_n(flash_hold_n), .flash_sck(flash_sck),
         .run_req_valid(run_req_valid), .run_req_ready(run_req_ready),
         .run_req_write(run_req_write), .run_req_addr(run_req_addr),
         .run_req_wdata(run_req_wdata), .run_req_wstrb(run_req_wstrb),
@@ -245,6 +252,8 @@ module tb_flash_ddr_boot;
             if (cpu_awvalid || cpu_wvalid || cpu_arvalid)
                 $fatal(1, "CPU attempted AXI access before boot completed");
         end
+        if (rst_n && (flash_cs2_n !== 1'b1 || flash_wp_n !== 1'b1 || flash_hold_n !== 1'b1))
+            $fatal(1, "secondary CS/WP/HOLD pins must remain inactive high");
         if (rst_n && boot_error && !cpu_reset)
             $fatal(1, "CPU reset released after boot failure");
     end
@@ -421,8 +430,20 @@ module tb_flash_ddr_boot;
             $fatal(1, "expected readback error 6, got %0d", boot_error_code);
         if (!cpu_reset || led_write_count != 0)
             $fatal(1, "CPU escaped reset or wrote LED after failed boot");
-        if (flash_bytes_seen != 4)
-            $fatal(1, "failure path should have read four Flash bytes, saw %0d", flash_bytes_seen);
+        failure_bytes_seen = flash_bytes_seen;
+        if (failure_bytes_seen < 4 || failure_bytes_seen > 5)
+            $fatal(1, "failure path should have sampled the failed word and at most one prefetched byte, saw %0d", failure_bytes_seen);
+        wait_cycles = 0;
+        while ((flash_cs_n !== 1'b1 || flash_sck !== 1'b0 || flash_clk_enable !== 1'b0) && wait_cycles < 8) begin
+            @(posedge cpu_clk);
+            wait_cycles = wait_cycles + 1;
+        end
+        if (flash_cs_n !== 1'b1 || flash_sck !== 1'b0 || flash_clk_enable !== 1'b0)
+            $fatal(1, "readback error did not release Flash and gate its clock");
+        if (completed_flash_transactions != 0 || aborted_flash_transactions != 1)
+            $fatal(1, "failed stream CS counts complete=%0d abort=%0d total=%0d bytes=%0d bits=%0d",
+                   completed_flash_transactions, aborted_flash_transactions,
+                   flash_transactions_seen, failure_bytes_seen, spi_rx_count);
         $display("FLASH_DDR_BOOT_FAILURE_PASS code=%0d cpu_reset=%0d", boot_error_code, cpu_reset);
 
         inject_corrupt_readback = 1'b0;
@@ -435,8 +456,10 @@ module tb_flash_ddr_boot;
         if (boot_error || !boot_done)
             $fatal(1, "boot did not recover: done=%0d error=%0d code=%0d",
                    boot_done, boot_error, boot_error_code);
-        if (flash_bytes_seen != 4 + IMAGE_BYTES)
+        if (flash_bytes_seen != failure_bytes_seen + IMAGE_BYTES)
             $fatal(1, "recovery did not reread image, total Flash bytes=%0d", flash_bytes_seen);
+        if (completed_flash_transactions != 1 || flash_transactions_seen != 2)
+            $fatal(1, "recovery should use one continuous Flash transaction");
         if (ddr_write_count < (IMAGE_BYTES / 4))
             $fatal(1, "expected DDR image writes, saw %0d", ddr_write_count);
         for (n = 0; n < IMAGE_BYTES; n = n + 1) begin
@@ -491,8 +514,10 @@ module tb_flash_ddr_boot;
         end
         if (!boot_done || boot_error)
             $fatal(1, "common reset did not recover from DDR-init loss");
-        if (flash_bytes_seen != 4 + IMAGE_BYTES + IMAGE_BYTES)
+        if (flash_bytes_seen != failure_bytes_seen + IMAGE_BYTES + IMAGE_BYTES)
             $fatal(1, "common reset did not re-read all bytes, count=%0d", flash_bytes_seen);
+        if (completed_flash_transactions != 2 || flash_transactions_seen != 3)
+            $fatal(1, "common reset should perform exactly one more continuous transaction");
         if (ddr_write_count < (IMAGE_BYTES / 4))
             $fatal(1, "common reset did not rewrite the DDR image, writes=%0d", ddr_write_count);
         for (n = 0; n < IMAGE_BYTES; n = n + 1) begin

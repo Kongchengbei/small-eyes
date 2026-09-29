@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 //负责搬运和校验
-//它先等待 DDR 初始化完成，再不断向 reader 请求字节。每收到四个字节，就组成一个小端的 32 位数据。
+//它先等待 DDR 初始化完成，再发起一次连续 Flash 读取。每收到四个字节，就组成一个小端的 32 位数据。
 module flash_ddr_loader #(
     parameter [23:0] FLASH_BASE = 24'hA00000,
     parameter [31:0] DDR_BASE   = 32'h8000_0000,
@@ -19,6 +19,7 @@ module flash_ddr_loader #(
     output reg         flash_req_valid,
     input  wire        flash_req_ready,
     output wire [23:0] flash_req_addr,
+    output wire [31:0] flash_req_length,
     input  wire        flash_rsp_valid,
     output wire        flash_rsp_ready,
     input  wire [7:0]  flash_rsp_data,
@@ -65,13 +66,14 @@ module flash_ddr_loader #(
     wire [32:0] flash_end_exclusive = {9'd0, FLASH_BASE} + {1'b0, IMAGE_BYTES};
     wire [32:0] ddr_end_exclusive = {1'b0, DDR_BASE} + {1'b0, IMAGE_BYTES};
 
-    assign flash_req_addr = FLASH_BASE + byte_index[23:0];
+    assign flash_req_addr = FLASH_BASE;
+    assign flash_req_length = IMAGE_BYTES;
     assign flash_rsp_ready = (state == ST_FLASH_RSP);
     assign ddr_req_wstrb = 4'b1111;
     assign ddr_rsp_ready = (state == ST_DDR_WRITE_RSP) ||
                            (state == ST_DDR_READ_RSP);
     assign busy = (state != ST_DONE) && (state != ST_ERROR);
-
+	//统一处理启动失败
     task fail;
         input [3:0] code;
         begin
@@ -157,7 +159,7 @@ module flash_ddr_loader #(
                             state <= ST_DDR_WRITE;
                         else begin
                             byte_lane <= byte_lane + 1'b1;
-                            state <= ST_FLASH_REQ;
+                            state <= ST_FLASH_RSP;
                         end
                     end else if (timeout_count >= TIMEOUT_CYCLES-1)
                         fail(ERR_FLASH_TO);
@@ -210,7 +212,7 @@ module flash_ddr_loader #(
                             state <= ST_DONE;
                         end else begin
                             byte_lane <= 2'd0;
-                            state <= ST_FLASH_REQ;
+                            state <= ST_FLASH_RSP;
                         end
                     end else if (timeout_count >= TIMEOUT_CYCLES-1)
                         fail(ERR_DDR_TO);

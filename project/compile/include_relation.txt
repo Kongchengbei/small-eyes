@@ -17,7 +17,6 @@
 
 
 
-
 F:/SocFpga/jtag/jtag_dm.v|F:/SocFpga/soc/defines.v|
 F:/SocFpga/soc/defines.v|F:/SocFpga/soc/config.v|
 
@@ -30,6 +29,9 @@ F:/SocFpga/jtag/jtag_top.v|F:/SocFpga/soc/defines.v|
 
 
 F:/SocFpga/soc/Hfpga_soc.v|F:/SocFpga/soc/soc_addr_map.vh|
+
+
+
 
 
 

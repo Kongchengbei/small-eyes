@@ -74,6 +74,8 @@ module flash_ddr_boot #(
 
     wire flash_req_valid;
     wire [23:0] flash_req_addr;
+    wire [31:0] flash_req_length;
+    wire flash_reader_abort;
     wire flash_rsp_valid;
     wire flash_rsp_ready;
     wire [7:0] flash_rsp_data;
@@ -81,10 +83,12 @@ module flash_ddr_boot #(
     wire spi_cs_n;
     wire spi_mosi;
     wire flash_reader_req_ready;
+    assign flash_reader_abort = boot_error || !ddr_init_sync;
 
     // Enable the dedicated configuration-clock output after DDR init has
     // crossed into cpu_clk.  On failure or init loss, finish any in-flight
-    // byte first, then gate the clock only when CS is inactive and SCK is low.
+    // current high clock phase, then gate the clock only when CS is inactive
+    // and SCK is low.
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n)
             flash_clk_enable <= 1'b0;
@@ -102,6 +106,8 @@ module flash_ddr_boot #(
         .req_valid (flash_req_valid && ddr_init_sync && !boot_error),
         .req_ready (flash_reader_req_ready),
         .req_addr  (flash_req_addr),
+        .req_length(flash_req_length),
+        .abort     (flash_reader_abort),
         .rsp_valid (flash_rsp_valid),
         .rsp_ready (flash_rsp_ready),
         .rsp_data  (flash_rsp_data),
@@ -139,6 +145,7 @@ module flash_ddr_boot #(
         .flash_req_valid(flash_req_valid),
         .flash_req_ready(flash_req_ready),
         .flash_req_addr (flash_req_addr),
+        .flash_req_length(flash_req_length),
         .flash_rsp_valid(flash_rsp_valid),
         .flash_rsp_ready(flash_rsp_ready),
         .flash_rsp_data (flash_rsp_data),

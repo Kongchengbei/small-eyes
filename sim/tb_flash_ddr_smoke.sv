@@ -13,10 +13,13 @@ module tb_flash_ddr_smoke;
 
     wire flash_req_valid, flash_req_ready;
     wire [23:0] flash_req_addr;
+    wire [31:0] flash_req_length;
     wire flash_rsp_valid, flash_rsp_ready;
     wire [7:0] flash_rsp_data;
     reg flash_rsp_valid_q = 1'b0;
     reg [7:0] flash_rsp_data_q = 8'h00;
+    reg flash_stream_active = 1'b0;
+    reg [31:0] flash_stream_index = 32'd0;
     reg [7:0] flash_image [0:SMOKE_BYTES-1];
     assign flash_req_ready = 1'b1;
     assign flash_rsp_valid = flash_rsp_valid_q;
@@ -38,7 +41,8 @@ module tb_flash_ddr_smoke;
     ) u_loader (
         .clk(clk), .rst_n(rst_n), .ddr_init_done(ddr_init_done),
         .flash_req_valid(flash_req_valid), .flash_req_ready(flash_req_ready),
-        .flash_req_addr(flash_req_addr), .flash_rsp_valid(flash_rsp_valid),
+        .flash_req_addr(flash_req_addr), .flash_req_length(flash_req_length),
+        .flash_rsp_valid(flash_rsp_valid),
         .flash_rsp_ready(flash_rsp_ready), .flash_rsp_data(flash_rsp_data),
         .ddr_req_valid(boot_ddr_req_valid), .ddr_req_ready(boot_ddr_req_ready),
         .ddr_req_write(boot_ddr_req_write), .ddr_req_addr(boot_ddr_req_addr),
@@ -157,15 +161,25 @@ module tb_flash_ddr_smoke;
     always @(posedge clk) begin
         if (!rst_n) begin
             flash_rsp_valid_q <= 1'b0;
+            flash_stream_active <= 1'b0;
+            flash_stream_index <= 32'd0;
             ddr_rsp_valid <= 1'b0;
         end else begin
-            if (flash_rsp_valid_q && flash_rsp_ready)
-                flash_rsp_valid_q <= 1'b0;
             if (flash_req_valid && flash_req_ready) begin
-                if (flash_req_addr > 24'd15)
-                    $fatal(1, "Flash address out of smoke image: %h", flash_req_addr);
-                flash_rsp_data_q <= flash_image[flash_req_addr];
+                if (flash_req_addr !== 24'd0 || flash_req_length !== SMOKE_BYTES)
+                    $fatal(1, "Bad Flash stream request addr=%h len=%0d", flash_req_addr, flash_req_length);
+                flash_stream_active <= 1'b1;
+                flash_stream_index <= 32'd0;
+                flash_rsp_data_q <= flash_image[0];
                 flash_rsp_valid_q <= 1'b1;
+            end else if (flash_rsp_valid_q && flash_rsp_ready) begin
+                if (flash_stream_index + 1 >= SMOKE_BYTES) begin
+                    flash_rsp_valid_q <= 1'b0;
+                    flash_stream_active <= 1'b0;
+                end else begin
+                    flash_stream_index <= flash_stream_index + 1'b1;
+                    flash_rsp_data_q <= flash_image[flash_stream_index + 1'b1];
+                end
             end
 
             if (ddr_rsp_valid && ddr_rsp_ready)

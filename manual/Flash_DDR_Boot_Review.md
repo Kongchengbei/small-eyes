@@ -1,5 +1,7 @@
 # Flash → DDR → CPU 流水灯启动 review
 
+**连续读取更新（2026-09-27）**：当前 RTL 已由逐字节独立事务升级为单次 `03h + 24-bit address` 连续读取整段镜像；loader 只发一次地址/长度请求，并在 DDR 写/readback 阶段对 SPI 流施加背压。本文后续关于“每个字节单独发命令”和相应时序、历史回归数据仍保留为 2026-09-26 版本记录，不能视为当前协议。当前协议、吞吐计算和验证范围见[连续读取升级说明](SPI连续读取升级说明.md)。用户实板观察和粗略计时为冷上电约 24 秒到 LED、KEY0 快速重启较快，尚未分段测量；连续读取版本仍待重新烧写实板验证。FPGA 位流加载仍由配置电路负责，本 RTL 不修改 24 秒配置阶段。
+
 ## 当前目标与状态
 
 **实板状态更新（2026-09-26）**：用户已通过 JTAG Boundary Scan 的 FPGA 桥接路径，对一颗 Outer Flash 完成擦写及多次 Verify；第二颗未烧写。实际扫描 ID 为 `0x0B4018`，PDS 通过 Add Flash 自定义 `xt25f128`，使用 WINBOND/W25Q NOR 兼容模板并按 128 Mbit / 16 MiB 配置。这不能证明实物丝印型号为 W25Q128JV，后者只是手册可选型号。Convert File 将 `.sbit` 放在地址 0、56-byte `running_led_test.bin` 放在 `0x00A00000`；`Hfpga_soc.FLASH_BASE` 默认与此一致。`.sbit` 大小 9,188,552 bytes（`0x8C34C8`），最新 `.sfc` 为 10,485,816 bytes，载荷已比对。用户记录的一轮操作为擦除 35.5 秒、编程 170.6 秒、Verify 11.0 秒，随后再次 Verify 10.8 秒成功；本地日志还有同 ID `b4018` 的另一轮成功擦写和校验记录。这些操作都指向同一选中器件，不能据此称第二颗 Flash 已写入。尚无断电自主启动、DDR 搬运读回或 CPU 流水灯实板成功确认，详见[实板烧写记录](PG2L200H_Flash烧写与DDR启动实板记录.md)。
@@ -24,8 +26,8 @@ tracked 镜像是 `test/running_led_test.dat`：14 个 word、56 bytes。忽略�
                          ▼
            GTP_CFGCLK dedicated output 提供 SPI SCK
                          │
-          Outer Flash (扫描 ID 0B4018): 03h + A00000..A00037
-                         │ 56 次 byte response
+          Outer Flash: 03h + A00000，CS保持低连续读取56 bytes
+                         │ byte stream；DDR等待时低SCK背压
                          ▼
      flash_ddr_loader: 每4字节按小端组成32-bit word
                          │ DDR write request
@@ -48,7 +50,7 @@ NPU engine 尚未实现，但最小 CPU 流水灯镜像不依赖 NPU。当前核
 
 ## X1 当前实现与未来 X8 规划
 
-当前 RTL 方案是**单颗 Outer Flash、SPI X1、普通读命令 `03h`**。扫描 ID 为 `0x0B4018`，PDS 自定义器件为 `xt25f128`，使用 WINBOND/W25Q NOR 兼容模板；旧记录中把 W25Q128JV 写为实物型号现予更正。`spi_flash_byte_reader.v` 输出一字节响应；wrapper 逐地址递增读取。每个字节单独发 `03h + 24-bit address`，无 dummy cycle。实板烧写只覆盖一颗，第二颗未烧写。
+当前 RTL 方案是**单颗 Outer Flash、SPI X1、普通读命令 `03h`**。扫描 ID 为 `0x0B4018`，PDS 自定义器件为 `xt25f128`，使用 WINBOND/W25Q NOR 兼容模板；旧记录中把 W25Q128JV 写为实物型号现予更正。`spi_flash_byte_reader.v` 接收一次起始地址和长度，在同一条 CS 事务中连续输出字节；loader 背压期间保持 SCK 低，CS 继续有效。事务只有一个 `03h + 24-bit address` 命令，无 dummy cycle。实板烧写只覆盖一颗，第二颗未烧写。此前每字节独立事务的行为仅作为历史记录保留，当前吞吐和 abort 语义见[升级说明](SPI连续读取升级说明.md)。
 
 较早的 `QSPI_Flash到DDR启动搬运方案.md` 保留了未来 X8/QSPI 扩展设计：双颗 Flash、可能的 `6Bh`/快速读、多 lane 数据拼接、镜像头/CRC、多镜像和模型搬运。它是后续路线图，不是当前 RTL 的行为或已验证事实。上 X8 前必须实测 PDS 数据布局、双片选连接、两颗器件数据拼接/交织、QE 配置、时钟相位和吞吐；不能用封装 pin 功能替代板级证据。
 
