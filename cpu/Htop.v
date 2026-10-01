@@ -144,6 +144,7 @@ module Htop #(
     wire        mem_is_ebreak;
     wire [31:0] mem_wb_data;
     wire        mem_forward_valid;
+    wire        mem_load_wait;
 
     wire [31:0] wb_pc;
     wire [31:0] wb_ins;
@@ -316,6 +317,7 @@ module Htop #(
         .ex_forward_rd_addr (ex_forward_rd_addr),
         .ex_forward_data    (ex_forward_data),
         .mem_forward_valid  (mem_forward_valid),
+        .mem_load_wait      (mem_load_wait),
         .mem_forward_rd_addr(mem_rd_addr),
         .mem_forward_data   (mem_wb_data),
         .ex_allowin         (ex_allowin),
@@ -485,6 +487,7 @@ module Htop #(
         .mem_is_ebreak    (mem_is_ebreak),
         .mem_wb_data      (mem_wb_data),
         .mem_forward_valid(mem_forward_valid),
+        .mem_load_wait     (mem_load_wait),
         .dbg_mem_valid    (dbg_mem_valid),
         .dbg_mem_ready_go (dbg_mem_ready_go)
     );

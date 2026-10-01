@@ -27,6 +27,7 @@ module Hmemu (
     output wire        mem_to_wb_valid,
     output wire [31:0] mem_wb_data,
     output wire        mem_forward_valid,
+    output wire        mem_load_wait,
     // 调试观测：MEM 级 valid/完成条件
     output wire        dbg_mem_valid,
     output wire        dbg_mem_ready_go,
@@ -51,6 +52,8 @@ module Hmemu (
     assign mem_ready_go    = !mem_valid || !mem_is_load || dmem_rsp_valid;
     assign mem_allowin     = !mem_valid || (mem_ready_go && wb_allowin);
     assign mem_to_wb_valid = mem_valid && mem_ready_go;
+	//由 cpu/Hidu.v:276(+-) 检查后续指令的 `rs1/rs2` 是否依赖它。若依赖，就继续暂停；数据返回的周期再通过现有 MEM 前递送入 EX
+	assign mem_load_wait  = mem_valid && mem_is_load && !dmem_rsp_valid;//MEM级加载仍在等待
     assign dbg_mem_valid   = mem_valid;
     assign dbg_mem_ready_go = mem_ready_go;
 
@@ -73,8 +76,12 @@ module Hmemu (
 
     assign mem_wb_data = (mem_wb_sel == WB_LOAD) ? load_data : mem_ex_wb_value;
 
-	//前递数据整
-    assign mem_forward_valid = mem_valid && mem_reg_wen && (mem_rd_addr != 5'd0);
+	// A load must not be forwarded until its cache/MMIO response is valid.
+	// Forwarding the placeholder dmem_rdata while MEM is stalled makes a
+	// dependent branch observe zero and can terminate byte-copy/string loops
+	// at every cache miss.  Non-load results remain immediately available.
+    assign mem_forward_valid = mem_valid && mem_reg_wen &&
+                               (mem_rd_addr != 5'd0) && mem_ready_go;
 
     always @(posedge clk) begin
         if (rst) begin

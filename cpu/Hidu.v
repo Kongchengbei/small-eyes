@@ -15,6 +15,7 @@ module Hidu (
     input      [4:0]  ex_forward_rd_addr,
     input      [31:0] ex_forward_data,
     input             mem_forward_valid,
+    input             mem_load_wait,
     input      [4:0]  mem_forward_rd_addr,
     input      [31:0] mem_forward_data,
     input             ex_allowin,
@@ -270,7 +271,15 @@ module Hidu (
                          ((id_uses_rs1 && (id_rs1_addr == ex_rd_addr)) ||
                           (id_uses_rs2 && (id_rs2_addr == ex_rd_addr)));
 
-    wire id_stall = id_valid && ex_load_stall;
+    // load 进入 MEM 后可能还在等待 DCache/MMIO 响应。依赖它的指令必须
+    // 留在 ID，待返回数据可前递时再锁存到 EX，包括 sw 的数据和地址源。
+    wire mem_load_stall = mem_load_wait && (mem_forward_rd_addr != 5'd0) &&
+                          ((id_uses_rs1 &&
+                            (id_rs1_addr == mem_forward_rd_addr)) ||
+                           (id_uses_rs2 &&
+                            (id_rs2_addr == mem_forward_rd_addr)));
+
+    wire id_stall = id_valid && (ex_load_stall || mem_load_stall);
 
 	//控制信号
     wire   id_ready_go      = !id_stall;
