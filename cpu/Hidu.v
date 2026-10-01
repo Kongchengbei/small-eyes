@@ -271,8 +271,8 @@ module Hidu (
                          ((id_uses_rs1 && (id_rs1_addr == ex_rd_addr)) ||
                           (id_uses_rs2 && (id_rs2_addr == ex_rd_addr)));
 
-    // load 进入 MEM 后可能还在等待 DCache/MMIO 响应。依赖它的指令必须
-    // 留在 ID，待返回数据可前递时再锁存到 EX，包括 sw 的数据和地址源。
+    // load 进入 MEM 后可能还在等待 DCache/MMIO 响应。依赖它的指令必须留在Id
+    // 待返回数据可前递时再锁存到 EX，包括 sw 的数据和地址源
     wire mem_load_stall = mem_load_wait && (mem_forward_rd_addr != 5'd0) &&
                           ((id_uses_rs1 &&
                             (id_rs1_addr == mem_forward_rd_addr)) ||

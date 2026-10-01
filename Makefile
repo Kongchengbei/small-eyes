@@ -3,13 +3,15 @@ SHELL := /bin/sh
 VERILATOR ?= verilator
 PYTHON    ?= python3
 
-# The managed environment exposes ccache through g++, but its cache directory
-# may be read-only. Verilator's generated makefile honors this switch.
+# 当前环境通过 g++ 调用 ccache，但缓存目录可能只读；关闭缓存避免构建失败。
 export CCACHE_DISABLE ?= 1
 
 BUILD_DIR := build
-OBJ_DIR   := $(BUILD_DIR)/obj_dir
+OBJ_DIR   := $(BUILD_DIR)/obj_cpu_regression
 SIM_BIN   := $(OBJ_DIR)/Vtb_Htop
+CAMERA_UART_SIM_BIN := $(BUILD_DIR)/obj_camera_uart/Vtb_Htop
+CAMERA_SCCB_GPIO_BIN := $(BUILD_DIR)/obj_camera_sccb_gpio/Vtb_camera_sccb_gpio
+CAMERA_DVP_RX_BIN := $(BUILD_DIR)/obj_camera_dvp_rx/Vtb_camera_dvp_rx
 SIM_TB    := sim/tb_Htop.sv
 DCACHE_BYPASS_BIN := $(BUILD_DIR)/obj_dcache_npu_bypass/Vtb_dcache_npu_bypass
 NPU_CTRL_BIN := $(BUILD_DIR)/obj_npu_ctrl/Vtb_npu_ctrl
@@ -21,17 +23,20 @@ FLASH_DDR_BOOT_BIN := $(BUILD_DIR)/obj_flash_ddr_boot_e2e/Vtb_flash_ddr_boot
 ISA_DIR   ?= sim/test
 ISA_OUT   := $(BUILD_DIR)/isa
 
-# Htop exposes an AXI master, so the testbench also needs the serialized
-# memory backend used by the SoC.
+# Htop 输出 AXI 主机接口，测试平台同时接入 SoC 使用的串行内存后端。
 CPU_RTL := $(filter-out cpu/cache_bram.v cpu/cache_sram_beh.v,$(wildcard cpu/*.v))
-SIM_RTL := soc/axi_mem_backend.v cpu/cache_sram_beh.v
+SIM_RTL := soc/axi_mem_backend.v soc/Huart_tx.v cpu/cache_sram_beh.v
+CAMERA_SIM_RTL := soc/Hcamera_sccb_gpio.v soc/Hcamera_dvp_rx.v \
+	soc/Hcamera_dvp_regs.v sim/ov5640_sccb_model.sv
 DCACHE_TB_RTL := cpu/dcache.v cpu/cache_util.v cpu/cache_sram_beh.v
 NPU_CTRL_TB_RTL := soc/Hnpu_ctrl.v
 NPU_DMA_TB_RTL := soc/Hnpu_dma.v
 NPU_ARBITER_TB_RTL := soc/Haxi_2m1s_arbiter.v
 
 .PHONY: sim lint addr-map dcache-bypass npu-ctrl npu-dma npu-arbiter \
-	flash-boot-smoke spi-flash-reader-test flash-ddr-boot-test clean
+	flash-boot-smoke spi-flash-reader-test flash-ddr-boot-test \
+	camera-uart-fw-test camera-sccb-fw-test camera-sccb-gpio-test \
+	camera-dvp-rx-test cpu-load-store-test clean
 
 sim: $(SIM_BIN)
 	@$(PYTHON) -B sim/test.py \
@@ -39,8 +44,75 @@ sim: $(SIM_BIN)
 		--tests "$(abspath $(ISA_DIR))" \
 		--output "$(abspath $(ISA_OUT))"
 
+# 在真实 CPU RTL 上执行 Camera 探活固件，并逐字节核对 UART0 输出。
+# 此测试完全离线，不启动 PDS，也不访问物理串口。
+camera-uart-fw-test: $(CAMERA_UART_SIM_BIN) bsp/camera_app/camera_uart_debug.bin
+	@mkdir -p "$(BUILD_DIR)/camera_uart"
+	@objcopy -I binary -O binary --reverse-bytes=4 \
+		bsp/camera_app/camera_uart_debug.bin \
+		"$(BUILD_DIR)/camera_uart/camera_uart_debug.be.bin"
+	@xxd -p -c 4 "$(BUILD_DIR)/camera_uart/camera_uart_debug.be.bin" \
+		> "$(BUILD_DIR)/camera_uart/camera_uart_debug.hex"
+	@"$(CAMERA_UART_SIM_BIN)" \
+		+PROGRAM="$(abspath $(BUILD_DIR)/camera_uart/camera_uart_debug.hex)" \
+		+UART_SMOKE +TIMEOUT=30000000
 
-$(SIM_BIN): $(CPU_RTL) $(SIM_RTL) $(SIM_TB)
+# 新名称强调该固件除 UART 外，还执行 CAM1 SCCB 芯片 ID 探测。
+camera-sccb-fw-test: camera-uart-fw-test
+
+# 真正运行 lw(MMIO) 紧接 sw(DDR) 的指令序列，覆盖流水线数据冒险。
+cpu-load-store-test: $(SIM_BIN) sim/cpu_load_store_mmio.S
+	@mkdir -p "$(BUILD_DIR)/cpu_load_store_test"
+	riscv64-unknown-elf-gcc -march=rv32im -mabi=ilp32 -nostdlib \
+		-Wl,--no-relax -Wl,-Ttext=0x80000000 \
+		sim/cpu_load_store_mmio.S \
+		-o "$(BUILD_DIR)/cpu_load_store_test/program.elf"
+	riscv64-unknown-elf-objcopy -O binary \
+		"$(BUILD_DIR)/cpu_load_store_test/program.elf" \
+		"$(BUILD_DIR)/cpu_load_store_test/program.bin"
+	@$(PYTHON) -B sim/test.py \
+		--sim "$(abspath $(SIM_BIN))" \
+		--tests "$(abspath $(BUILD_DIR)/cpu_load_store_test)" \
+		--output "$(abspath $(BUILD_DIR)/cpu_load_store_test/hex)" \
+		--timeout=200000
+
+bsp/camera_app/camera_uart_debug.bin: \
+		bsp/camera_app/main.c bsp/camera_app/uart.c bsp/camera_app/uart.h \
+		bsp/camera_app/camera_sccb.c bsp/camera_app/camera_sccb.h \
+		bsp/camera_app/camera_dvp.c bsp/camera_app/camera_dvp.h \
+		bsp/camera_app/ov5640.c bsp/camera_app/ov5640.h \
+		bsp/camera_app/ov5640_regs.c bsp/camera_app/ov5640_regs.h \
+		bsp/camera_app/link.lds
+	$(MAKE) -C bsp/camera_app all
+
+camera-sccb-gpio-test:
+	$(VERILATOR) --binary --timing \
+		--language 1800-2012 \
+		--top-module tb_camera_sccb_gpio \
+		--Mdir "$(BUILD_DIR)/obj_camera_sccb_gpio" \
+		soc/Hcamera_sccb_gpio.v sim/tb_camera_sccb_gpio.sv
+	@"$(CAMERA_SCCB_GPIO_BIN)"
+
+camera-dvp-rx-test:
+	$(VERILATOR) --binary --timing \
+		--language 1800-2012 \
+		--top-module tb_camera_dvp_rx \
+		--Mdir "$(BUILD_DIR)/obj_camera_dvp_rx" \
+		soc/Hcamera_dvp_rx.v sim/tb_camera_dvp_rx.sv
+	@"$(CAMERA_DVP_RX_BIN)"
+
+$(CAMERA_UART_SIM_BIN): $(CPU_RTL) $(SIM_RTL) $(CAMERA_SIM_RTL) $(SIM_TB)
+	@mkdir -p "$(BUILD_DIR)/obj_camera_uart"
+	$(VERILATOR) --binary --timing \
+		--language 1800-2012 \
+		--Wno-WIDTHTRUNC \
+		--Wno-BLKLOOPINIT \
+		--top-module tb_Htop \
+		--Mdir "$(BUILD_DIR)/obj_camera_uart" \
+		$(CPU_RTL) $(SIM_RTL) $(CAMERA_SIM_RTL) $(SIM_TB)
+
+
+$(SIM_BIN): $(CPU_RTL) $(SIM_RTL) $(CAMERA_SIM_RTL) $(SIM_TB)
 	@mkdir -p "$(OBJ_DIR)"
 	$(VERILATOR) --binary --timing \
 		--language 1800-2012 \
@@ -48,9 +120,21 @@ $(SIM_BIN): $(CPU_RTL) $(SIM_RTL) $(SIM_TB)
 		--Wno-BLKLOOPINIT \
 		--top-module tb_Htop \
 		--Mdir "$(OBJ_DIR)" \
-		$(CPU_RTL) $(SIM_RTL) $(SIM_TB)
+		$(CPU_RTL) $(SIM_RTL) $(CAMERA_SIM_RTL) $(SIM_TB)
 
 lint:
+	$(VERILATOR) --lint-only \
+		--language 1800-2012 \
+		--top-module Hcamera_sccb_gpio \
+		soc/Hcamera_sccb_gpio.v
+	$(VERILATOR) --lint-only \
+		--language 1800-2012 \
+		--top-module Hcamera_dvp_rx \
+		soc/Hcamera_dvp_rx.v
+	$(VERILATOR) --lint-only \
+		--language 1800-2012 \
+		--top-module Hcamera_dvp_regs \
+		soc/Hcamera_dvp_regs.v
 	$(VERILATOR) --lint-only \
 		--language 1800-2012 \
 		--Wno-BLKLOOPINIT \

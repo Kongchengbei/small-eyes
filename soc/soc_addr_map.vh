@@ -58,6 +58,12 @@
 `define SOC_NPU_MMIO_END             32'h4000_0200
 
 `define SOC_LED_ADDR                 32'h4000_0200
+
+// 物理 CAM1（RTL/软件统一使用一基编号）的 SCCB、DVP 控制与快照寄存器。
+`define SOC_CAM1_MMIO_BASE           32'h4000_0300
+`define SOC_CAM1_MMIO_BYTES          32'h0000_0100
+`define SOC_CAM1_MMIO_END            32'h4000_0400
+
 `define SOC_FPIOA_BASE               32'h4000_0f00
 `define SOC_FPIOA_BYTES              32'h0000_0100
 `define SOC_FPIOA_END                32'h4000_1000

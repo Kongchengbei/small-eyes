@@ -11,9 +11,9 @@
             <data>RAM(GB)</data>
         </column_headers>
         <row>
-            <data>0h:0m:8s</data>
-            <data>0h:0m:8s</data>
-            <data>0h:0m:36s</data>
+            <data>0h:0m:6s</data>
+            <data>0h:0m:6s</data>
+            <data>0h:0m:38s</data>
             <data>2,615</data>
             <data>WINDOWS 10 x86_64</data>
             <data>13th Gen Intel(R) Core(TM) i7-13650HX</data>

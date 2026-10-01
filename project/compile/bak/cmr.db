@@ -380,7 +380,7 @@
             <data message="4">Verilog-0001: Analyzing file F:/SocFpga/soc/Haxi_2m1s_arbiter.v</data>
         </row>
         <row>
-            <data message="4">Verilog-0002: [F:/SocFpga/soc/Haxi_2m1s_arbiter.v(line number: 11)] Analyzing module Haxi_2m1s_arbiter (library work)</data>
+            <data message="4">Verilog-0002: [F:/SocFpga/soc/Haxi_2m1s_arbiter.v(line number: 9)] Analyzing module Haxi_2m1s_arbiter (library work)</data>
         </row>
         <row>
             <data message="4">Verilog-0001: Analyzing file F:/SocFpga/soc/Hfpga_soc.v</data>
@@ -1997,7 +1997,7 @@
     DDR_INIT_TIMEOUT_CYCLES = 32'b00000100001011000001110110000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/flash_boot/flash_ddr_boot.v(line number: 99)] Elaborating instance u_flash_reader</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/flash_boot/flash_ddr_boot.v(line number: 103)] Elaborating instance u_flash_reader</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/flash_boot/spi_flash_byte_reader.v(line number: 5)] Elaborating module spi_flash_byte_reader</data>
@@ -2007,7 +2007,7 @@
     CLK_DIV = 32'b00000000000000000000000000000100</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/flash_boot/flash_ddr_boot.v(line number: 135)] Elaborating instance u_loader</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/flash_boot/flash_ddr_boot.v(line number: 141)] Elaborating instance u_loader</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 5)] Elaborating module flash_ddr_loader</data>
@@ -5799,19 +5799,19 @@
             <data message="5">Sdm-2014: [F:/SocFpga/jtag/jtag_dm.v(line number: 61)] Feedback mux created for signal 'dm_mem_wdata'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
         </row>
         <row>
-            <data message="5">Sdm-2000: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 92)] Removed register node u_flash_ddr_boot/u_loader/timeout_count[31] that is stuck at constant 0.</data>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 94)] Removed register node u_flash_ddr_boot/u_loader/timeout_count[31] that is stuck at constant 0.</data>
         </row>
         <row>
-            <data message="5">Sdm-2000: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 92)] Removed register node u_flash_ddr_boot/u_loader/timeout_count[30] that is stuck at constant 0.</data>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 94)] Removed register node u_flash_ddr_boot/u_loader/timeout_count[30] that is stuck at constant 0.</data>
         </row>
         <row>
-            <data message="5">Sdm-2000: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 92)] Removed register node u_flash_ddr_boot/u_loader/timeout_count[29] that is stuck at constant 0.</data>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 94)] Removed register node u_flash_ddr_boot/u_loader/timeout_count[29] that is stuck at constant 0.</data>
         </row>
         <row>
-            <data message="5">Sdm-2000: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 92)] Removed register node u_flash_ddr_boot/u_loader/timeout_count[28] that is stuck at constant 0.</data>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 94)] Removed register node u_flash_ddr_boot/u_loader/timeout_count[28] that is stuck at constant 0.</data>
         </row>
         <row>
-            <data message="5">Sdm-2000: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 92)] Removed register node u_flash_ddr_boot/u_loader/timeout_count[27] that is stuck at constant 0.</data>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 94)] Removed register node u_flash_ddr_boot/u_loader/timeout_count[27] that is stuck at constant 0.</data>
         </row>
         <row>
             <data message="4">Removed inst ddrphy_update_req that is redundant to update_start.</data>

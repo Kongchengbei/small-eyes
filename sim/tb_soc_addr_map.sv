@@ -49,12 +49,16 @@ module tb_soc_addr_map;
             ((`SOC_NPU_SCRATCH_BASE & 32'h0000_001f) != 32'b0))
             $fatal(1, "NPU DDR buffer base is not 32-byte aligned");
 
-        // MMIO 子窗口不可越过总窗口，UART、NPU 寄存器和 LED 也不能重叠。
+        // MMIO 子窗口不可越过总窗口，各外设寄存器也不能重叠。
         check_equal(`SOC_MMIO_BASE + `SOC_MMIO_BYTES, `SOC_MMIO_END, "MMIO end");
         check_equal(`SOC_UART0_END, `SOC_NPU_MMIO_BASE, "UART/NPU MMIO boundary");
         check_equal(`SOC_NPU_MMIO_END, `SOC_LED_ADDR, "NPU MMIO/LED boundary");
+        check_equal(`SOC_CAM1_MMIO_BASE + `SOC_CAM1_MMIO_BYTES,
+                    `SOC_CAM1_MMIO_END, "CAM1 MMIO end");
         if ((`SOC_NPU_MMIO_BASE < `SOC_MMIO_BASE) ||
             (`SOC_NPU_MMIO_END > `SOC_MMIO_END) ||
+            (`SOC_CAM1_MMIO_BASE < (`SOC_LED_ADDR + 32'd4)) ||
+            (`SOC_CAM1_MMIO_END > `SOC_FPIOA_BASE) ||
             (`SOC_FPIOA_BASE < `SOC_MMIO_BASE) ||
             (`SOC_FPIOA_END > `SOC_MMIO_END))
             $fatal(1, "MMIO sub-window is outside the MMIO window");

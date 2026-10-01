@@ -8,6 +8,10 @@ create_clock -period {37.037} [get_ports {clk}] -name clk
 # JTAG时钟约束 (10MHz, 100ns周期)
 create_clock -period {100.000} [get_ports {JTAG_TCK}] -name JTAG_CLK
 
+# CAM1 PCLK 由 OV5640 输出。这里按最高 100 MHz 约束输入路径，实际 VGA
+# 配置频率更低；它与 CPU/JTAG 时钟没有相位关系。
+create_clock -period {10.000} [get_ports {cam1_pclk}] -name CAM1_PCLK
+
 define_attribute {n:JTAG_TCK_in} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}
 
 
@@ -19,6 +23,7 @@ create_generated_clock -name cpu_clk \
     [get_pins {u_pll/u_gpll:CLKOUT0}]
 # 异步时钟域声明
 set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {JTAG_CLK}]
+set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {CAM1_PCLK}]
 
 # IO 引脚约束：这里只保留 Hfpga_soc 顶层实际存在的外部端口。
 # DDR3 端口使用板卡原理图/引脚表中的专用资源位置，不能改用普通 IO。
@@ -33,6 +38,84 @@ define_attribute {p:hard_rst_n} {PAP_IO_DIRECTION} {INPUT}
 define_attribute {p:hard_rst_n} {PAP_IO_LOC} {C22}
 define_attribute {p:hard_rst_n} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:hard_rst_n} {PAP_IO_STANDARD} {LVCMOS33}
+
+#----------------------物理 CAM1：OV5640 探活接口---------------------------
+# 球位由双目模块原理图与 FMC 200H 引脚表交叉核对。SCL/SDA 由 RTL 仅拉低或
+# 高阻释放，使用摄像头模块上的上拉电阻；RESETB 为低有效复位。
+define_attribute {p:cam1_scl} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:cam1_scl} {PAP_IO_LOC} {W21}
+define_attribute {p:cam1_scl} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_scl} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam1_scl} {PAP_IO_DRIVE} {4}
+
+define_attribute {p:cam1_sda} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:cam1_sda} {PAP_IO_LOC} {U14}
+define_attribute {p:cam1_sda} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_sda} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam1_sda} {PAP_IO_DRIVE} {4}
+
+define_attribute {p:cam1_reset_n} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:cam1_reset_n} {PAP_IO_LOC} {T20}
+define_attribute {p:cam1_reset_n} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_reset_n} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam1_reset_n} {PAP_IO_DRIVE} {4}
+
+# CAM1 DVP：8 位 RGB565 使用模组的 D[9:2]，球位已由双目模块原理图与
+# 200H FMC 引脚表交叉核对。
+define_attribute {p:cam1_pclk} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam1_pclk} {PAP_IO_LOC} {Y22}
+define_attribute {p:cam1_pclk} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_pclk} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:cam1_vsync} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam1_vsync} {PAP_IO_LOC} {Y23}
+define_attribute {p:cam1_vsync} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_vsync} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:cam1_href} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam1_href} {PAP_IO_LOC} {W18}
+define_attribute {p:cam1_href} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_href} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:cam1_data[7]} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam1_data[7]} {PAP_IO_LOC} {V14}
+define_attribute {p:cam1_data[7]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_data[7]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:cam1_data[6]} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam1_data[6]} {PAP_IO_LOC} {V18}
+define_attribute {p:cam1_data[6]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_data[6]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:cam1_data[5]} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam1_data[5]} {PAP_IO_LOC} {Y21}
+define_attribute {p:cam1_data[5]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_data[5]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:cam1_data[4]} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam1_data[4]} {PAP_IO_LOC} {T15}
+define_attribute {p:cam1_data[4]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_data[4]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:cam1_data[3]} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam1_data[3]} {PAP_IO_LOC} {W25}
+define_attribute {p:cam1_data[3]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_data[3]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:cam1_data[2]} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam1_data[2]} {PAP_IO_LOC} {Y26}
+define_attribute {p:cam1_data[2]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_data[2]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:cam1_data[1]} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam1_data[1]} {PAP_IO_LOC} {U20}
+define_attribute {p:cam1_data[1]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_data[1]} {PAP_IO_STANDARD} {LVCMOS33}
+
+define_attribute {p:cam1_data[0]} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam1_data[0]} {PAP_IO_LOC} {T14}
+define_attribute {p:cam1_data[0]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam1_data[0]} {PAP_IO_STANDARD} {LVCMOS33}
 
 #----------------------DDR 初始化状态 LED---------------------------
 define_attribute {p:core_active} {PAP_IO_DIRECTION} {OUTPUT}

@@ -80237,10 +80237,10 @@ Total I/O ports = 118 of 400 (29.50%)
             <data>RAM(GB)</data>
         </column_headers>
         <row>
-            <data>0h:0m:13s</data>
-            <data>0h:0m:14s</data>
-            <data>0h:1m:20s</data>
-            <data>1,042</data>
+            <data>0h:1m:22s</data>
+            <data>0h:1m:31s</data>
+            <data>0h:4m:23s</data>
+            <data>1,033</data>
             <data>WINDOWS 10 x86_64</data>
             <data>13th Gen Intel(R) Core(TM) i7-13650HX</data>
             <data>24</data>

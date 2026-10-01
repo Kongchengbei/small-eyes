@@ -25,7 +25,9 @@ module Hfpga_soc #(
     parameter [31:0] DDR_BASE           = `SOC_DDR_BASE,
     parameter [31:0] DDR_BYTES          = `SOC_DDR_BYTES,
     parameter [23:0] FLASH_BASE         = 24'hA00000,
-    parameter [31:0] BOOT_IMAGE_BYTES   = 32'd56,
+    // 必须与 bsp/camera_app/camera_uart_debug.bin 的实际长度一致；启动加载器
+    // 只接受完整的 32 位字，并会逐字回读校验 DDR。
+    parameter [31:0] BOOT_IMAGE_BYTES   = 32'd4836,
     parameter integer SPI_DIV           = 4,
     parameter integer DDR_INIT_TIMEOUT_CYCLES = 70000000,
     parameter [31:0] CPU_CACHED_DDR_BASE  = `SOC_CPU_CACHED_DDR_BASE,
@@ -39,6 +41,8 @@ module Hfpga_soc #(
     parameter [31:0] UART0_BASE         = `SOC_UART0_BASE,
     parameter [31:0] UART0_BYTES        = `SOC_UART0_BYTES,
     parameter [31:0] LED_ADDR           = `SOC_LED_ADDR,
+    parameter [31:0] CAM1_MMIO_BASE     = `SOC_CAM1_MMIO_BASE,
+    parameter [31:0] CAM1_MMIO_BYTES    = `SOC_CAM1_MMIO_BYTES,
     parameter [31:0] FPIOA_BASE         = `SOC_FPIOA_BASE,
     parameter [31:0] FPIOA_BYTES        = `SOC_FPIOA_BYTES
 ) (
@@ -51,6 +55,16 @@ module Hfpga_soc #(
     output JTAG_TDO,
     output core_active,
     inout  [31:0] fpioa,
+
+    // 双目 FMC 模块上的物理 CAM1。模块自带 24 MHz XCLK，并在模块侧处理
+    // PWDN；SCCB 负责控制，DVP 接口接收 8 位 RGB565 数据。
+    inout  cam1_scl,
+    inout  cam1_sda,
+    output cam1_reset_n,
+    input  cam1_pclk,
+    input  cam1_vsync,
+    input  cam1_href,
+    input  [7:0] cam1_data,
 
     // Abstract single-bit SPI Flash pins.  The serial clock is driven through
     // the device's dedicated configuration-clock primitive below.
@@ -458,12 +472,16 @@ module Hfpga_soc #(
 
     // ============ MMIO peripherals ========================================
     localparam [31:0] UART0_END  = UART0_BASE + UART0_BYTES;
+    localparam [31:0] CAM1_MMIO_END = CAM1_MMIO_BASE + CAM1_MMIO_BYTES;
     localparam [31:0] FPIOA_END  = FPIOA_BASE + FPIOA_BYTES;
 
     wire uart_addr_sel = (mmio_req_addr >= UART0_BASE) &&
                          (mmio_req_addr <  UART0_END);
     wire uart_sel = mmio_req_valid && uart_addr_sel;
     wire led_sel  = mmio_req_valid && (mmio_req_addr == LED_ADDR);
+    wire cam1_sel = mmio_req_valid &&
+                    (mmio_req_addr >= CAM1_MMIO_BASE) &&
+                    (mmio_req_addr <  CAM1_MMIO_END);
     wire fpioa_sel = mmio_req_valid &&
                      (mmio_req_addr >= FPIOA_BASE) &&
                      (mmio_req_addr <  FPIOA_END);
@@ -501,6 +519,24 @@ module Hfpga_soc #(
     wire uart_tx;
     wire [3:0] led_value;
     wire [31:0] fpioa_rdata;
+    wire [31:0] cam1_gpio_rdata;
+    wire [31:0] cam1_dvp_rdata;
+    wire [31:0] cam1_rdata = cam1_gpio_rdata | cam1_dvp_rdata;
+    wire cam1_capture_enable;
+
+    wire [15:0] cam1_pixel_data;
+    wire cam1_pixel_valid;
+    wire cam1_frame_start;
+    wire cam1_frame_end;
+    wire cam1_line_valid;
+    wire cam1_snapshot_req;
+    wire cam1_snapshot_ack;
+    wire [31:0] cam1_snapshot_frames;
+    wire [31:0] cam1_snapshot_pixels;
+    wire [31:0] cam1_snapshot_lines;
+    wire [31:0] cam1_snapshot_pclks;
+    wire [31:0] cam1_snapshot_errors;
+    wire [4:0] cam1_snapshot_seen;
 
     Huart_tx #(
         .CLK_HZ(90_000_000)
@@ -540,10 +576,68 @@ module Hfpga_soc #(
         .fpioa      (fpioa)
     );
 
+    Hcamera_sccb_gpio u_cam1_sccb_gpio (
+        .clk          (cpu_clk),
+        .rst_n        (sys_rst_n),
+        .mmio_valid   (cam1_sel),
+        .mmio_wen     (mmio_req_wen),
+        .mmio_addr    (mmio_req_addr[7:0]),
+        .mmio_wdata   (mmio_req_wdata),
+        .mmio_wmask   (mmio_req_wstrb),
+        .mmio_rdata   (cam1_gpio_rdata),
+        .cam1_scl     (cam1_scl),
+        .cam1_sda     (cam1_sda),
+        .cam1_reset_n (cam1_reset_n),
+        .cam1_capture_enable(cam1_capture_enable)
+    );
+
+    Hcamera_dvp_rx u_cam1_dvp_rx (
+        .pclk                       (cam1_pclk),
+        .rst_n                      (sys_rst_n),
+        .capture_enable_async       (cam1_capture_enable),
+        .vsync                      (cam1_vsync),
+        .href                       (cam1_href),
+        .data                       (cam1_data),
+        .pixel_data                 (cam1_pixel_data),
+        .pixel_valid                (cam1_pixel_valid),
+        .frame_start                (cam1_frame_start),
+        .frame_end                  (cam1_frame_end),
+        .line_valid                 (cam1_line_valid),
+        .snapshot_req_toggle_async  (cam1_snapshot_req),
+        .snapshot_ack_toggle        (cam1_snapshot_ack),
+        .snapshot_frame_count       (cam1_snapshot_frames),
+        .snapshot_last_frame_pixels (cam1_snapshot_pixels),
+        .snapshot_last_frame_lines  (cam1_snapshot_lines),
+        .snapshot_pclk_count        (cam1_snapshot_pclks),
+        .snapshot_error_flags       (cam1_snapshot_errors),
+        .snapshot_seen_flags        (cam1_snapshot_seen)
+    );
+
+    Hcamera_dvp_regs u_cam1_dvp_regs (
+        .clk                              (cpu_clk),
+        .rst_n                            (sys_rst_n),
+        .mmio_valid                       (cam1_sel),
+        .mmio_wen                         (mmio_req_wen),
+        .mmio_addr                        (mmio_req_addr[7:0]),
+        .mmio_wdata                       (mmio_req_wdata),
+        .mmio_wmask                       (mmio_req_wstrb),
+        .capture_enable                   (cam1_capture_enable),
+        .snapshot_req_toggle              (cam1_snapshot_req),
+        .snapshot_ack_toggle_async        (cam1_snapshot_ack),
+        .snapshot_frame_count_async       (cam1_snapshot_frames),
+        .snapshot_last_frame_pixels_async (cam1_snapshot_pixels),
+        .snapshot_last_frame_lines_async  (cam1_snapshot_lines),
+        .snapshot_pclk_count_async        (cam1_snapshot_pclks),
+        .snapshot_error_flags_async       (cam1_snapshot_errors),
+        .snapshot_seen_flags_async        (cam1_snapshot_seen),
+        .mmio_rdata                       (cam1_dvp_rdata)
+    );
+
     assign mmio_req_rdata =
         uart_sel   ? uart_rdata        :
         npu_sel    ? npu_mmio_rdata    :
         led_sel    ? {28'b0, led_value}:
+        cam1_sel   ? cam1_rdata        :
         fpioa_sel  ? fpioa_rdata       : 32'b0;
 
     // ============ Debug export ============================================

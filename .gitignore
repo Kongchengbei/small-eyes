@@ -10,5 +10,24 @@ test/
 # Track only the linker script from bsp_app.
 !/bsp/bsp_app/link.lds
 
+# Track the standalone camera bring-up firmware and its ready-to-flash image.
+!/bsp/camera_app/
+/bsp/camera_app/*
+!/bsp/camera_app/Makefile
+!/bsp/camera_app/README.md
+!/bsp/camera_app/link.lds
+!/bsp/camera_app/main.c
+!/bsp/camera_app/uart.c
+!/bsp/camera_app/uart.h
+!/bsp/camera_app/camera_sccb.c
+!/bsp/camera_app/camera_sccb.h
+!/bsp/camera_app/camera_dvp.c
+!/bsp/camera_app/camera_dvp.h
+!/bsp/camera_app/ov5640.c
+!/bsp/camera_app/ov5640.h
+!/bsp/camera_app/ov5640_regs.c
+!/bsp/camera_app/ov5640_regs.h
+!/bsp/camera_app/camera_uart_debug.bin
+
 # Ignore generated build output.
 /build/

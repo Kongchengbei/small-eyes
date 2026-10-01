@@ -42,6 +42,7 @@ module tb_dcache_npu_bypass;
     integer wr_handshakes = 0;
     integer rsp_count = 0;
     integer timeout_count = 0;
+    reg [31:0] last_rsp_data = 32'b0;
 
     always #5 clk = ~clk;
 
@@ -81,8 +82,10 @@ module tb_dcache_npu_bypass;
             rd_handshakes = rd_handshakes + 1;
         if (!rst && wr_req && wr_rdy)
             wr_handshakes = wr_handshakes + 1;
-        if (!rst && dmem_rsp_valid)
+        if (!rst && dmem_rsp_valid) begin
             rsp_count = rsp_count + 1;
+            last_rsp_data = dmem_rsp_data;
+        end
     end
 
     task fail;
@@ -206,6 +209,22 @@ module tb_dcache_npu_bypass;
             fail("cached boundary second read missed instead of hitting");
         wait_until_idle;
 
+        // Walk across two adjacent cache lines and check the critical word.
+        // Camera/UART firmware performs this pattern while reading strings.
+        issue_cpu_request(1'b0, CACHED_BASE, 32'b0, 4'b0);
+        expect_read_request(3'b100, CACHED_BASE, "cached line 0");
+        return_read_beats(4, 32'h4100_0000);
+        wait_until_idle;
+        if (last_rsp_data !== 32'h4100_0000)
+            fail("cached line 0 returned wrong critical word");
+
+        issue_cpu_request(1'b0, CACHED_BASE + 32'h10, 32'b0, 4'b0);
+        expect_read_request(3'b100, CACHED_BASE + 32'h10, "cached line 1");
+        return_read_beats(4, 32'h4200_0000);
+        wait_until_idle;
+        if (last_rsp_data !== 32'h4200_0000)
+            fail("adjacent cached line returned wrong critical word");
+
         // NPU 区首字必须保持原地址的一拍读；两次读取都要重新发到外部。
         issue_cpu_request(1'b0, NPU_FIRST, 32'b0, 4'b0);
         expect_read_request(3'b010, NPU_FIRST, "NPU first read");
@@ -216,7 +235,7 @@ module tb_dcache_npu_bypass;
         expect_read_request(3'b010, NPU_FIRST, "NPU repeated read");
         return_read_beats(1, 32'h2000_0001);
         wait_until_idle;
-        if (rd_handshakes != 3)
+        if (rd_handshakes != 5)
             fail("NPU repeated reads were cached or request count is wrong");
 
         // NPU 区末字也应为 uncached，防止分界判定意外使用 <=。
@@ -229,7 +248,7 @@ module tb_dcache_npu_bypass;
         issue_cpu_request(1'b1, NPU_FIRST + 32'd4, 32'hdeaf_beef, 4'b0101);
         expect_uncached_write(NPU_FIRST + 32'd4, 32'hdeaf_beef, 4'b0101);
         wait_until_idle;
-        if (rd_handshakes != 4)
+        if (rd_handshakes != 6)
             fail("NPU store issued an unexpected external read");
         if (wr_handshakes != 1)
             fail("NPU store did not issue exactly one external write");
@@ -240,7 +259,7 @@ module tb_dcache_npu_bypass;
         expect_read_request(3'b010, NPU_FIRST + 32'd4, "NPU store-followed load");
         return_read_beats(1, 32'h2000_0003);
         wait_until_idle;
-        if (rd_handshakes != 5)
+        if (rd_handshakes != 7)
             fail("NPU store-followed load was incorrectly served by DCache");
 
         // 原有 MMIO 同样必须保留单拍 uncached 读语义。
@@ -248,7 +267,7 @@ module tb_dcache_npu_bypass;
         expect_read_request(3'b010, MMIO_ADDR, "MMIO read");
         return_read_beats(1, 32'h3000_0000);
         wait_until_idle;
-        if (rd_handshakes != 6)
+        if (rd_handshakes != 8)
             fail("MMIO read no longer uses an uncached one-word request");
 
         $display("DCACHE_NPU_BYPASS_PASS rsp_count=%0d", rsp_count);
