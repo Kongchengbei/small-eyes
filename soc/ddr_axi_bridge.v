@@ -1,9 +1,10 @@
 `timescale 1ns / 1ps
 
-// CPU 32-bit data-port to DDR3-controller 256-bit standard AXI4 bridge.
-// The two clocks are unrelated, so a toggle handshake permits exactly one
-// outstanding transaction.  Payload registers remain stable until the other
-// clock domain acknowledges the token.
+/*
+ CPU 32位数据端口到ddr3 -控制器256位标准AXI4桥接。
+两个时钟是不相关的，所以一个切换握手只允许一个
+未完成的事务。有效载荷寄存器保持稳定，直到另一个
+时钟域确认令牌*/
 module ddr_axi_bridge (
     input              cpu_clk,
     input              ddr_clk,
@@ -52,11 +53,10 @@ module ddr_axi_bridge (
     input              axi_rvalid,
     output             axi_rready
 );
-
-    // Assert both clock-domain resets asynchronously from rst_n, then release
-    // each one only after two edges of its own clock.  sys_rst_n can assert
-    // asynchronously on CPU PLL loss; deassertion must not cross directly
-    // into the unrelated DDR clock domain.
+/*
+从rst_n异步断言两个时钟域重置，然后释放
+每一个只在自己时钟的两个边缘之后。Sys_rst_n可以断言
+CPU锁相环丢失；声明不得直接交叉进入不相关的DDR时钟域*/
     reg cpu_rst_meta;
     reg cpu_rst_sync;
     reg ddr_rst_meta;

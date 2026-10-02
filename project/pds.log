@@ -14205,3 +14205,46 @@ Action from compile to gen_bit_stream: Total Real Time elapsed is 0h:8m:12s
 Action from compile to gen_bit_stream: Total CPU time elapsed is 0h:0m:34s
 Action from compile to gen_bit_stream: Total Process CPU Time elapsed is 0h:0m:43s
 Process "Generate Bitstream" done.
+Process exit normally.
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/Hcamera_subsystem.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/Hcamera_subsystem.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/Hfpga_soc.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/Hfpga_soc.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/Hfpga_soc.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/Hfpga_soc.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/Hcamera_subsystem.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/ddr_axi_bridge.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/ddr_axi_bridge.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/ddr_axi_bridge.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/ddr_axi_bridge.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/ddr_axi_bridge.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/ddr_axi_bridge.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/ddr_axi_bridge.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/ddr_axi_bridge.v". 
+E: Verilog-4005: [F:/SocFpga/soc/ddr_axi_bridge.v(line number: 57)] Syntax error near ä
+E: Verilog-4039: [F:/SocFpga/soc/ddr_axi_bridge.v(line number: 67)] Identifier cpu_rst_meta is not declared
+E: Verilog-4039: [F:/SocFpga/soc/ddr_axi_bridge.v(line number: 70)] Identifier cpu_rst_meta is not declared
+E: Verilog-4039: [F:/SocFpga/soc/ddr_axi_bridge.v(line number: 71)] Identifier cpu_rst_meta is not declared
+E: Parsing ERROR.
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/ddr_axi_bridge.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/Hfpga_soc.v". 
+Parse module hierarchy of project 'F:/SocFpga/project/temp_projects/Main_Flow/Main_Flow.pds' (ADS Parser)
+I: Flow-6004: Design file modified: "F:/SocFpga/soc/ddr_axi_bridge.v". 

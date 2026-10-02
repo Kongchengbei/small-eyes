@@ -57,6 +57,23 @@ module tb_soc_addr_map;
             ((`SOC_CAM2_BUFFER1_BASE & 32'h1f) != 0))
             $fatal(1, "Stereo camera buffers overlap or exceed the input region");
         check_equal(`SOC_CAM2_MMIO_BASE, `SOC_CAM1_MMIO_END, "CAM1/CAM2 boundary");
+        check_equal(`SOC_CAM2_BUFFER1_BASE + `SOC_CAM1_BUFFER_SLOT_BYTES,
+                    `SOC_PRE1_BANK0_BASE, "raw/ROI boundary");
+        check_equal(`SOC_PRE1_BANK0_BASE + `SOC_PRE_BANK_BYTES,
+                    `SOC_PRE1_BANK1_BASE, "CAM1 ROI banks");
+        check_equal(`SOC_PRE1_BANK1_BASE + `SOC_PRE_BANK_BYTES,
+                    `SOC_PRE2_BANK0_BASE, "CAM1/CAM2 ROI boundary");
+        check_equal(`SOC_PRE2_BANK0_BASE + `SOC_PRE_BANK_BYTES,
+                    `SOC_PRE2_BANK1_BASE, "CAM2 ROI banks");
+        check_equal(`SOC_PRE2_BANK1_BASE + `SOC_PRE_BANK_BYTES,
+                    `SOC_NPU_INPUT_FREE_BASE, "ROI/free boundary");
+        check_equal(`SOC_NPU_INPUT_END - `SOC_NPU_INPUT_FREE_BASE,
+                    32'h00800000, "remaining input 8MiB");
+        if ((`SOC_PRE_ROI_STRIDE_BYTES & 32'h1f) != 0 ||
+            `SOC_PRE_ROI_STRIDE_BYTES * 8 > `SOC_PRE_BANK_BYTES ||
+            ((`SOC_PRE1_BANK0_BASE | `SOC_PRE1_BANK1_BASE |
+              `SOC_PRE2_BANK0_BASE | `SOC_PRE2_BANK1_BASE) & 32'h1f) != 0)
+            $fatal(1, "ROI alignment or bank capacity");
         check_equal(`SOC_CAM2_MMIO_BASE + `SOC_CAM2_MMIO_BYTES,
                     `SOC_CAM2_MMIO_END, "CAM2 MMIO end");
         if (`SOC_CAM2_MMIO_END > `SOC_FPIOA_BASE)

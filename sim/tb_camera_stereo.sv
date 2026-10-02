@@ -107,6 +107,8 @@ module tb_camera_stereo;
         .DMA_TIMEOUT_CYCLES(1000000), .SNAPSHOT_TIMEOUT_CYCLES(3000),
         .AXI_ID(8'h40)
     ) cam1 (
+        .consumer_ready_mask(), .consumer_frame0(), .consumer_frame1(),
+        .consumer_release_valid(1'b0), .consumer_release_mask(2'b0),
         .cpu_clk(cpu_clk), .mem_clk(mem_clk), .rst_n(rst_n),
         .ddr_ready(ddr_ready), .capture_enable(capture1),
         .pclk(pclk1), .vsync(vsync1), .href(href1), .data(data1),
@@ -127,6 +129,8 @@ module tb_camera_stereo;
         .DMA_TIMEOUT_CYCLES(1000000), .SNAPSHOT_TIMEOUT_CYCLES(3000),
         .AXI_ID(8'h41)
     ) cam2 (
+        .consumer_ready_mask(), .consumer_frame0(), .consumer_frame1(),
+        .consumer_release_valid(1'b0), .consumer_release_mask(2'b0),
         .cpu_clk(cpu_clk), .mem_clk(mem_clk), .rst_n(rst_n),
         .ddr_ready(ddr_ready), .capture_enable(capture2),
         .pclk(pclk2), .vsync(vsync2), .href(href2), .data(data2),

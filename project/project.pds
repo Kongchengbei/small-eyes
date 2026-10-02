@@ -171,6 +171,18 @@
                     (_format verilog)
                     (_timespec "2026-09-27T21:53:22")
                 )
+                (_file "../soc/Hpreprocess_color.v"
+                    (_format verilog)
+                )
+                (_file "../soc/Hpreprocess_regions.v"
+                    (_format verilog)
+                )
+                (_file "../soc/Hcamera_preprocess.v"
+                    (_format verilog)
+                )
+                (_file "../soc/Hpreprocess_stereo.v"
+                    (_format verilog)
+                )
                 (_file "../soc/Hcamera_subsystem.v"
                     (_format verilog)
                     (_timespec "2026-10-02T10:53:48")

@@ -11,7 +11,9 @@ module Hcamera_subsystem #(
     parameter integer FIFO_ADDR_WIDTH = 10,
     parameter integer DMA_TIMEOUT_CYCLES = 1000000,
     parameter integer SNAPSHOT_TIMEOUT_CYCLES = 1000000,
-    parameter [7:0] AXI_ID = 8'h40
+    parameter [7:0] AXI_ID = 8'h40,
+    // 0 保持原 CPU 调试消费者；1 由同 DDR 域前处理独占原图 release。
+    parameter [0:0] HARDWARE_CONSUMER = 1'b0
 ) (
     input                  cpu_clk,
     input                  mem_clk,
@@ -28,6 +30,11 @@ module Hcamera_subsystem #(
     input      [31:0]      mmio_wdata,
     input      [3:0]       mmio_wmask,
     output reg [31:0]      mmio_rdata,
+    output     [1:0]       consumer_ready_mask,
+    output     [31:0]      consumer_frame0,
+    output     [31:0]      consumer_frame1,
+    input                 consumer_release_valid,
+    input      [1:0]       consumer_release_mask,
     output     [29:0]      axi_awaddr,
     output     [7:0]       axi_awid,
     output     [7:0]       axi_awlen,
@@ -175,6 +182,28 @@ module Hcamera_subsystem #(
     wire [1:0] dma_ready_mask;
     wire [31:0] dma_dropped_frames;
 
+    // 每槽帧 token 在 READY 对硬件消费者可见前锁存，不使用 CPU 快照序号。
+    reg [31:0] consumer_frames [0:1];
+    reg [31:0] consumer_seen_frame;
+    reg [1:0] consumer_metadata_valid;
+    assign consumer_ready_mask = HARDWARE_CONSUMER ?
+        (dma_ready_mask & consumer_metadata_valid) : 2'b0;
+    assign consumer_frame0 = consumer_frames[0];
+    assign consumer_frame1 = consumer_frames[1];
+    always @(posedge mem_clk or negedge mem_rst_n) begin
+        if (!mem_rst_n) begin
+            consumer_frames[0] <= 0; consumer_frames[1] <= 0;
+            consumer_seen_frame <= 0; consumer_metadata_valid <= 0;
+        end else begin
+            consumer_metadata_valid <= consumer_metadata_valid & dma_ready_mask;
+            if (dma_frame_count != consumer_seen_frame) begin
+                consumer_seen_frame <= dma_frame_count;
+                consumer_frames[dma_last_complete_buffer[0]] <= dma_frame_count;
+                consumer_metadata_valid[dma_last_complete_buffer[0]] <= 1'b1;
+            end
+        end
+    end
+
     reg [31:0] snap_frame_count_mem;
     reg [31:0] snap_pixel_count_mem;
     reg [31:0] snap_byte_count_mem;
@@ -278,8 +307,10 @@ module Hcamera_subsystem #(
         .TIMEOUT_CYCLES(DMA_TIMEOUT_CYCLES), .AXI_ID(AXI_ID)
     ) u_dma (
         .clk(mem_clk), .rst_n(mem_rst_n), .enable(dma_enable_sync_mem), .ddr_ready(ddr_ready),
-        .clear_errors(clear_errors_mem), .release_valid(release_valid_mem),
-        .release_mask(release_mask_mem), .fifo_empty(fifo_empty),
+        .clear_errors(clear_errors_mem),
+        .release_valid(HARDWARE_CONSUMER ? consumer_release_valid : release_valid_mem),
+        .release_mask(HARDWARE_CONSUMER ? consumer_release_mask : release_mask_mem),
+        .fifo_empty(fifo_empty),
         .fifo_rd_en(fifo_rd_en), .fifo_rd_valid(fifo_rd_valid),
         .fifo_rd_data(fifo_rd_data), .fifo_fault(fifo_fault_mem),
         .busy(dma_busy), .done(dma_done), .error(dma_error),
@@ -360,7 +391,7 @@ module Hcamera_subsystem #(
                                 clear_pending_cpu <= 1'b1;
                         end
                     end
-                    `CAM_BUFFER_RELEASE: if (mmio_wmask[0] && !release_busy_cpu) begin
+                    `CAM_BUFFER_RELEASE: if (!HARDWARE_CONSUMER && mmio_wmask[0] && !release_busy_cpu) begin
                         release_payload <= mmio_wdata[1:0];
                         release_toggle <= ~release_toggle;
                     end

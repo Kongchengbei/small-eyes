@@ -517,6 +517,8 @@ module tb_camera_diag_firmware;
     );
 
     Hcamera_subsystem u_cam1 (
+        .consumer_ready_mask(), .consumer_frame0(), .consumer_frame1(),
+        .consumer_release_valid(1'b0), .consumer_release_mask(2'b0),
         .cpu_clk(clk), .mem_clk(mem_clk), .rst_n(!rst),
         .ddr_ready(1'b1), .capture_enable(cam1_capture_enable),
         .pclk(cam1_pclk), .vsync(cam1_vsync), .href(cam1_href), .data(cam1_data),
@@ -551,6 +553,8 @@ module tb_camera_diag_firmware;
     Hcamera_subsystem #(
         .BUFFER0_ADDR(32'hb820_0000), .BUFFER1_ADDR(32'hb830_0000),
         .AXI_ID(8'h41)) u_cam2 (
+        .consumer_ready_mask(), .consumer_frame0(), .consumer_frame1(),
+        .consumer_release_valid(1'b0), .consumer_release_mask(2'b0),
         .cpu_clk(clk), .mem_clk(mem_clk), .rst_n(!rst),
         .ddr_ready(1'b1), .capture_enable(cam2_capture_enable),
         .pclk(cam2_pclk), .vsync(cam2_vsync), .href(cam2_href), .data(cam2_data),

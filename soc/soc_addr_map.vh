@@ -43,6 +43,16 @@
 `define SOC_CAM2_MMIO_BYTES          32'h0000_0100
 `define SOC_CAM2_MMIO_END            32'h4000_0500
 
+// 前处理 RGB565 ROI 暂存：每路两个 1 MiB bank；不覆盖四个 Camera 原图槽。
+// 属于已有 16 MiB input 预留区，尚未定义最终模型 INT8 张量格式。
+`define SOC_PRE1_BANK0_BASE          32'hb840_0000
+`define SOC_PRE1_BANK1_BASE          32'hb850_0000
+`define SOC_PRE2_BANK0_BASE          32'hb860_0000
+`define SOC_PRE2_BANK1_BASE          32'hb870_0000
+`define SOC_PRE_BANK_BYTES          32'h0010_0000
+`define SOC_PRE_ROI_STRIDE_BYTES    32'd32768
+`define SOC_NPU_INPUT_FREE_BASE     32'hb880_0000
+
 `define SOC_NPU_WEIGHT_BASE          32'hb900_0000
 `define SOC_NPU_WEIGHT_BYTES         32'h0200_0000
 `define SOC_NPU_WEIGHT_END           32'hbb00_0000

@@ -46,6 +46,41 @@ DCACHE_TB_RTL := cpu/dcache.v cpu/cache_util.v cpu/cache_sram_beh.v
 NPU_CTRL_TB_RTL := soc/Hnpu_ctrl.v
 NPU_DMA_TB_RTL := soc/Hnpu_dma.v
 NPU_ARBITER_TB_RTL := soc/Haxi_2m1s_arbiter.v
+PREPROCESS_RTL := soc/Hpreprocess_color.v soc/Hpreprocess_regions.v \
+	soc/Hcamera_preprocess.v soc/Hpreprocess_stereo.v
+
+.PHONY: preprocess-test preprocess-lint preprocess-color-test
+preprocess-color-test:
+	@mkdir -p "$(BUILD_DIR)"
+	iverilog -g2012 -s tb_preprocess_color -o "$(BUILD_DIR)/tb_preprocess_color.vvp" \
+		soc/Hpreprocess_color.v sim/tb_preprocess_color.sv
+	vvp "$(BUILD_DIR)/tb_preprocess_color.vvp"
+PREPROCESS_TEST_RTL := $(PREPROCESS_RTL) soc/Haxi_2m1s_arbiter.v \
+	soc/Hcamera_dvp_rx.v soc/Hcamera_async_fifo.v soc/Hcamera_dma.v soc/Hcamera_subsystem.v
+preprocess-test:
+	$(VERILATOR) --binary --timing -Isoc --language 1800-2012 \
+		--top-module tb_preprocess_stereo --Mdir "$(BUILD_DIR)/obj_preprocess_stereo" \
+		$(PREPROCESS_TEST_RTL) sim/tb_preprocess_stereo.sv
+	@"$(BUILD_DIR)/obj_preprocess_stereo/Vtb_preprocess_stereo"
+
+.PHONY: preprocess-camera-test preprocess-640x480-test
+preprocess-camera-test:
+	$(VERILATOR) --binary --timing -Isoc --language 1800-2012 \
+		"-GSOURCE_FROM_CAMERA=1'b1" --top-module tb_preprocess_stereo \
+		--Mdir "$(BUILD_DIR)/obj_preprocess_camera" \
+		$(PREPROCESS_TEST_RTL) sim/tb_preprocess_stereo.sv
+	@"$(BUILD_DIR)/obj_preprocess_camera/Vtb_preprocess_stereo"
+
+preprocess-640x480-test:
+	$(VERILATOR) --binary --timing -Isoc --language 1800-2012 \
+		-GW=640 -GH=480 --top-module tb_preprocess_stereo \
+		--Mdir "$(BUILD_DIR)/obj_preprocess_640x480" \
+		$(PREPROCESS_TEST_RTL) sim/tb_preprocess_stereo.sv
+	@"$(BUILD_DIR)/obj_preprocess_640x480/Vtb_preprocess_stereo" +RAW_640X480
+
+preprocess-lint:
+	$(VERILATOR) --lint-only -Isoc --language 1800-2012 \
+		--top-module Hpreprocess_stereo $(PREPROCESS_RTL) soc/Haxi_2m1s_arbiter.v
 
 .PHONY: sim lint addr-map dcache-bypass npu-ctrl npu-dma npu-arbiter \
 	flash-boot-smoke spi-flash-reader-test flash-ddr-boot-test \
@@ -347,6 +382,7 @@ camera-pipeline-test:
 # 用本地 IP 端口声明替身检查顶层连线；豁免仅用于旧 CPU/JTAG/外设告警。
 camera-board-lint:
 	$(VERILATOR) --lint-only -Isoc --language 1800-2012 \
+		$(BOARD_LINT_EXTRA) \
 		--Wno-BLKLOOPINIT --Wno-IMPLICIT --Wno-WIDTHTRUNC --Wno-CASEINCOMPLETE \
 		--top-module Hfpga_soc \
 		$(CPU_RTL) cpu/cache_sram_beh.v $(wildcard jtag/*.v) \
@@ -354,6 +390,7 @@ camera-board-lint:
 		soc/Hnpu_ctrl.v soc/axi_mem_backend.v soc/Huart_tx.v \
 		soc/Hcamera_sccb_gpio.v soc/Hcamera_dvp_rx.v soc/Hcamera_async_fifo.v \
 		soc/Hcamera_dma.v soc/Hcamera_subsystem.v soc/Haxi_2m1s_arbiter.v \
+		$(PREPROCESS_RTL) \
 		soc/ddr_axi_bridge.v soc/flash_boot/spi_flash_byte_reader.v \
 		soc/flash_boot/flash_ddr_loader.v soc/flash_boot/flash_ddr_boot.v \
 		sim/board_ip_lint_stubs.v

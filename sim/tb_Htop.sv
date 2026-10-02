@@ -430,6 +430,8 @@ module tb_Htop;
     );
 
     Hcamera_subsystem u_cam1 (
+        .consumer_ready_mask(), .consumer_frame0(), .consumer_frame1(),
+        .consumer_release_valid(1'b0), .consumer_release_mask(2'b0),
         .cpu_clk(clk), .mem_clk(mem_clk), .rst_n(!rst),
         .ddr_ready(1'b1), .capture_enable(cam1_capture_enable),
         .pclk(cam1_pclk), .vsync(cam1_vsync), .href(cam1_href), .data(cam1_data),

@@ -32,6 +32,11 @@ module Hfpga_soc #(
     // 本地主板 C24 对应 FPIOA0；远程板可覆盖为 31（AB26）。
     parameter integer UART_TX_DEFAULT_FPIOA = 0,
     parameter integer DDR_INIT_TIMEOUT_CYCLES = 70000000,
+    // NPU 消费者尚未接入；默认关闭，保持现有 Camera 调试 bin 的 release 语义。
+    // 1 时两路前处理自主消费，CPU Camera release 被屏蔽；无 NPU 归还会安全背压。
+    parameter [0:0] PREPROCESS_ENABLE = 1'b0,
+    parameter [15:0] PREPROCESS_WIDTH = 16'd96,
+    parameter [15:0] PREPROCESS_HEIGHT = 16'd96,
     parameter [31:0] CPU_CACHED_DDR_BASE  = `SOC_CPU_CACHED_DDR_BASE,
     parameter [31:0] CPU_CACHED_DDR_BYTES = `SOC_CPU_CACHED_DDR_BYTES,
     parameter [31:0] NPU_SHARED_BASE    = `SOC_NPU_SHARED_BASE,
@@ -676,8 +681,12 @@ module Hfpga_soc #(
         .DDR_BYTES(DDR_BYTES),
         .BUFFER0_ADDR(`SOC_CAM1_BUFFER0_BASE),
         .BUFFER1_ADDR(`SOC_CAM1_BUFFER1_BASE),
-        .AXI_ID(8'h40)
+        .AXI_ID(8'h40), .HARDWARE_CONSUMER(PREPROCESS_ENABLE)
     ) u_cam1 (
+        .consumer_ready_mask(pre_source_ready[1:0]),
+        .consumer_frame0(pre_source_frames[31:0]), .consumer_frame1(pre_source_frames[63:32]),
+        .consumer_release_valid(pre_source_release_valid[0]),
+        .consumer_release_mask(pre_source_release_mask[1:0]),
         .cpu_clk(cpu_clk), .mem_clk(ddr_core_clk), .rst_n(sys_rst_n),
         .ddr_ready(ddr_init_done), .capture_enable(cam1_capture_enable),
         .pclk(cam1_pclk), .vsync(cam1_vsync), .href(cam1_href), .data(cam1_data),
@@ -706,8 +715,13 @@ module Hfpga_soc #(
     Hcamera_subsystem #(
         .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES),
         .BUFFER0_ADDR(`SOC_CAM2_BUFFER0_BASE),
-        .BUFFER1_ADDR(`SOC_CAM2_BUFFER1_BASE), .AXI_ID(8'h41)
+        .BUFFER1_ADDR(`SOC_CAM2_BUFFER1_BASE), .AXI_ID(8'h41),
+        .HARDWARE_CONSUMER(PREPROCESS_ENABLE)
     ) u_cam2 (
+        .consumer_ready_mask(pre_source_ready[3:2]),
+        .consumer_frame0(pre_source_frames[95:64]), .consumer_frame1(pre_source_frames[127:96]),
+        .consumer_release_valid(pre_source_release_valid[1]),
+        .consumer_release_mask(pre_source_release_mask[3:2]),
         .cpu_clk(cpu_clk), .mem_clk(ddr_core_clk), .rst_n(sys_rst_n),
         .ddr_ready(ddr_init_done), .capture_enable(cam2_capture_enable),
         .pclk(cam2_pclk), .vsync(cam2_vsync), .href(cam2_href), .data(cam2_data),
@@ -979,7 +993,232 @@ module Hfpga_soc #(
         .axi_rready       (bridge_axi_rready)
     );
 
-    // 复用已有两主机仲裁器：第二个历史命名为 npu 的端口本阶段接 Camera。
+
+    // Camera 写入、两路前处理以及 CPU 共用 DDR；引脚保持不变。
+    wire [3:0] pre_source_ready, pre_source_release_mask;
+    wire [127:0] pre_source_frames;
+    wire [1:0] pre_source_release_valid;
+    wire [1:0] pre_result_valid, pre_result_bank;
+    wire [15:0] pre_result_camera;
+    wire [63:0] pre_result_frame, pre_result_addr, pre_result_count, pre_result_stride;
+    wire [31:0] pre_result_width, pre_result_height;
+    wire [1023:0] pre_result_boxes;
+    wire [47:0] pre_result_colors;
+    wire [3:0] pre_bank_ready;
+    wire [1:0] pre_busy, pre_error;
+    wire [63:0] pre_frames, pre_empty, pre_failed, pre_bad_releases, pre_error_code, pre_last_cycles;
+    wire [29:0] pre_axi_araddr, capture_axi_araddr;
+    wire [7:0] pre_axi_arid, capture_axi_arid;
+    wire [7:0] pre_axi_arlen, capture_axi_arlen;
+    wire [2:0] pre_axi_arsize, capture_axi_arsize;
+    wire [1:0] pre_axi_arburst, capture_axi_arburst;
+    wire pre_axi_arvalid, capture_axi_arvalid;
+    wire pre_axi_arready, capture_axi_arready;
+    wire [255:0] pre_axi_rdata, capture_axi_rdata;
+    wire [7:0] pre_axi_rid, capture_axi_rid;
+    wire [1:0] pre_axi_rresp, capture_axi_rresp;
+    wire pre_axi_rlast, capture_axi_rlast;
+    wire pre_axi_rvalid, capture_axi_rvalid;
+    wire pre_axi_rready, capture_axi_rready;
+    wire [29:0] pre_axi_awaddr, capture_axi_awaddr;
+    wire [7:0] pre_axi_awid, capture_axi_awid;
+    wire [7:0] pre_axi_awlen, capture_axi_awlen;
+    wire [2:0] pre_axi_awsize, capture_axi_awsize;
+    wire [1:0] pre_axi_awburst, capture_axi_awburst;
+    wire pre_axi_awvalid, capture_axi_awvalid;
+    wire pre_axi_awready, capture_axi_awready;
+    wire [255:0] pre_axi_wdata, capture_axi_wdata;
+    wire [31:0] pre_axi_wstrb, capture_axi_wstrb;
+    wire pre_axi_wlast, capture_axi_wlast;
+    wire pre_axi_wvalid, capture_axi_wvalid;
+    wire pre_axi_wready, capture_axi_wready;
+    wire [7:0] pre_axi_bid, capture_axi_bid;
+    wire [1:0] pre_axi_bresp, capture_axi_bresp;
+    wire pre_axi_bvalid, capture_axi_bvalid;
+    wire pre_axi_bready, capture_axi_bready;
+
+    Hpreprocess_stereo #(.DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES)) u_preprocess_stereo (
+        .clk(ddr_core_clk), .rst_n(sys_rst_n), .enable({2{PREPROCESS_ENABLE}}),
+        .ddr_ready(ddr_init_done), .clear_errors(2'b0),
+        .source_ready_mask(pre_source_ready), .source_frames(pre_source_frames),
+        .source_release_valid(pre_source_release_valid), .source_release_mask(pre_source_release_mask),
+        // 首版可覆盖的联调参数，不是已训练模型的输入协议。
+        .cfg_width({2{PREPROCESS_WIDTH}}), .cfg_height({2{PREPROCESS_HEIGHT}}),
+        .cfg_colors(8'h77), .cfg_bright_min(16'h8080), .cfg_dominance(16'h4040),
+        .cfg_black_max(16'h2020), .cfg_min_pixels({2{32'd16}}),
+        .cfg_min_area({2{32'd16}}), .cfg_max_area({2{32'd307200}}),
+        .cfg_min_fill(16'h4040), .cfg_min_aspect({2{16'd64}}),
+        .cfg_max_aspect({2{16'd1024}}), .cfg_margin({2{16'd2}}),
+        // 尚无 NPU：不能假装自动完成/释放，第一份描述符就会等待真实消费者。
+        .result_valid(pre_result_valid), .result_ready(2'b0),
+        .result_camera(pre_result_camera), .result_bank(pre_result_bank),
+        .result_frame(pre_result_frame), .result_addr(pre_result_addr), .result_count(pre_result_count),
+        .result_width(pre_result_width), .result_height(pre_result_height),
+        .result_stride(pre_result_stride), .result_boxes(pre_result_boxes), .result_colors(pre_result_colors),
+        .roi_release_valid(2'b0), .roi_release_bank(2'b0), .roi_release_frame(64'b0),
+        .bank_ready_mask(pre_bank_ready), .busy(pre_busy),
+        .frames_processed(pre_frames), .empty_frames(pre_empty), .failed_frames(pre_failed),
+        .bad_releases(pre_bad_releases), .error(pre_error), .error_code(pre_error_code),
+        .last_cycles(pre_last_cycles),
+        .axi_araddr(pre_axi_araddr),
+        .axi_arid(pre_axi_arid),
+        .axi_arlen(pre_axi_arlen),
+        .axi_arsize(pre_axi_arsize),
+        .axi_arburst(pre_axi_arburst),
+        .axi_arvalid(pre_axi_arvalid),
+        .axi_arready(pre_axi_arready),
+        .axi_rdata(pre_axi_rdata),
+        .axi_rid(pre_axi_rid),
+        .axi_rresp(pre_axi_rresp),
+        .axi_rlast(pre_axi_rlast),
+        .axi_rvalid(pre_axi_rvalid),
+        .axi_rready(pre_axi_rready),
+        .axi_awaddr(pre_axi_awaddr),
+        .axi_awid(pre_axi_awid),
+        .axi_awlen(pre_axi_awlen),
+        .axi_awsize(pre_axi_awsize),
+        .axi_awburst(pre_axi_awburst),
+        .axi_awvalid(pre_axi_awvalid),
+        .axi_awready(pre_axi_awready),
+        .axi_wdata(pre_axi_wdata),
+        .axi_wstrb(pre_axi_wstrb),
+        .axi_wlast(pre_axi_wlast),
+        .axi_wvalid(pre_axi_wvalid),
+        .axi_wready(pre_axi_wready),
+        .axi_bid(pre_axi_bid),
+        .axi_bresp(pre_axi_bresp),
+        .axi_bvalid(pre_axi_bvalid),
+        .axi_bready(pre_axi_bready)
+    );
+
+    // Capture 与预处理合并，再由下一级与 CPU/启动桥合并。
+    generate if (PREPROCESS_ENABLE) begin : pre_merge_enabled
+    Haxi_2m1s_arbiter u_preprocess_ddr_merge (.clk(ddr_core_clk), .rst_n(sys_rst_n),
+        .cpu_axi_araddr(30'b0),
+        .cpu_axi_arid(8'b0),
+        .cpu_axi_arlen(8'b0),
+        .cpu_axi_arsize(3'b0),
+        .cpu_axi_arburst(2'b0),
+        .cpu_axi_arvalid(1'b0),
+        .cpu_axi_arready(),
+        .cpu_axi_rdata(),
+        .cpu_axi_rid(),
+        .cpu_axi_rresp(),
+        .cpu_axi_rlast(),
+        .cpu_axi_rvalid(),
+        .cpu_axi_rready(1'b1),
+        .cpu_axi_awaddr(camera_axi_awaddr),
+        .cpu_axi_awid(camera_axi_awid),
+        .cpu_axi_awlen(camera_axi_awlen),
+        .cpu_axi_awsize(camera_axi_awsize),
+        .cpu_axi_awburst(camera_axi_awburst),
+        .cpu_axi_awvalid(camera_axi_awvalid),
+        .cpu_axi_awready(camera_axi_awready),
+        .cpu_axi_wdata(camera_axi_wdata),
+        .cpu_axi_wstrb(camera_axi_wstrb),
+        .cpu_axi_wlast(camera_axi_wlast),
+        .cpu_axi_wvalid(camera_axi_wvalid),
+        .cpu_axi_wready(camera_axi_wready),
+        .cpu_axi_bid(camera_axi_bid),
+        .cpu_axi_bresp(camera_axi_bresp),
+        .cpu_axi_bvalid(camera_axi_bvalid),
+        .cpu_axi_bready(camera_axi_bready),
+        .npu_axi_araddr(pre_axi_araddr),
+        .npu_axi_arid(pre_axi_arid),
+        .npu_axi_arlen(pre_axi_arlen),
+        .npu_axi_arsize(pre_axi_arsize),
+        .npu_axi_arburst(pre_axi_arburst),
+        .npu_axi_arvalid(pre_axi_arvalid),
+        .npu_axi_arready(pre_axi_arready),
+        .npu_axi_rdata(pre_axi_rdata),
+        .npu_axi_rid(pre_axi_rid),
+        .npu_axi_rresp(pre_axi_rresp),
+        .npu_axi_rlast(pre_axi_rlast),
+        .npu_axi_rvalid(pre_axi_rvalid),
+        .npu_axi_rready(pre_axi_rready),
+        .npu_axi_awaddr(pre_axi_awaddr),
+        .npu_axi_awid(pre_axi_awid),
+        .npu_axi_awlen(pre_axi_awlen),
+        .npu_axi_awsize(pre_axi_awsize),
+        .npu_axi_awburst(pre_axi_awburst),
+        .npu_axi_awvalid(pre_axi_awvalid),
+        .npu_axi_awready(pre_axi_awready),
+        .npu_axi_wdata(pre_axi_wdata),
+        .npu_axi_wstrb(pre_axi_wstrb),
+        .npu_axi_wlast(pre_axi_wlast),
+        .npu_axi_wvalid(pre_axi_wvalid),
+        .npu_axi_wready(pre_axi_wready),
+        .npu_axi_bid(pre_axi_bid),
+        .npu_axi_bresp(pre_axi_bresp),
+        .npu_axi_bvalid(pre_axi_bvalid),
+        .npu_axi_bready(pre_axi_bready),
+        .ddr_axi_araddr(capture_axi_araddr),
+        .ddr_axi_arid(capture_axi_arid),
+        .ddr_axi_arlen(capture_axi_arlen),
+        .ddr_axi_arsize(capture_axi_arsize),
+        .ddr_axi_arburst(capture_axi_arburst),
+        .ddr_axi_arvalid(capture_axi_arvalid),
+        .ddr_axi_arready(capture_axi_arready),
+        .ddr_axi_rdata(capture_axi_rdata),
+        .ddr_axi_rid(capture_axi_rid),
+        .ddr_axi_rresp(capture_axi_rresp),
+        .ddr_axi_rlast(capture_axi_rlast),
+        .ddr_axi_rvalid(capture_axi_rvalid),
+        .ddr_axi_rready(capture_axi_rready),
+        .ddr_axi_awaddr(capture_axi_awaddr),
+        .ddr_axi_awid(capture_axi_awid),
+        .ddr_axi_awlen(capture_axi_awlen),
+        .ddr_axi_awsize(capture_axi_awsize),
+        .ddr_axi_awburst(capture_axi_awburst),
+        .ddr_axi_awvalid(capture_axi_awvalid),
+        .ddr_axi_awready(capture_axi_awready),
+        .ddr_axi_wdata(capture_axi_wdata),
+        .ddr_axi_wstrb(capture_axi_wstrb),
+        .ddr_axi_wlast(capture_axi_wlast),
+        .ddr_axi_wvalid(capture_axi_wvalid),
+        .ddr_axi_wready(capture_axi_wready),
+        .ddr_axi_bid(capture_axi_bid),
+        .ddr_axi_bresp(capture_axi_bresp),
+        .ddr_axi_bvalid(capture_axi_bvalid),
+        .ddr_axi_bready(capture_axi_bready)
+    );
+    end else begin : pre_merge_bypass
+        assign capture_axi_araddr = 30'b0;
+        assign capture_axi_arid = 8'b0;
+        assign capture_axi_arlen = 8'b0;
+        assign capture_axi_arsize = 3'b0;
+        assign capture_axi_arburst = 2'b0;
+        assign capture_axi_arvalid = 1'b0;
+        assign pre_axi_arready = 1'b0;
+        assign pre_axi_rdata = 256'b0;
+        assign pre_axi_rid = 8'b0;
+        assign pre_axi_rresp = 2'b0;
+        assign pre_axi_rlast = 1'b0;
+        assign pre_axi_rvalid = 1'b0;
+        assign capture_axi_rready = 1'b0;
+        assign capture_axi_awaddr = camera_axi_awaddr;
+        assign capture_axi_awid = camera_axi_awid;
+        assign capture_axi_awlen = camera_axi_awlen;
+        assign capture_axi_awsize = camera_axi_awsize;
+        assign capture_axi_awburst = camera_axi_awburst;
+        assign capture_axi_awvalid = camera_axi_awvalid;
+        assign camera_axi_awready = capture_axi_awready;
+        assign pre_axi_awready = 1'b0;
+        assign capture_axi_wdata = camera_axi_wdata;
+        assign capture_axi_wstrb = camera_axi_wstrb;
+        assign capture_axi_wlast = camera_axi_wlast;
+        assign capture_axi_wvalid = camera_axi_wvalid;
+        assign camera_axi_wready = capture_axi_wready;
+        assign pre_axi_wready = 1'b0;
+        assign camera_axi_bid = capture_axi_bid;
+        assign pre_axi_bid = 8'b0;
+        assign camera_axi_bresp = capture_axi_bresp;
+        assign pre_axi_bresp = 2'b0;
+        assign camera_axi_bvalid = capture_axi_bvalid;
+        assign pre_axi_bvalid = 1'b0;
+        assign capture_axi_bready = camera_axi_bready;
+    end endgenerate
+    // 第二个历史命名为 npu 的端口接 Camera + 前处理聚合通道。
     // NPU 引擎接入时需扩展主机拓扑，当前没有隐式 NPU/Camera 共用端口。
     Haxi_2m1s_arbiter u_camera_ddr_arbiter (
         .clk(ddr_core_clk), .rst_n(sys_rst_n),
@@ -1012,35 +1251,35 @@ module Hfpga_soc #(
         .cpu_axi_rlast(bridge_axi_rlast),
         .cpu_axi_rvalid(bridge_axi_rvalid),
         .cpu_axi_rready(bridge_axi_rready),
-        .npu_axi_awaddr(camera_axi_awaddr),
-        .npu_axi_awid(camera_axi_awid),
-        .npu_axi_awlen(camera_axi_awlen),
-        .npu_axi_awsize(camera_axi_awsize),
-        .npu_axi_awburst(camera_axi_awburst),
-        .npu_axi_awvalid(camera_axi_awvalid),
-        .npu_axi_awready(camera_axi_awready),
-        .npu_axi_wdata(camera_axi_wdata),
-        .npu_axi_wstrb(camera_axi_wstrb),
-        .npu_axi_wlast(camera_axi_wlast),
-        .npu_axi_wvalid(camera_axi_wvalid),
-        .npu_axi_wready(camera_axi_wready),
-        .npu_axi_bid(camera_axi_bid),
-        .npu_axi_bresp(camera_axi_bresp),
-        .npu_axi_bvalid(camera_axi_bvalid),
-        .npu_axi_bready(camera_axi_bready),
-        .npu_axi_araddr(30'b0),
-        .npu_axi_arid(8'b0),
-        .npu_axi_arlen(8'b0),
-        .npu_axi_arsize(3'b0),
-        .npu_axi_arburst(2'b0),
-        .npu_axi_arvalid(1'b0),
-        .npu_axi_arready(),
-        .npu_axi_rdata(),
-        .npu_axi_rid(),
-        .npu_axi_rresp(),
-        .npu_axi_rlast(),
-        .npu_axi_rvalid(),
-        .npu_axi_rready(1'b1),
+        .npu_axi_awaddr(capture_axi_awaddr),
+        .npu_axi_awid(capture_axi_awid),
+        .npu_axi_awlen(capture_axi_awlen),
+        .npu_axi_awsize(capture_axi_awsize),
+        .npu_axi_awburst(capture_axi_awburst),
+        .npu_axi_awvalid(capture_axi_awvalid),
+        .npu_axi_awready(capture_axi_awready),
+        .npu_axi_wdata(capture_axi_wdata),
+        .npu_axi_wstrb(capture_axi_wstrb),
+        .npu_axi_wlast(capture_axi_wlast),
+        .npu_axi_wvalid(capture_axi_wvalid),
+        .npu_axi_wready(capture_axi_wready),
+        .npu_axi_bid(capture_axi_bid),
+        .npu_axi_bresp(capture_axi_bresp),
+        .npu_axi_bvalid(capture_axi_bvalid),
+        .npu_axi_bready(capture_axi_bready),
+        .npu_axi_araddr(capture_axi_araddr),
+        .npu_axi_arid(capture_axi_arid),
+        .npu_axi_arlen(capture_axi_arlen),
+        .npu_axi_arsize(capture_axi_arsize),
+        .npu_axi_arburst(capture_axi_arburst),
+        .npu_axi_arvalid(capture_axi_arvalid),
+        .npu_axi_arready(capture_axi_arready),
+        .npu_axi_rdata(capture_axi_rdata),
+        .npu_axi_rid(capture_axi_rid),
+        .npu_axi_rresp(capture_axi_rresp),
+        .npu_axi_rlast(capture_axi_rlast),
+        .npu_axi_rvalid(capture_axi_rvalid),
+        .npu_axi_rready(capture_axi_rready),
         .ddr_axi_awaddr(ddr_axi_awaddr),
         .ddr_axi_awid(ddr_axi_awid),
         .ddr_axi_awlen(ddr_axi_awlen),

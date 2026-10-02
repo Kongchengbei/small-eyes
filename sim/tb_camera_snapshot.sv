@@ -50,6 +50,8 @@ module tb_camera_snapshot;
         .FRAME_WIDTH(16), .FRAME_HEIGHT(1), .FIFO_ADDR_WIDTH(4),
         .DMA_TIMEOUT_CYCLES(1000), .SNAPSHOT_TIMEOUT_CYCLES(40)
     ) dut (
+        .consumer_ready_mask(), .consumer_frame0(), .consumer_frame1(),
+        .consumer_release_valid(1'b0), .consumer_release_mask(2'b0),
         .cpu_clk(cpu_clk), .mem_clk(mem_clk), .rst_n(rst_n),
         .ddr_ready(ddr_ready), .capture_enable(capture_enable),
         .pclk(pclk), .vsync(vsync), .href(href), .data(data),
