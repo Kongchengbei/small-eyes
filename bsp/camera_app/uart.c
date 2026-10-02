@@ -9,6 +9,8 @@
 #define FPIOA_BASE       0x40000f00u
 #define FPIOA_OUT_MAP(n) (*(volatile uint8_t *)(FPIOA_BASE + (uint32_t)(n)))
 
+#define FPIOA_UART_LOCAL_TX 0u
+#define FPIOA_UART_REMOTE_TX 31u
 #define FPIOA_FUNC_UART0_TX 7u
 #define UART_CTRL_TX_ENABLE 0x1u
 #define UART_STATUS_TX_BUSY 0x1u
@@ -26,11 +28,15 @@ void uart_init(uint32_t baud, uint8_t tx_fpioa)
 {
     uint32_t clock_hz = system_cpu_freq;
 
+    /* 先关闭本地与远程候选脚，避免旧位流在另一脚继续输出。 */
+    FPIOA_OUT_MAP(FPIOA_UART_LOCAL_TX) = 0u;
+    FPIOA_OUT_MAP(FPIOA_UART_REMOTE_TX) = 0u;
+
     if ((baud == 0u) || (tx_fpioa >= 32u)) {
         return;
     }
     if (clock_hz == 0u) {
-        clock_hz = 90000000u;
+        clock_hz = 70000000u;
     }
 
     FPIOA_OUT_MAP(tx_fpioa) = FPIOA_FUNC_UART0_TX;

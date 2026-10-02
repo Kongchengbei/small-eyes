@@ -25,10 +25,12 @@ module Hfpga_soc #(
     parameter [31:0] DDR_BASE           = `SOC_DDR_BASE,
     parameter [31:0] DDR_BYTES          = `SOC_DDR_BYTES,
     parameter [23:0] FLASH_BASE         = 24'hA00000,
-    // 必须与 bsp/camera_app/camera_uart_debug.bin 的实际长度一致；启动加载器
+    // 必须与选用的 camera_uart_debug_local/remote.bin 长度一致；启动加载器
     // 只接受完整的 32 位字，并会逐字回读校验 DDR。
-    parameter [31:0] BOOT_IMAGE_BYTES   = 32'd4836,
+    parameter [31:0] BOOT_IMAGE_BYTES   = 32'd6956,
     parameter integer SPI_DIV           = 4,
+    // 本地主板 C24 对应 FPIOA0；远程板可覆盖为 31（AB26）。
+    parameter integer UART_TX_DEFAULT_FPIOA = 0,
     parameter integer DDR_INIT_TIMEOUT_CYCLES = 70000000,
     parameter [31:0] CPU_CACHED_DDR_BASE  = `SOC_CPU_CACHED_DDR_BASE,
     parameter [31:0] CPU_CACHED_DDR_BYTES = `SOC_CPU_CACHED_DDR_BYTES,
@@ -230,6 +232,53 @@ module Hfpga_soc #(
     wire         ddr_axi_rvalid;
     wire         ddr_axi_rready;
 
+    // CPU/启动桥与 Camera DMA 分别作为 DDR AXI 主机。
+    wire [29:0]   bridge_axi_awaddr;
+    wire [7:0]    bridge_axi_awid;
+    wire [7:0]    bridge_axi_awlen;
+    wire [2:0]    bridge_axi_awsize;
+    wire [1:0]    bridge_axi_awburst;
+    wire          bridge_axi_awvalid;
+    wire          bridge_axi_awready;
+    wire [255:0]  bridge_axi_wdata;
+    wire [31:0]   bridge_axi_wstrb;
+    wire          bridge_axi_wlast;
+    wire          bridge_axi_wvalid;
+    wire          bridge_axi_wready;
+    wire [7:0]    bridge_axi_bid;
+    wire [1:0]    bridge_axi_bresp;
+    wire          bridge_axi_bvalid;
+    wire          bridge_axi_bready;
+    wire [29:0]   bridge_axi_araddr;
+    wire [7:0]    bridge_axi_arid;
+    wire [7:0]    bridge_axi_arlen;
+    wire [2:0]    bridge_axi_arsize;
+    wire [1:0]    bridge_axi_arburst;
+    wire          bridge_axi_arvalid;
+    wire          bridge_axi_arready;
+    wire [255:0]  bridge_axi_rdata;
+    wire [7:0]    bridge_axi_rid;
+    wire [1:0]    bridge_axi_rresp;
+    wire          bridge_axi_rlast;
+    wire          bridge_axi_rvalid;
+    wire          bridge_axi_rready;
+    wire [29:0]   camera_axi_awaddr;
+    wire [7:0]    camera_axi_awid;
+    wire [7:0]    camera_axi_awlen;
+    wire [2:0]    camera_axi_awsize;
+    wire [1:0]    camera_axi_awburst;
+    wire          camera_axi_awvalid;
+    wire          camera_axi_awready;
+    wire [255:0]  camera_axi_wdata;
+    wire [31:0]   camera_axi_wstrb;
+    wire          camera_axi_wlast;
+    wire          camera_axi_wvalid;
+    wire          camera_axi_wready;
+    wire [7:0]    camera_axi_bid;
+    wire [1:0]    camera_axi_bresp;
+    wire          camera_axi_bvalid;
+    wire          camera_axi_bready;
+
     GTP_INBUFGDS #(
         .IOSTANDARD("DEFAULT"),
         .TERM_DIFF("ON")
@@ -332,6 +381,8 @@ module Hfpga_soc #(
         .pc         (pc),
         .ins        (ins),
         .is_ebreak  (is_ebreak),
+        .icache_miss(),
+        .dcache_miss(),
 
         .debug_if_pc               (debug_if_pc),
         .debug_id_pc               (debug_id_pc),
@@ -524,22 +575,9 @@ module Hfpga_soc #(
     wire [31:0] cam1_rdata = cam1_gpio_rdata | cam1_dvp_rdata;
     wire cam1_capture_enable;
 
-    wire [15:0] cam1_pixel_data;
-    wire cam1_pixel_valid;
-    wire cam1_frame_start;
-    wire cam1_frame_end;
-    wire cam1_line_valid;
-    wire cam1_snapshot_req;
-    wire cam1_snapshot_ack;
-    wire [31:0] cam1_snapshot_frames;
-    wire [31:0] cam1_snapshot_pixels;
-    wire [31:0] cam1_snapshot_lines;
-    wire [31:0] cam1_snapshot_pclks;
-    wire [31:0] cam1_snapshot_errors;
-    wire [4:0] cam1_snapshot_seen;
 
     Huart_tx #(
-        .CLK_HZ(90_000_000)
+        .CLK_HZ(70_000_000)
     ) u_uart0_tx (
         .clk        (cpu_clk),
         .rst_n      (sys_rst_n),
@@ -562,7 +600,9 @@ module Hfpga_soc #(
         .led     (led_value)
     );
 
-    Hfpioa_simple u_fpioa (
+    Hfpioa_simple #(
+        .UART_TX_DEFAULT_FPIOA(UART_TX_DEFAULT_FPIOA)
+    ) u_fpioa (
         .clk        (cpu_clk),
         .rst_n      (sys_rst_n),
         .mmio_valid (fpioa_sel),
@@ -591,46 +631,26 @@ module Hfpga_soc #(
         .cam1_capture_enable(cam1_capture_enable)
     );
 
-    Hcamera_dvp_rx u_cam1_dvp_rx (
-        .pclk                       (cam1_pclk),
-        .rst_n                      (sys_rst_n),
-        .capture_enable_async       (cam1_capture_enable),
-        .vsync                      (cam1_vsync),
-        .href                       (cam1_href),
-        .data                       (cam1_data),
-        .pixel_data                 (cam1_pixel_data),
-        .pixel_valid                (cam1_pixel_valid),
-        .frame_start                (cam1_frame_start),
-        .frame_end                  (cam1_frame_end),
-        .line_valid                 (cam1_line_valid),
-        .snapshot_req_toggle_async  (cam1_snapshot_req),
-        .snapshot_ack_toggle        (cam1_snapshot_ack),
-        .snapshot_frame_count       (cam1_snapshot_frames),
-        .snapshot_last_frame_pixels (cam1_snapshot_pixels),
-        .snapshot_last_frame_lines  (cam1_snapshot_lines),
-        .snapshot_pclk_count        (cam1_snapshot_pclks),
-        .snapshot_error_flags       (cam1_snapshot_errors),
-        .snapshot_seen_flags        (cam1_snapshot_seen)
-    );
-
-    Hcamera_dvp_regs u_cam1_dvp_regs (
-        .clk                              (cpu_clk),
-        .rst_n                            (sys_rst_n),
-        .mmio_valid                       (cam1_sel),
-        .mmio_wen                         (mmio_req_wen),
-        .mmio_addr                        (mmio_req_addr[7:0]),
-        .mmio_wdata                       (mmio_req_wdata),
-        .mmio_wmask                       (mmio_req_wstrb),
-        .capture_enable                   (cam1_capture_enable),
-        .snapshot_req_toggle              (cam1_snapshot_req),
-        .snapshot_ack_toggle_async        (cam1_snapshot_ack),
-        .snapshot_frame_count_async       (cam1_snapshot_frames),
-        .snapshot_last_frame_pixels_async (cam1_snapshot_pixels),
-        .snapshot_last_frame_lines_async  (cam1_snapshot_lines),
-        .snapshot_pclk_count_async        (cam1_snapshot_pclks),
-        .snapshot_error_flags_async       (cam1_snapshot_errors),
-        .snapshot_seen_flags_async        (cam1_snapshot_seen),
-        .mmio_rdata                       (cam1_dvp_rdata)
+    Hcamera_subsystem #(
+        .DDR_BASE(DDR_BASE),
+        .DDR_BYTES(DDR_BYTES),
+        .BUFFER0_ADDR(`SOC_CAM1_BUFFER0_BASE),
+        .BUFFER1_ADDR(`SOC_CAM1_BUFFER1_BASE)
+    ) u_cam1 (
+        .cpu_clk(cpu_clk), .mem_clk(ddr_core_clk), .rst_n(sys_rst_n),
+        .ddr_ready(ddr_init_done), .capture_enable(cam1_capture_enable),
+        .pclk(cam1_pclk), .vsync(cam1_vsync), .href(cam1_href), .data(cam1_data),
+        .mmio_valid(cam1_sel), .mmio_wen(mmio_req_wen),
+        .mmio_addr(mmio_req_addr[7:0]), .mmio_wdata(mmio_req_wdata),
+        .mmio_wmask(mmio_req_wstrb), .mmio_rdata(cam1_dvp_rdata),
+        .axi_awaddr(camera_axi_awaddr), .axi_awid(camera_axi_awid),
+        .axi_awlen(camera_axi_awlen), .axi_awsize(camera_axi_awsize),
+        .axi_awburst(camera_axi_awburst), .axi_awvalid(camera_axi_awvalid),
+        .axi_awready(camera_axi_awready), .axi_wdata(camera_axi_wdata),
+        .axi_wstrb(camera_axi_wstrb), .axi_wlast(camera_axi_wlast),
+        .axi_wvalid(camera_axi_wvalid), .axi_wready(camera_axi_wready),
+        .axi_bid(camera_axi_bid), .axi_bresp(camera_axi_bresp),
+        .axi_bvalid(camera_axi_bvalid), .axi_bready(camera_axi_bready)
     );
 
     assign mmio_req_rdata =
@@ -669,16 +689,16 @@ module Hfpga_soc #(
         .cpu_ctrl                (cpu_debug_ctrl),
         .if_pc                   (dbg_if_pc),
         .id_pc                   (dbg_id_pc),
-        .ex_pc                   (dbg_ex_pc),
-        .mem_pc                  (dbg_mem_pc),
-        .wb_pc                   (dbg_wb_pc),
-        .if_ins                  (dbg_if_ins),
+        .ex_pc                   (),
+        .mem_pc                  (),
+        .wb_pc                   (),
+        .if_ins                  (),
         .id_ins                  (dbg_id_ins),
-        .ex_ins                  (dbg_ex_ins),
-        .mem_ins                 (dbg_mem_ins),
-        .wb_ins                  (dbg_wb_ins),
-        .dmem_addr               (dbg_dmem_addr),
-        .dmem_wdata              (dbg_dmem_wdata),
+        .ex_ins                  (),
+        .mem_ins                 (),
+        .wb_ins                  (),
+        .dmem_addr               (),
+        .dmem_wdata              (),
         .btb_predict_next_pc     (dbg_btb_predict_next_pc),
         .actual_next_pc          (dbg_actual_next_pc),
         .flush_pc                (dbg_flush_pc),
@@ -763,35 +783,128 @@ module Hfpga_soc #(
         .cpu_rsp_is_read  (ddr_rsp_is_read),
         .cpu_rsp_ready    (ddr_rsp_ready),
 
-        .axi_awaddr       (ddr_axi_awaddr),
-        .axi_awid         (ddr_axi_awid),
-        .axi_awlen        (ddr_axi_awlen),
-        .axi_awsize       (ddr_axi_awsize),
-        .axi_awburst      (ddr_axi_awburst),
-        .axi_awvalid      (ddr_axi_awvalid),
-        .axi_awready      (ddr_axi_awready),
-        .axi_wdata        (ddr_axi_wdata),
-        .axi_wstrb        (ddr_axi_wstrb),
-        .axi_wlast        (ddr_axi_wlast),
-        .axi_wvalid       (ddr_axi_wvalid),
-        .axi_wready       (ddr_axi_wready),
-        .axi_bid          (ddr_axi_bid),
-        .axi_bresp        (ddr_axi_bresp),
-        .axi_bvalid       (ddr_axi_bvalid),
-        .axi_bready       (ddr_axi_bready),
-        .axi_araddr       (ddr_axi_araddr),
-        .axi_arid         (ddr_axi_arid),
-        .axi_arlen        (ddr_axi_arlen),
-        .axi_arsize       (ddr_axi_arsize),
-        .axi_arburst      (ddr_axi_arburst),
-        .axi_arvalid      (ddr_axi_arvalid),
-        .axi_arready      (ddr_axi_arready),
-        .axi_rdata        (ddr_axi_rdata),
-        .axi_rid          (ddr_axi_rid),
-        .axi_rresp        (ddr_axi_rresp),
-        .axi_rlast        (ddr_axi_rlast),
-        .axi_rvalid       (ddr_axi_rvalid),
-        .axi_rready       (ddr_axi_rready)
+        .axi_awaddr       (bridge_axi_awaddr),
+        .axi_awid         (bridge_axi_awid),
+        .axi_awlen        (bridge_axi_awlen),
+        .axi_awsize       (bridge_axi_awsize),
+        .axi_awburst      (bridge_axi_awburst),
+        .axi_awvalid      (bridge_axi_awvalid),
+        .axi_awready      (bridge_axi_awready),
+        .axi_wdata        (bridge_axi_wdata),
+        .axi_wstrb        (bridge_axi_wstrb),
+        .axi_wlast        (bridge_axi_wlast),
+        .axi_wvalid       (bridge_axi_wvalid),
+        .axi_wready       (bridge_axi_wready),
+        .axi_bid          (bridge_axi_bid),
+        .axi_bresp        (bridge_axi_bresp),
+        .axi_bvalid       (bridge_axi_bvalid),
+        .axi_bready       (bridge_axi_bready),
+        .axi_araddr       (bridge_axi_araddr),
+        .axi_arid         (bridge_axi_arid),
+        .axi_arlen        (bridge_axi_arlen),
+        .axi_arsize       (bridge_axi_arsize),
+        .axi_arburst      (bridge_axi_arburst),
+        .axi_arvalid      (bridge_axi_arvalid),
+        .axi_arready      (bridge_axi_arready),
+        .axi_rdata        (bridge_axi_rdata),
+        .axi_rid          (bridge_axi_rid),
+        .axi_rresp        (bridge_axi_rresp),
+        .axi_rlast        (bridge_axi_rlast),
+        .axi_rvalid       (bridge_axi_rvalid),
+        .axi_rready       (bridge_axi_rready)
+    );
+
+    // 复用已有两主机仲裁器：第二个历史命名为 npu 的端口本阶段接 Camera。
+    // NPU 引擎接入时需扩展主机拓扑，当前没有隐式 NPU/Camera 共用端口。
+    Haxi_2m1s_arbiter u_camera_ddr_arbiter (
+        .clk(ddr_core_clk), .rst_n(sys_rst_n),
+        .cpu_axi_awaddr(bridge_axi_awaddr),
+        .cpu_axi_awid(bridge_axi_awid),
+        .cpu_axi_awlen(bridge_axi_awlen),
+        .cpu_axi_awsize(bridge_axi_awsize),
+        .cpu_axi_awburst(bridge_axi_awburst),
+        .cpu_axi_awvalid(bridge_axi_awvalid),
+        .cpu_axi_awready(bridge_axi_awready),
+        .cpu_axi_wdata(bridge_axi_wdata),
+        .cpu_axi_wstrb(bridge_axi_wstrb),
+        .cpu_axi_wlast(bridge_axi_wlast),
+        .cpu_axi_wvalid(bridge_axi_wvalid),
+        .cpu_axi_wready(bridge_axi_wready),
+        .cpu_axi_bid(bridge_axi_bid),
+        .cpu_axi_bresp(bridge_axi_bresp),
+        .cpu_axi_bvalid(bridge_axi_bvalid),
+        .cpu_axi_bready(bridge_axi_bready),
+        .cpu_axi_araddr(bridge_axi_araddr),
+        .cpu_axi_arid(bridge_axi_arid),
+        .cpu_axi_arlen(bridge_axi_arlen),
+        .cpu_axi_arsize(bridge_axi_arsize),
+        .cpu_axi_arburst(bridge_axi_arburst),
+        .cpu_axi_arvalid(bridge_axi_arvalid),
+        .cpu_axi_arready(bridge_axi_arready),
+        .cpu_axi_rdata(bridge_axi_rdata),
+        .cpu_axi_rid(bridge_axi_rid),
+        .cpu_axi_rresp(bridge_axi_rresp),
+        .cpu_axi_rlast(bridge_axi_rlast),
+        .cpu_axi_rvalid(bridge_axi_rvalid),
+        .cpu_axi_rready(bridge_axi_rready),
+        .npu_axi_awaddr(camera_axi_awaddr),
+        .npu_axi_awid(camera_axi_awid),
+        .npu_axi_awlen(camera_axi_awlen),
+        .npu_axi_awsize(camera_axi_awsize),
+        .npu_axi_awburst(camera_axi_awburst),
+        .npu_axi_awvalid(camera_axi_awvalid),
+        .npu_axi_awready(camera_axi_awready),
+        .npu_axi_wdata(camera_axi_wdata),
+        .npu_axi_wstrb(camera_axi_wstrb),
+        .npu_axi_wlast(camera_axi_wlast),
+        .npu_axi_wvalid(camera_axi_wvalid),
+        .npu_axi_wready(camera_axi_wready),
+        .npu_axi_bid(camera_axi_bid),
+        .npu_axi_bresp(camera_axi_bresp),
+        .npu_axi_bvalid(camera_axi_bvalid),
+        .npu_axi_bready(camera_axi_bready),
+        .npu_axi_araddr(30'b0),
+        .npu_axi_arid(8'b0),
+        .npu_axi_arlen(8'b0),
+        .npu_axi_arsize(3'b0),
+        .npu_axi_arburst(2'b0),
+        .npu_axi_arvalid(1'b0),
+        .npu_axi_arready(),
+        .npu_axi_rdata(),
+        .npu_axi_rid(),
+        .npu_axi_rresp(),
+        .npu_axi_rlast(),
+        .npu_axi_rvalid(),
+        .npu_axi_rready(1'b1),
+        .ddr_axi_awaddr(ddr_axi_awaddr),
+        .ddr_axi_awid(ddr_axi_awid),
+        .ddr_axi_awlen(ddr_axi_awlen),
+        .ddr_axi_awsize(ddr_axi_awsize),
+        .ddr_axi_awburst(ddr_axi_awburst),
+        .ddr_axi_awvalid(ddr_axi_awvalid),
+        .ddr_axi_awready(ddr_axi_awready),
+        .ddr_axi_wdata(ddr_axi_wdata),
+        .ddr_axi_wstrb(ddr_axi_wstrb),
+        .ddr_axi_wlast(ddr_axi_wlast),
+        .ddr_axi_wvalid(ddr_axi_wvalid),
+        .ddr_axi_wready(ddr_axi_wready),
+        .ddr_axi_bid(ddr_axi_bid),
+        .ddr_axi_bresp(ddr_axi_bresp),
+        .ddr_axi_bvalid(ddr_axi_bvalid),
+        .ddr_axi_bready(ddr_axi_bready),
+        .ddr_axi_araddr(ddr_axi_araddr),
+        .ddr_axi_arid(ddr_axi_arid),
+        .ddr_axi_arlen(ddr_axi_arlen),
+        .ddr_axi_arsize(ddr_axi_arsize),
+        .ddr_axi_arburst(ddr_axi_arburst),
+        .ddr_axi_arvalid(ddr_axi_arvalid),
+        .ddr_axi_arready(ddr_axi_arready),
+        .ddr_axi_rdata(ddr_axi_rdata),
+        .ddr_axi_rid(ddr_axi_rid),
+        .ddr_axi_rresp(ddr_axi_rresp),
+        .ddr_axi_rlast(ddr_axi_rlast),
+        .ddr_axi_rvalid(ddr_axi_rvalid),
+        .ddr_axi_rready(ddr_axi_rready)
     );
 
     ddr3_ctrl_v116 u_ddr3_ctrl (
@@ -889,6 +1002,8 @@ module Hfpga_soc #(
         .ck_dly_en               (1'b0),
         .init_ck_dly_step        (8'd0),
         .ck_dly_set_bin          (),
+        .dq_idly_bin             (),
+        .dq_odly_bin             (),
         .align_error             (),
         .debug_rst_state         (),
         .debug_cpd_state         ()

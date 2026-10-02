@@ -4,7 +4,7 @@
 // Register offsets: CTRL=00, STATUS=04, BAUD=08, TXDATA=0c.
 module Huart_tx #(
     parameter CLK_HZ = 27_000_000,
-    parameter BAUD   = 115_200 //每一位持续约 90_000_000 / 115_200 = 781.25 个时钟
+    parameter BAUD   = 115_200 // 分频按传入的实际系统时钟计算。
 ) (
     input        clk,
     input        rst_n,

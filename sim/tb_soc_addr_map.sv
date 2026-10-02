@@ -41,6 +41,14 @@ module tb_soc_addr_map;
                     `SOC_NPU_SCRATCH_END, "NPU scratch end");
         check_equal(`SOC_NPU_SCRATCH_END, `SOC_NPU_SHARED_END, "NPU shared coverage");
 
+        if ((`SOC_CAM1_BUFFER0_BASE < `SOC_NPU_INPUT_BASE) ||
+            (`SOC_CAM1_BUFFER0_BASE + `SOC_CAM1_BUFFER_SLOT_BYTES > `SOC_CAM1_BUFFER1_BASE) ||
+            (`SOC_CAM1_BUFFER1_BASE + `SOC_CAM1_BUFFER_SLOT_BYTES > `SOC_NPU_INPUT_END) ||
+            (`SOC_CAM1_FRAME_BYTES > `SOC_CAM1_BUFFER_SLOT_BYTES) ||
+            ((`SOC_CAM1_BUFFER0_BASE & 32'h1f) != 0) ||
+            ((`SOC_CAM1_BUFFER1_BASE & 32'h1f) != 0))
+            $fatal(1, "CAM1 frame buffers overlap or exceed the NPU input region");
+
         // NPU 的 256-bit AXI 数据区必须以 32 Byte 边界开始、结束。
         if (((`SOC_NPU_SHARED_BASE  & 32'h0000_001f) != 32'b0) ||
             ((`SOC_NPU_INPUT_BASE   & 32'h0000_001f) != 32'b0) ||

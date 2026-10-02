@@ -26,7 +26,8 @@ module Hcsr (
 );
 
     localparam [31:0] CSR_MVENDORID_VALUE = 32'h0011_4514;
-    localparam [31:0] CSR_MIMPID_VALUE    = 32'h1020_2328;
+    // 低 15 位以 10 kHz 为单位描述板上 CPU PLL：70 MHz。
+    localparam [31:0] CSR_MIMPID_VALUE    = 32'h1020_1B58;
     localparam [31:0] MSTATUS_RESET       = 32'h0000_1800;
     localparam [31:0] MIE_WR_MASK         = 32'h0000_0880; // MEIE, MTIE
 

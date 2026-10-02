@@ -31,6 +31,13 @@
 `define SOC_NPU_INPUT_BYTES          32'h0100_0000
 `define SOC_NPU_INPUT_END            32'hb900_0000
 
+// CAM1 原始 RGB565 帧供未来 NPU 输入使用；两个槽各保留 1 MiB。
+// 完成槽由 CPU/NPU 持有，必须显式释放后 Camera 才能再次写入。
+`define SOC_CAM1_BUFFER0_BASE        32'hb800_0000
+`define SOC_CAM1_BUFFER1_BASE        32'hb810_0000
+`define SOC_CAM1_BUFFER_SLOT_BYTES   32'h0010_0000
+`define SOC_CAM1_FRAME_BYTES         32'd614400
+
 `define SOC_NPU_WEIGHT_BASE          32'hb900_0000
 `define SOC_NPU_WEIGHT_BYTES         32'h0200_0000
 `define SOC_NPU_WEIGHT_END           32'hbb00_0000

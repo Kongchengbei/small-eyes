@@ -64,8 +64,8 @@ const struct ov5640_reg ov5640_vga_rgb565_regs[] = {
     {0x3004, 0xff},
     {0x300e, 0x58},
     {0x302e, 0x00},
-    // VSYNC 高有效、HREF 高有效，数据在 PCLK 下降沿更新。
-    {0x4740, 0x21},
+    // 按本地应用指南：VSYNC 低时数据有效、HREF 高有效；FPGA 在 PCLK 上升沿采样。
+    {0x4740, 0x20},
     {0x4300, 0x61},
     {0x501f, 0x01},
     {0x440e, 0x00},

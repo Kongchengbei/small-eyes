@@ -122,6 +122,18 @@
             <data>Verilog</data>
         </row>
         <row>
+            <data>F:/SocFpga/soc/Hcamera_sccb_gpio.v</data>
+            <data>Verilog</data>
+        </row>
+        <row>
+            <data>F:/SocFpga/soc/Hcamera_dvp_rx.v</data>
+            <data>Verilog</data>
+        </row>
+        <row>
+            <data>F:/SocFpga/soc/Hcamera_dvp_regs.v</data>
+            <data>Verilog</data>
+        </row>
+        <row>
             <data>F:/SocFpga/soc/Hfpioa_simple.v</data>
             <data>Verilog</data>
         </row>
@@ -143,6 +155,18 @@
         </row>
         <row>
             <data>F:/SocFpga/soc/flash_boot/spi_flash_byte_reader.v</data>
+            <data>Verilog</data>
+        </row>
+        <row>
+            <data>F:/SocFpga/soc/Hcamera_subsystem.v</data>
+            <data>Verilog</data>
+        </row>
+        <row>
+            <data>F:/SocFpga/soc/Hcamera_async_fifo.v</data>
+            <data>Verilog</data>
+        </row>
+        <row>
+            <data>F:/SocFpga/soc/Hcamera_dma.v</data>
             <data>Verilog</data>
         </row>
         <row>
@@ -173,10 +197,10 @@
             <data>RAM(GB)</data>
         </column_headers>
         <row>
-            <data>0h:0m:9s</data>
-            <data>0h:0m:9s</data>
-            <data>0h:1m:11s</data>
-            <data>439</data>
+            <data>0h:0m:2s</data>
+            <data>0h:0m:2s</data>
+            <data>0h:0m:39s</data>
+            <data>447</data>
             <data>WINDOWS 10 x86_64</data>
             <data>13th Gen Intel(R) Core(TM) i7-13650HX</data>
             <data>24</data>
@@ -392,6 +416,24 @@
             <data message="4">Verilog-0002: [F:/SocFpga/soc/Hfpga_soc.v(line number: 21)] Analyzing module Hfpga_soc (library work)</data>
         </row>
         <row>
+            <data message="4">Verilog-0001: Analyzing file F:/SocFpga/soc/Hcamera_sccb_gpio.v</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0002: [F:/SocFpga/soc/Hcamera_sccb_gpio.v(line number: 20)] Analyzing module Hcamera_sccb_gpio (library work)</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0001: Analyzing file F:/SocFpga/soc/Hcamera_dvp_rx.v</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0002: [F:/SocFpga/soc/Hcamera_dvp_rx.v(line number: 5)] Analyzing module Hcamera_dvp_rx (library work)</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0001: Analyzing file F:/SocFpga/soc/Hcamera_dvp_regs.v</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0002: [F:/SocFpga/soc/Hcamera_dvp_regs.v(line number: 5)] Analyzing module Hcamera_dvp_regs (library work)</data>
+        </row>
+        <row>
             <data message="4">Verilog-0001: Analyzing file F:/SocFpga/soc/Hfpioa_simple.v</data>
         </row>
         <row>
@@ -426,6 +468,33 @@
         </row>
         <row>
             <data message="4">Verilog-0002: [F:/SocFpga/soc/flash_boot/spi_flash_byte_reader.v(line number: 5)] Analyzing module spi_flash_byte_reader (library work)</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0001: Analyzing file F:/SocFpga/soc/Hcamera_subsystem.v</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0002: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 4)] Analyzing module Hcamera_subsystem (library work)</data>
+        </row>
+        <row>
+            <data message="4">Found Verilog include file F:/SocFpga/soc/camera_regs.vh</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0001: Analyzing file F:/SocFpga/soc/Hcamera_async_fifo.v</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0002: [F:/SocFpga/soc/Hcamera_async_fifo.v(line number: 6)] Analyzing module Hcamera_async_fifo (library work)</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0001: Analyzing file F:/SocFpga/soc/Hcamera_dma.v</data>
+        </row>
+        <row>
+            <data message="4">Found Verilog include file F:/SocFpga/soc/camera_regs.vh</data>
+        </row>
+        <row>
+            <data message="5">Public-4030: File 'F:/SocFpga/soc/camera_regs.vh' has been added. It is skipped.</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0002: [F:/SocFpga/soc/Hcamera_dma.v(line number: 5)] Analyzing module Hcamera_dma (library work)</data>
         </row>
         <row>
             <data message="4">Verilog-0001: Analyzing file F:/SocFpga/IP/clk_pll/clk_pll.v</data>
@@ -1375,8 +1444,9 @@
     DDR_BASE = 32'b10000000000000000000000000000000
     DDR_BYTES = 32'b01000000000000000000000000000000
     FLASH_BASE = 24'b101000000000000000000000
-    BOOT_IMAGE_BYTES = 32'b00000000000000000000000000111000
+    BOOT_IMAGE_BYTES = 32'b00000000000000000001101100101100
     SPI_DIV = 32'b00000000000000000000000000000100
+    UART_TX_DEFAULT_FPIOA = 32'b00000000000000000000000000000000
     DDR_INIT_TIMEOUT_CYCLES = 32'b00000100001011000001110110000000
     CPU_CACHED_DDR_BASE = 32'b10000000000000000000000000000000
     CPU_CACHED_DDR_BYTES = 32'b00111000000000000000000000000000
@@ -1389,14 +1459,16 @@
     UART0_BASE = 32'b01000000000000000000000000000000
     UART0_BYTES = 32'b00000000000000000000000100000000
     LED_ADDR = 32'b01000000000000000000001000000000
+    CAM1_MMIO_BASE = 32'b01000000000000000000001100000000
+    CAM1_MMIO_BYTES = 32'b00000000000000000000000100000000
     FPIOA_BASE = 32'b01000000000000000000111100000000
     FPIOA_BYTES = 32'b00000000000000000000000100000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 222)] Elaborating instance u_ddr_refclk_buf</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 285)] Elaborating instance u_ddr_refclk_buf</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 228)] Elaborating instance u_pll</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 291)] Elaborating instance u_pll</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/IP/clk_pll/clk_pll.v(line number: 18)] Elaborating module clk_pll</data>
@@ -1405,7 +1477,7 @@
             <data message="4">Verilog-0004: [F:/SocFpga/IP/clk_pll/clk_pll.v(line number: 300)] Elaborating instance u_gpll</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 278)] Elaborating instance u_cpu</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 341)] Elaborating instance u_cpu</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/Htop.v(line number: 3)] Elaborating module Htop</data>
@@ -1419,7 +1491,7 @@
     DCACHEABLE_DDR_BYTES = 32'b00111000000000000000000000000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 229)] Elaborating instance u_ifu</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 230)] Elaborating instance u_ifu</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/Hifu.v(line number: 3)] Elaborating module Hifu</data>
@@ -1429,7 +1501,7 @@
     RESET_PC = 32'b10000000000000000000000000000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 254)] Elaborating instance u_icache</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 255)] Elaborating instance u_icache</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/icache.v(line number: 3)] Elaborating module icache</data>
@@ -1661,25 +1733,25 @@
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/cache_util.v(line number: 33)] Elaborating module lfsr</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 285)] Elaborating instance u_btb</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 286)] Elaborating instance u_btb</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/Btb.v(line number: 2)] Elaborating module Btb</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 306)] Elaborating instance u_idu</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 307)] Elaborating instance u_idu</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/Hidu.v(line number: 3)] Elaborating module Hidu</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Hidu.v(line number: 238)] Elaborating instance u_rf</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Hidu.v(line number: 239)] Elaborating instance u_rf</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/HRegFile.v(line number: 3)] Elaborating module HRegFile</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 371)] Elaborating instance u_exu</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 373)] Elaborating instance u_exu</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/Hexu.v(line number: 3)] Elaborating module Hexu</data>
@@ -1709,7 +1781,7 @@
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/Hcsr.v(line number: 4)] Elaborating module Hcsr</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 432)] Elaborating instance u_dcache</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 434)] Elaborating instance u_dcache</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/dcache.v(line number: 3)] Elaborating module dcache</data>
@@ -1802,25 +1874,25 @@
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/cache_util.v(line number: 33)] Elaborating module lfsr</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 463)] Elaborating instance u_memu</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 465)] Elaborating instance u_memu</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/Hmemu.v(line number: 4)] Elaborating module Hmemu</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 495)] Elaborating instance u_wbu</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 498)] Elaborating instance u_wbu</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/Hwbu.v(line number: 3)] Elaborating module Hwbu</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 518)] Elaborating instance u_axi_bridge</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/cpu/Htop.v(line number: 521)] Elaborating instance u_axi_bridge</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/axi_bridge.v(line number: 2)] Elaborating module axi_bridge</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 359)] Elaborating instance u_mem</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 424)] Elaborating instance u_mem</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/axi_mem_backend.v(line number: 10)] Elaborating module axi_mem_backend</data>
@@ -1833,10 +1905,10 @@
     DDR_BYTES = 32'b01000000000000000000000000000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 429)] Elaborating instance GTP_INBUF_inst</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 494)] Elaborating instance GTP_INBUF_inst</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 434)] Elaborating instance u_jtag</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 499)] Elaborating instance u_jtag</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/jtag/jtag_top.v(line number: 3)] Elaborating module jtag_top</data>
@@ -1910,7 +1982,7 @@
     DW = 32'b00000000000000000000000000101000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 474)] Elaborating instance u_npu_ctrl</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 543)] Elaborating instance u_npu_ctrl</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Hnpu_ctrl.v(line number: 10)] Elaborating module Hnpu_ctrl</data>
@@ -1921,18 +1993,18 @@
     NPU_MMIO_BYTES = 32'b00000000000000000000000100000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 507)] Elaborating instance u_uart0_tx</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 581)] Elaborating instance u_uart0_tx</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Huart_tx.v(line number: 5)] Elaborating module Huart_tx</data>
         </row>
         <row>
             <data message="4">Module instance {Hfpga_soc/u_uart0_tx} parameter value:
-    CLK_HZ = 32'b00000101010111010100101010000000
+    CLK_HZ = 32'b00000100001011000001110110000000
     BAUD = 32'b00000000000000011100001000000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 520)] Elaborating instance u_led</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 594)] Elaborating instance u_led</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Hled.v(line number: 3)] Elaborating module Hled</data>
@@ -1942,46 +2014,193 @@
     WIDTH = 32'b00000000000000000000000000000100</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 529)] Elaborating instance u_fpioa</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 605)] Elaborating instance u_fpioa</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Hfpioa_simple.v(line number: 5)] Elaborating module Hfpioa_simple</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 559)] Elaborating instance u_debug_core</data>
+            <data message="4">Module instance {Hfpga_soc/u_fpioa} parameter value:
+    UART_TX_DEFAULT_FPIOA = 32'b00000000000000000000000000000000</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 619)] Elaborating instance u_cam1_sccb_gpio</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0003: [F:/SocFpga/soc/Hcamera_sccb_gpio.v(line number: 20)] Elaborating module Hcamera_sccb_gpio</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 639)] Elaborating instance u_cam1</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0003: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 4)] Elaborating module Hcamera_subsystem</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="4">Module instance {Hfpga_soc/u_cam1} parameter value:
+    DDR_BASE = 32'b10000000000000000000000000000000
+    DDR_BYTES = 32'b01000000000000000000000000000000
+    BUFFER0_ADDR = 32'b10111000000000000000000000000000
+    BUFFER1_ADDR = 32'b10111000000100000000000000000000
+    FRAME_WIDTH = 32'b00000000000000000000001010000000
+    FRAME_HEIGHT = 32'b00000000000000000000000111100000
+    FIFO_ADDR_WIDTH = 32'b00000000000000000000000000001010
+    DMA_TIMEOUT_CYCLES = 32'b00000000000011110100001001000000
+    SNAPSHOT_TIMEOUT_CYCLES = 32'b00000000000011110100001001000000</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 247)] Elaborating instance u_dvp_rx</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0003: [F:/SocFpga/soc/Hcamera_dvp_rx.v(line number: 5)] Elaborating module Hcamera_dvp_rx</data>
+        </row>
+        <row>
+            <data message="4">Module instance {Hfpga_soc/u_cam1/u_dvp_rx} parameter value:
+    FRAME_WIDTH = 32'b00000000000000000000001010000000
+    FRAME_HEIGHT = 32'b00000000000000000000000111100000</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 264)] Elaborating instance u_fifo</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0003: [F:/SocFpga/soc/Hcamera_async_fifo.v(line number: 6)] Elaborating module Hcamera_async_fifo</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.</data>
+        </row>
+        <row>
+            <data message="4">Module instance {Hfpga_soc/u_cam1/u_fifo} parameter value:
+    DATA_WIDTH = 32'b00000000000000000000000000010010
+    ADDR_WIDTH = 32'b00000000000000000000000000001010</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 278)] Elaborating instance u_dma</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0003: [F:/SocFpga/soc/Hcamera_dma.v(line number: 5)] Elaborating module Hcamera_dma</data>
+        </row>
+        <row>
+            <data message="4">Module instance {Hfpga_soc/u_cam1/u_dma} parameter value:
+    DDR_BASE = 32'b10000000000000000000000000000000
+    DDR_BYTES = 32'b01000000000000000000000000000000
+    BUFFER0_ADDR = 32'b10111000000000000000000000000000
+    BUFFER1_ADDR = 32'b10111000000100000000000000000000
+    FRAME_WIDTH = 32'b00000000000000000000001010000000
+    FRAME_HEIGHT = 32'b00000000000000000000000111100000
+    TIMEOUT_CYCLES = 32'b00000000000011110100001001000000</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 673)] Elaborating instance u_debug_core</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Debug_core.v(line number: 5)] Elaborating module Debug_core</data>
         </row>
         <row>
-            <data message="5">Verilog-2019: [F:/SocFpga/soc/Hfpga_soc.v(line number: 559)] Width mismatch between port ex_pc and signal bound to it for instantiated module Debug_core</data>
-        </row>
-        <row>
-            <data message="5">Verilog-2019: [F:/SocFpga/soc/Hfpga_soc.v(line number: 559)] Width mismatch between port mem_pc and signal bound to it for instantiated module Debug_core</data>
-        </row>
-        <row>
-            <data message="5">Verilog-2019: [F:/SocFpga/soc/Hfpga_soc.v(line number: 559)] Width mismatch between port wb_pc and signal bound to it for instantiated module Debug_core</data>
-        </row>
-        <row>
-            <data message="5">Verilog-2019: [F:/SocFpga/soc/Hfpga_soc.v(line number: 559)] Width mismatch between port if_ins and signal bound to it for instantiated module Debug_core</data>
-        </row>
-        <row>
-            <data message="5">Verilog-2019: [F:/SocFpga/soc/Hfpga_soc.v(line number: 559)] Width mismatch between port ex_ins and signal bound to it for instantiated module Debug_core</data>
-        </row>
-        <row>
-            <data message="5">Verilog-2019: [F:/SocFpga/soc/Hfpga_soc.v(line number: 559)] Width mismatch between port mem_ins and signal bound to it for instantiated module Debug_core</data>
-        </row>
-        <row>
-            <data message="5">Verilog-2019: [F:/SocFpga/soc/Hfpga_soc.v(line number: 559)] Width mismatch between port wb_ins and signal bound to it for instantiated module Debug_core</data>
-        </row>
-        <row>
-            <data message="5">Verilog-2019: [F:/SocFpga/soc/Hfpga_soc.v(line number: 559)] Width mismatch between port dmem_addr and signal bound to it for instantiated module Debug_core</data>
-        </row>
-        <row>
-            <data message="5">Verilog-2019: [F:/SocFpga/soc/Hfpga_soc.v(line number: 559)] Width mismatch between port dmem_wdata and signal bound to it for instantiated module Debug_core</data>
-        </row>
-        <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 607)] Elaborating instance u_flash_ddr_boot</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 721)] Elaborating instance u_flash_ddr_boot</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/flash_boot/flash_ddr_boot.v(line number: 12)] Elaborating module flash_ddr_boot</data>
@@ -1991,7 +2210,7 @@
     FLASH_BASE = 24'b101000000000000000000000
     DDR_BASE = 32'b10000000000000000000000000000000
     DDR_LIMIT = 33'b011000000000000000000000000000000
-    IMAGE_BYTES = 32'b00000000000000000000000000111000
+    IMAGE_BYTES = 32'b00000000000000000001101100101100
     SPI_CLK_DIV = 32'b00000000000000000000000000000100
     TIMEOUT_CYCLES = 32'b00000000000000011000011010100000
     DDR_INIT_TIMEOUT_CYCLES = 32'b00000100001011000001110110000000</data>
@@ -2017,21 +2236,27 @@
     FLASH_BASE = 24'b101000000000000000000000
     DDR_BASE = 32'b10000000000000000000000000000000
     DDR_LIMIT = 33'b011000000000000000000000000000000
-    IMAGE_BYTES = 32'b00000000000000000000000000111000
+    IMAGE_BYTES = 32'b00000000000000000001101100101100
     TIMEOUT_CYCLES = 32'b00000000000000011000011010100000
     DDR_INIT_TIMEOUT_CYCLES = 32'b00000100001011000001110110000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 647)] Elaborating instance u_flash_cfgclk</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 761)] Elaborating instance u_flash_cfgclk</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 652)] Elaborating instance u_ddr_axi_bridge</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 766)] Elaborating instance u_ddr_axi_bridge</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/ddr_axi_bridge.v(line number: 7)] Elaborating module ddr_axi_bridge</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 703)] Elaborating instance u_ddr3_ctrl</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 819)] Elaborating instance u_camera_ddr_arbiter</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0003: [F:/SocFpga/soc/Haxi_2m1s_arbiter.v(line number: 9)] Elaborating module Haxi_2m1s_arbiter</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 910)] Elaborating instance u_ddr3_ctrl</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/IP/ddr3_ctrl_v116/ddr3_ctrl_v116.v(line number: 13)] Elaborating module ddr3_ctrl_v116</data>
@@ -5796,7 +6021,73 @@
     EMR_LPDDR = 16'b0000000000000000</data>
         </row>
         <row>
-            <data message="5">Sdm-2014: [F:/SocFpga/jtag/jtag_dm.v(line number: 61)] Feedback mux created for signal 'dm_mem_wdata'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 149)] Feedback mux created for signal 'snapshot_dvp_frame_count_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 150)] Feedback mux created for signal 'snapshot_pclk_count_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 151)] Feedback mux created for signal 'snapshot_dvp_errors_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 177)] Feedback mux created for signal 'snap_frame_count_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 178)] Feedback mux created for signal 'snap_pixel_count_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 179)] Feedback mux created for signal 'snap_byte_count_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 180)] Feedback mux created for signal 'snap_line_count_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 181)] Feedback mux created for signal 'snap_current_pixel_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 182)] Feedback mux created for signal 'snap_current_byte_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 183)] Feedback mux created for signal 'snap_current_line_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 184)] Feedback mux created for signal 'snap_last_frame_addr_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 185)] Feedback mux created for signal 'snap_current_write_buffer_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 186)] Feedback mux created for signal 'snap_last_complete_buffer_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 187)] Feedback mux created for signal 'snap_checksum_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 188)] Feedback mux created for signal 'snap_ready_mask_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 189)] Feedback mux created for signal 'snap_dropped_frames_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 190)] Feedback mux created for signal 'snap_dma_error_code_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 191)] Feedback mux created for signal 'snap_dma_status_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 192)] Feedback mux created for signal 'snap_ddr_ready_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 193)] Feedback mux created for signal 'snap_fifo_level_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 194)] Feedback mux created for signal 'snap_fifo_error_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 152)] Feedback mux created for signal 'snapshot_fifo_max_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 195)] Feedback mux created for signal 'snap_status_mem'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
         </row>
         <row>
             <data message="5">Sdm-2000: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 94)] Removed register node u_flash_ddr_boot/u_loader/timeout_count[31] that is stuck at constant 0.</data>
@@ -5812,6 +6103,45 @@
         </row>
         <row>
             <data message="5">Sdm-2000: [F:/SocFpga/soc/flash_boot/flash_ddr_loader.v(line number: 94)] Removed register node u_flash_ddr_boot/u_loader/timeout_count[27] that is stuck at constant 0.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2014: [F:/SocFpga/jtag/jtag_dm.v(line number: 61)] Feedback mux created for signal 'dm_mem_wdata'. It is possible a async set/reset assignment for this is signal missing. To improve timing and area, specify a set/reset value. </data>
+        </row>
+        <row>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/Hcamera_dma.v(line number: 136)] Removed register node u_cam1/u_dma/timeout_count[31] that is stuck at constant 0.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/Hcamera_dma.v(line number: 136)] Removed register node u_cam1/u_dma/timeout_count[30] that is stuck at constant 0.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/Hcamera_dma.v(line number: 136)] Removed register node u_cam1/u_dma/timeout_count[29] that is stuck at constant 0.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/Hcamera_dma.v(line number: 136)] Removed register node u_cam1/u_dma/timeout_count[28] that is stuck at constant 0.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/Hcamera_dma.v(line number: 136)] Removed register node u_cam1/u_dma/timeout_count[27] that is stuck at constant 0.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/Hcamera_dma.v(line number: 136)] Removed register node u_cam1/u_dma/timeout_count[26] that is stuck at constant 0.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/Hcamera_dma.v(line number: 136)] Removed register node u_cam1/u_dma/timeout_count[25] that is stuck at constant 0.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/Hcamera_dma.v(line number: 136)] Removed register node u_cam1/u_dma/timeout_count[24] that is stuck at constant 0.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/Hcamera_dma.v(line number: 136)] Removed register node u_cam1/u_dma/timeout_count[23] that is stuck at constant 0.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/Hcamera_dma.v(line number: 136)] Removed register node u_cam1/u_dma/timeout_count[22] that is stuck at constant 0.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/Hcamera_dma.v(line number: 136)] Removed register node u_cam1/u_dma/timeout_count[21] that is stuck at constant 0.</data>
+        </row>
+        <row>
+            <data message="5">Sdm-2000: [F:/SocFpga/soc/Hcamera_dma.v(line number: 136)] Removed register node u_cam1/u_dma/timeout_count[20] that is stuck at constant 0.</data>
         </row>
         <row>
             <data message="4">Removed inst ddrphy_update_req that is redundant to update_start.</data>
@@ -5958,6 +6288,12 @@
             <data message="5">Sdm-2000: [F:/SocFpga/IP/ddr3_ctrl_v116/rtl/ddrphy/ips2l_ddrphy_wrcal_v1_16.vp(line number: 794)] Removed register node u_ddr3_ctrl/u_ddrphy_top/ddrphy_calib_top/ddrphy_wrcal/wrcal_ba[0] that is stuck at constant 0.</data>
         </row>
         <row>
+            <data message="4">Removed inst pclk_combined_ack that is redundant to pclk_ack_seen.</data>
+        </row>
+        <row>
+            <data message="4">Sdm-0001: [F:/SocFpga/soc/Hcamera_async_fifo.v(line number: 95)] Found Ram mem, depth=1024, width=18.</data>
+        </row>
+        <row>
             <data message="4">Removed inst expected_word[31:0] that is redundant to ddr_req_wdata[31:0].</data>
         </row>
         <row>
@@ -6009,7 +6345,16 @@
             <data message="4">FSM jtag_state_fsm[2:0] inferred.</data>
         </row>
         <row>
+            <data message="4">FSM cpu_snapshot_state_fsm[1:0] inferred.</data>
+        </row>
+        <row>
+            <data message="4">FSM mem_snapshot_state_fsm[1:0] inferred.</data>
+        </row>
+        <row>
             <data message="4">FSM state_ddr_fsm[2:0] inferred.</data>
+        </row>
+        <row>
+            <data message="4">FSM write_state_fsm[1:0] inferred.</data>
         </row>
         <row>
             <data message="4">FSM arlen_fsm[7:0] inferred.</data>
@@ -6031,6 +6376,12 @@
         </row>
         <row>
             <data message="4">FSM bus_p_fsm[1:0] inferred.</data>
+        </row>
+        <row>
+            <data message="4">FSM state_fsm[2:0] inferred.</data>
+        </row>
+        <row>
+            <data message="4">FSM error_code_fsm[31:0] inferred.</data>
         </row>
         <row>
             <data message="4">FSM state_fsm[1:0] inferred.</data>
@@ -6303,28 +6654,94 @@
             <data message="5">Loop was found during constant probe.</data>
         </row>
         <row>
-            <data message="4">Constant propagation done on N70_1 (bmsWIDEMUX).</data>
-        </row>
-        <row>
-            <data message="4">Constant propagation done on N79_1 (bmsWIDEMUX).</data>
-        </row>
-        <row>
-            <data message="4">Constant propagation done on N353_1 (bmsWIDEMUX).</data>
-        </row>
-        <row>
-            <data message="4">Constant propagation done on N7 (bmsWIDEMUX).</data>
+            <data message="5">Loop was found during constant probe.</data>
         </row>
         <row>
             <data message="5">Loop was found during constant probe.</data>
         </row>
         <row>
-            <data message="4">Constant propagation done on N686_1 (bmsWIDEMUX).</data>
+            <data message="5">Loop was found during constant probe.</data>
         </row>
         <row>
-            <data message="4">Constant propagation done on N809_1 (bmsWIDEMUX).</data>
+            <data message="5">Loop was found during constant probe.</data>
         </row>
         <row>
-            <data message="4">Constant propagation done on N276 (bmsWIDEMUX).</data>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="4">Constant propagation done on N1[0] (bmsWIDEMUX).</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="4">Constant propagation done on N113_1 (bmsPMUX).</data>
+        </row>
+        <row>
+            <data message="4">Constant propagation done on N106 (bmsWIDEMUX).</data>
+        </row>
+        <row>
+            <data message="4">Constant propagation done on N98 (bmsWIDEMUX).</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="4">Constant propagation done on N113_1 (bmsPMUX).</data>
+        </row>
+        <row>
+            <data message="4">Constant propagation done on N106 (bmsWIDEMUX).</data>
+        </row>
+        <row>
+            <data message="4">Constant propagation done on N98 (bmsWIDEMUX).</data>
         </row>
         <row>
             <data message="5">Loop was found during constant probe.</data>

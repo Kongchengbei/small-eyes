@@ -2,7 +2,9 @@
 
 // Small FPIOA subset used by the SparrowRV demos:
 // output mapping bytes 0x00-0x1f and NIO registers 0x20-0x2f.
-module Hfpioa_simple (
+module Hfpioa_simple #(
+    parameter integer UART_TX_DEFAULT_FPIOA = 0
+) (
     input        clk,
     input        rst_n,
     input        mmio_valid,
@@ -24,21 +26,21 @@ module Hfpioa_simple (
     reg [31:0] nio_din;
     integer i;
 
-    wire write_map = mmio_valid && mmio_wen && (mmio_addr < 8'h20);
-    wire [5:0] map_index = mmio_addr[5:0];
+    // 非法参数会在仿真启动时报错；索引同时限制在 0..31，避免越界访问。
+    localparam integer UART_TX_DEFAULT_FPIOA_SAFE =
+        ((UART_TX_DEFAULT_FPIOA >= 0) && (UART_TX_DEFAULT_FPIOA < 32)) ?
+        UART_TX_DEFAULT_FPIOA : 0;
 
-    function [7:0] selected_byte;
-        input [31:0] value;
-        input [1:0] lane;
-        begin
-            case (lane)
-                2'd0: selected_byte = value[7:0];
-                2'd1: selected_byte = value[15:8];
-                2'd2: selected_byte = value[23:16];
-                default: selected_byte = value[31:24];
-            endcase
-        end
-    endfunction
+`ifndef SYNTHESIS
+    initial begin
+        if ((UART_TX_DEFAULT_FPIOA < 0) || (UART_TX_DEFAULT_FPIOA >= 32))
+            $fatal(1, "UART_TX_DEFAULT_FPIOA must be in range 0..31");
+    end
+`endif
+
+    wire write_map = mmio_valid && mmio_wen && (mmio_addr < 8'h20);
+    wire [4:0] map_index = mmio_addr[4:0];
+    wire [4:0] map_word_base = {map_index[4:2], 2'b00};
 
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -47,16 +49,21 @@ module Hfpioa_simple (
             nio_md1 <= 32'b0;
             for (i = 0; i < 32; i = i + 1)
                 fpioa_ot_reg[i] <= 5'b0;
-            // Fixed outputs make the simple LED/UART interface usable before
-            // software configures FPIOA, while official software may remap it.
-            fpioa_ot_reg[31]  <= 5'd7;  // UART0_TX -> fpioa[31] -> AB26
+            // 固定 LED 输出保持原有映射，软件仍可通过 FPIOA/MMIO 配置。
             fpioa_ot_reg[8]  <= 5'd31; // direct/NIO LED0
             fpioa_ot_reg[9]  <= 5'd31;
             fpioa_ot_reg[10] <= 5'd31;
             fpioa_ot_reg[11] <= 5'd31;
+            // 复位时只把 UART0_TX 接到选定的候选脚；其他 UART 候选脚保持高阻。
+            // 若参数选中 LED 脚，UART 映射优先且该脚不会再驱动 LED。
+            fpioa_ot_reg[UART_TX_DEFAULT_FPIOA_SAFE] <= 5'd7;
         end else if (mmio_valid && mmio_wen) begin
             if (write_map) begin
-                fpioa_ot_reg[map_index] <= selected_byte(mmio_wdata, mmio_addr[1:0]);
+                // AXI 地址按字对齐，WSTRB 才指出字内实际写入的映射字节。
+                if (mmio_wmask[0]) fpioa_ot_reg[map_word_base]     <= mmio_wdata[4:0];
+                if (mmio_wmask[1]) fpioa_ot_reg[map_word_base + 1] <= mmio_wdata[12:8];
+                if (mmio_wmask[2]) fpioa_ot_reg[map_word_base + 2] <= mmio_wdata[20:16];
+                if (mmio_wmask[3]) fpioa_ot_reg[map_word_base + 3] <= mmio_wdata[28:24];
             end else begin
                 case (mmio_addr)
                     8'h24: if (mmio_wmask == 4'b1111) nio_opt <= mmio_wdata;
@@ -105,9 +112,15 @@ module Hfpioa_simple (
     always @(*) begin
         mmio_rdata = 32'b0;
         if (mmio_valid && !mmio_wen) begin
-            if (mmio_addr < 8'h20)
-                mmio_rdata = {27'b0, fpioa_ot_reg[mmio_addr[4:0]]} << (mmio_addr[1:0] * 8);
-            else begin
+            if (mmio_addr < 8'h20) begin
+                // 任一 byte 地址均读取其所在的四字节映射组，便于 lb/lw 对齐访问。
+                mmio_rdata = {
+                    3'b0, fpioa_ot_reg[map_word_base + 3],
+                    3'b0, fpioa_ot_reg[map_word_base + 2],
+                    3'b0, fpioa_ot_reg[map_word_base + 1],
+                    3'b0, fpioa_ot_reg[map_word_base]
+                };
+            end else begin
                 case (mmio_addr)
                     8'h20: mmio_rdata = nio_din;
                     8'h24: mmio_rdata = nio_opt;

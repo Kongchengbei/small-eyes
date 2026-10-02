@@ -155,13 +155,13 @@ define_attribute {p:JTAG_TDO} {PAP_IO_STANDARD} {LVCMOS33}
 # 下列注释中的扩展口编号只表示 PCB 连接关系，不代表固定的 RTL 外设接口。
 #----------------------FPIOA[0:31]---------------------------
 # 每个位都是板卡通用 IO，实际功能由 FPIOA 复用寄存器决定；这里仅记录 PCB 位置。
-# fpioa[0]: C24，通用 IO（不固定绑定 UART TX）
+# fpioa[0]: C24，本地主板 CP2102 的 FPGA UART TX；由 FPIOA 复用选择。
 define_attribute {p:fpioa[0]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:fpioa[0]} {PAP_IO_LOC} {C24}
 define_attribute {p:fpioa[0]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[0]} {PAP_IO_STANDARD} {LVCMOS33}
 
-# fpioa[1]: B24，通用 IO（不固定绑定 UART RX）
+# fpioa[1]: B24，本地主板 CP2102 的 FPGA UART RX；当前调试仅实现 TX。
 define_attribute {p:fpioa[1]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:fpioa[1]} {PAP_IO_LOC} {B24}
 define_attribute {p:fpioa[1]} {PAP_IO_VCCIO} {3.3}
@@ -342,7 +342,8 @@ define_attribute {p:fpioa[30]} {PAP_IO_LOC} {AC26}
 define_attribute {p:fpioa[30]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[30]} {PAP_IO_STANDARD} {LVCMOS33}
 
-# fpioa[31]: 扩展口36 -> J10: AB26
+# fpioa[31]: AB26，远程平台 UART TX；不是本地主板 CP2102 的串口脚。
+# 不按旧扩展口注释往实物 J10 接线，已确认 J10 为 SD 卡槽。
 define_attribute {p:fpioa[31]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:fpioa[31]} {PAP_IO_LOC} {AB26}
 define_attribute {p:fpioa[31]} {PAP_IO_VCCIO} {3.3}

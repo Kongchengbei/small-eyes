@@ -1,5 +1,18 @@
 # Camera 阶段 1～5：UART、CAM1 初始化、DVP 接收与状态记录
 
+> 2026-10-01 更新：CAM1 已进一步接入 Async FIFO、Camera DMA、DDR 双缓冲及完整
+> MMIO 调试快照。当前 local/remote 固件均为 6956 bytes，CPU 时钟信息为实际
+> PLL 的 70 MHz；本地 UART TX 使用 C24，远程平台版本使用 AB26，见
+> [UART_本地与远程配置及实板复测.md](UART_本地与远程配置及实板复测.md)。
+> 最新固件按本地应用指南将 0x4740 改为0x20，等待用户实板复测。
+> 上一轮0x23的极性解释已撤回，下面历史记录的极性说明不应作为当前配置依据，见
+> [CAM1_HREF极性修正与错误输出限频.md](CAM1_HREF极性修正与错误输出限频.md)。
+> 最新实现、寄存器与统一实板验收请看
+> [CAM1_DMA_DDR_MMIO_离线验收与实板Review.md](CAM1_DMA_DDR_MMIO_离线验收与实板Review.md)
+> 和 [Camera_DMA_MMIO_接口约定.md](Camera_DMA_MMIO_接口约定.md)。
+> **下文保留为上一阶段历史记录，其中“尚未接入 DMA”、4836 bytes、90 MHz 和旧
+> MMIO 表不再代表当前工程；不要据此烧写。** 尚未启动 PDS 或进行本轮实板验收。
+
 日期：2026-09-30
 
 ## 本轮完成
@@ -157,11 +170,45 @@ bitstream。** 当前固件作为后续 DVP 和 Camera MMIO 的基础保存。
    `0x300A/0x300B = 0x56/0x40`。
 2. CAM1 的独立 C 初始化表、逐项 ACK 和关键寄存器回读已完成离线闭环；待最终
    联合上板确认真实 `CAM1 ID/RESET/CONFIG/START`。
-3. CAM1 DVP RX、RGB565 拼接和 Camera MMIO 已完成离线计数验收；下一步接入
-   Async FIFO，并把 `pixel_valid/pixel_data` 安全送入系统时钟或 DMA 路径。
+3. CAM1 DVP RX、RGB565 拼接和 Camera MMIO 已完成离线计数验收。独立 Async FIFO
+   RTL 与跨时钟压力测试已完成；`make camera-dvp-fifo-test` 又验证了完整 VGA 帧
+   的帧开始、307200 个 RGB565 像素及帧结束事件按序到达系统时钟域。事件编码
+   暂在 testbench 内，生产接口随下一阶段 Camera DMA 一起确定。现在没有消费者，
+   故暂不接入 SoC 顶层。
 4. CAM1 FIFO/DMA 稳定后复用同一套模块接入 CAM2，同时解决 `fpioa[18]`、
    `fpioa[28]`、`fpioa[29]` 与 CAM2 数据线的三个约束冲突。
-5. 随后进入 Async FIFO、Camera DMA、DDR、双目同步与 NPU；HDMI 最后接入。
+5. 随后进入双目同步与 NPU；HDMI 最后接入。
+
+### Async FIFO 与现有 NPU DMA 核查
+
+`soc/Hcamera_async_fifo.v` 是独立双时钟 FIFO：写端为摄像头 PCLK，读端预留
+给系统时钟域；默认数据宽度 18 bit、深度 1024 项。灰码指针经双触发器同步，
+满/空只在本时钟域判定，读数据按请求注册输出；满写和空读分别锁存 overflow、
+underflow。统一异步复位断言，各域两拍同步释放。它只传输上层给出的条目，
+联合 testbench 把帧起止事件编码成独立条目；生产接口的事件编码和溢出后整帧
+作废策略要由 Camera DMA 接入时共同完成。
+
+`make camera-async-fifo-test` 用不同频率时钟验证随机传输顺序、读端背压、满写、
+空读和中途复位。该测试属于模块级离线验证，**还不能宣称实际摄像头无溢出，
+也不能宣称图像已进 DDR**。接入真实 DDR 后要用可控背压和满帧校验验收。
+`make camera-dvp-fifo-test` 使用约 23.8 MHz PCLK 和 90 MHz 读时钟，输入完整
+640×480 RGB565 帧，在读端加入限速及暂停，逐项核对 307202 个像素/帧标记条目，
+并要求 FIFO 积压峰值至少 40 项；本次峰值为 54 项，离线结果为
+`CAM1_DVP_FIFO_PASS`，FIFO overflow/underflow 均为零。
+
+现有 `soc/Hnpu_dma.v` 是 256-bit AXI4 的 DDR→片上 16 拍缓冲→DDR 复制骨架：
+先读源地址，再把缓冲写到目标地址。它确有 AXI 写通道，但没有像素流输入，
+不能直接完成 Camera→DDR 搬运。当前 `Hfpga_soc.v` 也尚未实例化 NPU DMA 或
+两主机 AXI 仲裁器；二者目前只做了独立仿真。Camera DMA 应另写流式写入模块，
+可参考 NPU DMA 的 AXI 写握手、错误响应和 4 KiB 边界处理。
+现有仲裁器只有 CPU/NPU 两个主机口，最终 CPU、Camera、NPU 共存还需扩展
+仲裁拓扑，不能把 Camera 写入误算作已有 NPU DMA 功能。
+
+《整体目标.md》中 `0xB8000000` 是帧基址示例，但现有地址图把该地址划给
+NPU input，整个 `0xB8000000–0xBFFFFFFF` 是 NPU 共享区。真正接入 Camera DMA
+前必须明确划出不会覆盖 NPU 数据的帧缓冲，并确定 CPU 读回时的 DCache
+旁路或一致性策略；不能直接套用文档示例地址。
+本阶段不实现 Camera DMA、不修改 DDR 地址分配；上述内容仅作为下一阶段设计约束。
 
 本地证据不足时才查网络资料；网络资料优先矩阵社区和正点原子，但任何网络
 示例的引脚与 IP 配置仍不能替代当前 200H 板级原理图。

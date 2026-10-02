@@ -1,5 +1,5 @@
 test/
-
+camera_demo/
 # Ignore the BSP tree by default.
 /bsp/*
 
@@ -28,6 +28,11 @@ test/
 !/bsp/camera_app/ov5640_regs.c
 !/bsp/camera_app/ov5640_regs.h
 !/bsp/camera_app/camera_uart_debug.bin
+!/bsp/camera_app/camera_uart_debug_local.bin
+!/bsp/camera_app/camera_uart_debug_remote.bin
+!/bsp/camera_app/gpio_test.c
+!/bsp/camera_app/camera_gpio_test_local.bin
+!/bsp/camera_app/camera_gpio_test_remote.bin
 
 # Ignore generated build output.
 /build/
