@@ -3,7 +3,8 @@
 // Small FPIOA subset used by the SparrowRV demos:
 // output mapping bytes 0x00-0x1f and NIO registers 0x20-0x2f.
 module Hfpioa_simple #(
-    parameter integer UART_TX_DEFAULT_FPIOA = 0
+    parameter integer UART_TX_DEFAULT_FPIOA = 0,
+    parameter [31:0] INPUT_ONLY_MASK = 32'b0
 ) (
     input        clk,
     input        rst_n,
@@ -105,7 +106,8 @@ module Hfpioa_simple #(
     genvar g;
     generate
         for (g = 0; g < 32; g = g + 1) begin: fpioa_io
-            assign fpioa[g] = fpioa_oe[g] ? fpioa_drive[g] : 1'bz;
+            assign fpioa[g] = INPUT_ONLY_MASK[g] ? 1'bz :
+                              (fpioa_oe[g] ? fpioa_drive[g] : 1'bz);
         end
     endgenerate
 

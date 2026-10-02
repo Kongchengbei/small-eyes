@@ -11,6 +11,7 @@ create_clock -period {100.000} [get_ports {JTAG_TCK}] -name JTAG_CLK
 # CAM1 PCLK 由 OV5640 输出。这里按最高 100 MHz 约束输入路径，实际 VGA
 # 配置频率更低；它与 CPU/JTAG 时钟没有相位关系。
 create_clock -period {10.000} [get_ports {cam1_pclk}] -name CAM1_PCLK
+create_clock -period {10.000} [get_ports {cam2_pclk}] -name CAM2_PCLK
 
 define_attribute {n:JTAG_TCK_in} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}
 
@@ -23,7 +24,7 @@ create_generated_clock -name cpu_clk \
     [get_pins {u_pll/u_gpll:CLKOUT0}]
 # 异步时钟域声明
 set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {JTAG_CLK}]
-set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {CAM1_PCLK}]
+set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {CAM1_PCLK}] -group [get_clocks {CAM2_PCLK}]
 
 # IO 引脚约束：这里只保留 Hfpga_soc 顶层实际存在的外部端口。
 # DDR3 端口使用板卡原理图/引脚表中的专用资源位置，不能改用普通 IO。
@@ -116,6 +117,57 @@ define_attribute {p:cam1_data[0]} {PAP_IO_DIRECTION} {INPUT}
 define_attribute {p:cam1_data[0]} {PAP_IO_LOC} {T14}
 define_attribute {p:cam1_data[0]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:cam1_data[0]} {PAP_IO_STANDARD} {LVCMOS33}
+
+#----------------------物理 CAM2：OV5640 独立 SCCB/DVP----------------------
+# CAM2 球位来自 manual/PG2L200H_双目OV5640接口核对.md。D4/D2/D1 借用
+# FPIOA[18]/[29]/[28] 输入球位；CAM2 顶层数据总线由这些输入与独立端口拼接。
+define_attribute {p:cam2_scl} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:cam2_scl} {PAP_IO_LOC} {W19}
+define_attribute {p:cam2_scl} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam2_scl} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam2_scl} {PAP_IO_DRIVE} {4}
+define_attribute {p:cam2_sda} {PAP_IO_DIRECTION} {INOUT}
+define_attribute {p:cam2_sda} {PAP_IO_LOC} {V16}
+define_attribute {p:cam2_sda} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam2_sda} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam2_sda} {PAP_IO_DRIVE} {4}
+define_attribute {p:cam2_reset_n} {PAP_IO_DIRECTION} {OUTPUT}
+define_attribute {p:cam2_reset_n} {PAP_IO_LOC} {Y20}
+define_attribute {p:cam2_reset_n} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam2_reset_n} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam2_reset_n} {PAP_IO_DRIVE} {4}
+define_attribute {p:cam2_pclk} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam2_pclk} {PAP_IO_LOC} {U21}
+define_attribute {p:cam2_pclk} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam2_pclk} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam2_vsync} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam2_vsync} {PAP_IO_LOC} {V23}
+define_attribute {p:cam2_vsync} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam2_vsync} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam2_href} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam2_href} {PAP_IO_LOC} {W23}
+define_attribute {p:cam2_href} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam2_href} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam2_data_hi[2]} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam2_data_hi[2]} {PAP_IO_LOC} {T18}
+define_attribute {p:cam2_data_hi[2]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam2_data_hi[2]} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam2_data_hi[1]} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam2_data_hi[1]} {PAP_IO_LOC} {T17}
+define_attribute {p:cam2_data_hi[1]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam2_data_hi[1]} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam2_data_hi[0]} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam2_data_hi[0]} {PAP_IO_LOC} {AA23}
+define_attribute {p:cam2_data_hi[0]} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam2_data_hi[0]} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam2_data3} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam2_data3} {PAP_IO_LOC} {V19}
+define_attribute {p:cam2_data3} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam2_data3} {PAP_IO_STANDARD} {LVCMOS33}
+define_attribute {p:cam2_data0} {PAP_IO_DIRECTION} {INPUT}
+define_attribute {p:cam2_data0} {PAP_IO_LOC} {V21}
+define_attribute {p:cam2_data0} {PAP_IO_VCCIO} {3.3}
+define_attribute {p:cam2_data0} {PAP_IO_STANDARD} {LVCMOS33}
 
 #----------------------DDR 初始化状态 LED---------------------------
 define_attribute {p:core_active} {PAP_IO_DIRECTION} {OUTPUT}
@@ -262,8 +314,8 @@ define_attribute {p:fpioa[17]} {PAP_IO_LOC} {AA25}
 define_attribute {p:fpioa[17]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[17]} {PAP_IO_STANDARD} {LVCMOS33}
 
-# fpioa[18]: 扩展口21 -> J10: AB25
-define_attribute {p:fpioa[18]} {PAP_IO_DIRECTION} {INOUT}
+# fpioa[18]: AB25，复用为 CAM2_D4 输入，RTL 强制高阻且 MMIO 不可开启输出。
+define_attribute {p:fpioa[18]} {PAP_IO_DIRECTION} {INPUT}
 define_attribute {p:fpioa[18]} {PAP_IO_LOC} {AB25}
 define_attribute {p:fpioa[18]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[18]} {PAP_IO_STANDARD} {LVCMOS33}
@@ -324,14 +376,14 @@ define_attribute {p:fpioa[27]} {PAP_IO_LOC} {M21}
 define_attribute {p:fpioa[27]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[27]} {PAP_IO_STANDARD} {LVCMOS33}
 
-# fpioa[28]: 扩展口33 -> J10: U26
-define_attribute {p:fpioa[28]} {PAP_IO_DIRECTION} {INOUT}
+# fpioa[28]: U26，复用为 CAM2_D1 输入，RTL 强制高阻且 MMIO 不可开启输出。
+define_attribute {p:fpioa[28]} {PAP_IO_DIRECTION} {INPUT}
 define_attribute {p:fpioa[28]} {PAP_IO_LOC} {U26}
 define_attribute {p:fpioa[28]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[28]} {PAP_IO_STANDARD} {LVCMOS33}
 
-# fpioa[29]: 扩展口34 -> J10: U25
-define_attribute {p:fpioa[29]} {PAP_IO_DIRECTION} {INOUT}
+# fpioa[29]: U25，复用为 CAM2_D2 输入，RTL 强制高阻且 MMIO 不可开启输出。
+define_attribute {p:fpioa[29]} {PAP_IO_DIRECTION} {INPUT}
 define_attribute {p:fpioa[29]} {PAP_IO_LOC} {U25}
 define_attribute {p:fpioa[29]} {PAP_IO_VCCIO} {3.3}
 define_attribute {p:fpioa[29]} {PAP_IO_STANDARD} {LVCMOS33}

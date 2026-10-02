@@ -9,7 +9,8 @@ module Hcamera_dma #(
     parameter [31:0] BUFFER1_ADDR = 32'hB810_0000,
     parameter [31:0] FRAME_WIDTH = 32'd640,
     parameter [31:0] FRAME_HEIGHT = 32'd480,
-    parameter [31:0] TIMEOUT_CYCLES = 32'd1000000
+    parameter [31:0] TIMEOUT_CYCLES = 32'd1000000,
+    parameter [7:0] AXI_ID = 8'h40
 ) (
     input clk, input rst_n, input enable, input ddr_ready, input clear_errors,
     input release_valid, input [1:0] release_mask,
@@ -74,7 +75,7 @@ assign fifo_rd_en = (state == ST_FIFO_WAIT) && !fifo_request_pending && !fifo_em
 assign busy = frame_active || (state == ST_AW) || (state == ST_W) ||
               (state == ST_B) || (state == ST_FINALIZE);
 assign axi_awaddr = axi_awaddr_full[29:0];
-assign axi_awid = 8'h40;
+assign axi_awid = AXI_ID;
 assign axi_awlen = 8'd0;
 assign axi_awsize = 3'b101;
 assign axi_awburst = 2'b01;
@@ -351,7 +352,7 @@ always @(posedge clk or negedge rst_n) begin
             end
             ST_B: if (axi_bvalid && axi_bready) begin
                 timeout_count <= 0;
-                if ((axi_bid != 8'h40) || (axi_bresp != RESP_OKAY)) begin
+                if ((axi_bid != AXI_ID) || (axi_bresp != RESP_OKAY)) begin
                     report_error(ERR_DDR_WRITE); frame_bad <= 1'b1;
                 end
                 write_offset <= write_offset + 32'd32;

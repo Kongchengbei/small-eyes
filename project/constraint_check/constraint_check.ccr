@@ -1,4 +1,4 @@
-##### Written on 2026/10/01 19:07:09 ###############################
+##### Written on 2026/10/02 11:34:04 ###############################
 
 
 ##### INFO ##################################################
@@ -14,107 +14,116 @@ Constraint File(s) :
 
 ##### SUMMARY ######################################################
 
-Found 0 error(s), 112 critical warning(s), 0 warning(s), out of 757 constraint(s)
+Found 0 error(s), 118 critical warning(s), 0 warning(s), out of 805 constraint(s)
 
 
 Inapplicable constraints(except overwritten constraints):
 ********************************************
 
 define_attribute {p:JTAG_TDI} {PAP_IO_LOC} {R20}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 130)] | Port JTAG_TDI has been placed at location R20, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 182)] | Port JTAG_TDI has been placed at location R20, whose type is share pin.
 
 define_attribute {p:JTAG_TMS} {PAP_IO_LOC} {P19}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 136)] | Port JTAG_TMS has been placed at location P19, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 188)] | Port JTAG_TMS has been placed at location P19, whose type is share pin.
 
 define_attribute {p:JTAG_TCK} {PAP_IO_LOC} {M24}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 142)] | Port JTAG_TCK has been placed at location M24, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 194)] | Port JTAG_TCK has been placed at location M24, whose type is share pin.
 
 define_attribute {p:fpioa[2]} {PAP_IO_LOC} {T22}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 173)] | Port fpioa[2] has been placed at location T22, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 225)] | Port fpioa[2] has been placed at location T22, whose type is share pin.
 
 define_attribute {p:fpioa[3]} {PAP_IO_LOC} {K25}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 179)] | Port fpioa[3] has been placed at location K25, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 231)] | Port fpioa[3] has been placed at location K25, whose type is share pin.
+
+define_attribute {p:fpioa[18]} {PAP_IO_DIRECTION} {INOUT}
+	C: UserConstraintEditor-2001: [F:/SocFpga/soc.fdc(line number: 318)] IO Direction INPUT is incorrect, change it to INOUT.
 
 define_attribute {p:fpioa[20]} {PAP_IO_LOC} {R23}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 281)] | Port fpioa[20] has been placed at location R23, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 333)] | Port fpioa[20] has been placed at location R23, whose type is share pin.
 
 define_attribute {p:fpioa[21]} {PAP_IO_LOC} {T23}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 287)] | Port fpioa[21] has been placed at location T23, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 339)] | Port fpioa[21] has been placed at location T23, whose type is share pin.
 
 define_attribute {p:fpioa[22]} {PAP_IO_LOC} {P26}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 293)] | Port fpioa[22] has been placed at location P26, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 345)] | Port fpioa[22] has been placed at location P26, whose type is share pin.
 
 define_attribute {p:fpioa[23]} {PAP_IO_LOC} {R26}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 299)] | Port fpioa[23] has been placed at location R26, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 351)] | Port fpioa[23] has been placed at location R26, whose type is share pin.
 
 define_attribute {p:fpioa[24]} {PAP_IO_LOC} {M26}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 305)] | Port fpioa[24] has been placed at location M26, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 357)] | Port fpioa[24] has been placed at location M26, whose type is share pin.
 
 define_attribute {p:fpioa[25]} {PAP_IO_LOC} {N26}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 311)] | Port fpioa[25] has been placed at location N26, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 363)] | Port fpioa[25] has been placed at location N26, whose type is share pin.
+
+define_attribute {p:fpioa[28]} {PAP_IO_DIRECTION} {INOUT}
+	C: UserConstraintEditor-2001: [F:/SocFpga/soc.fdc(line number: 380)] IO Direction INPUT is incorrect, change it to INOUT.
+
+define_attribute {p:fpioa[29]} {PAP_IO_DIRECTION} {INOUT}
+	C: UserConstraintEditor-2001: [F:/SocFpga/soc.fdc(line number: 386)] IO Direction INPUT is incorrect, change it to INOUT.
 
 define_attribute {p:mem_dq[15]} {PAP_IO_LOC} {G6}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 473)] | Port mem_dq[15] has been placed at location G6, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 525)] | Port mem_dq[15] has been placed at location G6, whose type is share pin.
 
 define_attribute {p:mem_dq[13]} {PAP_IO_LOC} {E6}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 487)] | Port mem_dq[13] has been placed at location E6, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 539)] | Port mem_dq[13] has been placed at location E6, whose type is share pin.
 
 define_attribute {p:mem_dq[12]} {PAP_IO_LOC} {G8}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 494)] | Port mem_dq[12] has been placed at location G8, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 546)] | Port mem_dq[12] has been placed at location G8, whose type is share pin.
 
 define_attribute {p:mem_dq[11]} {PAP_IO_LOC} {D6}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 501)] | Port mem_dq[11] has been placed at location D6, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 553)] | Port mem_dq[11] has been placed at location D6, whose type is share pin.
 
 define_attribute {p:mem_dq[10]} {PAP_IO_LOC} {H8}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 508)] | Port mem_dq[10] has been placed at location H8, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 560)] | Port mem_dq[10] has been placed at location H8, whose type is share pin.
 
 define_attribute {p:mem_dq[8]} {PAP_IO_LOC} {H6}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 522)] | Port mem_dq[8] has been placed at location H6, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 574)] | Port mem_dq[8] has been placed at location H6, whose type is share pin.
 
 define_attribute {p:mem_dq[7]} {PAP_IO_LOC} {J5}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 529)] | Port mem_dq[7] has been placed at location J5, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 581)] | Port mem_dq[7] has been placed at location J5, whose type is share pin.
 
 define_attribute {p:mem_dq[5]} {PAP_IO_LOC} {K7}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 543)] | Port mem_dq[5] has been placed at location K7, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 595)] | Port mem_dq[5] has been placed at location K7, whose type is share pin.
 
 define_attribute {p:mem_dq[3]} {PAP_IO_LOC} {L8}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 557)] | Port mem_dq[3] has been placed at location L8, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 609)] | Port mem_dq[3] has been placed at location L8, whose type is share pin.
 
 define_attribute {p:mem_dq[1]} {PAP_IO_LOC} {J6}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 571)] | Port mem_dq[1] has been placed at location J6, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 623)] | Port mem_dq[1] has been placed at location J6, whose type is share pin.
 
 define_attribute {p:mem_dqs[1]} {PAP_IO_LOC} {H7}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 704)] | Port mem_dqs[1] has been placed at location H7, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 756)] | Port mem_dqs[1] has been placed at location H7, whose type is share pin.
 
 define_attribute {p:mem_dqs[0]} {PAP_IO_LOC} {J4}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 711)] | Port mem_dqs[0] has been placed at location J4, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 763)] | Port mem_dqs[0] has been placed at location J4, whose type is share pin.
 
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_LOC} {G7}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 732)] | Port mem_dqs_n[1] has been placed at location G7, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 784)] | Port mem_dqs_n[1] has been placed at location G7, whose type is share pin.
 
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_LOC} {H4}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 739)] | Port mem_dqs_n[0] has been placed at location H4, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 791)] | Port mem_dqs_n[0] has been placed at location H4, whose type is share pin.
 
 define_attribute {p:mem_dm[0]} {PAP_IO_LOC} {K6}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 788)] | Port mem_dm[0] has been placed at location K6, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 840)] | Port mem_dm[0] has been placed at location K6, whose type is share pin.
 
 define_attribute {p:flash_cs_n} {PAP_IO_LOC} {P18}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 882)] | Port flash_cs_n has been placed at location P18, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 934)] | Port flash_cs_n has been placed at location P18, whose type is share pin.
 
 define_attribute {p:flash_cs2_n} {PAP_IO_LOC} {F25}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 887)] | Port flash_cs2_n has been placed at location F25, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 939)] | Port flash_cs2_n has been placed at location F25, whose type is share pin.
 
 define_attribute {p:flash_mosi} {PAP_IO_LOC} {R14}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 892)] | Port flash_mosi has been placed at location R14, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 944)] | Port flash_mosi has been placed at location R14, whose type is share pin.
 
 define_attribute {p:flash_miso} {PAP_IO_LOC} {R15}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 897)] | Port flash_miso has been placed at location R15, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 949)] | Port flash_miso has been placed at location R15, whose type is share pin.
 
 define_attribute {p:flash_wp_n} {PAP_IO_LOC} {P14}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 902)] | Port flash_wp_n has been placed at location P14, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 954)] | Port flash_wp_n has been placed at location P14, whose type is share pin.
 
 define_attribute {p:flash_hold_n} {PAP_IO_LOC} {N14}
-	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 907)] | Port flash_hold_n has been placed at location N14, whose type is share pin.
+	C: ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 959)] | Port flash_hold_n has been placed at location N14, whose type is share pin.
 
 
 Constraints with issues:
@@ -127,6 +136,9 @@ Issues without commands:
 C: ConstraintEditor-2009: p:cam1_scl is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
 C: ConstraintEditor-2009: p:cam1_sda is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
 C: ConstraintEditor-2009: p:cam1_reset_n is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:cam2_scl is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:cam2_sda is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
+C: ConstraintEditor-2009: p:cam2_reset_n is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
 C: ConstraintEditor-2009: p:core_active is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.
 C: ConstraintEditor-2009: p:core_active is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.
 C: ConstraintEditor-2009: p:JTAG_TDO is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.

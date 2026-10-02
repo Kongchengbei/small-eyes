@@ -10,7 +10,8 @@ module Hcamera_subsystem #(
     parameter integer FRAME_HEIGHT = 480,
     parameter integer FIFO_ADDR_WIDTH = 10,
     parameter integer DMA_TIMEOUT_CYCLES = 1000000,
-    parameter integer SNAPSHOT_TIMEOUT_CYCLES = 1000000
+    parameter integer SNAPSHOT_TIMEOUT_CYCLES = 1000000,
+    parameter [7:0] AXI_ID = 8'h40
 ) (
     input                  cpu_clk,
     input                  mem_clk,
@@ -274,7 +275,7 @@ module Hcamera_subsystem #(
         .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES),
         .BUFFER0_ADDR(BUFFER0_ADDR), .BUFFER1_ADDR(BUFFER1_ADDR),
         .FRAME_WIDTH(FRAME_WIDTH), .FRAME_HEIGHT(FRAME_HEIGHT),
-        .TIMEOUT_CYCLES(DMA_TIMEOUT_CYCLES)
+        .TIMEOUT_CYCLES(DMA_TIMEOUT_CYCLES), .AXI_ID(AXI_ID)
     ) u_dma (
         .clk(mem_clk), .rst_n(mem_rst_n), .enable(dma_enable_sync_mem), .ddr_ready(ddr_ready),
         .clear_errors(clear_errors_mem), .release_valid(release_valid_mem),

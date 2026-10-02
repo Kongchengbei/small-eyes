@@ -3659,7 +3659,7 @@
             <data>u_pll/u_gpll</data>
             <data>clkbufg_0</data>
             <data>ntclkbufg_0</data>
-            <data>5796</data>
+            <data>5916</data>
         </row>
         <row>
             <data>O</data>
@@ -3685,7 +3685,7 @@
         <row>
             <data>N7_0</data>
             <data>N7_0</data>
-            <data>1350</data>
+            <data>1470</data>
         </row>
         <row>
             <data>N4</data>
@@ -3952,7 +3952,7 @@
         <row>
             <data>ntclkbufg_0</data>
             <data>clkbufg_0</data>
-            <data>5796</data>
+            <data>5916</data>
         </row>
         <row>
             <data>u_cam1/N171</data>
@@ -3972,12 +3972,12 @@
         <row>
             <data>N7_0</data>
             <data>N7_0</data>
-            <data>1350</data>
+            <data>1470</data>
         </row>
         <row>
             <data>u_ddr3_ctrl/u_ddrphy_top/calib_done</data>
             <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_calib_top/ddrphy_main_ctrl/calib_done</data>
-            <data>567</data>
+            <data>569</data>
         </row>
         <row>
             <data>u_cam1/N106</data>
@@ -4005,13 +4005,13 @@
             <data>365</data>
         </row>
         <row>
-            <data>u_ddr_axi_bridge/txn_addr_ddr [3]</data>
-            <data>u_ddr_axi_bridge/txn_addr_ddr[3]</data>
+            <data>u_ddr_axi_bridge/txn_addr_ddr [4]</data>
+            <data>u_ddr_axi_bridge/txn_addr_ddr[4]</data>
             <data>352</data>
         </row>
         <row>
-            <data>u_ddr_axi_bridge/txn_addr_ddr [4]</data>
-            <data>u_ddr_axi_bridge/txn_addr_ddr[4]</data>
+            <data>u_ddr_axi_bridge/txn_addr_ddr [3]</data>
+            <data>u_ddr_axi_bridge/txn_addr_ddr[3]</data>
             <data>352</data>
         </row>
         <row>
@@ -4037,7 +4037,7 @@
         <row>
             <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_buf/u_wdata_fifo/rd_en [0]</data>
             <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_buf/u_wdata_fifo/N6_0</data>
-            <data>296</data>
+            <data>297</data>
         </row>
         <row>
             <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/u_axi_wdata_align_fifo/rd_en [0]</data>
@@ -4055,18 +4055,13 @@
             <data>272</data>
         </row>
         <row>
-            <data>u_cam1/u_dma/N1602</data>
-            <data>u_cam1/u_dma/N1517_7</data>
-            <data>267</data>
+            <data>dbg_id_ins[22]</data>
+            <data>u_cpu/u_idu/id_ins_reg[22]</data>
+            <data>266</data>
         </row>
         <row>
             <data>dbg_id_ins[23]</data>
             <data>u_cpu/u_idu/id_ins_reg[23]</data>
-            <data>266</data>
-        </row>
-        <row>
-            <data>dbg_id_ins[22]</data>
-            <data>u_cpu/u_idu/id_ins_reg[22]</data>
             <data>266</data>
         </row>
         <row>
@@ -4075,13 +4070,13 @@
             <data>265</data>
         </row>
         <row>
-            <data>dbg_id_ins[17]</data>
-            <data>u_cpu/u_idu/id_ins_reg[17]</data>
+            <data>dbg_id_ins[18]</data>
+            <data>u_cpu/u_idu/id_ins_reg[18]</data>
             <data>264</data>
         </row>
         <row>
-            <data>dbg_id_ins[18]</data>
-            <data>u_cpu/u_idu/id_ins_reg[18]</data>
+            <data>dbg_id_ins[17]</data>
+            <data>u_cpu/u_idu/id_ins_reg[17]</data>
             <data>264</data>
         </row>
         <row>
@@ -4100,23 +4095,28 @@
             <data>258</data>
         </row>
         <row>
-            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_rdata_align/u_mcdq_axi_rdata_arrange/u_axi_rdata_mac_fifo1/N10</data>
-            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_rdata_align/u_mcdq_axi_rdata_arrange/u_axi_rdata_mac_fifo1/N10</data>
-            <data>257</data>
-        </row>
-        <row>
             <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_rdata_align/u_mcdq_axi_rdata_arrange/u_axi_rdata_mac_fifo1/N14</data>
             <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_rdata_align/u_mcdq_axi_rdata_arrange/u_axi_rdata_mac_fifo1/N14</data>
             <data>257</data>
         </row>
         <row>
-            <data>u_cpu/u_dcache/N883 [0]</data>
-            <data>u_cpu/u_dcache/N883_0</data>
-            <data>256</data>
+            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_rdata_align/u_mcdq_axi_rdata_arrange/u_axi_rdata_mac_fifo1/N10</data>
+            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_rdata_align/u_mcdq_axi_rdata_arrange/u_axi_rdata_mac_fifo1/N10</data>
+            <data>257</data>
         </row>
         <row>
             <data>u_cpu/u_dcache/N880 [1]</data>
             <data>u_cpu/u_dcache/N880_3</data>
+            <data>256</data>
+        </row>
+        <row>
+            <data>u_cam1/u_dma/N1605</data>
+            <data>u_cam1/u_dma/N1605</data>
+            <data>256</data>
+        </row>
+        <row>
+            <data>u_cpu/u_dcache/N883 [0]</data>
+            <data>u_cpu/u_dcache/N883_0</data>
             <data>256</data>
         </row>
         <row>
@@ -4130,18 +4130,18 @@
             <data>256</data>
         </row>
         <row>
-            <data>u_cam1/u_dma/N1605</data>
-            <data>u_cam1/u_dma/N1605</data>
-            <data>256</data>
-        </row>
-        <row>
-            <data>dbg_if_pc[5]</data>
-            <data>u_cpu/u_ifu/if_pc_reg[5]</data>
-            <data>246</data>
+            <data>u_cam1/u_dma/N1602</data>
+            <data>u_cam1/u_dma/N19_7</data>
+            <data>253</data>
         </row>
         <row>
             <data>dbg_if_pc[4]</data>
             <data>u_cpu/u_ifu/if_pc_reg[4]</data>
+            <data>246</data>
+        </row>
+        <row>
+            <data>dbg_if_pc[5]</data>
+            <data>u_cpu/u_ifu/if_pc_reg[5]</data>
             <data>246</data>
         </row>
         <row>
@@ -4150,29 +4150,39 @@
             <data>228</data>
         </row>
         <row>
-            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_mac_top/mcdq_wdatapath/mcdq_wdp_align/_N140675</data>
+            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_mac_top/mcdq_wdatapath/mcdq_wdp_align/_N140462</data>
             <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_mac_top/mcdq_wdatapath/mcdq_wdp_align/N16_7[0]_1</data>
             <data>219</data>
         </row>
         <row>
-            <data>u_cpu/u_dcache/_N141196</data>
+            <data>u_cpu/u_dcache/_N140987</data>
             <data>u_cpu/u_dcache/N2643_1</data>
             <data>192</data>
         </row>
         <row>
-            <data>u_cpu/u_dcache/_N141129</data>
+            <data>u_cpu/u_dcache/_N140986</data>
+            <data>u_cpu/u_dcache/N2630_14</data>
+            <data>192</data>
+        </row>
+        <row>
+            <data>u_cpu/u_dcache/_N140918</data>
             <data>u_cpu/u_dcache/N2630_11</data>
             <data>192</data>
         </row>
         <row>
-            <data>u_cpu/u_dcache/_N141128</data>
+            <data>u_cpu/u_dcache/_N140917</data>
             <data>u_cpu/u_dcache/N2630_10</data>
             <data>192</data>
         </row>
         <row>
-            <data>u_cpu/u_dcache/_N141195</data>
-            <data>u_cpu/u_dcache/N2630_14</data>
-            <data>192</data>
+            <data>mmio_req_addr[3]</data>
+            <data>u_mem/N119[3]</data>
+            <data>187</data>
+        </row>
+        <row>
+            <data>mmio_req_addr[2]</data>
+            <data>u_mem/N119[2]</data>
+            <data>184</data>
         </row>
         <row>
             <data>u_cpu/u_exu/N255</data>
@@ -4180,19 +4190,9 @@
             <data>183</data>
         </row>
         <row>
-            <data>mmio_req_addr[2]</data>
-            <data>u_mem/N119[2]</data>
-            <data>167</data>
-        </row>
-        <row>
             <data>u_ddr3_ctrl/u_ddrphy_top/rst_clk</data>
             <data>u_ddr3_ctrl/u_ddrphy_top/u_rst_clk_bufg</data>
             <data>165</data>
-        </row>
-        <row>
-            <data>mmio_req_addr[3]</data>
-            <data>u_mem/N119[3]</data>
-            <data>159</data>
         </row>
         <row>
             <data>dbg_id_pc[4]</data>
@@ -4215,13 +4215,13 @@
             <data>154</data>
         </row>
         <row>
-            <data>u_cpu/u_dcache/miss_buffer_replace_way [1]</data>
-            <data>u_cpu/u_dcache/miss_buffer_replace_way[1]</data>
+            <data>u_cpu/u_dcache/miss_buffer_replace_way [0]</data>
+            <data>u_cpu/u_dcache/miss_buffer_replace_way[0]</data>
             <data>151</data>
         </row>
         <row>
-            <data>u_cpu/u_dcache/miss_buffer_replace_way [0]</data>
-            <data>u_cpu/u_dcache/miss_buffer_replace_way[0]</data>
+            <data>u_cpu/u_dcache/miss_buffer_replace_way [1]</data>
+            <data>u_cpu/u_dcache/miss_buffer_replace_way[1]</data>
             <data>151</data>
         </row>
         <row>
@@ -4235,23 +4235,23 @@
             <data>146</data>
         </row>
         <row>
-            <data>u_cpu/u_dcache/_N141127</data>
-            <data>u_cpu/u_dcache/N2630_9</data>
+            <data>u_cpu/u_dcache/_N140988</data>
+            <data>u_cpu/u_dcache/N2643_2</data>
             <data>145</data>
         </row>
         <row>
-            <data>u_cpu/u_dcache/_N141130</data>
-            <data>u_cpu/u_dcache/N2630_12</data>
-            <data>145</data>
-        </row>
-        <row>
-            <data>u_cpu/u_dcache/_N141194</data>
+            <data>u_cpu/u_dcache/_N140985</data>
             <data>u_cpu/u_dcache/N2630_13</data>
             <data>145</data>
         </row>
         <row>
-            <data>u_cpu/u_dcache/_N141197</data>
-            <data>u_cpu/u_dcache/N2643_2</data>
+            <data>u_cpu/u_dcache/_N140919</data>
+            <data>u_cpu/u_dcache/N2630_12</data>
+            <data>145</data>
+        </row>
+        <row>
+            <data>u_cpu/dc_rd_addr [10]</data>
+            <data>u_cpu/u_dcache/request_buffer_index[6]</data>
             <data>145</data>
         </row>
         <row>
@@ -4260,9 +4260,14 @@
             <data>145</data>
         </row>
         <row>
-            <data>u_cpu/dc_rd_addr [10]</data>
-            <data>u_cpu/u_dcache/request_buffer_index[6]</data>
+            <data>u_cpu/u_dcache/_N140916</data>
+            <data>u_cpu/u_dcache/N2630_9</data>
             <data>145</data>
+        </row>
+        <row>
+            <data>mmio_req_addr[4]</data>
+            <data>u_mem/N119[4]</data>
+            <data>143</data>
         </row>
         <row>
             <data>u_cpu/u_dcache/write_buffer_index [7]</data>
@@ -4280,29 +4285,39 @@
             <data>136</data>
         </row>
         <row>
-            <data>u_cam1/dma_frame_active</data>
-            <data>u_cam1/u_dma/frame_active</data>
-            <data>131</data>
-        </row>
-        <row>
             <data>dbg_if_pc[3]</data>
             <data>u_cpu/u_ifu/if_pc_reg[3]</data>
             <data>124</data>
         </row>
         <row>
-            <data>mmio_req_addr[5]</data>
-            <data>u_mem/N119[5]</data>
-            <data>123</data>
-        </row>
-        <row>
-            <data>u_cam1/u_dma/discard_until_sof</data>
-            <data>u_cam1/u_dma/discard_until_sof</data>
-            <data>121</data>
+            <data>u_cam1/u_dma/_N139657</data>
+            <data>u_cam1/u_dma/N448_1</data>
+            <data>122</data>
         </row>
         <row>
             <data>u_cpu/u_exu/ex_alu_op [0]</data>
             <data>u_cpu/u_exu/ex_alu_op[0]</data>
-            <data>121</data>
+            <data>122</data>
+        </row>
+        <row>
+            <data>mmio_req_addr[5]</data>
+            <data>u_mem/N119[5]</data>
+            <data>122</data>
+        </row>
+        <row>
+            <data>u_cam1/dma_frame_active</data>
+            <data>u_cam1/u_dma/frame_active</data>
+            <data>119</data>
+        </row>
+        <row>
+            <data>u_cam1/u_dma/_N140493</data>
+            <data>u_cam1/u_dma/N19_6</data>
+            <data>118</data>
+        </row>
+        <row>
+            <data>u_cam1/u_dma/discard_until_sof</data>
+            <data>u_cam1/u_dma/discard_until_sof</data>
+            <data>113</data>
         </row>
         <row>
             <data>dbg_ctrl[21]</data>
@@ -4310,28 +4325,13 @@
             <data>111</data>
         </row>
         <row>
-            <data>u_cam1/u_dma/_N144015</data>
-            <data>u_cam1/u_dma/N1517_5</data>
-            <data>108</data>
-        </row>
-        <row>
-            <data>mmio_req_addr[4]</data>
-            <data>u_mem/N119[4]</data>
-            <data>107</data>
-        </row>
-        <row>
-            <data>u_cam1/u_dma/_N139887</data>
-            <data>u_cam1/u_dma/N602_1</data>
+            <data>u_cpu/dc_wr_type [2]</data>
+            <data>u_cpu/u_axi_bridge/N225</data>
             <data>106</data>
         </row>
         <row>
             <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_dqs_rst</data>
             <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_reset_ctrl/ddrphy_dqs_rst</data>
-            <data>106</data>
-        </row>
-        <row>
-            <data>u_cpu/dc_wr_type [2]</data>
-            <data>u_cpu/u_axi_bridge/N225</data>
             <data>106</data>
         </row>
         <row>
@@ -4350,13 +4350,18 @@
             <data>100</data>
         </row>
         <row>
-            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_calib_top/ddrphy_main_ctrl/N122</data>
-            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_calib_top/ddrphy_main_ctrl/N122</data>
+            <data>u_flash_ddr_boot/boot_owner</data>
+            <data>u_ddr_axi_bridge/req_wmask_cpu[3:0]_8</data>
             <data>99</data>
         </row>
         <row>
             <data>u_cpu/u_exu/alu_src2 [2]</data>
             <data>u_cpu/u_exu/N94[2]</data>
+            <data>99</data>
+        </row>
+        <row>
+            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_calib_top/ddrphy_main_ctrl/N122</data>
+            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_calib_top/ddrphy_main_ctrl/N122</data>
             <data>99</data>
         </row>
         <row>
@@ -4370,18 +4375,13 @@
             <data>98</data>
         </row>
         <row>
+            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_cpd_ctrl/N0</data>
+            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_cpd_ctrl/N0</data>
+            <data>97</data>
+        </row>
+        <row>
             <data>dbg_id_pc[3]</data>
             <data>u_cpu/u_idu/id_pc_reg[3]</data>
-            <data>97</data>
-        </row>
-        <row>
-            <data>u_flash_ddr_boot/boot_owner</data>
-            <data>u_flash_ddr_boot/N37</data>
-            <data>97</data>
-        </row>
-        <row>
-            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_cpd_ctrl/N0</data>
-            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_cpd_ctrl/N0</data>
             <data>97</data>
         </row>
         <row>
@@ -4395,13 +4395,13 @@
             <data>96</data>
         </row>
         <row>
-            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/phy_clk_p [1]</data>
-            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll</data>
+            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_mac_top/mcdq_dcp_top/mcdq_dcp_back_ctrl/norm_cmd_l_act</data>
+            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_mac_top/mcdq_dcp_top/mcdq_dcp_back_ctrl/N210</data>
             <data>89</data>
         </row>
         <row>
-            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_mac_top/mcdq_dcp_top/mcdq_dcp_back_ctrl/norm_cmd_l_act</data>
-            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_mac_top/mcdq_dcp_top/mcdq_dcp_back_ctrl/N210</data>
+            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/phy_clk_p [1]</data>
+            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll</data>
             <data>89</data>
         </row>
         <row>
@@ -4410,24 +4410,29 @@
             <data>88</data>
         </row>
         <row>
-            <data>u_cpu/u_exu/alu_src2 [1]</data>
-            <data>u_cpu/u_exu/N94[1]</data>
-            <data>87</data>
+            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/N18</data>
+            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/N18</data>
+            <data>86</data>
+        </row>
+        <row>
+            <data>u_cpu/u_axi_bridge/N446</data>
+            <data>u_cpu/u_axi_bridge/N300_3</data>
+            <data>85</data>
         </row>
         <row>
             <data>u_cpu/u_exu/alu_src2 [0]</data>
             <data>u_cpu/u_exu/N94[0]</data>
-            <data>85</data>
-        </row>
-        <row>
-            <data>u_cpu/u_axi_bridge/N446</data>
-            <data>u_cpu/u_axi_bridge/N300_2</data>
-            <data>85</data>
-        </row>
-        <row>
-            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/N18</data>
-            <data>u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/N18</data>
             <data>84</data>
+        </row>
+        <row>
+            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/debug_data [141]</data>
+            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_group[1].ddrphy_data_slice/ddrphy_dqs_rddata_align/ck_dqs_diff[1]</data>
+            <data>83</data>
+        </row>
+        <row>
+            <data>u_cam1/u_dma/N2141</data>
+            <data>u_cam1/u_dma/N2141</data>
+            <data>83</data>
         </row>
         <row>
             <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/debug_data [291]</data>
@@ -4437,11 +4442,6 @@
         <row>
             <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_group[0].ddrphy_data_slice/debug_data [66]</data>
             <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_group[0].ddrphy_data_slice/ddrphy_dqs_rddata_align/ck_dqs_diff[1]</data>
-            <data>83</data>
-        </row>
-        <row>
-            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/debug_data [216]</data>
-            <data>u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_group[2].ddrphy_data_slice/ddrphy_dqs_rddata_align/ck_dqs_diff[1]</data>
             <data>83</data>
         </row>
     </table>
@@ -4460,13 +4460,13 @@
         </row>
         <row>
             <data>FF</data>
-            <data>17830</data>
+            <data>17950</data>
             <data>319600</data>
             <data>6</data>
         </row>
         <row>
             <data>LUT</data>
-            <data>15083</data>
+            <data>15191</data>
             <data>159800</data>
             <data>10</data>
         </row>
@@ -4608,10 +4608,10 @@
             <data>RAM(GB)</data>
         </column_headers>
         <row>
-            <data>0h:0m:5s</data>
-            <data>0h:0m:5s</data>
-            <data>0h:0m:27s</data>
-            <data>733</data>
+            <data>0h:0m:1s</data>
+            <data>0h:0m:1s</data>
+            <data>0h:0m:26s</data>
+            <data>732</data>
             <data>WINDOWS 10 x86_64</data>
             <data>13th Gen Intel(R) Core(TM) i7-13650HX</data>
             <data>24</data>
@@ -4641,6 +4641,9 @@
             <data message="4">Infer CARRY group, base inst: u_cam1/N727_1/gateop, insts:2.</data>
         </row>
         <row>
+            <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/u_axi_wdata_align_fifo/fifo_loop[2].ips2l_distributed_fifo_data/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N36.eq_0/gateop, insts:3.</data>
+        </row>
+        <row>
             <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/u_axi_wdata_align_fifo/fifo_loop[3].ips2l_distributed_fifo_data/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N36.eq_0/gateop, insts:3.</data>
         </row>
         <row>
@@ -4656,10 +4659,13 @@
             <data message="4">Infer CARRY group, base inst: u_uart0_tx/N55.lt_0/gateop, insts:8.</data>
         </row>
         <row>
-            <data message="4">Infer CARRY group, base inst: u_uart0_tx/N71_1_0/gateop, insts:16.</data>
+            <data message="4">Infer CARRY group, base inst: u_uart0_tx/N71_1_1/gateop, insts:15.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N10_0/gateop, insts:26.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N19_6/gateop, insts:2.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N94_1_1/gateop, insts:31.</data>
@@ -4677,7 +4683,7 @@
             <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N234_1_0/gateop, insts:32.</data>
         </row>
         <row>
-            <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N237_1/gateop, insts:32.</data>
+            <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N237_0/gateop, insts:33.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N791_1_1/gateop, insts:31.</data>
@@ -4689,19 +4695,10 @@
             <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N972_1_1/gateop, insts:31.</data>
         </row>
         <row>
-            <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N1145/gateop, insts:3.</data>
+            <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N1517_4/gateop, insts:2.</data>
         </row>
         <row>
-            <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N1177_36/gateop, insts:4.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N1210_64/gateop, insts:6.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N1517_5/gateop, insts:2.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N2847_1/gateop, insts:2.</data>
+            <data message="4">Infer CARRY group, base inst: u_cam1/u_dma/N1836/gateop, insts:2.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_cam1/u_dvp_rx/N28_1_1/gateop, insts:31.</data>
@@ -4776,7 +4773,7 @@
             <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_rdata_align/u_mcdq_axi_rdata_arrange/u_axi_rdata_mac_fifo0/fifo_loop[0].ips2l_distributed_fifo/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N36.eq_0/gateop, insts:4.</data>
         </row>
         <row>
-            <data message="4">Infer CARRY group, base inst: u_cpu/u_dcache/N940.eq_0/gateop, insts:5.</data>
+            <data message="4">Infer CARRY group, base inst: u_cpu/u_dcache/N940.eq_0/gateop, insts:4.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_cpu/u_dcache/N950.eq_0/gateop, insts:10.</data>
@@ -4872,9 +4869,6 @@
             <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/N141_21[7]/gateop, insts:3.</data>
         </row>
         <row>
-            <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/N141_21[21]/gateop, insts:3.</data>
-        </row>
-        <row>
             <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/N141_21[22]/gateop, insts:3.</data>
         </row>
         <row>
@@ -4905,6 +4899,12 @@
             <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/N141_21[31]/gateop, insts:3.</data>
         </row>
         <row>
+            <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_rdata_align/u_mcdq_axi_rdata_arrange/u_axi_rdata_mac_fifo0/fifo_loop[1].ips2l_distributed_fifo/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N16.eq_0/gateop, insts:3.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_rdata_align/u_mcdq_axi_rdata_arrange/u_axi_rdata_mac_fifo0/fifo_loop[1].ips2l_distributed_fifo/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N36.eq_0/gateop, insts:4.</data>
+        </row>
+        <row>
             <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/N141_24[1]/gateop, insts:2.</data>
         </row>
         <row>
@@ -4932,16 +4932,13 @@
             <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/N141_24[20]/gateop, insts:2.</data>
         </row>
         <row>
+            <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/N141_24[21]/gateop, insts:2.</data>
+        </row>
+        <row>
             <data message="4">Infer CARRY group, base inst: u_cpu/u_icache/N106.eq_0/gateop, insts:10.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_cpu/u_icache/N109.eq_0/gateop, insts:10.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_rdata_align/u_mcdq_axi_rdata_arrange/u_axi_rdata_mac_fifo0/fifo_loop[1].ips2l_distributed_fifo/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N16.eq_0/gateop, insts:3.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_rdata_align/u_mcdq_axi_rdata_arrange/u_axi_rdata_mac_fifo0/fifo_loop[1].ips2l_distributed_fifo/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N36.eq_0/gateop, insts:4.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_rdata_align/u_mcdq_axi_rdata_arrange/u_axi_rdata_mac_fifo0/fifo_loop[2].ips2l_distributed_fifo/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N16.eq_0/gateop, insts:3.</data>
@@ -4999,9 +4996,6 @@
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/u_axi_wdata_align_fifo/fifo_loop[0].ips2l_distributed_fifo_data/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N30.fsub_0/gateop, insts:8.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/u_axi_wdata_align_fifo/fifo_loop[0].ips2l_distributed_fifo_data/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N36.eq_0/gateop, insts:3.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_cpu/u_idu/N274.eq_0/gateop, insts:16.</data>
@@ -5118,13 +5112,13 @@
             <data message="4">Infer CARRY group, base inst: u_cpu/u_idu/N338_1.eq_0/gateop, insts:16.</data>
         </row>
         <row>
+            <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/u_axi_wdata_align_fifo/fifo_loop[0].ips2l_distributed_fifo_data/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N36.eq_0/gateop, insts:3.</data>
+        </row>
+        <row>
             <data message="4">Infer CARRY group, base inst: u_cpu/u_ifu/N3_1_0/gateop, insts:30.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/u_axi_wdata_align_fifo/fifo_loop[1].ips2l_distributed_fifo_data/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N36.eq_0/gateop, insts:3.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/u_axi_wdata_align_fifo/fifo_loop[2].ips2l_distributed_fifo_data/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N36.eq_0/gateop, insts:3.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_cpu/u_ifu/N16_1.fsub_0/gateop, insts:30.</data>
@@ -5217,7 +5211,40 @@
             <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_dm/N260_0/gateop, insts:33.</data>
         </row>
         <row>
-            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N231/gateop, insts:2.</data>
+            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N117_27[2]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N117_27[3]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N117_27[9]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N117_27[11]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N117_27[12]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N117_27[14]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N117_27[21]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N117_27[25]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N117_27[26]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N117_27[27]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N117_27[28]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N320_and[4][2]_1/gateop, insts:2.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_jtag/u_jtag_driver/N325_3/gateop, insts:2.</data>
@@ -5235,13 +5262,13 @@
             <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/u_alu/N9_2_8/gateop, insts:2.</data>
         </row>
         <row>
-            <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/u_alu/N9_2_18/gateop, insts:2.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/u_alu/N9_2_19/gateop, insts:2.</data>
-        </row>
-        <row>
             <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/u_alu/N9_4_37[1]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/u_alu/N9_4_37[10]/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/u_alu/N9_4_37[11]/gateop, insts:2.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/u_alu/N9_4_37[12]/gateop, insts:2.</data>
@@ -5281,12 +5308,6 @@
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/u_csr/csr_rdata_36[1]_2/gateop, insts:2.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/u_csr/csr_rdata_36[3]_2/gateop, insts:2.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/u_csr/csr_rdata_36[4]_2/gateop, insts:2.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_cpu/u_exu/u_div/N3_1_0/gateop, insts:32.</data>
@@ -5445,9 +5466,6 @@
             <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/ddrphy_data_slice_dqs_gate_cal/ddrphy_dqs_gate_coarse_cal/read_cmd_mux_adj_15[2]/gateop, insts:2.</data>
         </row>
         <row>
-            <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/ddrphy_data_slice_dqs_gate_cal/ddrphy_gatecal/N531/gateop, insts:2.</data>
-        </row>
-        <row>
             <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/ddrphy_data_slice_dqs_gate_cal/ddrphy_gatecal/N633_3/gateop, insts:2.</data>
         </row>
         <row>
@@ -5485,6 +5503,9 @@
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_axi_mc/mcdq_axi_channel0/mcdq_axi_wdata_align/u_axi_wdata_align_fifo/N5_0/gateop, insts:2.</data>
+        </row>
+        <row>
+            <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_mac_top/mcdq_dcp_top/mcdq_dcp_back_ctrl/timing_act_pass/N5[2]/gateop, insts:2.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: u_ddr3_ctrl/u_ips_ddrc_top/mcdq_mac_top/mcdq_dcp_top/mcdq_dcp_buf/A_ips2l_distributed_fifo/u_ips2l_distributed_fifo_distributed_fifo_v1_0/u_ips2l_distributed_fifo_ctr/N24_1.fsub_0/gateop, insts:7.</data>

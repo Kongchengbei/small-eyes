@@ -35,4 +35,13 @@ camera_demo/
 !/bsp/camera_app/camera_gpio_test_remote.bin
 
 # Ignore generated build output.
+!/bsp/camera_stereo_app/
+/bsp/camera_stereo_app/*
+!/bsp/camera_stereo_app/*.c
+!/bsp/camera_stereo_app/*.h
+!/bsp/camera_stereo_app/Makefile
+!/bsp/camera_stereo_app/README.md
+!/bsp/camera_stereo_app/link.lds
+!/bsp/camera_stereo_app/camera_stereo*.bin
+!/bsp/camera_stereo_app/camera_cam2_only*.bin
 /build/

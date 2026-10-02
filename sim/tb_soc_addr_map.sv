@@ -49,6 +49,19 @@ module tb_soc_addr_map;
             ((`SOC_CAM1_BUFFER1_BASE & 32'h1f) != 0))
             $fatal(1, "CAM1 frame buffers overlap or exceed the NPU input region");
 
+        // 双目四槽不能互相重叠，并为后续小图输入保留剩余空间。
+        if ((`SOC_CAM1_BUFFER1_BASE + `SOC_CAM1_BUFFER_SLOT_BYTES > `SOC_CAM2_BUFFER0_BASE) ||
+            (`SOC_CAM2_BUFFER0_BASE + `SOC_CAM1_BUFFER_SLOT_BYTES > `SOC_CAM2_BUFFER1_BASE) ||
+            (`SOC_CAM2_BUFFER1_BASE + `SOC_CAM1_BUFFER_SLOT_BYTES > `SOC_NPU_INPUT_END) ||
+            ((`SOC_CAM2_BUFFER0_BASE & 32'h1f) != 0) ||
+            ((`SOC_CAM2_BUFFER1_BASE & 32'h1f) != 0))
+            $fatal(1, "Stereo camera buffers overlap or exceed the input region");
+        check_equal(`SOC_CAM2_MMIO_BASE, `SOC_CAM1_MMIO_END, "CAM1/CAM2 boundary");
+        check_equal(`SOC_CAM2_MMIO_BASE + `SOC_CAM2_MMIO_BYTES,
+                    `SOC_CAM2_MMIO_END, "CAM2 MMIO end");
+        if (`SOC_CAM2_MMIO_END > `SOC_FPIOA_BASE)
+            $fatal(1, "CAM2 MMIO overlaps FPIOA");
+
         // NPU 的 256-bit AXI 数据区必须以 32 Byte 边界开始、结束。
         if (((`SOC_NPU_SHARED_BASE  & 32'h0000_001f) != 32'b0) ||
             ((`SOC_NPU_INPUT_BASE   & 32'h0000_001f) != 32'b0) ||

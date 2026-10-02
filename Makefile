@@ -1,4 +1,5 @@
 SHELL := /bin/sh
+.DEFAULT_GOAL := sim
 
 VERILATOR ?= verilator
 PYTHON    ?= python3
@@ -17,6 +18,9 @@ CAMERA_DVP_FIFO_BIN := $(BUILD_DIR)/obj_camera_dvp_fifo/Vtb_camera_dvp_fifo
 CAMERA_DMA_BIN := $(BUILD_DIR)/obj_camera_dma/Vtb_camera_dma
 CAMERA_SNAPSHOT_BIN := $(BUILD_DIR)/obj_camera_snapshot/Vtb_camera_snapshot
 CAMERA_PIPELINE_BIN := $(BUILD_DIR)/obj_camera_pipeline/Vtb_camera_pipeline
+CAMERA_STEREO_BIN := $(BUILD_DIR)/obj_camera_stereo/Vtb_camera_stereo
+CAMERA_STEREO_FW_BIN := $(BUILD_DIR)/obj_camera_stereo_firmware/Vtb_camera_stereo_firmware
+CAMERA_DIAG_FW_BIN := $(BUILD_DIR)/obj_camera_diag_firmware/Vtb_camera_diag_firmware
 FPIOA_UART_PROFILES_BIN := $(BUILD_DIR)/tb_fpioa_uart_profiles.vvp
 SIM_TB    := sim/tb_Htop.sv
 DCACHE_BYPASS_BIN := $(BUILD_DIR)/obj_dcache_npu_bypass/Vtb_dcache_npu_bypass
@@ -54,6 +58,122 @@ NPU_ARBITER_TB_RTL := soc/Haxi_2m1s_arbiter.v
 	camera-gpio-remote-fw-test camera-gpio-stuck-low-fw-test \
 	camera-error-report-fw-test \
 	cpu-load-store-test clean
+
+.PHONY: camera-stereo-firmware camera-stereo-test camera-stereo-fw-test \
+	camera-stereo-local-fw-test camera-stereo-remote-fw-test fpioa-camera-reserved-test \
+	camera-stereo-throughput-fw-test
+
+# 双目使用四个独立槽；以下测试均离线，不操作 PDS/实板。
+.PHONY: camera-diagnostic-firmware camera-diagnostic-status-test \
+	camera-diagnostic-stereo-fw-test camera-diagnostic-cam2-fw-test \
+	camera-diagnostic-stereo-remote-fw-test camera-diagnostic-cam2-remote-fw-test \
+	camera-diagnostic-fw-test camera-diagnostic-stall-fw-test
+
+camera-diagnostic-firmware:
+	$(MAKE) -C bsp/camera_stereo_app diagnostics
+
+camera-diagnostic-fw-test: camera-diagnostic-stereo-fw-test camera-diagnostic-cam2-fw-test \
+	camera-diagnostic-stereo-remote-fw-test camera-diagnostic-cam2-remote-fw-test
+
+camera-diagnostic-status-test:
+	@mkdir -p "$(BUILD_DIR)"
+	$(CC) -std=c11 -Wall -Wextra -Werror -Ibsp/camera_stereo_app \
+		sim/test_camera_diag_status.c bsp/camera_stereo_app/diag_status.c \
+		-o "$(BUILD_DIR)/test_camera_diag_status"
+	@"$(BUILD_DIR)/test_camera_diag_status"
+
+$(CAMERA_DIAG_FW_BIN): $(CPU_RTL) $(SIM_RTL) $(CAMERA_SIM_RTL) $(CAMERA_SIM_HEADERS) sim/tb_camera_diag_firmware.sv
+	@mkdir -p "$(BUILD_DIR)/obj_camera_diag_firmware"
+	$(VERILATOR) --binary --timing -Isoc --language 1800-2012 \
+		--Wno-WIDTHTRUNC --Wno-BLKLOOPINIT \
+		--top-module tb_camera_diag_firmware \
+		--Mdir "$(BUILD_DIR)/obj_camera_diag_firmware" \
+		$(CPU_RTL) $(SIM_RTL) $(CAMERA_SIM_RTL) sim/tb_camera_diag_firmware.sv
+
+# readmemh专用换序只发生在build中，不改变Flash交付bin。
+camera-diagnostic-stereo-fw-test: $(CAMERA_DIAG_FW_BIN) camera-diagnostic-firmware
+	@mkdir -p "$(BUILD_DIR)/camera_diag/stereo"
+	@objcopy -I binary -O binary --reverse-bytes=4 bsp/camera_stereo_app/camera_stereo_diag_local.bin "$(BUILD_DIR)/camera_diag/stereo/program.be.bin"
+	@xxd -p -c 4 "$(BUILD_DIR)/camera_diag/stereo/program.be.bin" > "$(BUILD_DIR)/camera_diag/stereo/program.hex"
+	@if "$(CAMERA_DIAG_FW_BIN)" +PROGRAM="$(abspath $(BUILD_DIR)/camera_diag/stereo/program.hex)" +UART_PIN=0 +TIMEOUT=180000000 > "$(BUILD_DIR)/camera_diag_stereo.log" 2>&1; then \
+		tail -n 8 "$(BUILD_DIR)/camera_diag_stereo.log"; \
+	else cat "$(BUILD_DIR)/camera_diag_stereo.log"; exit 1; fi
+
+camera-diagnostic-cam2-fw-test: $(CAMERA_DIAG_FW_BIN) camera-diagnostic-firmware
+	@mkdir -p "$(BUILD_DIR)/camera_diag/cam2"
+	@objcopy -I binary -O binary --reverse-bytes=4 bsp/camera_stereo_app/camera_cam2_only_local.bin "$(BUILD_DIR)/camera_diag/cam2/program.be.bin"
+	@xxd -p -c 4 "$(BUILD_DIR)/camera_diag/cam2/program.be.bin" > "$(BUILD_DIR)/camera_diag/cam2/program.hex"
+	@if "$(CAMERA_DIAG_FW_BIN)" +PROGRAM="$(abspath $(BUILD_DIR)/camera_diag/cam2/program.hex)" +UART_PIN=0 +CAM2_ONLY +TIMEOUT=180000000 > "$(BUILD_DIR)/camera_diag_cam2_only.log" 2>&1; then \
+		tail -n 8 "$(BUILD_DIR)/camera_diag_cam2_only.log"; \
+	else cat "$(BUILD_DIR)/camera_diag_cam2_only.log"; exit 1; fi
+
+# 远程版本核对FPIOA31的真实串口输出，不访问物理串口。
+camera-diagnostic-stereo-remote-fw-test: $(CAMERA_DIAG_FW_BIN) camera-diagnostic-firmware
+	@mkdir -p "$(BUILD_DIR)/camera_diag/stereo_remote"
+	@objcopy -I binary -O binary --reverse-bytes=4 bsp/camera_stereo_app/camera_stereo_diag_remote.bin "$(BUILD_DIR)/camera_diag/stereo_remote/program.be.bin"
+	@xxd -p -c 4 "$(BUILD_DIR)/camera_diag/stereo_remote/program.be.bin" > "$(BUILD_DIR)/camera_diag/stereo_remote/program.hex"
+	@if "$(CAMERA_DIAG_FW_BIN)" +PROGRAM="$(abspath $(BUILD_DIR)/camera_diag/stereo_remote/program.hex)" +UART_PIN=31 +TIMEOUT=180000000 > "$(BUILD_DIR)/camera_diag_stereo_remote.log" 2>&1; then \
+		tail -n 8 "$(BUILD_DIR)/camera_diag_stereo_remote.log"; \
+	else cat "$(BUILD_DIR)/camera_diag_stereo_remote.log"; exit 1; fi
+
+camera-diagnostic-cam2-remote-fw-test: $(CAMERA_DIAG_FW_BIN) camera-diagnostic-firmware
+	@mkdir -p "$(BUILD_DIR)/camera_diag/cam2_remote"
+	@objcopy -I binary -O binary --reverse-bytes=4 bsp/camera_stereo_app/camera_cam2_only_remote.bin "$(BUILD_DIR)/camera_diag/cam2_remote/program.be.bin"
+	@xxd -p -c 4 "$(BUILD_DIR)/camera_diag/cam2_remote/program.be.bin" > "$(BUILD_DIR)/camera_diag/cam2_remote/program.hex"
+	@if "$(CAMERA_DIAG_FW_BIN)" +PROGRAM="$(abspath $(BUILD_DIR)/camera_diag/cam2_remote/program.hex)" +UART_PIN=31 +CAM2_ONLY +TIMEOUT=180000000 > "$(BUILD_DIR)/camera_diag_cam2_only_remote.log" 2>&1; then \
+		tail -n 8 "$(BUILD_DIR)/camera_diag_cam2_only_remote.log"; \
+	else cat "$(BUILD_DIR)/camera_diag_cam2_only_remote.log"; exit 1; fi
+
+# 故障注入仍按真实70MHz CPU计时，不能通过缩短固件2秒阈值制造通过。
+camera-diagnostic-stall-fw-test: camera-diagnostic-stereo-fw-test
+	@if "$(CAMERA_DIAG_FW_BIN)" +PROGRAM="$(abspath $(BUILD_DIR)/camera_diag/stereo/program.hex)" +UART_PIN=0 +CAM2_INPUT_STALL +TIMEOUT=360000000 > "$(BUILD_DIR)/camera_diag_input_stall.log" 2>&1; then \
+		tail -n 8 "$(BUILD_DIR)/camera_diag_input_stall.log"; \
+	else cat "$(BUILD_DIR)/camera_diag_input_stall.log"; exit 1; fi
+
+camera-stereo-firmware:
+	$(MAKE) -C bsp/camera_stereo_app all
+
+camera-stereo-test:
+	$(VERILATOR) --binary --timing -Isoc --language 1800-2012 \
+		--top-module tb_camera_stereo --Mdir "$(BUILD_DIR)/obj_camera_stereo" \
+		soc/Hcamera_dvp_rx.v soc/Hcamera_async_fifo.v soc/Hcamera_dma.v \
+		soc/Hcamera_subsystem.v soc/Haxi_2m1s_arbiter.v \
+		sim/camera_ddr_model.sv sim/tb_camera_stereo.sv
+	@"$(CAMERA_STEREO_BIN)"
+
+fpioa-camera-reserved-test:
+	@mkdir -p "$(BUILD_DIR)"
+	iverilog -g2012 -s tb_fpioa_camera_reserved \
+		-o "$(BUILD_DIR)/tb_fpioa_camera_reserved.vvp" \
+		soc/Hfpioa_simple.v sim/tb_fpioa_camera_reserved.sv
+	@vvp "$(BUILD_DIR)/tb_fpioa_camera_reserved.vvp"
+
+$(CAMERA_STEREO_FW_BIN): $(CPU_RTL) $(SIM_RTL) $(CAMERA_SIM_RTL) $(CAMERA_SIM_HEADERS) sim/tb_camera_stereo_firmware.sv
+	@mkdir -p "$(BUILD_DIR)/obj_camera_stereo_firmware"
+	$(VERILATOR) --binary --timing -Isoc --language 1800-2012 \
+		--Wno-WIDTHTRUNC --Wno-BLKLOOPINIT \
+		--top-module tb_camera_stereo_firmware \
+		--Mdir "$(BUILD_DIR)/obj_camera_stereo_firmware" \
+		$(CPU_RTL) $(SIM_RTL) $(CAMERA_SIM_RTL) sim/tb_camera_stereo_firmware.sv
+
+camera-stereo-fw-test: camera-stereo-local-fw-test camera-stereo-remote-fw-test
+
+# 仅将仿真输入转换为 readmemh 的字序；交付 Flash bin 保持原始字节。
+camera-stereo-local-fw-test: $(CAMERA_STEREO_FW_BIN) camera-stereo-firmware
+	@mkdir -p "$(BUILD_DIR)/camera_stereo/local"
+	@objcopy -I binary -O binary --reverse-bytes=4 bsp/camera_stereo_app/camera_stereo_local.bin "$(BUILD_DIR)/camera_stereo/local/program.be.bin"
+	@xxd -p -c 4 "$(BUILD_DIR)/camera_stereo/local/program.be.bin" > "$(BUILD_DIR)/camera_stereo/local/program.hex"
+	@"$(CAMERA_STEREO_FW_BIN)" +PROGRAM="$(abspath $(BUILD_DIR)/camera_stereo/local/program.hex)" +UART_PIN=0 +TIMEOUT=180000000
+
+# 执行未修改的固件真实1秒周期摘要，持续双路输入，不用软件延时替身。
+camera-stereo-throughput-fw-test: camera-stereo-local-fw-test
+	@"$(CAMERA_STEREO_FW_BIN)" +PROGRAM="$(abspath $(BUILD_DIR)/camera_stereo/local/program.hex)" +UART_PIN=0 +LONG_RUN +TIMEOUT=180000000
+
+camera-stereo-remote-fw-test: $(CAMERA_STEREO_FW_BIN) camera-stereo-firmware
+	@mkdir -p "$(BUILD_DIR)/camera_stereo/remote"
+	@objcopy -I binary -O binary --reverse-bytes=4 bsp/camera_stereo_app/camera_stereo_remote.bin "$(BUILD_DIR)/camera_stereo/remote/program.be.bin"
+	@xxd -p -c 4 "$(BUILD_DIR)/camera_stereo/remote/program.be.bin" > "$(BUILD_DIR)/camera_stereo/remote/program.hex"
+	@"$(CAMERA_STEREO_FW_BIN)" +PROGRAM="$(abspath $(BUILD_DIR)/camera_stereo/remote/program.hex)" +UART_PIN=31 +TIMEOUT=180000000
 
 sim: $(SIM_BIN)
 	@$(PYTHON) -B sim/test.py \

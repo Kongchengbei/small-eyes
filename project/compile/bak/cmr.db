@@ -197,10 +197,10 @@
             <data>RAM(GB)</data>
         </column_headers>
         <row>
-            <data>0h:0m:4s</data>
-            <data>0h:0m:4s</data>
-            <data>0h:0m:35s</data>
-            <data>444</data>
+            <data>0h:0m:2s</data>
+            <data>0h:0m:2s</data>
+            <data>0h:0m:39s</data>
+            <data>447</data>
             <data>WINDOWS 10 x86_64</data>
             <data>13th Gen Intel(R) Core(TM) i7-13650HX</data>
             <data>24</data>
@@ -1444,8 +1444,9 @@
     DDR_BASE = 32'b10000000000000000000000000000000
     DDR_BYTES = 32'b01000000000000000000000000000000
     FLASH_BASE = 24'b101000000000000000000000
-    BOOT_IMAGE_BYTES = 32'b00000000000000000001101100100000
+    BOOT_IMAGE_BYTES = 32'b00000000000000000001101100101100
     SPI_DIV = 32'b00000000000000000000000000000100
+    UART_TX_DEFAULT_FPIOA = 32'b00000000000000000000000000000000
     DDR_INIT_TIMEOUT_CYCLES = 32'b00000100001011000001110110000000
     CPU_CACHED_DDR_BASE = 32'b10000000000000000000000000000000
     CPU_CACHED_DDR_BYTES = 32'b00111000000000000000000000000000
@@ -1464,10 +1465,10 @@
     FPIOA_BYTES = 32'b00000000000000000000000100000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 283)] Elaborating instance u_ddr_refclk_buf</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 285)] Elaborating instance u_ddr_refclk_buf</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 289)] Elaborating instance u_pll</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 291)] Elaborating instance u_pll</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/IP/clk_pll/clk_pll.v(line number: 18)] Elaborating module clk_pll</data>
@@ -1476,7 +1477,7 @@
             <data message="4">Verilog-0004: [F:/SocFpga/IP/clk_pll/clk_pll.v(line number: 300)] Elaborating instance u_gpll</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 339)] Elaborating instance u_cpu</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 341)] Elaborating instance u_cpu</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/Htop.v(line number: 3)] Elaborating module Htop</data>
@@ -1891,7 +1892,7 @@
             <data message="4">Verilog-0003: [F:/SocFpga/cpu/axi_bridge.v(line number: 2)] Elaborating module axi_bridge</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 422)] Elaborating instance u_mem</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 424)] Elaborating instance u_mem</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/axi_mem_backend.v(line number: 10)] Elaborating module axi_mem_backend</data>
@@ -1904,10 +1905,10 @@
     DDR_BYTES = 32'b01000000000000000000000000000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 492)] Elaborating instance GTP_INBUF_inst</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 494)] Elaborating instance GTP_INBUF_inst</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 497)] Elaborating instance u_jtag</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 499)] Elaborating instance u_jtag</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/jtag/jtag_top.v(line number: 3)] Elaborating module jtag_top</data>
@@ -1981,7 +1982,7 @@
     DW = 32'b00000000000000000000000000101000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 541)] Elaborating instance u_npu_ctrl</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 543)] Elaborating instance u_npu_ctrl</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Hnpu_ctrl.v(line number: 10)] Elaborating module Hnpu_ctrl</data>
@@ -1992,7 +1993,7 @@
     NPU_MMIO_BYTES = 32'b00000000000000000000000100000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 579)] Elaborating instance u_uart0_tx</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 581)] Elaborating instance u_uart0_tx</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Huart_tx.v(line number: 5)] Elaborating module Huart_tx</data>
@@ -2003,7 +2004,7 @@
     BAUD = 32'b00000000000000011100001000000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 592)] Elaborating instance u_led</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 594)] Elaborating instance u_led</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Hled.v(line number: 3)] Elaborating module Hled</data>
@@ -2013,19 +2014,23 @@
     WIDTH = 32'b00000000000000000000000000000100</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 601)] Elaborating instance u_fpioa</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 605)] Elaborating instance u_fpioa</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Hfpioa_simple.v(line number: 5)] Elaborating module Hfpioa_simple</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 615)] Elaborating instance u_cam1_sccb_gpio</data>
+            <data message="4">Module instance {Hfpga_soc/u_fpioa} parameter value:
+    UART_TX_DEFAULT_FPIOA = 32'b00000000000000000000000000000000</data>
+        </row>
+        <row>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 619)] Elaborating instance u_cam1_sccb_gpio</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Hcamera_sccb_gpio.v(line number: 20)] Elaborating module Hcamera_sccb_gpio</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 635)] Elaborating instance u_cam1</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 639)] Elaborating instance u_cam1</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Hcamera_subsystem.v(line number: 4)] Elaborating module Hcamera_subsystem</data>
@@ -2189,13 +2194,13 @@
     TIMEOUT_CYCLES = 32'b00000000000011110100001001000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 669)] Elaborating instance u_debug_core</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 673)] Elaborating instance u_debug_core</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Debug_core.v(line number: 5)] Elaborating module Debug_core</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 717)] Elaborating instance u_flash_ddr_boot</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 721)] Elaborating instance u_flash_ddr_boot</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/flash_boot/flash_ddr_boot.v(line number: 12)] Elaborating module flash_ddr_boot</data>
@@ -2205,7 +2210,7 @@
     FLASH_BASE = 24'b101000000000000000000000
     DDR_BASE = 32'b10000000000000000000000000000000
     DDR_LIMIT = 33'b011000000000000000000000000000000
-    IMAGE_BYTES = 32'b00000000000000000001101100100000
+    IMAGE_BYTES = 32'b00000000000000000001101100101100
     SPI_CLK_DIV = 32'b00000000000000000000000000000100
     TIMEOUT_CYCLES = 32'b00000000000000011000011010100000
     DDR_INIT_TIMEOUT_CYCLES = 32'b00000100001011000001110110000000</data>
@@ -2231,27 +2236,27 @@
     FLASH_BASE = 24'b101000000000000000000000
     DDR_BASE = 32'b10000000000000000000000000000000
     DDR_LIMIT = 33'b011000000000000000000000000000000
-    IMAGE_BYTES = 32'b00000000000000000001101100100000
+    IMAGE_BYTES = 32'b00000000000000000001101100101100
     TIMEOUT_CYCLES = 32'b00000000000000011000011010100000
     DDR_INIT_TIMEOUT_CYCLES = 32'b00000100001011000001110110000000</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 757)] Elaborating instance u_flash_cfgclk</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 761)] Elaborating instance u_flash_cfgclk</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 762)] Elaborating instance u_ddr_axi_bridge</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 766)] Elaborating instance u_ddr_axi_bridge</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/ddr_axi_bridge.v(line number: 7)] Elaborating module ddr_axi_bridge</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 815)] Elaborating instance u_camera_ddr_arbiter</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 819)] Elaborating instance u_camera_ddr_arbiter</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/soc/Haxi_2m1s_arbiter.v(line number: 9)] Elaborating module Haxi_2m1s_arbiter</data>
         </row>
         <row>
-            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 906)] Elaborating instance u_ddr3_ctrl</data>
+            <data message="4">Verilog-0004: [F:/SocFpga/soc/Hfpga_soc.v(line number: 910)] Elaborating instance u_ddr3_ctrl</data>
         </row>
         <row>
             <data message="4">Verilog-0003: [F:/SocFpga/IP/ddr3_ctrl_v116/ddr3_ctrl_v116.v(line number: 13)] Elaborating module ddr3_ctrl_v116</data>
@@ -6737,6 +6742,21 @@
         </row>
         <row>
             <data message="4">Constant propagation done on N98 (bmsWIDEMUX).</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
+        </row>
+        <row>
+            <data message="5">Loop was found during constant probe.</data>
         </row>
         <row>
             <data message="5">Loop was found during constant probe.</data>

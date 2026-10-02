@@ -25,9 +25,9 @@ module Hfpga_soc #(
     parameter [31:0] DDR_BASE           = `SOC_DDR_BASE,
     parameter [31:0] DDR_BYTES          = `SOC_DDR_BYTES,
     parameter [23:0] FLASH_BASE         = 24'hA00000,
-    // 必须与选用的 camera_uart_debug_local/remote.bin 长度一致；启动加载器
-    // 只接受完整的 32 位字，并会逐字回读校验 DDR。
-    parameter [31:0] BOOT_IMAGE_BYTES   = 32'd6956,
+    // 默认匹配 16 KiB camera_stereo_local/remote.bin；旧单目镜像需用旧位流
+    // 或显式覆盖为其实际长度。加载器只接受完整32位字并逐字回读校验DDR。
+    parameter [31:0] BOOT_IMAGE_BYTES   = 32'd16384,
     parameter integer SPI_DIV           = 4,
     // 本地主板 C24 对应 FPIOA0；远程板可覆盖为 31（AB26）。
     parameter integer UART_TX_DEFAULT_FPIOA = 0,
@@ -45,6 +45,8 @@ module Hfpga_soc #(
     parameter [31:0] LED_ADDR           = `SOC_LED_ADDR,
     parameter [31:0] CAM1_MMIO_BASE     = `SOC_CAM1_MMIO_BASE,
     parameter [31:0] CAM1_MMIO_BYTES    = `SOC_CAM1_MMIO_BYTES,
+    parameter [31:0] CAM2_MMIO_BASE     = `SOC_CAM2_MMIO_BASE,
+    parameter [31:0] CAM2_MMIO_BYTES    = `SOC_CAM2_MMIO_BYTES,
     parameter [31:0] FPIOA_BASE         = `SOC_FPIOA_BASE,
     parameter [31:0] FPIOA_BYTES        = `SOC_FPIOA_BYTES
 ) (
@@ -67,6 +69,17 @@ module Hfpga_soc #(
     input  cam1_vsync,
     input  cam1_href,
     input  [7:0] cam1_data,
+
+    // CAM2 的 D[4:1] 中三位复用 FPIOA 专用输入球位：18=D4、29=D2、28=D1。
+    inout  cam2_scl,
+    inout  cam2_sda,
+    output cam2_reset_n,
+    input  cam2_pclk,
+    input  cam2_vsync,
+    input  cam2_href,
+    input  [2:0] cam2_data_hi,
+    input  cam2_data3,
+    input  cam2_data0,
 
     // Abstract single-bit SPI Flash pins.  The serial clock is driven through
     // the device's dedicated configuration-clock primitive below.
@@ -278,6 +291,24 @@ module Hfpga_soc #(
     wire [1:0]    camera_axi_bresp;
     wire          camera_axi_bvalid;
     wire          camera_axi_bready;
+    wire [29:0]   cam1_axi_awaddr, cam2_axi_awaddr;
+    wire [7:0]    cam1_axi_awid, cam2_axi_awid;
+    wire [7:0]    cam1_axi_awlen, cam2_axi_awlen;
+    wire [2:0]    cam1_axi_awsize, cam2_axi_awsize;
+    wire [1:0]    cam1_axi_awburst, cam2_axi_awburst;
+    wire          cam1_axi_awvalid, cam2_axi_awvalid;
+    wire          cam1_axi_awready, cam2_axi_awready;
+    wire [255:0]  cam1_axi_wdata, cam2_axi_wdata;
+    wire [31:0]   cam1_axi_wstrb, cam2_axi_wstrb;
+    wire          cam1_axi_wlast, cam2_axi_wlast;
+    wire          cam1_axi_wvalid, cam2_axi_wvalid;
+    wire          cam1_axi_wready, cam2_axi_wready;
+    wire [7:0]    cam1_axi_bid, cam2_axi_bid;
+    wire [1:0]    cam1_axi_bresp, cam2_axi_bresp;
+    wire          cam1_axi_bvalid, cam2_axi_bvalid;
+    wire          cam1_axi_bready, cam2_axi_bready;
+    wire [7:0]    cam2_data = {cam2_data_hi, fpioa[18], cam2_data3,
+                               fpioa[29], fpioa[28], cam2_data0};
 
     GTP_INBUFGDS #(
         .IOSTANDARD("DEFAULT"),
@@ -524,6 +555,7 @@ module Hfpga_soc #(
     // ============ MMIO peripherals ========================================
     localparam [31:0] UART0_END  = UART0_BASE + UART0_BYTES;
     localparam [31:0] CAM1_MMIO_END = CAM1_MMIO_BASE + CAM1_MMIO_BYTES;
+    localparam [31:0] CAM2_MMIO_END = CAM2_MMIO_BASE + CAM2_MMIO_BYTES;
     localparam [31:0] FPIOA_END  = FPIOA_BASE + FPIOA_BYTES;
 
     wire uart_addr_sel = (mmio_req_addr >= UART0_BASE) &&
@@ -533,6 +565,9 @@ module Hfpga_soc #(
     wire cam1_sel = mmio_req_valid &&
                     (mmio_req_addr >= CAM1_MMIO_BASE) &&
                     (mmio_req_addr <  CAM1_MMIO_END);
+    wire cam2_sel = mmio_req_valid &&
+                    (mmio_req_addr >= CAM2_MMIO_BASE) &&
+                    (mmio_req_addr <  CAM2_MMIO_END);
     wire fpioa_sel = mmio_req_valid &&
                      (mmio_req_addr >= FPIOA_BASE) &&
                      (mmio_req_addr <  FPIOA_END);
@@ -574,6 +609,10 @@ module Hfpga_soc #(
     wire [31:0] cam1_dvp_rdata;
     wire [31:0] cam1_rdata = cam1_gpio_rdata | cam1_dvp_rdata;
     wire cam1_capture_enable;
+    wire [31:0] cam2_gpio_rdata;
+    wire [31:0] cam2_dvp_rdata;
+    wire [31:0] cam2_rdata = cam2_gpio_rdata | cam2_dvp_rdata;
+    wire cam2_capture_enable;
 
 
     Huart_tx #(
@@ -601,7 +640,8 @@ module Hfpga_soc #(
     );
 
     Hfpioa_simple #(
-        .UART_TX_DEFAULT_FPIOA(UART_TX_DEFAULT_FPIOA)
+        .UART_TX_DEFAULT_FPIOA(UART_TX_DEFAULT_FPIOA),
+        .INPUT_ONLY_MASK(32'h3004_0000)
     ) u_fpioa (
         .clk        (cpu_clk),
         .rst_n      (sys_rst_n),
@@ -635,7 +675,8 @@ module Hfpga_soc #(
         .DDR_BASE(DDR_BASE),
         .DDR_BYTES(DDR_BYTES),
         .BUFFER0_ADDR(`SOC_CAM1_BUFFER0_BASE),
-        .BUFFER1_ADDR(`SOC_CAM1_BUFFER1_BASE)
+        .BUFFER1_ADDR(`SOC_CAM1_BUFFER1_BASE),
+        .AXI_ID(8'h40)
     ) u_cam1 (
         .cpu_clk(cpu_clk), .mem_clk(ddr_core_clk), .rst_n(sys_rst_n),
         .ddr_ready(ddr_init_done), .capture_enable(cam1_capture_enable),
@@ -643,14 +684,137 @@ module Hfpga_soc #(
         .mmio_valid(cam1_sel), .mmio_wen(mmio_req_wen),
         .mmio_addr(mmio_req_addr[7:0]), .mmio_wdata(mmio_req_wdata),
         .mmio_wmask(mmio_req_wstrb), .mmio_rdata(cam1_dvp_rdata),
-        .axi_awaddr(camera_axi_awaddr), .axi_awid(camera_axi_awid),
-        .axi_awlen(camera_axi_awlen), .axi_awsize(camera_axi_awsize),
-        .axi_awburst(camera_axi_awburst), .axi_awvalid(camera_axi_awvalid),
-        .axi_awready(camera_axi_awready), .axi_wdata(camera_axi_wdata),
-        .axi_wstrb(camera_axi_wstrb), .axi_wlast(camera_axi_wlast),
-        .axi_wvalid(camera_axi_wvalid), .axi_wready(camera_axi_wready),
-        .axi_bid(camera_axi_bid), .axi_bresp(camera_axi_bresp),
-        .axi_bvalid(camera_axi_bvalid), .axi_bready(camera_axi_bready)
+        .axi_awaddr(cam1_axi_awaddr), .axi_awid(cam1_axi_awid),
+        .axi_awlen(cam1_axi_awlen), .axi_awsize(cam1_axi_awsize),
+        .axi_awburst(cam1_axi_awburst), .axi_awvalid(cam1_axi_awvalid),
+        .axi_awready(cam1_axi_awready), .axi_wdata(cam1_axi_wdata),
+        .axi_wstrb(cam1_axi_wstrb), .axi_wlast(cam1_axi_wlast),
+        .axi_wvalid(cam1_axi_wvalid), .axi_wready(cam1_axi_wready),
+        .axi_bid(cam1_axi_bid), .axi_bresp(cam1_axi_bresp),
+        .axi_bvalid(cam1_axi_bvalid), .axi_bready(cam1_axi_bready)
+    );
+
+    Hcamera_sccb_gpio u_cam2_sccb_gpio (
+        .clk(cpu_clk), .rst_n(sys_rst_n), .mmio_valid(cam2_sel),
+        .mmio_wen(mmio_req_wen), .mmio_addr(mmio_req_addr[7:0]),
+        .mmio_wdata(mmio_req_wdata), .mmio_wmask(mmio_req_wstrb),
+        .mmio_rdata(cam2_gpio_rdata), .cam1_scl(cam2_scl),
+        .cam1_sda(cam2_sda), .cam1_reset_n(cam2_reset_n),
+        .cam1_capture_enable(cam2_capture_enable)
+    );
+
+    Hcamera_subsystem #(
+        .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES),
+        .BUFFER0_ADDR(`SOC_CAM2_BUFFER0_BASE),
+        .BUFFER1_ADDR(`SOC_CAM2_BUFFER1_BASE), .AXI_ID(8'h41)
+    ) u_cam2 (
+        .cpu_clk(cpu_clk), .mem_clk(ddr_core_clk), .rst_n(sys_rst_n),
+        .ddr_ready(ddr_init_done), .capture_enable(cam2_capture_enable),
+        .pclk(cam2_pclk), .vsync(cam2_vsync), .href(cam2_href), .data(cam2_data),
+        .mmio_valid(cam2_sel), .mmio_wen(mmio_req_wen),
+        .mmio_addr(mmio_req_addr[7:0]), .mmio_wdata(mmio_req_wdata),
+        .mmio_wmask(mmio_req_wstrb), .mmio_rdata(cam2_dvp_rdata),
+        .axi_awaddr(cam2_axi_awaddr), .axi_awid(cam2_axi_awid),
+        .axi_awlen(cam2_axi_awlen), .axi_awsize(cam2_axi_awsize),
+        .axi_awburst(cam2_axi_awburst), .axi_awvalid(cam2_axi_awvalid),
+        .axi_awready(cam2_axi_awready), .axi_wdata(cam2_axi_wdata),
+        .axi_wstrb(cam2_axi_wstrb), .axi_wlast(cam2_axi_wlast),
+        .axi_wvalid(cam2_axi_wvalid), .axi_wready(cam2_axi_wready),
+        .axi_bid(cam2_axi_bid), .axi_bresp(cam2_axi_bresp),
+        .axi_bvalid(cam2_axi_bvalid), .axi_bready(cam2_axi_bready)
+    );
+
+    // 复用同一个事务锁定仲裁器；此层 cpu/npu 口名称仅代表 CAM1/CAM2。
+    // 两路只写 DDR，读请求关闭，AW/W/B 拥有者保持到写响应完成。
+    Haxi_2m1s_arbiter u_stereo_merge (
+        .clk(ddr_core_clk), .rst_n(sys_rst_n),
+        .cpu_axi_awaddr(cam1_axi_awaddr),
+        .cpu_axi_awid(cam1_axi_awid),
+        .cpu_axi_awlen(cam1_axi_awlen),
+        .cpu_axi_awsize(cam1_axi_awsize),
+        .cpu_axi_awburst(cam1_axi_awburst),
+        .cpu_axi_awvalid(cam1_axi_awvalid),
+        .cpu_axi_awready(cam1_axi_awready),
+        .cpu_axi_wdata(cam1_axi_wdata),
+        .cpu_axi_wstrb(cam1_axi_wstrb),
+        .cpu_axi_wlast(cam1_axi_wlast),
+        .cpu_axi_wvalid(cam1_axi_wvalid),
+        .cpu_axi_wready(cam1_axi_wready),
+        .cpu_axi_bid(cam1_axi_bid),
+        .cpu_axi_bresp(cam1_axi_bresp),
+        .cpu_axi_bvalid(cam1_axi_bvalid),
+        .cpu_axi_bready(cam1_axi_bready),
+        .cpu_axi_araddr(30'b0),
+        .cpu_axi_arid(8'b0),
+        .cpu_axi_arlen(8'b0),
+        .cpu_axi_arsize(3'b0),
+        .cpu_axi_arburst(2'b0),
+        .cpu_axi_arvalid(1'b0),
+        .cpu_axi_arready(),
+        .cpu_axi_rdata(),
+        .cpu_axi_rid(),
+        .cpu_axi_rresp(),
+        .cpu_axi_rlast(),
+        .cpu_axi_rvalid(),
+        .cpu_axi_rready(1'b1),
+        .npu_axi_awaddr(cam2_axi_awaddr),
+        .npu_axi_awid(cam2_axi_awid),
+        .npu_axi_awlen(cam2_axi_awlen),
+        .npu_axi_awsize(cam2_axi_awsize),
+        .npu_axi_awburst(cam2_axi_awburst),
+        .npu_axi_awvalid(cam2_axi_awvalid),
+        .npu_axi_awready(cam2_axi_awready),
+        .npu_axi_wdata(cam2_axi_wdata),
+        .npu_axi_wstrb(cam2_axi_wstrb),
+        .npu_axi_wlast(cam2_axi_wlast),
+        .npu_axi_wvalid(cam2_axi_wvalid),
+        .npu_axi_wready(cam2_axi_wready),
+        .npu_axi_bid(cam2_axi_bid),
+        .npu_axi_bresp(cam2_axi_bresp),
+        .npu_axi_bvalid(cam2_axi_bvalid),
+        .npu_axi_bready(cam2_axi_bready),
+        .npu_axi_araddr(30'b0),
+        .npu_axi_arid(8'b0),
+        .npu_axi_arlen(8'b0),
+        .npu_axi_arsize(3'b0),
+        .npu_axi_arburst(2'b0),
+        .npu_axi_arvalid(1'b0),
+        .npu_axi_arready(),
+        .npu_axi_rdata(),
+        .npu_axi_rid(),
+        .npu_axi_rresp(),
+        .npu_axi_rlast(),
+        .npu_axi_rvalid(),
+        .npu_axi_rready(1'b1),
+        .ddr_axi_awaddr(camera_axi_awaddr),
+        .ddr_axi_awid(camera_axi_awid),
+        .ddr_axi_awlen(camera_axi_awlen),
+        .ddr_axi_awsize(camera_axi_awsize),
+        .ddr_axi_awburst(camera_axi_awburst),
+        .ddr_axi_awvalid(camera_axi_awvalid),
+        .ddr_axi_awready(camera_axi_awready),
+        .ddr_axi_wdata(camera_axi_wdata),
+        .ddr_axi_wstrb(camera_axi_wstrb),
+        .ddr_axi_wlast(camera_axi_wlast),
+        .ddr_axi_wvalid(camera_axi_wvalid),
+        .ddr_axi_wready(camera_axi_wready),
+        .ddr_axi_bid(camera_axi_bid),
+        .ddr_axi_bresp(camera_axi_bresp),
+        .ddr_axi_bvalid(camera_axi_bvalid),
+        .ddr_axi_bready(camera_axi_bready),
+        .ddr_axi_araddr(),
+        .ddr_axi_arid(),
+        .ddr_axi_arlen(),
+        .ddr_axi_arsize(),
+        .ddr_axi_arburst(),
+        .ddr_axi_arvalid(),
+        .ddr_axi_arready(1'b0),
+        .ddr_axi_rdata(256'b0),
+        .ddr_axi_rid(8'b0),
+        .ddr_axi_rresp(2'b0),
+        .ddr_axi_rlast(1'b0),
+        .ddr_axi_rvalid(1'b0),
+        .ddr_axi_rready()
     );
 
     assign mmio_req_rdata =
@@ -658,6 +822,7 @@ module Hfpga_soc #(
         npu_sel    ? npu_mmio_rdata    :
         led_sel    ? {28'b0, led_value}:
         cam1_sel   ? cam1_rdata        :
+        cam2_sel   ? cam2_rdata        :
         fpioa_sel  ? fpioa_rdata       : 32'b0;
 
     // ============ Debug export ============================================

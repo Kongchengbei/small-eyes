@@ -1,8 +1,10 @@
 `timescale 1ns / 1ps
 
-// CPU 与 Camera 共用的 DDR AXI 行为模型，稀疏保存程序区和两个 1 MiB 帧槽。
+// CPU 与 Camera 共用的 DDR AXI 行为模型，稀疏保存程序区和可配置的 1 MiB 帧槽。
 // 所有数据访问经过真实桥/仲裁器；模型仅替代外部 DDR 控制器。
-module camera_ddr_model (
+module camera_ddr_model #(
+    parameter integer FRAME_SLOTS = 2
+) (
     input clk, input rst_n,
     input [29:0] axi_awaddr, input [7:0] axi_awid, input [7:0] axi_awlen,
     input [2:0] axi_awsize, input [1:0] axi_awburst,
@@ -19,8 +21,10 @@ module camera_ddr_model (
     output axi_rvalid, input axi_rready
 );
     localparam [31:0] FRAME_LOCAL = 32'h3800_0000;
+    localparam integer FRAME_WORDS = FRAME_SLOTS * 262144;
+    localparam [31:0] FRAME_BYTES = FRAME_SLOTS * 1048576;
     reg [31:0] program_mem [0:16383];
-    reg [31:0] frame_mem [0:524287];
+    reg [31:0] frame_mem [0:FRAME_WORDS-1];
     reg [31:0] cycles = 0;
     reg aw_seen = 0, w_seen = 0;
     reg [29:0] saved_addr;
@@ -43,7 +47,7 @@ module camera_ddr_model (
     function automatic [31:0] read_word(input [31:0] address);
         if (address < 32'h0001_0000)
             read_word = program_mem[address >> 2];
-        else if (address >= FRAME_LOCAL && address < FRAME_LOCAL + 32'h0020_0000)
+        else if (address >= FRAME_LOCAL && address < FRAME_LOCAL + FRAME_BYTES)
             read_word = frame_mem[(address - FRAME_LOCAL) >> 2];
         else
             read_word = 32'b0;
@@ -52,7 +56,7 @@ module camera_ddr_model (
     task automatic write_byte(input [31:0] address, input [7:0] value);
         if (address < 32'h0001_0000)
             program_mem[address >> 2][address[1:0]*8 +: 8] = value;
-        else if (address >= FRAME_LOCAL && address < FRAME_LOCAL + 32'h0020_0000)
+        else if (address >= FRAME_LOCAL && address < FRAME_LOCAL + FRAME_BYTES)
             frame_mem[(address - FRAME_LOCAL) >> 2][address[1:0]*8 +: 8] = value;
         else
             $fatal(1, "DDR 写越界：%h", address);
@@ -75,7 +79,7 @@ module camera_ddr_model (
     initial begin
         for (init_index = 0; init_index < 16384; init_index++)
             program_mem[init_index] = 0;
-        for (init_index = 0; init_index < 524288; init_index++)
+        for (init_index = 0; init_index < FRAME_WORDS; init_index++)
             frame_mem[init_index] = 0;
         program_file = "";
         if ($value$plusargs("PROGRAM=%s", program_file))
@@ -120,7 +124,7 @@ module camera_ddr_model (
                 bdelay <= 3;
                 aw_seen <= 0;
                 w_seen <= 0;
-                if (saved_id == 8'h40)
+                if (saved_id == 8'h40 || saved_id == 8'h41)
                     camera_writes <= camera_writes + 1;
             end else if (bdelay != 0) begin
                 bdelay <= bdelay - 1;
