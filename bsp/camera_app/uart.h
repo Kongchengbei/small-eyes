@@ -2,10 +2,11 @@
 #define CAMERA_APP_UART_H
 
 #include <stdint.h>
+#include "../include/soc_defs.h"
 
 /* 默认使用本地串口 FPIOA[0]（C24）；可用编译参数 -D 覆盖。 */
 #ifndef CAMERA_UART_TX_FPIOA
-#define CAMERA_UART_TX_FPIOA 0u
+#define CAMERA_UART_TX_FPIOA SOC_UART_TX_FPIOA
 #endif
 
 void uart_init(uint32_t baud, uint8_t tx_fpioa);

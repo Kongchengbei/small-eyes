@@ -1,11 +1,12 @@
 #include "uart.h"
+#include "../include/soc_defs.h"
 
 #include <stdint.h>
 
-#define CAM1_CTRL       (*(volatile uint32_t *)0x40000300u)
-#define CAM1_STATUS     (*(volatile uint32_t *)0x40000304u)
+#define CAM1_CTRL       (*(volatile uint32_t *)(SOC_CAM1_MMIO_BASE + SOC_CAM_SCCB_CONTROL_OFFSET))
+#define CAM1_STATUS     (*(volatile uint32_t *)(SOC_CAM1_MMIO_BASE + SOC_CAM_SCCB_STATUS_OFFSET))
 #define HOLD_MS         500u
-#define CONTROL_MASK    0x3fu
+#define CONTROL_MASK    SOC_CAM_SCCB_CONTROL_MASK
 
 extern uint32_t system_cpu_freq;
 
@@ -16,10 +17,16 @@ typedef struct {
 } gpio_step_t;
 
 static const gpio_step_t gpio_steps[] = {
-    {"RELEASE", 0x06u, 0x1eu},
-    {"SCL_LOW", 0x04u, 0x14u},
-    {"RELEASE", 0x06u, 0x1eu},
-    {"SDA_LOW", 0x02u, 0x0au},
+    {"RELEASE", SOC_CAM_SCCB_SCL_RELEASE_MASK | SOC_CAM_SCCB_SDA_RELEASE_MASK,
+     SOC_CAM_SCCB_STATUS_SCL_SYNC_MASK | SOC_CAM_SCCB_STATUS_SDA_SYNC_MASK |
+     SOC_CAM_SCCB_STATUS_SCL_RELEASE_MASK | SOC_CAM_SCCB_STATUS_SDA_RELEASE_MASK},
+    {"SCL_LOW", SOC_CAM_SCCB_SDA_RELEASE_MASK,
+     SOC_CAM_SCCB_STATUS_SDA_SYNC_MASK | SOC_CAM_SCCB_STATUS_SDA_RELEASE_MASK},
+    {"RELEASE", SOC_CAM_SCCB_SCL_RELEASE_MASK | SOC_CAM_SCCB_SDA_RELEASE_MASK,
+     SOC_CAM_SCCB_STATUS_SCL_SYNC_MASK | SOC_CAM_SCCB_STATUS_SDA_SYNC_MASK |
+     SOC_CAM_SCCB_STATUS_SCL_RELEASE_MASK | SOC_CAM_SCCB_STATUS_SDA_RELEASE_MASK},
+    {"SDA_LOW", SOC_CAM_SCCB_SCL_RELEASE_MASK,
+     SOC_CAM_SCCB_STATUS_SCL_SYNC_MASK | SOC_CAM_SCCB_STATUS_SCL_RELEASE_MASK},
 };
 
 /* 本项目把递增的 mtime 低 32 位放在 CSR 0xB03，不是标准 MMIO 定时器。
@@ -50,7 +57,7 @@ static void delay_cycles(uint32_t cycles)
 
 static uint32_t cpu_clock_hz(void)
 {
-    return system_cpu_freq != 0u ? system_cpu_freq : 70000000u;
+    return system_cpu_freq != 0u ? system_cpu_freq : SOC_CPU_HZ;
 }
 
 static void delay_settle(void)

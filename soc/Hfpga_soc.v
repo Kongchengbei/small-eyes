@@ -20,21 +20,24 @@
 // ===========================================================================
 module Hfpga_soc #(
     parameter MEM_FILE                  = `PROG_FPGA_PATH,
+    // 0 preserves the complete Camera+DDR application system; 1 selects the
+    // Flash-to-on-chip-BRAM CoreMark system and prunes all DDR/Camera logic.
+    parameter integer CPU_MEM_BRAM       = `SOC_CPU_MEM_BRAM,
     // 地址映射默认值集中在 soc_addr_map.vh；此处保留参数覆盖能力，便于
     // 更换 DDR 容量或重新划分 NPU 缓冲区时只改顶层实例。
     parameter [31:0] DDR_BASE           = `SOC_DDR_BASE,
     parameter [31:0] DDR_BYTES          = `SOC_DDR_BYTES,
-    parameter [23:0] FLASH_BASE         = 24'hA00000,
-    // 默认匹配 16 KiB camera_stereo_local/remote.bin；旧单目镜像需用旧位流
-    // 或显式覆盖为其实际长度。加载器只接受完整32位字并逐字回读校验DDR。
-    parameter [31:0] BOOT_IMAGE_BYTES   = 32'd16384,
+    parameter [23:0] FLASH_BASE         = `SOC_FLASH_BASE,
+    // 默认匹配 32 KiB CoreMark Flash 镜像。其他固件需补齐至此长度，
+    // 或显式覆盖为其实际长度；加载器按完整32位字搬运并回读校验DDR。
+    parameter [31:0] BOOT_IMAGE_BYTES   = `SOC_BOOT_IMAGE_BYTES,
     parameter integer SPI_DIV           = 4,
     // 本地主板 C24 对应 FPIOA0；远程板可覆盖为 31（AB26）。
-    parameter integer UART_TX_DEFAULT_FPIOA = 0,
+    parameter integer UART_TX_DEFAULT_FPIOA = `SOC_UART_TX_FPIOA,
     parameter integer DDR_INIT_TIMEOUT_CYCLES = 70000000,
     // NPU 消费者尚未接入；默认关闭，保持现有 Camera 调试 bin 的 release 语义。
     // 1 时两路前处理自主消费，CPU Camera release 被屏蔽；无 NPU 归还会安全背压。
-    parameter [0:0] PREPROCESS_ENABLE = 1'b0,
+    parameter [0:0] PREPROCESS_ENABLE = `SOC_ENABLE_PREPROCESS,
     parameter [15:0] PREPROCESS_WIDTH = 16'd96,
     parameter [15:0] PREPROCESS_HEIGHT = 16'd96,
     parameter [31:0] CPU_CACHED_DDR_BASE  = `SOC_CPU_CACHED_DDR_BASE,
@@ -114,6 +117,8 @@ module Hfpga_soc #(
     inout  [31:0] mem_dq,
     output [3:0]  mem_dm
 );
+
+    generate if (CPU_MEM_BRAM == 0) begin : g_ddr_profile
 
     // ---------------- AXI master from the CPU / caches ----------------
     wire [3:0]  axi_awid;
@@ -378,6 +383,13 @@ module Hfpga_soc #(
         .clk        (cpu_clk),
         .rst        (cpu_rst),
         .irq_external(npu_irq),
+        .bram_prog_valid (1'b0),
+        .bram_prog_write (1'b0),
+        .bram_prog_addr  (32'b0),
+        .bram_prog_wdata (32'b0),
+        .bram_prog_wstrb (4'b0),
+        .bram_prog_ready(),
+        .bram_prog_rdata(),
 
         .axi_awid   (axi_awid),
         .axi_awaddr (axi_awaddr),
@@ -621,7 +633,7 @@ module Hfpga_soc #(
 
 
     Huart_tx #(
-        .CLK_HZ(70_000_000)
+        .CLK_HZ(`SOC_CPU_HZ), .BAUD(`SOC_UART_BAUD)
     ) u_uart0_tx (
         .clk        (cpu_clk),
         .rst_n      (sys_rst_n),
@@ -704,11 +716,17 @@ module Hfpga_soc #(
     );
 
     Hcamera_sccb_gpio u_cam2_sccb_gpio (
-        .clk(cpu_clk), .rst_n(sys_rst_n), .mmio_valid(cam2_sel),
-        .mmio_wen(mmio_req_wen), .mmio_addr(mmio_req_addr[7:0]),
-        .mmio_wdata(mmio_req_wdata), .mmio_wmask(mmio_req_wstrb),
-        .mmio_rdata(cam2_gpio_rdata), .cam1_scl(cam2_scl),
-        .cam1_sda(cam2_sda), .cam1_reset_n(cam2_reset_n),
+        .clk(cpu_clk), 
+		.rst_n(sys_rst_n),
+		.mmio_valid(cam2_sel),
+        .mmio_wen(mmio_req_wen),
+		.mmio_addr(mmio_req_addr[7:0]),
+        .mmio_wdata(mmio_req_wdata),
+		.mmio_wmask(mmio_req_wstrb),
+        .mmio_rdata(cam2_gpio_rdata),
+		.cam1_scl(cam2_scl),
+        .cam1_sda(cam2_sda),
+		.cam1_reset_n(cam2_reset_n),
         .cam1_capture_enable(cam2_capture_enable)
     );
 
@@ -1092,7 +1110,7 @@ module Hfpga_soc #(
     );
 
     // Capture 与预处理合并，再由下一级与 CPU/启动桥合并。
-    generate if (PREPROCESS_ENABLE) begin : pre_merge_enabled
+    if (PREPROCESS_ENABLE) begin : pre_merge_enabled
     Haxi_2m1s_arbiter u_preprocess_ddr_merge (.clk(ddr_core_clk), .rst_n(sys_rst_n),
         .cpu_axi_araddr(30'b0),
         .cpu_axi_arid(8'b0),
@@ -1217,7 +1235,7 @@ module Hfpga_soc #(
         assign camera_axi_bvalid = capture_axi_bvalid;
         assign pre_axi_bvalid = 1'b0;
         assign capture_axi_bready = camera_axi_bready;
-    end endgenerate
+    end
     // 第二个历史命名为 npu 的端口接 Camera + 前处理聚合通道。
     // NPU 引擎接入时需扩展主机拓扑，当前没有隐式 NPU/Camera 共用端口。
     Haxi_2m1s_arbiter u_camera_ddr_arbiter (
@@ -1414,5 +1432,46 @@ module Hfpga_soc #(
     );
 
     assign core_active = ddr_init_done;
+
+    end else begin : g_bram_profile
+        Hfpga_soc_bram_profile #(
+            .MEM_FILE(MEM_FILE),
+            .FLASH_BASE(FLASH_BASE),
+            .BOOT_IMAGE_BYTES(BOOT_IMAGE_BYTES),
+            .SPI_DIV(SPI_DIV),
+            .UART_TX_DEFAULT_FPIOA(UART_TX_DEFAULT_FPIOA),
+            .IRAM_BASE(`SOC_IRAM_BASE),
+            .IRAM_BYTES(`SOC_IRAM_BYTES),
+            .DRAM_BASE(`SOC_DRAM_BASE),
+            .DRAM_BYTES(`SOC_DRAM_BYTES),
+            .MMIO_BASE(MMIO_BASE),
+            .MMIO_BYTES(MMIO_BYTES),
+            .UART0_BASE(UART0_BASE),
+            .UART0_BYTES(UART0_BYTES),
+            .LED_ADDR(LED_ADDR),
+            .FPIOA_BASE(FPIOA_BASE),
+            .FPIOA_BYTES(FPIOA_BYTES)
+        ) u_bram_profile (
+            .clk(clk), .hard_rst_n(hard_rst_n),
+            .JTAG_TCK(JTAG_TCK), .JTAG_TMS(JTAG_TMS), .JTAG_TDI(JTAG_TDI),
+            .JTAG_TDO(JTAG_TDO), .core_active(core_active), .fpioa(fpioa),
+            .cam1_scl(cam1_scl), .cam1_sda(cam1_sda), .cam1_reset_n(cam1_reset_n),
+            .cam1_pclk(cam1_pclk), .cam1_vsync(cam1_vsync),
+            .cam1_href(cam1_href), .cam1_data(cam1_data),
+            .cam2_scl(cam2_scl), .cam2_sda(cam2_sda), .cam2_reset_n(cam2_reset_n),
+            .cam2_pclk(cam2_pclk), .cam2_vsync(cam2_vsync),
+            .cam2_href(cam2_href), .cam2_data_hi(cam2_data_hi),
+            .cam2_data3(cam2_data3), .cam2_data0(cam2_data0),
+            .flash_cs_n(flash_cs_n), .flash_cs2_n(flash_cs2_n),
+            .flash_mosi(flash_mosi), .flash_miso(flash_miso),
+            .flash_wp_n(flash_wp_n), .flash_hold_n(flash_hold_n),
+            .clk_p(clk_p), .clk_n(clk_n), .mem_rst_n(mem_rst_n),
+            .mem_ck(mem_ck), .mem_ck_n(mem_ck_n), .mem_cke(mem_cke),
+            .mem_cs_n(mem_cs_n), .mem_ras_n(mem_ras_n), .mem_cas_n(mem_cas_n),
+            .mem_we_n(mem_we_n), .mem_odt(mem_odt), .mem_a(mem_a),
+            .mem_ba(mem_ba), .mem_dqs(mem_dqs), .mem_dqs_n(mem_dqs_n),
+            .mem_dq(mem_dq), .mem_dm(mem_dm)
+        );
+    end endgenerate
 
 endmodule

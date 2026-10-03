@@ -1,19 +1,20 @@
 `timescale 1ns / 1ps
+`include "../soc/soc_addr_map.vh"
 
 // 单路自主前处理：READY 原图 -> 颜色包围框 -> 最近邻 ROI -> DDR。
 // 与 Camera DMA 同处 mem_clk 域；不需要 CPU 逐帧启动。
 // 原图唯一消费者必须是本模块；外部 CPU 不得同时释放 source_ready_mask。
 // ROI 输出暂为 RGB565（16-bit little-endian），不是已冻结的 NPU INT8 张量。
 module Hcamera_preprocess #(
-    parameter [31:0] DDR_BASE = 32'h80000000,
-    parameter [31:0] DDR_BYTES = 32'h40000000,
-    parameter [31:0] SOURCE0 = 32'hb8000000,
-    parameter [31:0] SOURCE1 = 32'hb8100000,
-    parameter [31:0] SOURCE_SLOT_BYTES = 32'h00100000,
-    parameter [31:0] OUTPUT0 = 32'hb8400000,
-    parameter [31:0] OUTPUT1 = 32'hb8500000,
-    parameter [31:0] OUTPUT_BANK_BYTES = 32'h00100000,
-    parameter [31:0] ROI_STRIDE_BYTES = 32'd32768,
+    parameter [31:0] DDR_BASE = `SOC_DDR_BASE,
+    parameter [31:0] DDR_BYTES = `SOC_DDR_BYTES,
+    parameter [31:0] SOURCE0 = `SOC_CAM1_BUFFER0_BASE,
+    parameter [31:0] SOURCE1 = `SOC_CAM1_BUFFER1_BASE,
+    parameter [31:0] SOURCE_SLOT_BYTES = `SOC_CAM1_BUFFER_SLOT_BYTES,
+    parameter [31:0] OUTPUT0 = `SOC_PRE1_BANK0_BASE,
+    parameter [31:0] OUTPUT1 = `SOC_PRE1_BANK1_BASE,
+    parameter [31:0] OUTPUT_BANK_BYTES = `SOC_PRE_BANK_BYTES,
+    parameter [31:0] ROI_STRIDE_BYTES = `SOC_PRE_ROI_STRIDE_BYTES,
     parameter integer FRAME_WIDTH = 640,
     parameter integer FRAME_HEIGHT = 480,
     parameter integer MAX_REGIONS = 8,

@@ -187,6 +187,9 @@ module tb_flash_ddr_boot;
 
     Htop #(.RESET_PC(DDR_BASE), .DDR_BASE(DDR_BASE), .DDR_BYTES(32'h40000000)) cpu (
         .clk(cpu_clk), .rst(cpu_reset), .irq_external(1'b0),
+        .bram_prog_valid(1'b0), .bram_prog_write(1'b0),
+        .bram_prog_addr(32'b0), .bram_prog_wdata(32'b0), .bram_prog_wstrb(4'b0),
+        .bram_prog_ready(), .bram_prog_rdata(),
         .axi_awid(cpu_awid), .axi_awaddr(cpu_awaddr), .axi_awlen(cpu_awlen),
         .axi_awsize(cpu_awsize), .axi_awburst(cpu_awburst), .axi_awvalid(cpu_awvalid),
         .axi_awready(cpu_awready), .axi_wid(cpu_wid), .axi_wdata(cpu_wdata),

@@ -1,4 +1,5 @@
 `timescale 1ns / 1ps
+`include "../soc/soc_addr_map.vh"
 
 // DVP 统计量的 CPU 时钟域接口。PCLK 域先冻结一组快照，本模块等应答
 // 同步回来后再锁存，避免异步多位计数器被逐位采样而出现撕裂。
@@ -91,7 +92,8 @@ module Hcamera_dvp_regs (
             end
 
             if (mmio_valid && mmio_wen && mmio_wmask[0] &&
-                (mmio_addr[7:2] == 6'h02) && mmio_wdata[0] &&
+                (mmio_addr == `SOC_CAM_SNAPSHOT_CTRL) &&
+                ((mmio_wdata & `SOC_CAM_SNAPSHOT_START_MASK) != 0) &&
                 !snapshot_busy) begin
                 snapshot_req_toggle <= ~snapshot_req_toggle;
                 snapshot_valid       <= 1'b0;
@@ -102,17 +104,17 @@ module Hcamera_dvp_regs (
     always @(*) begin
         mmio_rdata = 32'b0;
         if (mmio_valid && !mmio_wen) begin
-            case (mmio_addr[7:2])
+            case (mmio_addr)
                 // 高位状态与 SCCB 的低位状态在顶层按位合并。
-                6'h01: mmio_rdata = {17'b0, any_error, snapshot_busy,
+                `SOC_CAM_LEGACY_STATUS_OFFSET: mmio_rdata = {17'b0, any_error, snapshot_busy,
                                       seen_latched[4:1], capture_enable,
                                       8'b0};
-                6'h02: mmio_rdata = {30'b0, snapshot_valid, snapshot_busy};
-                6'h03: mmio_rdata = frame_latched;
-                6'h04: mmio_rdata = pixels_latched;
-                6'h05: mmio_rdata = pclk_latched;
-                6'h06: mmio_rdata = errors_latched;
-                6'h07: mmio_rdata = lines_latched;
+                `SOC_CAM_SNAPSHOT_CTRL: mmio_rdata = {30'b0, snapshot_valid, snapshot_busy};
+                `SOC_CAM_FRAME_COUNT: mmio_rdata = frame_latched;
+                `SOC_CAM_PIXEL_COUNT: mmio_rdata = pixels_latched;
+                `SOC_CAM_PCLK_COUNT: mmio_rdata = pclk_latched;
+                `SOC_CAM_ERROR_FLAGS: mmio_rdata = errors_latched;
+                `SOC_CAM_LINE_COUNT: mmio_rdata = lines_latched;
                 default: mmio_rdata = 32'b0;
             endcase
         end

@@ -39,6 +39,10 @@ F:/SocFpga/soc/Hfpga_soc.v|F:/SocFpga/soc/soc_addr_map.vh|
 
 
 
+
+
+
+F:/SocFpga/soc/Hpreprocess_stereo.v|F:/SocFpga/soc/soc_addr_map.vh|
 F:/SocFpga/soc/Hcamera_subsystem.v|F:/SocFpga/soc/camera_regs.vh|
 
 

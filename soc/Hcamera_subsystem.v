@@ -1,11 +1,13 @@
 `timescale 1ns / 1ps
+`include "../soc/soc_addr_map.vh"
+`include "../soc/camera_regs.vh"
 
 // CAM1 DVP、异步 FIFO、DMA 与 CPU MMIO 子系统。
 module Hcamera_subsystem #(
-    parameter [31:0] DDR_BASE = 32'h8000_0000,
-    parameter [31:0] DDR_BYTES = 32'h4000_0000,
-    parameter [31:0] BUFFER0_ADDR = 32'hb800_0000,
-    parameter [31:0] BUFFER1_ADDR = 32'hb810_0000,
+    parameter [31:0] DDR_BASE = `SOC_DDR_BASE,
+    parameter [31:0] DDR_BYTES = `SOC_DDR_BYTES,
+    parameter [31:0] BUFFER0_ADDR = `SOC_CAM1_BUFFER0_BASE,
+    parameter [31:0] BUFFER1_ADDR = `SOC_CAM1_BUFFER1_BASE,
     parameter integer FRAME_WIDTH = 640,
     parameter integer FRAME_HEIGHT = 480,
     parameter integer FIFO_ADDR_WIDTH = 10,
@@ -383,8 +385,8 @@ module Hcamera_subsystem #(
             if (mmio_valid && mmio_wen) begin
                 case (mmio_addr)
                     `CAM_DMA_CONTROL: if (mmio_wmask[0]) begin
-                        dma_enable <= mmio_wdata[0];
-                        if (mmio_wdata[1]) begin
+                        dma_enable <= ((mmio_wdata & `SOC_CAM_DMA_ENABLE_MASK) != 0);
+                        if ((mmio_wdata & `SOC_CAM_DMA_CLEAR_MASK) != 0) begin
                             if ((clear_ack_sync_cpu == clear_toggle) && !clear_pending_cpu)
                                 clear_toggle <= ~clear_toggle;
                             else
@@ -392,10 +394,11 @@ module Hcamera_subsystem #(
                         end
                     end
                     `CAM_BUFFER_RELEASE: if (!HARDWARE_CONSUMER && mmio_wmask[0] && !release_busy_cpu) begin
-                        release_payload <= mmio_wdata[1:0];
+                        release_payload <= mmio_wdata[1:0] & `SOC_CAM_BUFFER_RELEASE_MASK;
                         release_toggle <= ~release_toggle;
                     end
-                    `CAM_SNAPSHOT_CTRL: if (mmio_wmask[0] && mmio_wdata[0] &&
+                    `CAM_SNAPSHOT_CTRL: if (mmio_wmask[0] &&
+                                            ((mmio_wdata & `SOC_CAM_SNAPSHOT_START_MASK) != 0) &&
                                             (cpu_snapshot_state == CPU_SNAP_IDLE))
                         snapshot_req_toggle <= ~snapshot_req_toggle;
                     default: begin end
@@ -560,7 +563,8 @@ module Hcamera_subsystem #(
             cpu_ack_sync <= cpu_ack_meta;
             case (cpu_snapshot_state)
                 CPU_SNAP_IDLE: if (mmio_valid && mmio_wen &&
-                    mmio_addr == `CAM_SNAPSHOT_CTRL && mmio_wmask[0] && mmio_wdata[0]) begin
+                    mmio_addr == `CAM_SNAPSHOT_CTRL && mmio_wmask[0] &&
+                    ((mmio_wdata & `SOC_CAM_SNAPSHOT_START_MASK) != 0)) begin
                     snapshot_valid <= 1'b0;
                     snapshot_timeout <= 1'b0;
                     snapshot_timer <= {SNAP_COUNT_WIDTH{1'b0}};

@@ -43,23 +43,28 @@ module Hmemu (
     reg [2:0]  mem_funct3;
     reg [1:0]  mem_wb_sel;
     reg [1:0]  mem_offset;
-	reg        mem_is_load;
-	reg [31:0] mem_ex_wb_value;
+    reg        mem_is_load;
+    reg [31:0] mem_ex_wb_value;
+    reg        mem_load_resp_received;
+    reg [31:0] mem_load_resp_data;
 
 
     // A BRAM/MMIO load responds one cpu_clk after its request.  A DDR3 load
     // remains in MEM until the AXI bridge returns its selected 32-bit word.
-    assign mem_ready_go    = !mem_valid || !mem_is_load || dmem_rsp_valid;
+	assign mem_ready_go    = !mem_valid || !mem_is_load ||
+                             mem_load_resp_received || dmem_rsp_valid;
     assign mem_allowin     = !mem_valid || (mem_ready_go && wb_allowin);
     assign mem_to_wb_valid = mem_valid && mem_ready_go;
 	//由 cpu/Hidu.v:276(+-) 检查后续指令的 `rs1/rs2` 是否依赖它。若依赖，就继续暂停；数据返回的周期再通过现有 MEM 前递送入 EX
-	assign mem_load_wait  = mem_valid && mem_is_load && !dmem_rsp_valid;//MEM级加载仍在等待
+	assign mem_load_wait  = mem_valid && mem_is_load &&
+                             !mem_load_resp_received && !dmem_rsp_valid;
     assign dbg_mem_valid   = mem_valid;
     assign dbg_mem_ready_go = mem_ready_go;
 
 
 
-    wire [31:0] shifted_rdata = dmem_rdata >> (mem_offset * 8);
+	wire [31:0] load_word = mem_load_resp_received ? mem_load_resp_data : dmem_rdata;
+	wire [31:0] shifted_rdata = load_word >> (mem_offset * 8);
     reg [31:0] load_data;
 
     always @(*) begin
@@ -67,7 +72,7 @@ module Hmemu (
         case (mem_funct3)
             3'b000:  load_data = {{24{shifted_rdata[7]}} , shifted_rdata[7:0]};
             3'b001:  load_data = {{16{shifted_rdata[15]}}, shifted_rdata[15:0]};
-            3'b010:  load_data = dmem_rdata;
+            3'b010:  load_data = load_word;
             3'b100:  load_data = {24'b0, shifted_rdata[7:0]};
             3'b101:  load_data = {16'b0, shifted_rdata[15:0]};
             default: load_data = 32'b0;
@@ -90,7 +95,9 @@ module Hmemu (
             mem_funct3      <= 3'b0;
             mem_reg_wen     <= 1'b0;
             mem_wb_sel      <= 2'b0;
-			mem_is_load     <= 1'b0;
+            mem_is_load     <= 1'b0;
+            mem_load_resp_received <= 1'b0;
+            mem_load_resp_data <= 32'b0;
             mem_is_ebreak   <= 1'b0;
             mem_offset      <= 2'b0;
 			mem_pc          <= 32'b0;
@@ -98,7 +105,14 @@ module Hmemu (
 			mem_ex_wb_value <= 32'b0;
         end else if (mem_allowin) begin
             mem_valid           <= ex_to_mem_valid;
+	        mem_load_resp_received <= 1'b0;
     	end
+
+		if (!rst && !mem_allowin && mem_valid && mem_is_load &&
+		    dmem_rsp_valid && !mem_load_resp_received) begin
+			mem_load_resp_received <= 1'b1;
+			mem_load_resp_data <= dmem_rdata;
+		end
 
 
 		if (ex_to_mem_valid && mem_allowin) begin

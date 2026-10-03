@@ -1,4 +1,5 @@
 `timescale 1ns / 1ps
+`include "../soc/soc_addr_map.vh"
 
 // Minimal memory-mapped UART transmitter, 8-N-1.
 // Register offsets: CTRL=00, STATUS=04, BAUD=08, TXDATA=0c.
@@ -25,20 +26,21 @@ module Huart_tx #(
     reg [3:0]  bit_count;
     reg        busy;
 
-    wire write_ctrl = mmio_valid && mmio_wen && (mmio_addr == 8'h00) && mmio_wmask[0];
-    wire write_baud = mmio_valid && mmio_wen && (mmio_addr == 8'h08);
-    wire txdata_req = mmio_valid && mmio_wen && (mmio_addr == 8'h0c) && mmio_wmask[0];
-    wire tx_start = txdata_req && uart_ctrl[0] && !busy;
+    wire write_ctrl = mmio_valid && mmio_wen && (mmio_addr == `SOC_UART_CTRL_OFFSET) && mmio_wmask[0];
+    wire write_baud = mmio_valid && mmio_wen && (mmio_addr == `SOC_UART_BAUD_OFFSET);
+    wire txdata_req = mmio_valid && mmio_wen && (mmio_addr == `SOC_UART_TXDATA_OFFSET) && mmio_wmask[0];
+    wire tx_enabled = ({28'b0, uart_ctrl} & `SOC_UART_CTRL_TX_ENABLE) != 0;
+    wire tx_start = txdata_req && tx_enabled && !busy;
 	//唯一需要反压的情况：正在发送时又要写 TXDATA。其余访问一律当拍完成。
-	assign mmio_ready = !(txdata_req && uart_ctrl[0] && busy);
+	assign mmio_ready = !(txdata_req && tx_enabled && busy);
 
     always @(*) begin
         mmio_rdata = 32'b0;
         if (mmio_valid && !mmio_wen) begin
             case (mmio_addr)
-                8'h00: mmio_rdata = {28'b0, uart_ctrl};
-                8'h04: mmio_rdata = {31'b0, busy};
-                8'h08: mmio_rdata = {16'b0, baud_div};
+                `SOC_UART_CTRL_OFFSET: mmio_rdata = {28'b0, uart_ctrl};
+                `SOC_UART_STATUS_OFFSET: mmio_rdata = busy ? `SOC_UART_STATUS_TX_BUSY : 32'b0;
+                `SOC_UART_BAUD_OFFSET: mmio_rdata = {16'b0, baud_div};
                 default: mmio_rdata = 32'b0;
             endcase
         end
@@ -47,7 +49,7 @@ module Huart_tx #(
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             // 初始化所有寄存器
-            uart_ctrl  <= 4'b0001;
+            uart_ctrl  <= `SOC_UART_CTRL_TX_ENABLE;
             baud_div   <= DEFAULT_DIV;//一字节：1 个起始位 + 8 个数据位 + 1 个停止位
             baud_count <= 16'b0;
             shift_reg  <= 10'b1111111111;

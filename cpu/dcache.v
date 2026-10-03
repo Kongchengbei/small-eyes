@@ -1,8 +1,8 @@
 `timescale 1ns / 1ps
 
 module dcache #(
-    // DDR 物理窗口可以大于 CPU 可缓存窗口。例如 NPU 共享缓冲区仍在 DDR
-    // 中，但 CPU 必须以非缓存方式访问，避免它与 DCache 形成两个副本。
+    // DDR 物理窗口可以大于 CPU 可缓存窗口。例如 NPU 共享缓冲区仍在 DDR中，
+	//但 CPU 必须以非缓存方式访问，避免它与 DCache 形成两个副本。
     parameter [31:0] CACHEABLE_DDR_BASE  = 32'h8000_0000,
     parameter [31:0] CACHEABLE_DDR_BYTES = 32'h4000_0000
 ) (

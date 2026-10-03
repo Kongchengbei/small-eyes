@@ -72,6 +72,9 @@ module tb_flash_ddr_smoke;
 
     Htop #(.RESET_PC(DDR_BASE), .DDR_BASE(DDR_BASE), .DDR_BYTES(32'h4000_0000)) u_cpu (
         .clk(clk), .rst(cpu_rst), .irq_external(1'b0),
+        .bram_prog_valid(1'b0), .bram_prog_write(1'b0),
+        .bram_prog_addr(32'b0), .bram_prog_wdata(32'b0), .bram_prog_wstrb(4'b0),
+        .bram_prog_ready(), .bram_prog_rdata(),
         .axi_awid(axi_awid), .axi_awaddr(axi_awaddr), .axi_awlen(axi_awlen),
         .axi_awsize(axi_awsize), .axi_awburst(axi_awburst),
         .axi_awvalid(axi_awvalid), .axi_awready(axi_awready),

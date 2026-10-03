@@ -49,6 +49,12 @@ NPU_ARBITER_TB_RTL := soc/Haxi_2m1s_arbiter.v
 PREPROCESS_RTL := soc/Hpreprocess_color.v soc/Hpreprocess_regions.v \
 	soc/Hcamera_preprocess.v soc/Hpreprocess_stereo.v
 
+.PHONY: menuconfig manuconfig
+menuconfig:
+	@$(PYTHON) tools/soc_menuconfig.py menu
+
+manuconfig: menuconfig
+
 .PHONY: preprocess-test preprocess-lint preprocess-color-test
 preprocess-color-test:
 	@mkdir -p "$(BUILD_DIR)"

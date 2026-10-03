@@ -27,7 +27,7 @@ module mul (
     wire signed [16:0] x_lo_signed;
     wire signed [16:0] y_lo_signed;
 
-    // Stage 1: four independent partial products.
+    //第一阶段：四个独立的 17x17 乘法器
     wire        [31:0] p00_calc;
     wire signed [33:0] p01_calc;
     wire signed [33:0] p10_calc;
@@ -38,7 +38,7 @@ module mul (
     reg signed  [33:0] p11_q;
     reg                 stage1_valid;
 
-    // Stage 2: align and add the registered partial products.
+    //第二阶段：对齐并相加
     wire signed [65:0] p00_aligned;
     wire signed [65:0] p01_aligned;
     wire signed [65:0] p10_aligned;

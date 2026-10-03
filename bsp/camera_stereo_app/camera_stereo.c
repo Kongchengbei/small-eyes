@@ -1,16 +1,17 @@
 #include "camera_stereo.h"
 #include "../camera_app/ov5640_regs.h"
+#include "../include/soc_defs.h"
 
 #define REG(cam, off) (*(volatile uint32_t *)((cam)->base + (off)))
-#define CTRL_RESET_N (1u << 0)
-#define CTRL_SCL_RELEASE (1u << 1)
-#define CTRL_SDA_RELEASE (1u << 2)
-#define CTRL_CAPTURE (1u << 3)
-#define STATUS_SDA (1u << 2)
-#define SNAP_BUSY 1u
-#define SNAP_VALID 2u
-#define SNAP_TIMEOUT 4u
-#define RELEASE_BUSY 1u
+#define CTRL_RESET_N SOC_CAM_SCCB_RESET_N_MASK
+#define CTRL_SCL_RELEASE SOC_CAM_SCCB_SCL_RELEASE_MASK
+#define CTRL_SDA_RELEASE SOC_CAM_SCCB_SDA_RELEASE_MASK
+#define CTRL_CAPTURE SOC_CAM_SCCB_CAPTURE_ENABLE_MASK
+#define STATUS_SDA SOC_CAM_SCCB_STATUS_SDA_MASK
+#define SNAP_BUSY SOC_CAM_SNAPSHOT_BUSY_MASK
+#define SNAP_VALID SOC_CAM_SNAPSHOT_VALID_MASK
+#define SNAP_TIMEOUT SOC_CAM_SNAPSHOT_TIMEOUT_MASK
+#define RELEASE_BUSY SOC_CAM_RELEASE_BUSY_MASK
 #define FRAME_BYTES 614400u
 
 struct verify_reg { uint16_t address; uint8_t expected, mask; };
@@ -23,7 +24,7 @@ static const struct verify_reg verify_regs[] = {
     {0x501fu,0x01u,0x07u}
 };
 
-static void write_ctrl(struct camera_ctx *cam) { REG(cam, 0x00u) = cam->ctrl_shadow; }
+static void write_ctrl(struct camera_ctx *cam) { REG(cam, SOC_CAM_SCCB_CONTROL_OFFSET) = cam->ctrl_shadow; }
 static void delay_bus(void) { volatile uint32_t i; for (i=0u;i<16u;++i) __asm__ volatile("nop"); }
 void cam_delay_ms(uint32_t ms) { uint32_t i; for(i=0u;i<ms*900u;++i) delay_bus(); }
 
@@ -43,7 +44,7 @@ static void scl(struct camera_ctx *cam,bool up)
 { if(up) cam->ctrl_shadow|=CTRL_SCL_RELEASE; else cam->ctrl_shadow&=~CTRL_SCL_RELEASE; write_ctrl(cam); }
 static void sda(struct camera_ctx *cam,bool up)
 { if(up) cam->ctrl_shadow|=CTRL_SDA_RELEASE; else cam->ctrl_shadow&=~CTRL_SDA_RELEASE; write_ctrl(cam); }
-static bool read_sda(struct camera_ctx *cam) { return (REG(cam,0x04u)&STATUS_SDA)!=0u; }
+static bool read_sda(struct camera_ctx *cam) { return (REG(cam,SOC_CAM_SCCB_STATUS_OFFSET)&STATUS_SDA)!=0u; }
 static void start(struct camera_ctx *cam)
 { sda(cam,true); scl(cam,true); delay_bus(); sda(cam,false); delay_bus(); scl(cam,false); delay_bus(); }
 static void stop(struct camera_ctx *cam)
@@ -94,26 +95,26 @@ bool cam_configure_vga(struct camera_ctx *cam,uint16_t *failed,uint32_t *writes)
 
 bool cam_snapshot(struct camera_ctx *cam,struct cam_snapshot *s,uint32_t timeout)
 {
-    uint32_t ctl; if(s==0)return false;REG(cam,0x08u)=1u;s->snapshot_control=0u;
-    while(timeout--!=0u){ctl=REG(cam,0x08u);s->snapshot_control=ctl;if(ctl&SNAP_TIMEOUT)return false;
+    uint32_t ctl; if(s==0)return false;REG(cam,SOC_CAM_SNAPSHOT_CTRL)=SOC_CAM_SNAPSHOT_START_MASK;s->snapshot_control=0u;
+    while(timeout--!=0u){ctl=REG(cam,SOC_CAM_SNAPSHOT_CTRL);s->snapshot_control=ctl;if(ctl&SNAP_TIMEOUT)return false;
         if((ctl&SNAP_BUSY)==0u&&(ctl&SNAP_VALID)!=0u){
-            s->frame_count=REG(cam,0x0cu);s->pixels=REG(cam,0x10u);s->pclk_count=REG(cam,0x14u);s->error_flags=REG(cam,0x18u);
-            s->lines=REG(cam,0x1cu);s->status=REG(cam,0x20u);s->bytes=REG(cam,0x24u);s->fifo_level=REG(cam,0x28u);s->fifo_max=REG(cam,0x2cu);
-            s->fifo_error=REG(cam,0x30u);s->dma_status=REG(cam,0x34u);s->dma_code=REG(cam,0x38u);s->frame_addr=REG(cam,0x3cu);
-            s->write_buffer=REG(cam,0x40u);s->complete_buffer=REG(cam,0x44u);s->hw_sum16=REG(cam,0x48u);s->ready_mask=REG(cam,0x4cu);
-            s->dropped=REG(cam,0x50u);s->sequence=REG(cam,0x54u);s->dvp_frames=REG(cam,0x58u);s->dvp_flags=REG(cam,0x5cu);
-            s->current_pixels=REG(cam,0x80u);s->current_bytes=REG(cam,0x84u);s->current_lines=REG(cam,0x88u);return true;
+            s->frame_count=REG(cam,SOC_CAM_FRAME_COUNT);s->pixels=REG(cam,SOC_CAM_PIXEL_COUNT);s->pclk_count=REG(cam,SOC_CAM_PCLK_COUNT);s->error_flags=REG(cam,SOC_CAM_ERROR_FLAGS);
+            s->lines=REG(cam,SOC_CAM_LINE_COUNT);s->status=REG(cam,SOC_CAM_STATUS);s->bytes=REG(cam,SOC_CAM_BYTE_COUNT);s->fifo_level=REG(cam,SOC_CAM_FIFO_LEVEL);s->fifo_max=REG(cam,SOC_CAM_FIFO_MAX_LEVEL);
+            s->fifo_error=REG(cam,SOC_CAM_FIFO_ERROR);s->dma_status=REG(cam,SOC_CAM_DMA_STATUS);s->dma_code=REG(cam,SOC_CAM_DMA_ERROR_CODE);s->frame_addr=REG(cam,SOC_CAM_LAST_FRAME_ADDR);
+            s->write_buffer=REG(cam,SOC_CAM_CURRENT_WRITE_BUFFER);s->complete_buffer=REG(cam,SOC_CAM_LAST_COMPLETE_BUFFER);s->hw_sum16=REG(cam,SOC_CAM_FRAME_CHECKSUM);s->ready_mask=REG(cam,SOC_CAM_READY_MASK);
+            s->dropped=REG(cam,SOC_CAM_DROPPED_FRAMES);s->sequence=REG(cam,SOC_CAM_SNAPSHOT_SEQUENCE);s->dvp_frames=REG(cam,SOC_CAM_DVP_FRAME_COUNT);s->dvp_flags=REG(cam,SOC_CAM_DVP_ERROR_FLAGS);
+            s->current_pixels=REG(cam,SOC_CAM_CURRENT_PIXEL_COUNT);s->current_bytes=REG(cam,SOC_CAM_CURRENT_BYTE_COUNT);s->current_lines=REG(cam,SOC_CAM_CURRENT_LINE_COUNT);return true;
         }
     }
-    s->snapshot_control=REG(cam,0x08u);return false;
+    s->snapshot_control=REG(cam,SOC_CAM_SNAPSHOT_CTRL);return false;
 }
 
 bool cam_release(struct camera_ctx *cam,uint32_t mask)
 {
-    uint32_t timeout=100000u;while((REG(cam,0x60u)&RELEASE_BUSY)!=0u&&timeout--!=0u){}
-    if(timeout==0u)return false;REG(cam,0x60u)=mask&3u;timeout=100000u;
-    while((REG(cam,0x60u)&RELEASE_BUSY)!=0u&&timeout--!=0u){}return (REG(cam,0x60u)&RELEASE_BUSY)==0u;
+    uint32_t timeout=100000u;while((REG(cam,SOC_CAM_BUFFER_RELEASE)&RELEASE_BUSY)!=0u&&timeout--!=0u){}
+    if(timeout==0u)return false;REG(cam,SOC_CAM_BUFFER_RELEASE)=mask&SOC_CAM_BUFFER_RELEASE_MASK;timeout=100000u;
+    while((REG(cam,SOC_CAM_BUFFER_RELEASE)&RELEASE_BUSY)!=0u&&timeout--!=0u){}return (REG(cam,SOC_CAM_BUFFER_RELEASE)&RELEASE_BUSY)==0u;
 }
 void cam_capture_enable(struct camera_ctx *cam,bool enable)
 { if(enable)cam->ctrl_shadow|=CTRL_CAPTURE;else cam->ctrl_shadow&=~CTRL_CAPTURE;write_ctrl(cam); }
-void cam_dma_enable(struct camera_ctx *cam,bool enable) { REG(cam,0x64u)=enable?1u:0u; }
+void cam_dma_enable(struct camera_ctx *cam,bool enable) { REG(cam,SOC_CAM_DMA_CONTROL)=enable?SOC_CAM_DMA_ENABLE_MASK:0u; }

@@ -3,10 +3,10 @@
 
 // CAM1 单路帧 DMA：DDR 域消费带标记 FIFO，并以 256-bit 单拍写入双缓冲。
 module Hcamera_dma #(
-    parameter [31:0] DDR_BASE = 32'h8000_0000,
-    parameter [31:0] DDR_BYTES = 32'h4000_0000,
-    parameter [31:0] BUFFER0_ADDR = 32'hB800_0000,
-    parameter [31:0] BUFFER1_ADDR = 32'hB810_0000,
+    parameter [31:0] DDR_BASE = `SOC_DDR_BASE,
+    parameter [31:0] DDR_BYTES = `SOC_DDR_BYTES,
+    parameter [31:0] BUFFER0_ADDR = `SOC_CAM1_BUFFER0_BASE,
+    parameter [31:0] BUFFER1_ADDR = `SOC_CAM1_BUFFER1_BASE,
     parameter [31:0] FRAME_WIDTH = 32'd640,
     parameter [31:0] FRAME_HEIGHT = 32'd480,
     parameter [31:0] TIMEOUT_CYCLES = 32'd1000000,

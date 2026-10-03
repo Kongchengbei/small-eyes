@@ -2,8 +2,13 @@
 
 module Htop #(
     parameter RESET_PC = 32'h8000_0000,
+    parameter BRAM_MODE = 1'b0,
     parameter [31:0] DDR_BASE   = 32'h8000_0000,
     parameter [31:0] DDR_BYTES  = 32'h4000_0000,
+    parameter [31:0] IRAM_BASE  = 32'h8000_0000,
+    parameter [31:0] IRAM_BYTES = 32'h0000_8000,
+    parameter [31:0] DRAM_BASE  = 32'h8000_8000,
+    parameter [31:0] DRAM_BYTES = 32'h0000_4000,
     // 仅 DCache 使用此窗口判断是否允许分配 Cache Line；完整 DDR 窗口仍
     // 传给 ICache 和 AXI backend。默认值保持旧设计的“全部 DDR 可缓存”。
     parameter [31:0] DCACHEABLE_DDR_BASE  = DDR_BASE,
@@ -13,6 +18,15 @@ module Htop #(
     input         rst,
     // Aggregated M-mode external interrupt, active high.
     input         irq_external,
+
+    // Optional synchronous programming/readback port for BRAM_MODE.
+    input         bram_prog_valid,
+    input         bram_prog_write,
+    input  [31:0] bram_prog_addr,
+    input  [31:0] bram_prog_wdata,
+    input  [3:0]  bram_prog_wstrb,
+    output wire   bram_prog_ready,
+    output wire [31:0] bram_prog_rdata,
 
     // ---- AXI4 master (32-bit data) ----
     output wire [3:0]  axi_awid,
@@ -86,6 +100,9 @@ module Htop #(
     wire        if_req_ready;
     wire        if_resp_valid;
     wire [31:0] if_resp_data;
+    wire        bram_if_ready;
+    wire        bram_if_resp_valid;
+    wire [31:0] bram_if_resp_data;
 
     wire        id_allowin;
     wire        id_to_ex_valid;
@@ -160,6 +177,7 @@ module Htop #(
     wire [31:0] flush_pc = ex_flush_req ? ex_flush_pc : actual_next_pc;
 
     wire [31:0] btb_lookup_pc;
+    wire [31:0] if_btb_lookup_pc;
     wire        btb_lookup_hit;
     wire        btb_lookup_match;
     wire        btb_lookup_predict_taken;
@@ -182,6 +200,23 @@ module Htop #(
     wire        dmem_ready;
     wire        dmem_rsp_valid;
     wire [31:0] dmem_rdata;
+    wire        bram_data_local;
+    wire        bram_data_ready;
+    wire        bram_data_rsp_valid;
+    wire [31:0] bram_data_rsp_data;
+    reg         bram_load_route_valid;
+    reg         bram_load_route_local;
+    always @(posedge clk) begin
+        if (rst || !BRAM_MODE) begin
+            bram_load_route_valid <= 1'b0;
+            bram_load_route_local <= 1'b0;
+        end else if (dmem_valid && !dmem_wen && dmem_ready) begin
+            bram_load_route_valid <= 1'b1;
+            bram_load_route_local <= bram_data_local;
+        end else if (dmem_rsp_valid) begin
+            bram_load_route_valid <= 1'b0;
+        end
+    end
 
     // dcache <-> axi_bridge (data channel)
     wire        dc_rd_req;
@@ -224,18 +259,16 @@ module Htop #(
     wire dbg_mem_valid;
     wire dbg_mem_ready_go;
 
-    // ------------------------------------------------------------------
     // IFU + icache
-    // ------------------------------------------------------------------
-    Hifu #(.RESET_PC(RESET_PC)) u_ifu (
+    Hifu #(.RESET_PC(RESET_PC), .CONTINUOUS_FETCH(BRAM_MODE)) u_ifu (
         .clk            (clk),
         .rst            (rst),
         .id_allowin     (id_allowin),
         .flush          (flush),
         .redirect_pc    (flush_pc),
-        .imem_rdata     (if_resp_data),
-        .imem_resp_valid(if_resp_valid),
-        .imem_req_ready (if_req_ready),
+        .imem_rdata     (BRAM_MODE ? bram_if_resp_data : if_resp_data),
+        .imem_resp_valid(BRAM_MODE ? bram_if_resp_valid : if_resp_valid),
+        .imem_req_ready (BRAM_MODE ? bram_if_ready : if_req_ready),
         .imem_req_valid (if_req_valid),
         //btb
         .btb_hit        (btb_lookup_hit),
@@ -245,10 +278,12 @@ module Htop #(
         .if_ins         (if_ins),
         .if_pc          (if_pc),
         .if_to_id_valid (if_to_id_valid),
+        .btb_lookup_pc  (if_btb_lookup_pc),
         .dbg_if_valid   (dbg_if_valid),
         .dbg_if_allowin (dbg_if_allowin)
     );
 
+    generate if (!BRAM_MODE) begin: gen_icache
     icache #(
         .DDR_BASE   (DDR_BASE),
         .DDR_BYTES  (DDR_BYTES)
@@ -278,11 +313,60 @@ module Htop #(
         .wr_data        (ic_wr_data),
         .wr_rdy         (ic_wr_rdy)
     );
+    end else begin: gen_no_icache
+        assign if_req_ready = 1'b0;
+        assign if_resp_valid = 1'b0;
+        assign if_resp_data = 32'b0;
+        assign ic_rd_req = 1'b0;
+        assign ic_rd_type = 3'b0;
+        assign ic_rd_addr = 32'b0;
+        assign ic_wr_req = 1'b0;
+        assign ic_wr_type = 3'b0;
+        assign ic_wr_addr = 32'b0;
+        assign ic_wr_wstrb = 4'b0;
+        assign ic_wr_data = 128'b0;
+        assign icache_miss = 1'b0;
+    end endgenerate
 
-    // ------------------------------------------------------------------
+    generate if (BRAM_MODE) begin: gen_cpu_bram
+        cpu_bram_mem #(
+            .IRAM_BASE(IRAM_BASE), .IRAM_BYTES(IRAM_BYTES),
+            .DRAM_BASE(DRAM_BASE), .DRAM_BYTES(DRAM_BYTES)
+        ) u_bram_mem (
+            .clk(clk), .rst(rst),
+            .if_req_valid(if_req_valid), .if_req_addr(if_req_pc),
+            .if_req_ready(bram_if_ready), .if_rsp_valid(bram_if_resp_valid),
+            .if_rsp_data(bram_if_resp_data),
+            .data_req_valid(dmem_valid), .data_req_write(dmem_wen),
+            .data_req_addr(dmem_addr), .data_req_wdata(dmem_wdata),
+            .data_req_wstrb(dmem_wmask), .data_req_ready(bram_data_ready),
+            .data_rsp_valid(bram_data_rsp_valid), .data_rsp_data(bram_data_rsp_data),
+            .data_addr_local(bram_data_local),
+            .prog_valid(bram_prog_valid), .prog_write(bram_prog_write),
+            .prog_addr(bram_prog_addr), .prog_wdata(bram_prog_wdata),
+            .prog_wstrb(bram_prog_wstrb), .prog_ready(bram_prog_ready),
+            .prog_rdata(bram_prog_rdata)
+        );
+        assign dmem_ready = !rst && (bram_data_local ? bram_data_ready :
+                            ((ex_ins[6:0] == 7'b0100011) ? dc_wr_rdy : dc_rd_rdy));
+        assign dmem_rsp_valid = bram_load_route_valid &&
+                                (bram_load_route_local ? bram_data_rsp_valid :
+                                 (dc_ret_valid && dc_ret_last));
+        assign dmem_rdata = bram_load_route_local ? bram_data_rsp_data : dc_ret_data;
+    end else begin: gen_no_cpu_bram
+        assign bram_if_ready = 1'b0;
+        assign bram_if_resp_valid = 1'b0;
+        assign bram_if_resp_data = 32'b0;
+        assign bram_data_local = 1'b0;
+        assign bram_data_ready = 1'b0;
+        assign bram_data_rsp_valid = 1'b0;
+        assign bram_data_rsp_data = 32'b0;
+        assign bram_prog_ready = 1'b0;
+        assign bram_prog_rdata = 32'b0;
+    end endgenerate
+
     // Branch predictor
-    // ------------------------------------------------------------------
-    assign btb_lookup_pc = if_pc;
+    assign btb_lookup_pc = BRAM_MODE ? if_btb_lookup_pc : if_pc;
     Btb u_btb (
         .clk            (clk),
         .rst            (rst),
@@ -298,12 +382,10 @@ module Htop #(
         .lookup_target  (btb_look_up_target)
     );
 
-    // An older EX-stage CSR redirect wins over an ID update.
+    //An older EX-stage CSR redirect wins over an ID update
     assign btb_update_valid = btb_update_valid_id && !ex_flush_req;
 
-    // ------------------------------------------------------------------
     // ID
-    // ------------------------------------------------------------------
     Hidu u_idu (
         .clk                (clk),
         .rst                (rst),
@@ -367,9 +449,7 @@ module Htop #(
         .dbg_mispredict     (dbg_mispredict)
     );
 
-    // ------------------------------------------------------------------
     // EX (memory request goes to dcache)
-    // ------------------------------------------------------------------
     Hexu u_exu (
         .clk                 (clk),
         .rst                 (rst),
@@ -428,6 +508,7 @@ module Htop #(
         .dmem_ready          (dmem_ready)
     );
 
+    generate if (!BRAM_MODE) begin: gen_dcache
     dcache #(
         .CACHEABLE_DDR_BASE      (DCACHEABLE_DDR_BASE),
         .CACHEABLE_DDR_BYTES     (DCACHEABLE_DDR_BYTES)
@@ -458,10 +539,19 @@ module Htop #(
         .wr_data         (dc_wr_data),
         .wr_rdy          (dc_wr_rdy)
     );
+    end else begin: gen_no_dcache
+        assign dc_rd_req = dmem_valid && !bram_data_local && !dmem_wen;
+        assign dc_rd_type = 3'b010;
+        assign dc_rd_addr = {dmem_addr[31:2], 2'b00};
+        assign dc_wr_req = dmem_valid && !bram_data_local && dmem_wen;
+        assign dc_wr_type = 3'b010;
+        assign dc_wr_addr = {dmem_addr[31:2], 2'b00};
+        assign dc_wr_wstrb = dmem_wmask;
+        assign dc_wr_data = {96'b0, dmem_wdata};
+        assign dcache_miss = 1'b0;
+    end endgenerate
 
-    // ------------------------------------------------------------------
-    // MEM
-    // ------------------------------------------------------------------
+    //MEM
     Hmemu u_memu (
         .clk              (clk),
         .rst              (rst),
@@ -492,9 +582,7 @@ module Htop #(
         .dbg_mem_ready_go (dbg_mem_ready_go)
     );
 
-    // ------------------------------------------------------------------
     // WB
-    // ------------------------------------------------------------------
     Hwbu u_wbu (
         .clk             (clk),
         .rst             (rst),
@@ -515,9 +603,7 @@ module Htop #(
         .wb_is_ebreak    (wb_is_ebreak)
     );
 
-    // ------------------------------------------------------------------
     // axi_bridge (merges icache + dcache onto one AXI master)
-    // ------------------------------------------------------------------
     axi_bridge u_axi_bridge (
         .clk               (clk),
         .reset             (rst),

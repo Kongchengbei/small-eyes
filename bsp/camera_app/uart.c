@@ -1,19 +1,18 @@
 #include "uart.h"
+#include "../include/soc_defs.h"
 
-#define UART0_BASE       0x40000000u
-#define UART_CTRL        (*(volatile uint32_t *)(UART0_BASE + 0x00u))
-#define UART_STATUS      (*(volatile uint32_t *)(UART0_BASE + 0x04u))
-#define UART_BAUD        (*(volatile uint32_t *)(UART0_BASE + 0x08u))
-#define UART_TXDATA      (*(volatile uint32_t *)(UART0_BASE + 0x0cu))
+#define UART_CTRL        (*(volatile uint32_t *)(SOC_UART0_BASE + SOC_UART_CTRL_OFFSET))
+#define UART_STATUS      (*(volatile uint32_t *)(SOC_UART0_BASE + SOC_UART_STATUS_OFFSET))
+#define UART_BAUD        (*(volatile uint32_t *)(SOC_UART0_BASE + SOC_UART_BAUD_OFFSET))
+#define UART_TXDATA      (*(volatile uint32_t *)(SOC_UART0_BASE + SOC_UART_TXDATA_OFFSET))
 
-#define FPIOA_BASE       0x40000f00u
-#define FPIOA_OUT_MAP(n) (*(volatile uint8_t *)(FPIOA_BASE + (uint32_t)(n)))
+#define FPIOA_OUT_MAP(n) (*(volatile uint8_t *)(SOC_FPIOA_BASE + (uint32_t)(n)))
 
-#define FPIOA_UART_LOCAL_TX 0u
+#define FPIOA_UART_LOCAL_TX SOC_UART_TX_FPIOA
 #define FPIOA_UART_REMOTE_TX 31u
-#define FPIOA_FUNC_UART0_TX 7u
-#define UART_CTRL_TX_ENABLE 0x1u
-#define UART_STATUS_TX_BUSY 0x1u
+#define FPIOA_FUNC_UART0_TX SOC_UART_TX_FPIOA_FUNC
+#define UART_CTRL_TX_ENABLE SOC_UART_CTRL_TX_ENABLE
+#define UART_STATUS_TX_BUSY SOC_UART_STATUS_TX_BUSY
 
 extern uint32_t system_cpu_freq;
 
@@ -36,7 +35,7 @@ void uart_init(uint32_t baud, uint8_t tx_fpioa)
         return;
     }
     if (clock_hz == 0u) {
-        clock_hz = 70000000u;
+        clock_hz = SOC_CPU_HZ;
     }
 
     FPIOA_OUT_MAP(tx_fpioa) = FPIOA_FUNC_UART0_TX;

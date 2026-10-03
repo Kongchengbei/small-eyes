@@ -1,15 +1,16 @@
 #include <stdint.h>
 #include "camera_stereo.h"
 #include "uart_async.h"
+#include "../include/soc_defs.h"
 
 extern uint32_t system_cpu_freq;
 
-#define CPU_HZ 70000000u
+#define CPU_HZ SOC_CPU_HZ
 #define FRAME_PIXELS 307200u
 #define FRAME_LINES 480u
 #define FRAME_BYTES 614400u
 #define INVALID_ADDR 0xffffffffu
-#define CAM_ERROR_STATUS_MASK ((1u<<7)|(1u<<10)|(1u<<13)|(1u<<14))
+#define CAM_ERROR_STATUS_MASK SOC_CAM_STATUS_ERROR_MASK
 
 struct run_stats {
     struct camera_ctx camera;
@@ -164,10 +165,12 @@ int main(void)
     log_puts("=== Stereo Camera Bring-up ===\n");
     log_puts("CAMERA_STEREO BOOT\nDDR INIT OK\nCPU CLOCK=");log_putdec(system_cpu_freq);
     log_puts(" UART=115200 TX_FPIOA=");log_putdec(uart_pin);log_putc('\n');
-    log_puts("CAM1 BASE=0x40000300 BUFS=0xB8000000,0xB8100000\n");
-    log_puts("CAM2 BASE=0x40000400 BUFS=0xB8200000,0xB8300000\n");
-    cam_init(&a.camera,0x40000300u,0xb8000000u,0xb8100000u,1u);
-    cam_init(&b.camera,0x40000400u,0xb8200000u,0xb8300000u,2u);
+    log_puts("CAM1 BASE="); log_puthex(SOC_CAM1_MMIO_BASE); log_puts(" BUFS=");
+    log_puthex(SOC_CAM1_BUFFER0_BASE); log_puts(","); log_puthex(SOC_CAM1_BUFFER1_BASE); log_putc('\n');
+    log_puts("CAM2 BASE="); log_puthex(SOC_CAM2_MMIO_BASE); log_puts(" BUFS=");
+    log_puthex(SOC_CAM2_BUFFER0_BASE); log_puts(","); log_puthex(SOC_CAM2_BUFFER1_BASE); log_putc('\n');
+    cam_init(&a.camera,SOC_CAM1_MMIO_BASE,SOC_CAM1_BUFFER0_BASE,SOC_CAM1_BUFFER1_BASE,1u);
+    cam_init(&b.camera,SOC_CAM2_MMIO_BASE,SOC_CAM2_BUFFER0_BASE,SOC_CAM2_BUFFER1_BASE,2u);
     report_config(&a);report_config(&b);
     /* 配置阶段允许串口阻塞；采集开始前把启动日志完全排空。 */
     uart_async_flush_blocking();

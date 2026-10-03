@@ -249,7 +249,10 @@ module Hexu (
     assign ex_forward_data    = ex_wb_value;
 
 
-    assign dmem_valid = ex_to_mem_valid && (ex_is_load || ex_is_store);
+    // A memory side effect is accepted only when MEM can take this EX entry.
+    // Otherwise an older stalled MEM load could cause the held EX operation
+    // to be issued repeatedly while the pipeline is back-pressured.
+    assign dmem_valid = ex_to_mem_valid && mem_allowin && (ex_is_load || ex_is_store);
     assign dmem_wen   = dmem_valid && ex_is_store;
     assign dmem_addr  = ex_result;
 

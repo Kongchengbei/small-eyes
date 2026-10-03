@@ -1,12 +1,21 @@
 `timescale 1ns / 1ps
 
-module tb_Htop;
+module tb_Htop #(
+    parameter BRAM_MODE = 1'b0
+);
 
     localparam MEM_WORDS = 16384;  // 64 KiB at DDR_BASE
     localparam [31:0] DDR_BASE = 32'h8000_0000;
 
     reg clk = 1'b0;
     reg rst = 1'b1;
+    reg bram_prog_valid = 1'b0;
+    reg bram_prog_write = 1'b0;
+    reg [31:0] bram_prog_addr = 32'b0;
+    reg [31:0] bram_prog_wdata = 32'b0;
+    reg [3:0] bram_prog_wstrb = 4'b0;
+    wire bram_prog_ready;
+    wire [31:0] bram_prog_rdata;
     reg mem_clk = 1'b0;
     always #4 mem_clk = ~mem_clk;
     wire bridge_req_ready;
@@ -172,12 +181,15 @@ module tb_Htop;
                                  (ddr_word_addr < MEM_WORDS);
 
     integer i;
+    integer bram_i;
     integer cycle_count;
     integer timeout_cycles;
     string program_file;
     bit uart_smoke_mode;
     bit camera_bad_frame_mode;
     bit gpio_smoke_mode;
+    bit coremark_mode;
+    bit coremark_startup_only;
     bit gpio_sda_stuck_low;
     integer gpio_step_count = 0;
     integer gpio_line_start = 0;
@@ -257,7 +269,7 @@ module tb_Htop;
 
     always #7.143 clk = ~clk; // 板上 CPU 约 70 MHz；DDR 域独立运行。
 
-    Htop dut (
+    Htop #(.BRAM_MODE(BRAM_MODE)) dut (
         .clk        (clk),
         .rst        (rst),
         .axi_awid   (axi_awid),
@@ -291,6 +303,10 @@ module tb_Htop;
         .axi_rvalid (axi_rvalid),
         .axi_rready (axi_rready),
 		.irq_external(1'b0),
+		.bram_prog_valid(bram_prog_valid), .bram_prog_write(bram_prog_write),
+		.bram_prog_addr(bram_prog_addr), .bram_prog_wdata(bram_prog_wdata),
+		.bram_prog_wstrb(bram_prog_wstrb), .bram_prog_ready(bram_prog_ready),
+		.bram_prog_rdata(bram_prog_rdata),
         .pc         (pc),
         .ins        (ins),
         .is_ebreak  (is_ebreak),
@@ -658,6 +674,10 @@ module tb_Htop;
         uart_smoke_mode = $test$plusargs("UART_SMOKE");
         camera_bad_frame_mode = $test$plusargs("CAMERA_BAD_FRAME");
         gpio_smoke_mode = $test$plusargs("GPIO_SMOKE");
+        coremark_mode = $test$plusargs("COREMARK");
+        coremark_startup_only = $test$plusargs("COREMARK_STARTUP_ONLY");
+        if (coremark_mode && (uart_smoke_mode || gpio_smoke_mode))
+            $fatal(1, "CoreMark mode cannot be combined with Camera/GPIO modes");
         gpio_sda_stuck_low = $test$plusargs("GPIO_SDA_STUCK_LOW");
         if (uart_smoke_mode && gpio_smoke_mode)
             $fatal(1, "Camera 与 GPIO 固件测试模式不能同时启用");
@@ -687,8 +707,31 @@ module tb_Htop;
                          "CAM1 START  : OK\r\n"};
         if (gpio_smoke_mode)
             uart_expected = "=== CAM1 GPIO Toggle Test ===\r\n";
+        if (coremark_mode)
+            uart_expected = $sformatf("Start CoreMark CPU=70000000 Hz UART=115200 TX_FPIOA=%0d\r\n",
+                                     uart_expected_pin);
         $display("PROGRAM=%s", program_file);
         $readmemh(program_file, mem);
+
+        if (BRAM_MODE) begin
+            // Keep CPU reset asserted while writing the program image through
+            // the same synchronous port used by the flash boot controller.
+            bram_prog_write = 1'b1;
+            bram_prog_wstrb = 4'hf;
+            for (bram_i = 0; bram_i < 8192; bram_i = bram_i + 1) begin
+                @(negedge clk);
+                bram_prog_valid = 1'b1;
+                bram_prog_addr = 32'h8000_0000 + bram_i * 4;
+                bram_prog_wdata = mem[bram_i];
+                #1;
+                if (!bram_prog_ready)
+                    $fatal(1, "BRAM loader did not accept word %0d", bram_i);
+                @(posedge clk);
+            end
+            @(negedge clk);
+            bram_prog_valid = 1'b0;
+            bram_prog_write = 1'b0;
+        end
 
         $dumpfile("tb.vcd");
         $dumpvars(0, tb_Htop);
@@ -770,7 +813,7 @@ module tb_Htop;
     // result when that terminal instruction reaches the writeback stage, so
     // both result registers have passed through the pipeline.
     always @(posedge clk) begin
-        if (!rst && !uart_smoke_mode && !gpio_smoke_mode && ins === 32'h0000_006f) begin
+        if (!rst && !uart_smoke_mode && !gpio_smoke_mode && !coremark_mode && ins === 32'h0000_006f) begin
             if (dut.u_idu.u_rf.rf[27] === 32'd1) begin
                 $display("TEST_PASS");
                 $display("cycle_count=%0d", cycle_count);
@@ -796,7 +839,7 @@ module tb_Htop;
         if (!rst && uart_smoke_mode && fpioa_mmio_sel && mmio_req_wen)
             $display("FPIOA_WRITE addr=%08x data=%08x mask=%x",
                      mmio_req_addr, mmio_req_wdata, mmio_req_wstrb);
-        if (!rst && (uart_smoke_mode || gpio_smoke_mode) && mmio_req_valid && mmio_req_wen &&
+        if (!rst && (uart_smoke_mode || gpio_smoke_mode || coremark_mode) && mmio_req_valid && mmio_req_wen &&
             mmio_req_ready && (mmio_req_addr == 32'h4000_000c) &&
             mmio_req_wstrb[0]) begin
             if (u_fpioa.fpioa_ot_reg[uart_expected_pin] != 5'd7 ||
@@ -808,6 +851,24 @@ module tb_Htop;
             if (uart_output.len() >= uart_expected.len() &&
                 uart_output.substr(0, uart_expected.len()-1) != uart_expected)
                 $fatal(1, "UART 初始化输出不符：%s", uart_output);
+            if (coremark_mode && coremark_startup_only && uart_output == uart_expected)
+                uart_fw_checks_done = 1'b1;
+            if (coremark_mode && !coremark_startup_only && mmio_req_wdata[7:0] == 8'h0a &&
+                contains(uart_output, "CoreMark/MHz\n")) begin
+                // ITERATIONS=1 is an offline CRC/boot check, never a valid score.
+                if (!contains(uart_output, "Iterations       : 1\n") ||
+                    !contains(uart_output, "seedcrc          : 0xe9f5\n") ||
+                    !contains(uart_output, "[0]crclist       : 0xe714\n") ||
+                    !contains(uart_output, "[0]crcmatrix     : 0x1fd7\n") ||
+                    !contains(uart_output, "[0]crcstate      : 0x8e3a\n") ||
+                    !contains(uart_output, "ERROR! Must execute for at least 10 secs") ||
+                    contains(uart_output, "ERROR! list crc") ||
+                    contains(uart_output, "ERROR! matrix crc") ||
+                    contains(uart_output, "ERROR! state crc") ||
+                    contains(uart_output, "Total time (secs): 0.000000"))
+                    $fatal(1, "CoreMark smoke CRC/timer check failed: %s", uart_output);
+                uart_fw_checks_done = 1'b1;
+            end
             if (uart_smoke_mode && !camera_bad_frame_mode &&
                 mmio_req_wdata[7:0] == 8'h0a &&
                 contains(uart_output, "CAM1 RELEASE MASK : 0x00000001 RELEASED\r\n")) begin
@@ -1004,7 +1065,7 @@ module tb_Htop;
         reg [7:0] rx_byte;
         integer bit_index;
         integer received_index;
-        wait ((uart_smoke_mode || gpio_smoke_mode) && !rst);
+        wait ((uart_smoke_mode || gpio_smoke_mode || coremark_mode) && !rst);
         forever begin
             @(negedge fpioa_pins[uart_expected_pin]);
             repeat (UART_BIT_CYCLES / 2) @(posedge clk);
@@ -1028,7 +1089,10 @@ module tb_Htop;
             if (uart_fw_checks_done && !camera_bad_frame_mode &&
                 uart_pin_output.len() == uart_output.len()) begin
                 $display("UART_PIN_PASS pin=%0d bytes=%0d", uart_expected_pin, uart_pin_output.len());
-                if (gpio_smoke_mode)
+                if (coremark_mode)
+                    $display("COREMARK_FIRMWARE_PASS pin=%0d startup_only=%0d",
+                             uart_expected_pin, coremark_startup_only);
+                else if (gpio_smoke_mode)
                     $display("CAMERA_GPIO_FIRMWARE_PASS pin=%0d stuck_low=%0d steps=%0d",
                              uart_expected_pin, gpio_sda_stuck_low, gpio_step_count);
                 else
@@ -1042,7 +1106,7 @@ module tb_Htop;
         timeout_cycles = 1000000;
         void'($value$plusargs("TIMEOUT=%d", timeout_cycles));
         repeat (timeout_cycles) @(posedge clk);
-        if (uart_smoke_mode || gpio_smoke_mode) begin
+        if (uart_smoke_mode || gpio_smoke_mode || coremark_mode) begin
             $display("UART_CAPTURE_LEN=%0d EXPECTED_LEN=%0d",
                      uart_output.len(), uart_expected.len());
             $display("UART_CAPTURE=%s", uart_output);

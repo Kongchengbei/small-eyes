@@ -1,4 +1,5 @@
 `timescale 1ns / 1ps
+`include "../soc/soc_addr_map.vh"
 
 // ============================================================================
 // Hnpu_ctrl
@@ -39,14 +40,14 @@ module Hnpu_ctrl #(
 );
 
 // 寄存器字节偏移。所有寄存器均为 32-bit，部分写由 mmio_wstrb 合并。
-localparam [7:0] REG_CTRL        = 8'h00; // bit0: start（仅写）
-localparam [7:0] REG_STATUS      = 8'h04; // bit0: busy，bit1: done/W1C
-localparam [7:0] REG_INPUT_ADDR  = 8'h08;
-localparam [7:0] REG_WEIGHT_ADDR = 8'h0c;
-localparam [7:0] REG_OUTPUT_ADDR = 8'h10;
-localparam [7:0] REG_TASK_BYTES  = 8'h14;
-localparam [7:0] REG_IRQ_ENABLE  = 8'h18; // bit0: IRQ 使能
-localparam [7:0] REG_IRQ_STATUS  = 8'h1c; // bit0: done pending/W1C
+localparam [7:0] REG_CTRL        = `SOC_NPU_CTRL_OFFSET;
+localparam [7:0] REG_STATUS      = `SOC_NPU_STATUS_OFFSET;
+localparam [7:0] REG_INPUT_ADDR  = `SOC_NPU_INPUT_ADDR_OFFSET;
+localparam [7:0] REG_WEIGHT_ADDR = `SOC_NPU_WEIGHT_ADDR_OFFSET;
+localparam [7:0] REG_OUTPUT_ADDR = `SOC_NPU_OUTPUT_ADDR_OFFSET;
+localparam [7:0] REG_TASK_BYTES  = `SOC_NPU_TASK_BYTES_OFFSET;
+localparam [7:0] REG_IRQ_ENABLE  = `SOC_NPU_IRQ_ENABLE_OFFSET;
+localparam [7:0] REG_IRQ_STATUS  = `SOC_NPU_IRQ_STATUS_OFFSET;
 
 reg [31:0] input_addr_reg;
 reg [31:0] weight_addr_reg;
@@ -60,10 +61,12 @@ reg        irq_enable_reg;
 wire [7:0] reg_offset = mmio_addr[7:0];
 wire write_access = mmio_sel && mmio_wen;
 wire start_write = write_access && (reg_offset == REG_CTRL) &&
-                   mmio_wstrb[0] && mmio_wdata[0];
+                   mmio_wstrb[0] && ((mmio_wdata & `SOC_NPU_CTRL_START_MASK) != 0);
 wire done_clear_write = write_access &&
-                        (((reg_offset == REG_STATUS) && mmio_wstrb[0] && mmio_wdata[1]) ||
-                         ((reg_offset == REG_IRQ_STATUS) && mmio_wstrb[0] && mmio_wdata[0]));
+                        (((reg_offset == REG_STATUS) && mmio_wstrb[0] &&
+                          ((mmio_wdata & `SOC_NPU_STATUS_DONE_MASK) != 0)) ||
+                         ((reg_offset == REG_IRQ_STATUS) && mmio_wstrb[0] &&
+                          ((mmio_wdata & `SOC_NPU_IRQ_DONE_MASK) != 0)));
 
 assign mmio_addr_sel = (mmio_addr >= NPU_MMIO_BASE) &&
                        (mmio_addr < (NPU_MMIO_BASE + NPU_MMIO_BYTES));
@@ -114,7 +117,7 @@ always @(posedge clk or negedge rst_n) begin
                     task_bytes_reg  <= merge_wstrb(task_bytes_reg, mmio_wdata, mmio_wstrb);
                 REG_IRQ_ENABLE:
                     if (mmio_wstrb[0])
-                        irq_enable_reg <= mmio_wdata[0];
+                irq_enable_reg <= ((mmio_wdata & `SOC_NPU_IRQ_ENABLE_MASK) != 0);
                 default: begin end
             endcase
         end
@@ -148,7 +151,8 @@ always @(*) begin
     mmio_rdata = 32'b0;
     if (mmio_addr_sel) begin
         case (reg_offset)
-            REG_STATUS:      mmio_rdata = {30'b0, done_reg, busy_reg};
+            REG_STATUS:      mmio_rdata = (done_reg ? `SOC_NPU_STATUS_DONE_MASK : 32'b0) |
+                                           (busy_reg ? `SOC_NPU_STATUS_BUSY_MASK : 32'b0);
             REG_INPUT_ADDR:  mmio_rdata = input_addr_reg;
             REG_WEIGHT_ADDR: mmio_rdata = weight_addr_reg;
             REG_OUTPUT_ADDR: mmio_rdata = output_addr_reg;

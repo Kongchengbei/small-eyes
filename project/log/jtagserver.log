@@ -8582,3 +8582,1035 @@
 [Debug] [2026-10-2 14:26:56] progress bar is 100
 [Debug] [2026-10-2 14:26:56] end to operate flash: cmd id = 20303
 [Debug] [2026-10-2 14:26:56] cmd operation Verify Outer Flash releases locker
+[Info] [2026-10-3 16:45:29] /***************************Start jtagserver***************************/
+[Info] [2026-10-3 16:45:29] Path: F:/PDS_2022.2-SP6.4/bin
+[Info] [2026-10-3 16:45:29] Version: 146967
+[Debug] [2026-10-3 16:45:33] Add a new user_thread, socket descriptor is 1128 user_thread id is 0000000000009D28
+[Debug] [2026-10-3 16:45:33] After adding, map size is : 1
+[Debug] [2026-10-3 16:45:33] Add a new user_thread, socket descriptor is 1208 user_thread id is 0000000000009D28
+[Debug] [2026-10-3 16:45:33] After adding, map size is : 2
+[Debug] [2026-10-3 16:45:33] IP address of connecting client is : ::ffff:127.0.0.1
+[Debug] [2026-10-3 16:45:33] IP address of connecting client is : ::ffff:127.0.0.1
+[Debug] [2026-10-3 16:45:33] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 16:45:33] _total_bytes_size : 160
+[Debug] [2026-10-3 16:45:33] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 16:45:33] _total_bytes_size : 96
+[Debug] [2026-10-3 16:45:33] cmd id :40010cmd name : get_cable_paras
+[Debug] [2026-10-3 16:45:36] cmd operation get_cable_paras releases locker
+[Debug] [2026-10-3 16:45:36] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 16:45:36] _total_bytes_size : 101
+[Debug] [2026-10-3 16:45:36] cmd id :20001cmd name : Open config cable
+[Error] [2026-10-3 16:45:36] Hardware handler is invalid
+[Debug] [2026-10-3 16:45:36] cmd operation Open config cable releases locker
+[Debug] [2026-10-3 16:45:54] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 16:45:54] _total_bytes_size : 101
+[Debug] [2026-10-3 16:45:54] cmd id :20001cmd name : Open config cable
+[Error] [2026-10-3 16:45:54] Hardware handler is invalid
+[Debug] [2026-10-3 16:45:54] cmd operation Open config cable releases locker
+[Debug] [2026-10-3 16:46:03] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 16:46:03] _total_bytes_size : 101
+[Debug] [2026-10-3 16:46:03] cmd id :20001cmd name : Open config cable
+[Error] [2026-10-3 16:46:03] Hardware handler is invalid
+[Debug] [2026-10-3 16:46:03] cmd operation Open config cable releases locker
+[Info] [2026-10-3 16:46:13] /***************************Start jtagserver***************************/
+[Info] [2026-10-3 16:46:13] Path: F:/PDS_2022.2-SP6.4/bin
+[Info] [2026-10-3 16:46:13] Version: 146967
+[Debug] [2026-10-3 16:46:14] Add a new user_thread, socket descriptor is 1196 user_thread id is 0000000000008FCC
+[Debug] [2026-10-3 16:46:14] After adding, map size is : 1
+[Debug] [2026-10-3 16:46:14] Add a new user_thread, socket descriptor is 1004 user_thread id is 0000000000008FCC
+[Debug] [2026-10-3 16:46:14] After adding, map size is : 2
+[Debug] [2026-10-3 16:46:14] IP address of connecting client is : ::ffff:127.0.0.1
+[Debug] [2026-10-3 16:46:14] IP address of connecting client is : ::ffff:127.0.0.1
+[Debug] [2026-10-3 16:46:14] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 16:46:14] _total_bytes_size : 160
+[Debug] [2026-10-3 16:46:14] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 16:46:14] _total_bytes_size : 96
+[Debug] [2026-10-3 16:46:14] cmd id :40010cmd name : get_cable_paras
+[Debug] [2026-10-3 16:46:16] cmd operation get_cable_paras releases locker
+[Debug] [2026-10-3 16:46:16] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 16:46:16] _total_bytes_size : 101
+[Debug] [2026-10-3 16:46:16] cmd id :20001cmd name : Open config cable
+[Debug] [2026-10-3 16:46:17] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 16:46:17] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:46:17] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:46:17] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:46:17] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:46:17] cmd operation Open config cable releases locker
+[Debug] [2026-10-3 16:46:53] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 16:46:53] _total_bytes_size : 235
+[Debug] [2026-10-3 16:46:53] cmd id :4f4ccmd name : Scan Outer SPI Flash
+[Debug] [2026-10-3 16:46:53] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 16:46:53] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:46:53] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:46:53] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:46:53] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:46:53] the value in the status register is :81ffca0
+[Debug] [2026-10-3 16:46:53] flash_id is b4018
+[Debug] [2026-10-3 16:46:53] cmd operation Scan Outer SPI Flash releases locker
+[Debug] [2026-10-3 16:47:09] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 16:47:09] _total_bytes_size : 370
+[Debug] [2026-10-3 16:47:09] cmd id :4f4ecmd name : Erase Outer Flash
+[Debug] [2026-10-3 16:47:09] begin to operate flash: cmd id = 4f4e
+[Debug] [2026-10-3 16:47:09] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 16:47:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:47:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:47:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:47:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:47:09] the value in the status register is :81ffca0
+[Debug] [2026-10-3 16:47:09] flash_id is b4018
+[Debug] [2026-10-3 16:47:09] the value in the status register is :81ffca0
+[Debug] [2026-10-3 16:47:09] progress bar is 1
+[Error] [2026-10-3 16:47:09] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:11] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:11] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:11] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:11] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:12] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:12] progress bar is 6
+[Error] [2026-10-3 16:47:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:13] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:13] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:13] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:13] progress bar is 10
+[Error] [2026-10-3 16:47:13] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:15] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:15] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:15] progress bar is 15
+[Error] [2026-10-3 16:47:15] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:15] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:16] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:16] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:16] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:16] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:16] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:17] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:17] progress bar is 20
+[Error] [2026-10-3 16:47:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:18] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:18] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:18] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:18] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:18] progress bar is 25
+[Error] [2026-10-3 16:47:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:20] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:20] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:20] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:20] progress bar is 30
+[Error] [2026-10-3 16:47:20] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:22] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:22] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:22] progress bar is 35
+[Error] [2026-10-3 16:47:22] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:22] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:23] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:23] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:23] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:23] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:23] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:24] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:24] progress bar is 40
+[Error] [2026-10-3 16:47:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:25] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:25] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:25] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:25] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:25] progress bar is 45
+[Error] [2026-10-3 16:47:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:27] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:27] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:27] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:27] progress bar is 50
+[Error] [2026-10-3 16:47:27] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:29] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:29] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:29] progress bar is 55
+[Error] [2026-10-3 16:47:29] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:29] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:29] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:30] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:30] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:30] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:30] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:31] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:31] progress bar is 60
+[Error] [2026-10-3 16:47:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:32] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:32] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:32] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:32] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:32] progress bar is 65
+[Error] [2026-10-3 16:47:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:34] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:34] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:34] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:34] progress bar is 70
+[Error] [2026-10-3 16:47:34] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:36] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:36] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:36] progress bar is 75
+[Error] [2026-10-3 16:47:36] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:36] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:36] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:37] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:37] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:37] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:37] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:38] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:38] progress bar is 80
+[Error] [2026-10-3 16:47:38] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:38] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:38] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:38] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:39] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:39] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:39] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:39] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:39] progress bar is 85
+[Error] [2026-10-3 16:47:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:41] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:41] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:41] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:41] progress bar is 90
+[Error] [2026-10-3 16:47:41] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:42] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:42] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:42] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:42] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:42] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:43] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:43] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:43] progress bar is 95
+[Error] [2026-10-3 16:47:43] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:43] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:43] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:44] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:44] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:44] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 16:47:44] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 16:47:44] progress bar is 100
+[Debug] [2026-10-3 16:47:45] end to operate flash: cmd id = 20302
+[Debug] [2026-10-3 16:47:45] cmd operation Erase Outer Flash releases locker
+[Debug] [2026-10-3 16:47:45] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 16:47:45] _total_bytes_size : 877
+[Debug] [2026-10-3 16:47:45] cmd id :20301cmd name : Program Outer Flash
+[Debug] [2026-10-3 16:47:45] begin to operate flash: cmd id = 20301
+[Debug] [2026-10-3 16:47:45] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 16:47:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:47:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:47:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:47:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:47:45] the value in the status register is :81ffca0
+[Debug] [2026-10-3 16:47:45] flash_id is b4018
+[Debug] [2026-10-3 16:47:45] The value of GigaDevice status register 1 is 0x
+[Debug] [2026-10-3 16:47:45] The value write to GigaDevice status register 1 is 0x
+[Debug] [2026-10-3 16:47:47] After write the value ,the value of GigaDevice status register 1 is 0x
+[Debug] [2026-10-3 16:47:47] progress bar is 1
+[Debug] [2026-10-3 16:47:57] progress bar is 6
+[Debug] [2026-10-3 16:48:03] progress bar is 10
+[Debug] [2026-10-3 16:48:11] progress bar is 15
+[Debug] [2026-10-3 16:48:20] progress bar is 20
+[Debug] [2026-10-3 16:48:28] progress bar is 25
+[Debug] [2026-10-3 16:48:36] progress bar is 30
+[Debug] [2026-10-3 16:48:44] progress bar is 35
+[Debug] [2026-10-3 16:48:52] progress bar is 40
+[Debug] [2026-10-3 16:49:01] progress bar is 45
+[Debug] [2026-10-3 16:49:09] progress bar is 50
+[Debug] [2026-10-3 16:49:17] progress bar is 55
+[Debug] [2026-10-3 16:49:25] progress bar is 60
+[Debug] [2026-10-3 16:49:34] progress bar is 65
+[Debug] [2026-10-3 16:49:42] progress bar is 70
+[Debug] [2026-10-3 16:49:50] progress bar is 75
+[Debug] [2026-10-3 16:49:58] progress bar is 80
+[Debug] [2026-10-3 16:50:07] progress bar is 85
+[Debug] [2026-10-3 16:50:15] progress bar is 90
+[Debug] [2026-10-3 16:50:23] progress bar is 95
+[Debug] [2026-10-3 16:50:31] progress bar is 100
+[Debug] [2026-10-3 16:50:31] end to operate flash: cmd id = 20301
+[Debug] [2026-10-3 16:50:31] cmd operation Program Outer Flash releases locker
+[Debug] [2026-10-3 16:50:31] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 16:50:31] _total_bytes_size : 875
+[Debug] [2026-10-3 16:50:31] cmd id :20303cmd name : Verify Outer Flash
+[Debug] [2026-10-3 16:50:31] begin to operate flash: cmd id = 20303
+[Debug] [2026-10-3 16:50:32] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 16:50:32] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:50:32] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:50:32] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:50:32] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 16:50:32] the value in the status register is :81ffca0
+[Debug] [2026-10-3 16:50:32] flash_id is b4018
+[Debug] [2026-10-3 16:50:32] the value in the status register is :81ffca0
+[Debug] [2026-10-3 16:50:32] progress bar is 1
+[Debug] [2026-10-3 16:50:32] progress bar is 6
+[Debug] [2026-10-3 16:50:33] progress bar is 10
+[Debug] [2026-10-3 16:50:33] progress bar is 15
+[Debug] [2026-10-3 16:50:34] progress bar is 20
+[Debug] [2026-10-3 16:50:34] progress bar is 25
+[Debug] [2026-10-3 16:50:35] progress bar is 30
+[Debug] [2026-10-3 16:50:35] progress bar is 35
+[Debug] [2026-10-3 16:50:36] progress bar is 40
+[Debug] [2026-10-3 16:50:36] progress bar is 45
+[Debug] [2026-10-3 16:50:37] progress bar is 50
+[Debug] [2026-10-3 16:50:37] progress bar is 55
+[Debug] [2026-10-3 16:50:38] progress bar is 60
+[Debug] [2026-10-3 16:50:38] progress bar is 65
+[Debug] [2026-10-3 16:50:39] progress bar is 70
+[Debug] [2026-10-3 16:50:39] progress bar is 75
+[Debug] [2026-10-3 16:50:40] progress bar is 80
+[Debug] [2026-10-3 16:50:40] progress bar is 85
+[Debug] [2026-10-3 16:50:41] progress bar is 90
+[Debug] [2026-10-3 16:50:42] progress bar is 95
+[Debug] [2026-10-3 16:50:42] progress bar is 100
+[Debug] [2026-10-3 16:50:42] end to operate flash: cmd id = 20303
+[Debug] [2026-10-3 16:50:42] cmd operation Verify Outer Flash releases locker
+[Debug] [2026-10-3 17:27:45] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 17:27:45] _total_bytes_size : 101
+[Debug] [2026-10-3 17:27:45] cmd id :20001cmd name : Open config cable
+[Debug] [2026-10-3 17:27:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:45] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:46] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:46] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:46] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:46] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:46] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:46] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:46] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:46] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:46] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:46] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:47] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:48] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:48] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:48] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:48] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:48] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:48] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:48] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:48] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:48] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:48] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:49] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:49] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:49] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:49] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:49] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:49] cmd operation Open config cable releases locker
+[Debug] [2026-10-3 17:27:51] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 17:27:51] _total_bytes_size : 65
+[Debug] [2026-10-3 17:27:51] cmd id :4e21cmd name : Open config cable
+[Debug] [2026-10-3 17:27:51] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 17:27:51] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:51] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:51] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:51] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:27:51] cmd operation Open config cable releases locker
+[Debug] [2026-10-3 17:28:01] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 17:28:01] _total_bytes_size : 235
+[Debug] [2026-10-3 17:28:01] cmd id :4f4ccmd name : Scan Outer SPI Flash
+[Debug] [2026-10-3 17:28:01] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 17:28:01] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:28:01] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:28:01] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:28:01] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:28:01] the value in the status register is :180c80
+[Debug] [2026-10-3 17:28:01] flash_id is b4018
+[Debug] [2026-10-3 17:28:01] cmd operation Scan Outer SPI Flash releases locker
+[Debug] [2026-10-3 17:28:09] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 17:28:09] _total_bytes_size : 370
+[Debug] [2026-10-3 17:28:09] cmd id :4f4ecmd name : Erase Outer Flash
+[Debug] [2026-10-3 17:28:09] begin to operate flash: cmd id = 4f4e
+[Debug] [2026-10-3 17:28:09] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 17:28:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:28:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:28:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:28:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:28:09] the value in the status register is :180c80
+[Debug] [2026-10-3 17:28:09] flash_id is b4018
+[Debug] [2026-10-3 17:28:09] the value in the status register is :180c80
+[Debug] [2026-10-3 17:28:09] progress bar is 1
+[Error] [2026-10-3 17:28:09] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:11] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:11] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:11] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:11] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:11] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:12] progress bar is 6
+[Error] [2026-10-3 17:28:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:13] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:13] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:13] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:13] progress bar is 10
+[Error] [2026-10-3 17:28:13] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:13] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:15] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:15] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:15] progress bar is 15
+[Error] [2026-10-3 17:28:15] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:15] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:15] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:16] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:16] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:16] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:16] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:16] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:17] progress bar is 20
+[Error] [2026-10-3 17:28:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:18] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:18] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:18] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:18] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:18] progress bar is 25
+[Error] [2026-10-3 17:28:18] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:20] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:20] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:20] progress bar is 30
+[Error] [2026-10-3 17:28:20] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:20] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:22] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:22] progress bar is 35
+[Error] [2026-10-3 17:28:22] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:22] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:22] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:23] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:23] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:23] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:23] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:23] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:24] progress bar is 40
+[Error] [2026-10-3 17:28:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:25] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:25] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:25] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:25] progress bar is 45
+[Error] [2026-10-3 17:28:25] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:27] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:27] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:27] progress bar is 50
+[Error] [2026-10-3 17:28:27] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:27] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:29] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:29] progress bar is 55
+[Error] [2026-10-3 17:28:29] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:29] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:29] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:29] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:30] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:30] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:30] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:30] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:30] progress bar is 60
+[Error] [2026-10-3 17:28:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:32] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:32] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:32] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:32] progress bar is 65
+[Error] [2026-10-3 17:28:32] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:34] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:34] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:34] progress bar is 70
+[Error] [2026-10-3 17:28:34] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:34] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:34] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:36] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:36] progress bar is 75
+[Error] [2026-10-3 17:28:36] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:36] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:36] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:36] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:37] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:37] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:37] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:37] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:37] progress bar is 80
+[Error] [2026-10-3 17:28:37] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:38] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:38] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:38] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:38] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:39] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:39] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:39] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:39] progress bar is 85
+[Error] [2026-10-3 17:28:39] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:39] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:41] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:41] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:41] progress bar is 90
+[Error] [2026-10-3 17:28:41] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:41] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:41] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:42] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:42] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:42] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:42] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:42] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:43] progress bar is 95
+[Error] [2026-10-3 17:28:43] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:43] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:43] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:43] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:44] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:44] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 17:28:44] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 17:28:44] progress bar is 100
+[Debug] [2026-10-3 17:28:44] end to operate flash: cmd id = 20302
+[Debug] [2026-10-3 17:28:44] cmd operation Erase Outer Flash releases locker
+[Debug] [2026-10-3 17:28:44] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 17:28:44] _total_bytes_size : 877
+[Debug] [2026-10-3 17:28:44] cmd id :20301cmd name : Program Outer Flash
+[Debug] [2026-10-3 17:28:44] begin to operate flash: cmd id = 20301
+[Debug] [2026-10-3 17:28:44] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 17:28:44] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:28:44] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:28:44] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:28:44] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:28:44] the value in the status register is :180c80
+[Debug] [2026-10-3 17:28:44] flash_id is b4018
+[Debug] [2026-10-3 17:28:44] The value of GigaDevice status register 1 is 0x
+[Debug] [2026-10-3 17:28:44] The value write to GigaDevice status register 1 is 0x
+[Debug] [2026-10-3 17:28:46] After write the value ,the value of GigaDevice status register 1 is 0x
+[Debug] [2026-10-3 17:28:46] progress bar is 1
+[Debug] [2026-10-3 17:28:56] progress bar is 6
+[Debug] [2026-10-3 17:29:03] progress bar is 10
+[Debug] [2026-10-3 17:29:11] progress bar is 15
+[Debug] [2026-10-3 17:29:19] progress bar is 20
+[Debug] [2026-10-3 17:29:28] progress bar is 25
+[Debug] [2026-10-3 17:29:36] progress bar is 30
+[Debug] [2026-10-3 17:29:44] progress bar is 35
+[Debug] [2026-10-3 17:29:52] progress bar is 40
+[Debug] [2026-10-3 17:30:01] progress bar is 45
+[Debug] [2026-10-3 17:30:09] progress bar is 50
+[Debug] [2026-10-3 17:30:17] progress bar is 55
+[Debug] [2026-10-3 17:30:25] progress bar is 60
+[Debug] [2026-10-3 17:30:33] progress bar is 65
+[Debug] [2026-10-3 17:30:42] progress bar is 70
+[Debug] [2026-10-3 17:30:50] progress bar is 75
+[Debug] [2026-10-3 17:30:58] progress bar is 80
+[Debug] [2026-10-3 17:31:06] progress bar is 85
+[Debug] [2026-10-3 17:31:15] progress bar is 90
+[Debug] [2026-10-3 17:31:23] progress bar is 95
+[Debug] [2026-10-3 17:31:31] progress bar is 100
+[Debug] [2026-10-3 17:31:31] end to operate flash: cmd id = 20301
+[Debug] [2026-10-3 17:31:31] cmd operation Program Outer Flash releases locker
+[Debug] [2026-10-3 17:31:31] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 17:31:31] _total_bytes_size : 875
+[Debug] [2026-10-3 17:31:31] cmd id :20303cmd name : Verify Outer Flash
+[Debug] [2026-10-3 17:31:31] begin to operate flash: cmd id = 20303
+[Debug] [2026-10-3 17:31:31] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 17:31:31] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:31:31] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:31:31] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:31:31] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 17:31:31] the value in the status register is :180c80
+[Debug] [2026-10-3 17:31:31] flash_id is b4018
+[Debug] [2026-10-3 17:31:31] the value in the status register is :180c80
+[Debug] [2026-10-3 17:31:31] progress bar is 1
+[Debug] [2026-10-3 17:31:32] progress bar is 6
+[Debug] [2026-10-3 17:31:32] progress bar is 10
+[Debug] [2026-10-3 17:31:33] progress bar is 15
+[Debug] [2026-10-3 17:31:33] progress bar is 20
+[Debug] [2026-10-3 17:31:34] progress bar is 25
+[Debug] [2026-10-3 17:31:34] progress bar is 30
+[Debug] [2026-10-3 17:31:35] progress bar is 35
+[Debug] [2026-10-3 17:31:36] progress bar is 40
+[Debug] [2026-10-3 17:31:36] progress bar is 45
+[Debug] [2026-10-3 17:31:37] progress bar is 50
+[Debug] [2026-10-3 17:31:37] progress bar is 55
+[Debug] [2026-10-3 17:31:38] progress bar is 60
+[Debug] [2026-10-3 17:31:38] progress bar is 65
+[Debug] [2026-10-3 17:31:39] progress bar is 70
+[Debug] [2026-10-3 17:31:39] progress bar is 75
+[Debug] [2026-10-3 17:31:40] progress bar is 80
+[Debug] [2026-10-3 17:31:40] progress bar is 85
+[Debug] [2026-10-3 17:31:41] progress bar is 90
+[Debug] [2026-10-3 17:31:41] progress bar is 95
+[Debug] [2026-10-3 17:31:42] progress bar is 100
+[Debug] [2026-10-3 17:31:42] end to operate flash: cmd id = 20303
+[Debug] [2026-10-3 17:31:42] cmd operation Verify Outer Flash releases locker
+[Info] [2026-10-3 18:00:05] /***************************Start jtagserver***************************/
+[Info] [2026-10-3 18:00:05] Path: F:/PDS_2022.2-SP6.4/bin
+[Info] [2026-10-3 18:00:05] Version: 146967
+[Debug] [2026-10-3 18:00:06] Add a new user_thread, socket descriptor is 988 user_thread id is 0000000000007A70
+[Debug] [2026-10-3 18:00:06] After adding, map size is : 1
+[Debug] [2026-10-3 18:00:06] Add a new user_thread, socket descriptor is 1140 user_thread id is 0000000000007A70
+[Debug] [2026-10-3 18:00:06] After adding, map size is : 2
+[Debug] [2026-10-3 18:00:06] IP address of connecting client is : ::ffff:127.0.0.1
+[Debug] [2026-10-3 18:00:06] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 18:00:06] _total_bytes_size : 160
+[Debug] [2026-10-3 18:00:06] IP address of connecting client is : ::ffff:127.0.0.1
+[Debug] [2026-10-3 18:00:06] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 18:00:06] _total_bytes_size : 96
+[Debug] [2026-10-3 18:00:06] cmd id :40010cmd name : get_cable_paras
+[Debug] [2026-10-3 18:00:08] cmd operation get_cable_paras releases locker
+[Debug] [2026-10-3 18:00:08] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 18:00:08] _total_bytes_size : 101
+[Debug] [2026-10-3 18:00:08] cmd id :20001cmd name : Open config cable
+[Debug] [2026-10-3 18:00:08] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:08] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:08] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:08] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:08] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:09] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:10] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:11] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:11] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:11] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:11] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:11] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:11] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:11] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:11] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:11] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:11] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:12] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:12] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:12] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:12] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:12] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:12] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:12] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:12] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:12] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:12] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:12] cmd operation Open config cable releases locker
+[Debug] [2026-10-3 18:00:51] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 18:00:51] _total_bytes_size : 65
+[Debug] [2026-10-3 18:00:51] cmd id :4e21cmd name : Open config cable
+[Debug] [2026-10-3 18:00:51] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 18:00:51] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:51] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:51] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:51] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:00:51] cmd operation Open config cable releases locker
+[Debug] [2026-10-3 18:01:04] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 18:01:04] _total_bytes_size : 235
+[Debug] [2026-10-3 18:01:04] cmd id :4f4ccmd name : Scan Outer SPI Flash
+[Debug] [2026-10-3 18:01:04] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 18:01:04] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:01:04] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:01:04] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:01:04] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:01:04] the value in the status register is :81ffca0
+[Debug] [2026-10-3 18:01:04] flash_id is b4018
+[Debug] [2026-10-3 18:01:04] cmd operation Scan Outer SPI Flash releases locker
+[Debug] [2026-10-3 18:01:07] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 18:01:07] _total_bytes_size : 370
+[Debug] [2026-10-3 18:01:07] cmd id :4f4ecmd name : Erase Outer Flash
+[Debug] [2026-10-3 18:01:07] begin to operate flash: cmd id = 4f4e
+[Debug] [2026-10-3 18:01:07] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 18:01:07] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:01:07] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:01:07] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:01:07] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:01:07] the value in the status register is :81ffca0
+[Debug] [2026-10-3 18:01:07] flash_id is b4018
+[Debug] [2026-10-3 18:01:07] the value in the status register is :81ffca0
+[Debug] [2026-10-3 18:01:07] progress bar is 1
+[Error] [2026-10-3 18:01:07] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:08] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:08] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:08] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:08] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:09] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:09] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:09] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:09] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:09] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:10] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:10] progress bar is 6
+[Error] [2026-10-3 18:01:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:10] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:11] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:11] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:11] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:11] progress bar is 10
+[Error] [2026-10-3 18:01:11] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:12] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:13] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:13] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:13] progress bar is 15
+[Error] [2026-10-3 18:01:13] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:13] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:14] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:15] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:15] progress bar is 20
+[Error] [2026-10-3 18:01:15] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:15] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:15] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:15] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:16] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:16] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:16] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:16] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:16] progress bar is 25
+[Error] [2026-10-3 18:01:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:17] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:18] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:18] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:18] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:18] progress bar is 30
+[Error] [2026-10-3 18:01:18] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:19] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:20] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:20] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:20] progress bar is 35
+[Error] [2026-10-3 18:01:20] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:20] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:21] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:22] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:22] progress bar is 40
+[Error] [2026-10-3 18:01:22] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:22] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:22] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:22] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:23] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:23] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:23] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:23] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:23] progress bar is 45
+[Error] [2026-10-3 18:01:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:24] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:25] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:25] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:25] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:25] progress bar is 50
+[Error] [2026-10-3 18:01:25] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:26] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:27] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:27] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:27] progress bar is 55
+[Error] [2026-10-3 18:01:27] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:27] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:27] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:28] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:29] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:29] progress bar is 60
+[Error] [2026-10-3 18:01:29] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:29] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:29] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:29] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:30] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:30] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:30] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:30] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:30] progress bar is 65
+[Error] [2026-10-3 18:01:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:31] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:32] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:32] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:32] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:32] progress bar is 70
+[Error] [2026-10-3 18:01:32] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:32] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:33] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:34] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:34] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:34] progress bar is 75
+[Error] [2026-10-3 18:01:34] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:34] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:34] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:35] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:36] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:36] progress bar is 80
+[Error] [2026-10-3 18:01:36] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:36] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:36] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:36] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:37] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:37] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:37] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:37] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:37] progress bar is 85
+[Error] [2026-10-3 18:01:37] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:38] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:38] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:38] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:38] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:39] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:39] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:39] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:39] progress bar is 90
+[Error] [2026-10-3 18:01:39] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:39] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:40] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:41] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:41] progress bar is 95
+[Error] [2026-10-3 18:01:41] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:41] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:41] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:42] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:42] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:42] WaitForWIPFinish timeout, wait second ms:100
+[Error] [2026-10-3 18:01:42] WaitForWIPFinish timeout, wait second ms:100
+[Debug] [2026-10-3 18:01:42] progress bar is 100
+[Debug] [2026-10-3 18:01:43] end to operate flash: cmd id = 20302
+[Debug] [2026-10-3 18:01:43] cmd operation Erase Outer Flash releases locker
+[Debug] [2026-10-3 18:01:43] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 18:01:43] _total_bytes_size : 877
+[Debug] [2026-10-3 18:01:43] cmd id :20301cmd name : Program Outer Flash
+[Debug] [2026-10-3 18:01:43] begin to operate flash: cmd id = 20301
+[Debug] [2026-10-3 18:01:43] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 18:01:43] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:01:43] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:01:43] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:01:43] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:01:43] the value in the status register is :81ffca0
+[Debug] [2026-10-3 18:01:43] flash_id is b4018
+[Debug] [2026-10-3 18:01:43] The value of GigaDevice status register 1 is 0x
+[Debug] [2026-10-3 18:01:43] The value write to GigaDevice status register 1 is 0x
+[Debug] [2026-10-3 18:01:45] After write the value ,the value of GigaDevice status register 1 is 0x
+[Debug] [2026-10-3 18:01:45] progress bar is 1
+[Debug] [2026-10-3 18:01:55] progress bar is 6
+[Debug] [2026-10-3 18:02:01] progress bar is 10
+[Debug] [2026-10-3 18:02:09] progress bar is 15
+[Debug] [2026-10-3 18:02:18] progress bar is 20
+[Debug] [2026-10-3 18:02:26] progress bar is 25
+[Debug] [2026-10-3 18:02:34] progress bar is 30
+[Debug] [2026-10-3 18:02:42] progress bar is 35
+[Debug] [2026-10-3 18:02:51] progress bar is 40
+[Debug] [2026-10-3 18:02:59] progress bar is 45
+[Debug] [2026-10-3 18:03:07] progress bar is 50
+[Debug] [2026-10-3 18:03:15] progress bar is 55
+[Debug] [2026-10-3 18:03:24] progress bar is 60
+[Debug] [2026-10-3 18:03:32] progress bar is 65
+[Debug] [2026-10-3 18:03:40] progress bar is 70
+[Debug] [2026-10-3 18:03:48] progress bar is 75
+[Debug] [2026-10-3 18:03:56] progress bar is 80
+[Debug] [2026-10-3 18:04:05] progress bar is 85
+[Debug] [2026-10-3 18:04:13] progress bar is 90
+[Debug] [2026-10-3 18:04:21] progress bar is 95
+[Debug] [2026-10-3 18:04:29] progress bar is 100
+[Debug] [2026-10-3 18:04:29] end to operate flash: cmd id = 20301
+[Debug] [2026-10-3 18:04:29] cmd operation Program Outer Flash releases locker
+[Debug] [2026-10-3 18:04:29] Remove the header data from the client, index : 0
+[Debug] [2026-10-3 18:04:29] _total_bytes_size : 875
+[Debug] [2026-10-3 18:04:29] cmd id :20303cmd name : Verify Outer Flash
+[Debug] [2026-10-3 18:04:29] begin to operate flash: cmd id = 20303
+[Debug] [2026-10-3 18:04:30] the idcode from the scanning is: 0x10603899
+[Debug] [2026-10-3 18:04:30] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:04:30] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:04:30] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:04:30] the idcode from the scanning is: 0x0
+[Debug] [2026-10-3 18:04:30] the value in the status register is :81ffca0
+[Debug] [2026-10-3 18:04:30] flash_id is b4018
+[Debug] [2026-10-3 18:04:30] the value in the status register is :81ffca0
+[Debug] [2026-10-3 18:04:30] progress bar is 1
+[Debug] [2026-10-3 18:04:30] progress bar is 6
+[Debug] [2026-10-3 18:04:31] progress bar is 10
+[Debug] [2026-10-3 18:04:31] progress bar is 15
+[Debug] [2026-10-3 18:04:32] progress bar is 20
+[Debug] [2026-10-3 18:04:32] progress bar is 25
+[Debug] [2026-10-3 18:04:33] progress bar is 30
+[Debug] [2026-10-3 18:04:33] progress bar is 35
+[Debug] [2026-10-3 18:04:34] progress bar is 40
+[Debug] [2026-10-3 18:04:34] progress bar is 45
+[Debug] [2026-10-3 18:04:35] progress bar is 50
+[Debug] [2026-10-3 18:04:35] progress bar is 55
+[Debug] [2026-10-3 18:04:36] progress bar is 60
+[Debug] [2026-10-3 18:04:36] progress bar is 65
+[Debug] [2026-10-3 18:04:37] progress bar is 70
+[Debug] [2026-10-3 18:04:37] progress bar is 75
+[Debug] [2026-10-3 18:04:38] progress bar is 80
+[Debug] [2026-10-3 18:04:39] progress bar is 85
+[Debug] [2026-10-3 18:04:39] progress bar is 90
+[Debug] [2026-10-3 18:04:40] progress bar is 95
+[Debug] [2026-10-3 18:04:40] progress bar is 100
+[Debug] [2026-10-3 18:04:40] end to operate flash: cmd id = 20303
+[Debug] [2026-10-3 18:04:40] cmd operation Verify Outer Flash releases locker

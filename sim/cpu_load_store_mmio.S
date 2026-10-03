@@ -1,10 +1,11 @@
     .option norvc
+    .include "bsp/include/soc_defs_asm.inc"
     .section .text
     .globl _start
 _start:
     /* GPIO 控制寄存器复位值为 6。先写哨兵值，确认后续 sw 真正覆盖。 */
-    li t0, 0x40000300
-    li t1, 0x80008040
+    li t0, SOC_CAM1_MMIO_BASE
+    li t1, SOC_DRAM_BASE + 0x40
     li t2, 0x13579bdf
     sw t2, 0(t1)
 

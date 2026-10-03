@@ -4,6 +4,7 @@
 #include "camera_dvp.h"
 #include "ov5640.h"
 #include "uart.h"
+#include "../include/soc_defs.h"
 
 extern uint32_t system_cpu_freq;
 
@@ -136,7 +137,7 @@ static bool valid_frame_descriptor(const struct cam1_dvp_snapshot *snapshot)
 
     slot_mask = 1u << snapshot->last_complete_buffer;
     expected_address = (snapshot->last_complete_buffer == 0u) ?
-                       0xb8000000u : 0xb8100000u;
+                       SOC_CAM1_BUFFER0_BASE : SOC_CAM1_BUFFER1_BASE;
     return ((snapshot->ready_mask & slot_mask) != 0u) &&
            (snapshot->last_frame_addr == expected_address);
 }
@@ -171,7 +172,7 @@ int main(void)
     uart_putdec(system_cpu_freq);
     uart_puts(" Hz\n");
     uart_puts("UART MMIO   : ");
-    uart_puthex(0x40000000u);
+    uart_puthex(SOC_UART0_BASE);
     uart_putc('\n');
     uart_puts("SYSTEM READY\n");
 

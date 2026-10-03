@@ -1,4 +1,5 @@
 `timescale 1ns / 1ps
+`include "../soc/soc_addr_map.vh"
 
 // 物理 CAM1 的 OV5640 SCCB 软件模拟接口。
 //
@@ -57,12 +58,12 @@ module Hcamera_sccb_gpio (
             sda_meta <= cam1_sda;
             sda_sync <= sda_meta;
 
-            if (mmio_valid && mmio_wen && (mmio_addr[7:2] == 6'h00) &&
+            if (mmio_valid && mmio_wen && (mmio_addr == `SOC_CAM_SCCB_CONTROL_OFFSET) &&
                 mmio_wmask[0]) begin
-                cam1_reset_n <= mmio_wdata[0];
-                scl_release  <= mmio_wdata[1];
-                sda_release  <= mmio_wdata[2];
-                cam1_capture_enable <= mmio_wdata[3];
+                cam1_reset_n <= (mmio_wdata & `SOC_CAM_SCCB_RESET_N_MASK) != 0;
+                scl_release  <= (mmio_wdata & `SOC_CAM_SCCB_SCL_RELEASE_MASK) != 0;
+                sda_release  <= (mmio_wdata & `SOC_CAM_SCCB_SDA_RELEASE_MASK) != 0;
+                cam1_capture_enable <= (mmio_wdata & `SOC_CAM_SCCB_CAPTURE_ENABLE_MASK) != 0;
             end
         end
     end
@@ -70,13 +71,19 @@ module Hcamera_sccb_gpio (
     always @(*) begin
         mmio_rdata = 32'b0;
         if (mmio_valid && !mmio_wen) begin
-            case (mmio_addr[7:2])
-                6'h00: mmio_rdata = {28'b0, cam1_capture_enable,
-                                      sda_release, scl_release,
-                                      cam1_reset_n};
-                6'h01: mmio_rdata = {26'b0, cam1_capture_enable,
-                                      sda_release, scl_release, sda_sync,
-                                      scl_sync, cam1_reset_n};
+            case (mmio_addr)
+                `SOC_CAM_SCCB_CONTROL_OFFSET: mmio_rdata =
+                    (cam1_capture_enable ? `SOC_CAM_SCCB_CAPTURE_ENABLE_MASK : 32'b0) |
+                    (sda_release ? `SOC_CAM_SCCB_SDA_RELEASE_MASK : 32'b0) |
+                    (scl_release ? `SOC_CAM_SCCB_SCL_RELEASE_MASK : 32'b0) |
+                    (cam1_reset_n ? `SOC_CAM_SCCB_RESET_N_MASK : 32'b0);
+                `SOC_CAM_SCCB_STATUS_OFFSET: mmio_rdata =
+                    (cam1_capture_enable ? `SOC_CAM_SCCB_STATUS_CAPTURE_MASK : 32'b0) |
+                    (sda_release ? `SOC_CAM_SCCB_STATUS_SDA_RELEASE_MASK : 32'b0) |
+                    (scl_release ? `SOC_CAM_SCCB_STATUS_SCL_RELEASE_MASK : 32'b0) |
+                    (sda_sync ? `SOC_CAM_SCCB_STATUS_SDA_SYNC_MASK : 32'b0) |
+                    (scl_sync ? `SOC_CAM_SCCB_STATUS_SCL_SYNC_MASK : 32'b0) |
+                    (cam1_reset_n ? `SOC_CAM_SCCB_STATUS_RESET_N_MASK : 32'b0);
                 default: mmio_rdata = 32'b0;
             endcase
         end

@@ -1,14 +1,14 @@
 #include "camera_sccb.h"
+#include "../include/soc_defs.h"
 
-#define CAM1_MMIO_BASE 0x40000300u
-#define CAM1_CONTROL   (*(volatile uint32_t *)(CAM1_MMIO_BASE + 0x00u))
-#define CAM1_STATUS    (*(volatile uint32_t *)(CAM1_MMIO_BASE + 0x04u))
+#define CAM1_CONTROL   (*(volatile uint32_t *)(SOC_CAM1_MMIO_BASE + SOC_CAM_SCCB_CONTROL_OFFSET))
+#define CAM1_STATUS    (*(volatile uint32_t *)(SOC_CAM1_MMIO_BASE + SOC_CAM_SCCB_STATUS_OFFSET))
 
-#define CAM1_CTRL_RESET_N     (1u << 0)
-#define CAM1_CTRL_SCL_RELEASE (1u << 1)
-#define CAM1_CTRL_SDA_RELEASE (1u << 2)
-#define CAM1_CTRL_CAPTURE_ENABLE (1u << 3)
-#define CAM1_STATUS_SDA       (1u << 2)
+#define CAM1_CTRL_RESET_N       SOC_CAM_SCCB_RESET_N_MASK
+#define CAM1_CTRL_SCL_RELEASE   SOC_CAM_SCCB_SCL_RELEASE_MASK
+#define CAM1_CTRL_SDA_RELEASE   SOC_CAM_SCCB_SDA_RELEASE_MASK
+#define CAM1_CTRL_CAPTURE_ENABLE SOC_CAM_SCCB_CAPTURE_ENABLE_MASK
+#define CAM1_STATUS_SDA         SOC_CAM_SCCB_STATUS_SDA_MASK
 
 #define OV5640_ADDR_WRITE 0x78u
 #define OV5640_ADDR_READ  0x79u

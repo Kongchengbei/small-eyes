@@ -1,12 +1,12 @@
 #include "uart_async.h"
+#include "../include/soc_defs.h"
 
-#define UART0_BASE 0x40000000u
-#define UART_STATUS (*(volatile uint32_t *)(UART0_BASE + 0x04u))
-#define UART_BAUD (*(volatile uint32_t *)(UART0_BASE + 0x08u))
-#define UART_TXDATA (*(volatile uint32_t *)(UART0_BASE + 0x0cu))
-#define UART_CTRL (*(volatile uint32_t *)(UART0_BASE + 0x00u))
-#define FPIOA_MAP(n) (*(volatile uint8_t *)(0x40000f00u + (uint32_t)(n)))
-#define UART_BUSY 1u
+#define UART_STATUS (*(volatile uint32_t *)(SOC_UART0_BASE + SOC_UART_STATUS_OFFSET))
+#define UART_BAUD (*(volatile uint32_t *)(SOC_UART0_BASE + SOC_UART_BAUD_OFFSET))
+#define UART_TXDATA (*(volatile uint32_t *)(SOC_UART0_BASE + SOC_UART_TXDATA_OFFSET))
+#define UART_CTRL (*(volatile uint32_t *)(SOC_UART0_BASE + SOC_UART_CTRL_OFFSET))
+#define FPIOA_MAP(n) (*(volatile uint8_t *)(SOC_FPIOA_BASE + (uint32_t)(n)))
+#define UART_BUSY SOC_UART_STATUS_TX_BUSY
 #define LOG_CAPACITY 2048u
 
 extern uint32_t system_cpu_freq;
@@ -17,13 +17,13 @@ static volatile uint32_t log_dropped;
 
 void uart_async_init(uint32_t baud, uint8_t tx_fpioa)
 {
-    uint32_t clock = system_cpu_freq != 0u ? system_cpu_freq : 70000000u;
-    FPIOA_MAP(0u) = 0u;
+    uint32_t clock = system_cpu_freq != 0u ? system_cpu_freq : SOC_CPU_HZ;
+    FPIOA_MAP(SOC_UART_TX_FPIOA) = 0u;
     FPIOA_MAP(31u) = 0u;
     if (baud == 0u || tx_fpioa >= 32u) return;
-    FPIOA_MAP(tx_fpioa) = 7u;
+    FPIOA_MAP(tx_fpioa) = SOC_UART_TX_FPIOA_FUNC;
     UART_BAUD = clock / baud - 1u;
-    UART_CTRL = 1u;
+    UART_CTRL = SOC_UART_CTRL_TX_ENABLE;
 }
 
 void log_putc(char value)

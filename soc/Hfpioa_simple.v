@@ -1,9 +1,10 @@
 `timescale 1ns / 1ps
+`include "../soc/soc_addr_map.vh"
 
 // Small FPIOA subset used by the SparrowRV demos:
 // output mapping bytes 0x00-0x1f and NIO registers 0x20-0x2f.
 module Hfpioa_simple #(
-    parameter integer UART_TX_DEFAULT_FPIOA = 0,
+    parameter integer UART_TX_DEFAULT_FPIOA = `SOC_UART_TX_FPIOA,
     parameter [31:0] INPUT_ONLY_MASK = 32'b0
 ) (
     input        clk,
@@ -39,7 +40,7 @@ module Hfpioa_simple #(
     end
 `endif
 
-    wire write_map = mmio_valid && mmio_wen && (mmio_addr < 8'h20);
+    wire write_map = mmio_valid && mmio_wen && (mmio_addr < `SOC_FPIOA_OUTPUT_MAP_BYTES);
     wire [4:0] map_index = mmio_addr[4:0];
     wire [4:0] map_word_base = {map_index[4:2], 2'b00};
 
@@ -57,7 +58,7 @@ module Hfpioa_simple #(
             fpioa_ot_reg[11] <= 5'd31;
             // 复位时只把 UART0_TX 接到选定的候选脚；其他 UART 候选脚保持高阻。
             // 若参数选中 LED 脚，UART 映射优先且该脚不会再驱动 LED。
-            fpioa_ot_reg[UART_TX_DEFAULT_FPIOA_SAFE] <= 5'd7;
+            fpioa_ot_reg[UART_TX_DEFAULT_FPIOA_SAFE] <= `SOC_UART_TX_FPIOA_FUNC;
         end else if (mmio_valid && mmio_wen) begin
             if (write_map) begin
                 // AXI 地址按字对齐，WSTRB 才指出字内实际写入的映射字节。
@@ -67,9 +68,9 @@ module Hfpioa_simple #(
                 if (mmio_wmask[3]) fpioa_ot_reg[map_word_base + 3] <= mmio_wdata[28:24];
             end else begin
                 case (mmio_addr)
-                    8'h24: if (mmio_wmask == 4'b1111) nio_opt <= mmio_wdata;
-                    8'h28: if (mmio_wmask == 4'b1111) nio_md0 <= mmio_wdata;
-                    8'h2c: if (mmio_wmask == 4'b1111) nio_md1 <= mmio_wdata;
+                    `SOC_FPIOA_NIO_OPT_OFFSET: if (mmio_wmask == 4'b1111) nio_opt <= mmio_wdata;
+                    `SOC_FPIOA_NIO_MD0_OFFSET: if (mmio_wmask == 4'b1111) nio_md0 <= mmio_wdata;
+                    `SOC_FPIOA_NIO_MD1_OFFSET: if (mmio_wmask == 4'b1111) nio_md1 <= mmio_wdata;
                     default: ;
                 endcase
             end
@@ -86,7 +87,7 @@ module Hfpioa_simple #(
                     fpioa_drive[i] = nio_opt[i];
                     fpioa_oe[i] = nio_md1[i];
                 end
-                5'd7: begin
+                `SOC_UART_TX_FPIOA_FUNC: begin
                     fpioa_drive[i] = uart0_tx;
                     fpioa_oe[i] = 1'b1;
                 end
@@ -114,7 +115,7 @@ module Hfpioa_simple #(
     always @(*) begin
         mmio_rdata = 32'b0;
         if (mmio_valid && !mmio_wen) begin
-            if (mmio_addr < 8'h20) begin
+            if (mmio_addr < `SOC_FPIOA_OUTPUT_MAP_BYTES) begin
                 // 任一 byte 地址均读取其所在的四字节映射组，便于 lb/lw 对齐访问。
                 mmio_rdata = {
                     3'b0, fpioa_ot_reg[map_word_base + 3],
@@ -124,10 +125,10 @@ module Hfpioa_simple #(
                 };
             end else begin
                 case (mmio_addr)
-                    8'h20: mmio_rdata = nio_din;
-                    8'h24: mmio_rdata = nio_opt;
-                    8'h28: mmio_rdata = nio_md0;
-                    8'h2c: mmio_rdata = nio_md1;
+                    `SOC_FPIOA_NIO_DIN_OFFSET: mmio_rdata = nio_din;
+                    `SOC_FPIOA_NIO_OPT_OFFSET: mmio_rdata = nio_opt;
+                    `SOC_FPIOA_NIO_MD0_OFFSET: mmio_rdata = nio_md0;
+                    `SOC_FPIOA_NIO_MD1_OFFSET: mmio_rdata = nio_md1;
                     default: mmio_rdata = 32'b0;
                 endcase
             end

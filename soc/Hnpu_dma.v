@@ -1,4 +1,5 @@
 `timescale 1ns / 1ps
+`include "../soc/soc_addr_map.vh"
 
 // ============================================================================
 // Hnpu_dma
@@ -12,8 +13,8 @@
 // AXI ID 8'h80，避免与 CPU 现有低位 ID（取指 0、数据 1）混淆。
 // ============================================================================
 module Hnpu_dma #(
-    parameter [31:0] DDR_BASE = 32'h8000_0000,
-    parameter [31:0] DDR_BYTES = 32'h4000_0000,
+    parameter [31:0] DDR_BASE = `SOC_DDR_BASE,
+    parameter [31:0] DDR_BYTES = `SOC_DDR_BYTES,
     parameter [7:0]  NPU_AXI_ID = 8'h80,
     parameter [4:0]  MAX_BURST_BEATS = 5'd16
 ) (

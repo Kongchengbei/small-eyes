@@ -2,17 +2,18 @@
 #include "camera_stereo.h"
 #include "diag_status.h"
 #include "uart_async.h"
+#include "../include/soc_defs.h"
 
 extern uint32_t system_cpu_freq;
 
-#define CPU_HZ 70000000u
+#define CPU_HZ SOC_CPU_HZ
 #define FRAME_PIXELS 307200u
 #define FRAME_LINES 480u
 #define FRAME_BYTES 614400u
-#define CTRL_CAPTURE (1u << 3)
-#define SNAP_VALID (1u << 1)
-#define SNAP_TIMEOUT (1u << 2)
-#define CAM_ERROR_STATUS_MASK ((1u<<7)|(1u<<10)|(1u<<13)|(1u<<14))
+#define CTRL_CAPTURE SOC_CAM_SCCB_CAPTURE_ENABLE_MASK
+#define SNAP_VALID SOC_CAM_SNAPSHOT_VALID_MASK
+#define SNAP_TIMEOUT SOC_CAM_SNAPSHOT_TIMEOUT_MASK
+#define CAM_ERROR_STATUS_MASK SOC_CAM_STATUS_ERROR_MASK
 #define MMIO(base, off) (*(volatile uint32_t *)((base) + (off)))
 
 #ifndef DIAG_CAM2_ONLY
@@ -46,10 +47,10 @@ static uint32_t age_ms(uint32_t now, uint32_t then)
 { return (uint32_t)(now-then)/70000u; }
 
 static uint32_t capture_readback(const struct run_stats *s)
-{ return (MMIO(s->camera.base,0x00u)&CTRL_CAPTURE)!=0u; }
+{ return (MMIO(s->camera.base,SOC_CAM_SCCB_CONTROL_OFFSET)&CTRL_CAPTURE)!=0u; }
 
 static uint32_t dma_readback(const struct run_stats *s)
-{ return MMIO(s->camera.base,0x64u)&1u; }
+{ return MMIO(s->camera.base,SOC_CAM_DMA_CONTROL)&SOC_CAM_DMA_ENABLE_MASK; }
 
 static bool descriptor_valid(const struct run_stats *s)
 {
@@ -219,8 +220,8 @@ int main(void)
     log_puts("=== Camera Diagnostic ===\nCAMERA_DIAG BOOT MODE=");
     log_puts(DIAG_CAM2_ONLY?"CAM2_ONLY":"STEREO_DIAG");
     log_puts(" TX_FPIOA=");log_putdec(uart_pin);log_putc('\n');
-    cam_init(&a.camera,0x40000300u,0xb8000000u,0xb8100000u,1u);
-    cam_init(&b.camera,0x40000400u,0xb8200000u,0xb8300000u,2u);
+    cam_init(&a.camera,SOC_CAM1_MMIO_BASE,SOC_CAM1_BUFFER0_BASE,SOC_CAM1_BUFFER1_BASE,1u);
+    cam_init(&b.camera,SOC_CAM2_MMIO_BASE,SOC_CAM2_BUFFER0_BASE,SOC_CAM2_BUFFER1_BASE,2u);
     report_config(&a);report_config(&b);
     uart_async_flush_blocking();
     write_mcctr(read_mcctr()|(1u<<2));
