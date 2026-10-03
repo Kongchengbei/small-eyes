@@ -4478,3 +4478,4 @@ Cable index 0:USB Cable II/fffffffffffffffe
 [Debug] [2026-10-3 18:04:40] end to send jtag flash verify cmd
 [Debug] [2026-10-3 18:04:40] end to send jtag flash program cmd.
 [Debug] [2026-10-3 18:04:40] Log::Print : COMMAND[Verify Outer Flash] execute successfully, takes 11.0 secs.
+[Info] [2026-10-3 23:26:39] /***************************End Configration***************************/
