@@ -1,0 +1,6 @@
+This directory contains the Linux Kconfig front end (conf, mconf, and lxdialog)
+copied from the local NEMU tools/kconfig source tree, which carries SPDX GPL-2.0
+headers and upstream copyright notices. The NEMU copy itself identifies its
+Linux Kconfig lineage and keeps the original per-file attribution. See COPYING
+for the GPL version 2 license. Generated parser, lexer, objects, and binaries
+belong under the repository build/ directory and are not maintained here.
