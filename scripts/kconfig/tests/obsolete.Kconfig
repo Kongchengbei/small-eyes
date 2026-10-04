@@ -1,0 +1,5 @@
+mainmenu "Obsolete symbol regression fixture"
+
+config SOC_OBSOLETE_STAMP_TEST
+	bool
+	default y

@@ -34,6 +34,8 @@ make menuconfig
 
 默认配置文件是 `build/menuconfig/.config`，默认输出目录是 `build/menuconfig/`，其中包含 `soc_defs.h`、`soc_defs_asm.inc`、`flash_manifest.json`，以及必要时的 `0xFF` padded BIN。未选择 BIN 时 manifest 会记录 `input_bin: null`、输入大小 0，且不会复制或生成 BIN 文件。首次打开菜单会依据当前 `soc/soc_addr_map.vh` 初始化 `.config`；后续打开保留已保存的菜单选择。环境变量 `SOC_CONFIG_SOURCE`、`SOC_CONFIG_FILE`、`SOC_CONFIG_OUTPUT` 可将输入、配置和生成目录指向其他位置，主要用于隔离配置操作。Kconfig 菜单进程在输出目录运行；固件 BIN 路径仍相对于仓库根目录解析。
 
+本项目构建 Kconfig 工具时启用 `KCONFIG_NO_SYMBOL_DEPFILES`，不再生成 `include/config/soc/**/*.h` 这类空白逐项依赖标记文件；项目未使用 Kbuild 的逐项依赖机制。`.config`、`auto.conf`、`autoconf.h` 和配置依赖清单仍正常生成。已有的空白标记文件不会自动删除，也不需要手动填写。可运行 `make kconfig-test` 验证首次生成、配置变更及旧配置项移除后的输出。
+
 先保存 profile 和软件选项，再按项目原有方式构建 BSP：
 
 ```sh

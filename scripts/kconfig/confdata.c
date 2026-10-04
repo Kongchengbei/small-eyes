@@ -128,6 +128,11 @@ static size_t depfile_prefix_len;
 /* touch depfile for symbol 'name' */
 static int conf_touch_dep(const char *name)
 {
+#ifdef KCONFIG_NO_SYMBOL_DEPFILES
+	/* Keep auto.conf/autoconf.h generation, but omit empty symbol stamps. */
+	(void)name;
+	return 0;
+#else
 	int fd, ret;
 	const char *s;
 	char *d, c;
@@ -161,6 +166,7 @@ static int conf_touch_dep(const char *name)
 	close(fd);
 
 	return 0;
+#endif
 }
 
 struct conf_printer {

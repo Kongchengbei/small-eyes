@@ -118,19 +118,27 @@ module tb_npu_service_drop;
     end
 
     always @(posedge clk) begin
-        if (rst_n && result_valid) begin
-            if (result_error != 0 || result_camera != 1 ||
-                (result_frame != 32'h101 && result_frame != 32'h303 && result_frame != 32'h404))
-                $fatal(1, "unexpected result frame=%08x error=%0d", result_frame, result_error);
-            result_seen <= result_seen + 1;
-        end
-        if (rst_n && int8_release_valid) begin
-            if (int8_release_frame == 32'h102) released_mask[0] <= 1;
-            else if (int8_release_frame == 32'h101) released_mask[1] <= 1;
-            else if (int8_release_frame == 32'h303) released_mask[2] <= 1;
-            else if (int8_release_frame == 32'h404) released_mask[3] <= 1;
-            else $fatal(1, "unexpected release frame=%08x", int8_release_frame);
-            release_seen <= release_seen + 1;
+        // Keep scoreboard state under one procedural owner. In particular,
+        // do not initialise the whole mask elsewhere while updating its bits.
+        if (!rst_n) begin
+            result_seen <= 0;
+            release_seen <= 0;
+            released_mask <= 0;
+        end else begin
+            if (result_valid) begin
+                if (result_error != 0 || result_camera != 1 ||
+                    (result_frame != 32'h101 && result_frame != 32'h303 && result_frame != 32'h404))
+                    $fatal(1, "unexpected result frame=%08x error=%0d", result_frame, result_error);
+                result_seen <= result_seen + 1;
+            end
+            if (int8_release_valid) begin
+                if (int8_release_frame == 32'h102) released_mask[0] <= 1;
+                else if (int8_release_frame == 32'h101) released_mask[1] <= 1;
+                else if (int8_release_frame == 32'h303) released_mask[2] <= 1;
+                else if (int8_release_frame == 32'h404) released_mask[3] <= 1;
+                else $fatal(1, "unexpected release frame=%08x", int8_release_frame);
+                release_seen <= release_seen + 1;
+            end
         end
     end
 
@@ -164,8 +172,8 @@ module tb_npu_service_drop;
             mem[((WEIGHT + 64 - DDR_BASE) >> 5)][lane*8 +: 8] = -8'sd1;
         end
         repeat (3) @(posedge clk);
+        @(negedge clk);
         rst_n = 1;
-        result_seen = 0; release_seen = 0; released_mask = 0;
 
         // Batch 101 starts, 102/303 fill the pending queue, and 404 causes
         // the oldest pending batch 102 to be evicted.

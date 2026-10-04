@@ -280,7 +280,7 @@ module Hnpu_service #(
                 error <= 1'b0;
                 error_code <= 0;
             end
-
+	
             reserve_next = result_reserved;
             result_count_next = result_count;
             q_count_next0 = q_count[0];
@@ -292,10 +292,10 @@ module Hnpu_service #(
             drop_batch = accept_batch && (q_count[batch_cam] >= QUEUE_DEPTH);
             enqueue_result = engine_done && active;
 
-            // Compute queue occupancy once per cycle.  A new batch and a
-            // scheduler dequeue may legitimately target the same camera in
-            // one cycle; separate nonblocking assignments would otherwise
-            // lose one of the two updates.
+           /* 每个周期计算一次队列占用率。一个新的批次和一个
+			调度器出队可能合法地针对同一摄像头在
+			一个周期；否则，分离的非阻塞赋值将导致
+			丢失两次更新中的其中一次。*/
             take_queue = !active && !engine_busy && !stop && selected_cam_valid;
             take_cam = selected_cam;
 
