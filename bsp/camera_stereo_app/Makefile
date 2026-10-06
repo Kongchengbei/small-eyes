@@ -1,4 +1,6 @@
 CROSS_COMPILE ?= riscv64-unknown-elf-
+.DEFAULT_GOAL := all
+include ../soc_config.mk
 CC := $(CROSS_COMPILE)gcc
 OBJCOPY := $(CROSS_COMPILE)objcopy
 OBJDUMP := $(CROSS_COMPILE)objdump
@@ -15,6 +17,7 @@ LOCAL_OBJS := $(patsubst %.c,$(BUILD)/local/%.o,$(COMMON_SRCS)) \
 	$(BUILD)/local/init.o $(BUILD)/local/startup.o
 REMOTE_OBJS := $(patsubst %.c,$(BUILD)/remote/%.o,$(COMMON_SRCS)) \
 	$(BUILD)/remote/init.o $(BUILD)/remote/startup.o
+$(LOCAL_OBJS) $(REMOTE_OBJS): $(BSP_SOC_HEADER)
 DIAG_SRCS := main_diag.c diag_status.c camera_stereo.c uart_async.c
 DIAG_VARIANTS := stereo_local stereo_remote cam2_local cam2_remote
 DIAG_stereo_local_NAME := camera_stereo_diag_local
@@ -59,6 +62,7 @@ DIAG_$(1)_MODE := $(2)
 DIAG_$(1)_PIN := $(3)
 DIAG_$(1)_SRCS := $(patsubst %.c,$(BUILD)/diag/$(1)/%.o,$(DIAG_SRCS))
 DIAG_$(1)_OBJS := $$(DIAG_$(1)_SRCS) $(BUILD)/diag/$(1)/ov5640_regs.o $(BUILD)/diag/$(1)/init.o $(BUILD)/diag/$(1)/startup.o
+$$(DIAG_$(1)_OBJS): $(BSP_SOC_HEADER)
 
 $(BUILD)/diag/$(1)/%.o: %.c $(wildcard *.h) Makefile
 	mkdir -p $$(@D)

@@ -16,6 +16,24 @@ config SOC_PROFILE_BRAM
 
 endchoice
 
+config SOC_CPU_HZ
+	int "CPU clock frequency (Hz; soc/soc_addr_map.vh)"
+	range 1000000 327670000
+	default 70000000
+	help
+	  CPU PLL output frequency, not the board crystal frequency.
+	  Save updates SOC_CPU_HZ, the CPU frequency CSR default, the CPU
+	  generated-clock ratio in soc.fdc, and BSP frequency headers.
+	  Only CPU-domain boot/DDR-init/status-snapshot error deadlines scale
+	  to preserve their 70 MHz time budgets. Successful replies proceed at once.
+	  SPI dividers, SCCB delays, Camera frame rate and DMA rates are unchanged.
+	  Review external communication compatibility separately when overclocking.
+	  Use a multiple of 10000 Hz (the existing CSR frequency encoding).
+	  This is a configuration/encoding range, NOT a guaranteed timing range.
+	  Set the actual PLL output to the same frequency in PDS yourself.
+	  Rebuild firmware and the FPGA bitstream; check PDS timing before programming.
+	  DDR, Camera PCLK, and NPU datapath clocks are not changed.
+
 config SOC_ENABLE_PREPROCESS
 	bool "Enable camera preprocessing"
 	depends on SOC_PROFILE_FULL
@@ -37,13 +55,20 @@ config SOC_FLASH_BASE
 	  Byte address in the SPI Flash. The 24-bit address range is validated on save.
 
 config SOC_BOOT_IMAGE_BYTES
-	int "Loader image bytes (0 = use BIN file size)"
+	int "Loader image bytes (0=BIN size; soc/soc_addr_map.vh)"
 	range 0 49152 if SOC_PROFILE_BRAM
 	range 0 16777216 if SOC_PROFILE_FULL
 	default 0
 	help
+	  On Save, update SOC_BOOT_IMAGE_BYTES in soc/soc_addr_map.vh
+	  (the default source; SOC_CONFIG_SOURCE can override this file).
+	  The menu value is stored in build/menuconfig/.config by default.
+	  Hfpga_soc passes this byte count to the Flash loader as BOOT_IMAGE_BYTES.
+	  Rebuild and program the FPGA bitstream to change the hardware copy length.
+
 	  Zero selects the exact size of the selected BIN. If no BIN is selected,
 	  enter a nonzero byte count. Values are checked for alignment and profile capacity.
+	  With zero selected, the Verilog definition receives the actual BIN size, not zero.
 
 choice
 	prompt "UART TX FPIOA pin"

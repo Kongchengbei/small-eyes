@@ -1,4 +1,6 @@
 CROSS_COMPILE ?= riscv64-unknown-elf-
+.DEFAULT_GOAL := all
+include ../soc_config.mk
 
 CC      := $(CROSS_COMPILE)gcc
 OBJCOPY := $(CROSS_COMPILE)objcopy
@@ -30,6 +32,8 @@ GPIO_REMOTE_OBJS := $(BUILD)/gpio_remote/gpio_test.o \
 
 .PHONY: all local remote gpio-test gpio-test-local gpio-test-remote \
 	clean check-size-local check-size-remote
+
+$(LOCAL_OBJS) $(REMOTE_OBJS) $(GPIO_LOCAL_OBJS) $(GPIO_REMOTE_OBJS): $(BSP_SOC_HEADER)
 
 # 默认构建两种独立镜像，并将兼容文件名固定复制为本地版本。
 all: camera_uart_debug_local.bin camera_uart_debug_local.dump \

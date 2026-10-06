@@ -1,5 +1,6 @@
 `timescale 1ns / 1ps
 `include "../soc/soc_addr_map.vh"
+`include "../soc/soc_timeout.vh"
 `ifndef PROG_FPGA_PATH
 `include "../soc/config.v"
 `endif
@@ -100,7 +101,8 @@ module Hfpga_soc_bram_profile #(
     flash_bram_boot #(
         .FLASH_BASE(FLASH_BASE), .IMAGE_BYTES(BOOT_IMAGE_BYTES),
         .MEM_BASE(IRAM_BASE),
-        .MEM_BYTES(IRAM_BYTES + DRAM_BYTES), .SPI_CLK_DIV(SPI_DIV)
+        .MEM_BYTES(IRAM_BYTES + DRAM_BYTES), .SPI_CLK_DIV(SPI_DIV),
+        .TIMEOUT_CYCLES(`SOC_BOOT_TIMEOUT_CYCLES)
     ) u_flash_bram_boot (
         .clk(cpu_clk), .rst_n(sys_rst_n),
         .flash_cs_n(flash_cs_n), .flash_cs2_n(flash_cs2_n),

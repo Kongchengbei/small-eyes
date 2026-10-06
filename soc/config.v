@@ -1,8 +1,9 @@
 /*--------------------------------
  *          参数配置区           
  */
-//系统主频，必须准确设置为处理器的实际工作频率
-`define CPU_CLOCK_HZ 70_000_000
+// 兼容旧宏名；唯一频率配置来自 menuconfig / soc_addr_map.vh。
+`include "../soc/soc_addr_map.vh"
+`define CPU_CLOCK_HZ `SOC_CPU_HZ
 
 //iram指令存储器大小，单位为KB
 `define IRam_KB 32

@@ -14,6 +14,8 @@ absolute_path() {
 SOC_CONFIG_SOURCE=$(absolute_path "${SOC_CONFIG_SOURCE:-soc/soc_addr_map.vh}")
 SOC_CONFIG_FILE=$(absolute_path "${SOC_CONFIG_FILE:-build/menuconfig/.config}")
 SOC_CONFIG_OUTPUT=$(absolute_path "${SOC_CONFIG_OUTPUT:-build/menuconfig}")
+SOC_CONFIG_FDC=$(absolute_path "${SOC_CONFIG_FDC:-soc.fdc}")
+SOC_CONFIG_BSP_OUTPUT=$(absolute_path "${SOC_CONFIG_BSP_OUTPUT:-bsp/include}")
 
 CONFIG_DIR=$(dirname -- "$SOC_CONFIG_FILE")
 mkdir -p "$CONFIG_DIR" "$SOC_CONFIG_OUTPUT"
@@ -58,7 +60,8 @@ AFTER=$(stat -c '%i:%s:%y' "$SOC_CONFIG_FILE")
 if ! cmp -s -- "$BASELINE" "$SOC_CONFIG_FILE" || [ "$BEFORE" != "$AFTER" ]; then
 	cd "$ROOT"
 	"$SOC_TOOL" apply --source "$SOC_CONFIG_SOURCE" --config "$SOC_CONFIG_FILE" \
-		--output-dir "$SOC_CONFIG_OUTPUT"
+		--output-dir "$SOC_CONFIG_OUTPUT" --fdc "$SOC_CONFIG_FDC" \
+		--bsp-output-dir "$SOC_CONFIG_BSP_OUTPUT"
 else
 	echo "Configuration unchanged; authoritative address map was not modified."
 fi

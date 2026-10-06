@@ -2,6 +2,7 @@ test/
 camera_demo/
 # Ignore the BSP tree by default.
 /bsp/*
+!/bsp/soc_config.mk
 
 # Keep the bsp_app directory reachable, then ignore its contents.
 !/bsp/bsp_app/
@@ -9,6 +10,14 @@ camera_demo/
 
 # Track only the linker script from bsp_app.
 !/bsp/bsp_app/link.lds
+
+# Keep the specific clock-aware BSP sources/build entry under version control.
+!/bsp/bsp_app/example/
+/bsp/bsp_app/example/*
+!/bsp/bsp_app/example/coremark/
+/bsp/bsp_app/example/coremark/*
+!/bsp/bsp_app/example/coremark/makefile
+!/bsp/bsp_app/example/coremark/core_portme.c
 
 # Track the standalone camera bring-up firmware and its ready-to-flash image.
 !/bsp/camera_app/

@@ -16,12 +16,14 @@ create_clock -period {10.000} [get_ports {cam2_pclk}] -name CAM2_PCLK
 define_attribute {n:JTAG_TCK_in} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}
 
 
+# BEGIN SOC_CPU_CLOCK (managed by menuconfig; PLL is configured manually in PDS)
 create_generated_clock -name cpu_clk \
     -source [get_ports {clk}] \
     -master_clock clk \
     -multiply_by 70 \
     -divide_by 27 \
     [get_pins {u_pll/u_gpll:CLKOUT0}]
+# END SOC_CPU_CLOCK
 # 异步时钟域声明
 set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {JTAG_CLK}]
 set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {CAM1_PCLK}] -group [get_clocks {CAM2_PCLK}]

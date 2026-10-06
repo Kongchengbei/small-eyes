@@ -1,5 +1,6 @@
 `timescale 1ns / 1ps
 `include "../soc/soc_addr_map.vh"
+`include "../soc/soc_timeout.vh"
 `include "../soc/camera_regs.vh"
 
 // CAM1 DVP、异步 FIFO、DMA 与 CPU MMIO 子系统。
@@ -12,7 +13,7 @@ module Hcamera_subsystem #(
     parameter integer FRAME_HEIGHT = 480,
     parameter integer FIFO_ADDR_WIDTH = 10,
     parameter integer DMA_TIMEOUT_CYCLES = 1000000,
-    parameter integer SNAPSHOT_TIMEOUT_CYCLES = 1000000,
+    parameter integer SNAPSHOT_TIMEOUT_CYCLES = `SOC_CAM_SNAPSHOT_TIMEOUT_CYCLES,
     parameter [7:0] AXI_ID = 8'h40,
     // 0 保持原 CPU 调试消费者；1 由同 DDR 域前处理独占原图 release。
     parameter [0:0] HARDWARE_CONSUMER = 1'b0

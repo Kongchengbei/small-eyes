@@ -2,6 +2,7 @@
 // PDS 的工作目录为 project/，故这里显式指向唯一的 soc 地址映射头文件，
 // 不依赖 PDS 是否把普通 Verilog 源目录自动加入 include 搜索路径。
 `include "../soc/soc_addr_map.vh"
+`include "../soc/soc_timeout.vh"
 // 支持 IDE 单文件解析；已有外部定义时保留调用方的程序路径。
 `ifndef PROG_FPGA_PATH
 `include "../soc/config.v"
@@ -34,7 +35,7 @@ module Hfpga_soc #(
     parameter integer SPI_DIV           = 4,
     // 本地主板 C24 对应 FPIOA0；远程板可覆盖为 31（AB26）。
     parameter integer UART_TX_DEFAULT_FPIOA = `SOC_UART_TX_FPIOA,
-    parameter integer DDR_INIT_TIMEOUT_CYCLES = 70000000,
+    parameter integer DDR_INIT_TIMEOUT_CYCLES = `SOC_DDR_INIT_TIMEOUT_CYCLES,
     // NPU 消费者尚未接入；默认关闭，保持现有 Camera 调试 bin 的 release 语义。
     // 1 时两路前处理自主消费，CPU Camera release 被屏蔽；无 NPU 归还会安全背压。
     parameter [0:0] PREPROCESS_ENABLE = `SOC_ENABLE_PREPROCESS,
@@ -913,7 +914,7 @@ module Hfpga_soc #(
         .DDR_LIMIT      ({1'b0, DDR_BASE} + {1'b0, DDR_BYTES}),
         .IMAGE_BYTES    (BOOT_IMAGE_BYTES),
         .SPI_CLK_DIV    (SPI_DIV),
-        .TIMEOUT_CYCLES (100000),
+        .TIMEOUT_CYCLES (`SOC_BOOT_TIMEOUT_CYCLES),
         .DDR_INIT_TIMEOUT_CYCLES (DDR_INIT_TIMEOUT_CYCLES)
     ) u_flash_ddr_boot (
         .clk             (cpu_clk),

@@ -1,6 +1,6 @@
 # SoC DDR / BRAM 配置、构建与启动
 
-本文说明如何使用仓库自带的原生 Kconfig 菜单，在 WSL 选择完整 DDR 应用配置或 CoreMark BRAM 配置，生成配置头文件和 Flash manifest，构建原 BSP 镜像，并准备 PDS 烧写。唯一配置入口是标准 `make menuconfig`；菜单不会修改 BSP 文件，也不会启动 PDS、生成位流或烧写 Flash。
+本文说明如何使用仓库自带的原生 Kconfig 菜单，在 WSL 选择 DDR／BRAM 配置及 CPU 频率，生成配置头文件和 Flash manifest，并准备 PDS 烧写。配置入口是 `make menuconfig`；保存会同步 RTL 参数、CPU 时钟 FDC 倍率和 BSP 生成头文件，不会启动 PDS、修改 PLL IP、生成位流或烧写 Flash。
 
 ## 两种硬件配置
 
@@ -9,11 +9,11 @@
 | Full DDR（默认） | 0 | ICache、DCache、DDR3、Camera；预处理默认关闭，可在 full 配置中单独开启 | 等待 DDR 初始化后从 Flash 搬到 DDR `0x80000000` |
 | CoreMark BRAM | 1 | ICache、DCache、DDR3、Camera、预处理均关闭；保留 PLL、CPU、UART、FPIOA、CSR/timer、JTAG/debug | Flash 镜像进入本地 IRAM/DRAM，校验完成后从 IRAM `0x80000000` 开始执行 |
 
-BRAM 地址布局固定为 IRAM `0x80000000`、32 KiB，紧接着 DRAM `0x80008000`、16 KiB。`bsp/bsp_app/link.lds` 已按该地址规划：代码与初始化数据的 Flash 装载映像放在 IRAM，运行期 `.data`、`.bss` 和栈放在 DRAM，栈固定 4 KiB。镜像装载器总容量为 48 KiB；当前 CoreMark `.bin` 是 29144 字节，能放进 32 KiB IRAM。若换软件，除了 48 KiB 总容量，还要确认链接产生的代码及 `.data` 初值装载范围能放进 IRAM。
+BRAM 地址布局固定为 IRAM `0x80000000`、32 KiB，紧接着 DRAM `0x80008000`、16 KiB。`bsp/bsp_app/link.lds` 已按该地址规划：代码与初始化数据的 Flash 装载映像放在 IRAM，运行期 `.data`、`.bss` 和栈放在 DRAM，栈固定 4 KiB。镜像装载器总容量为 48 KiB。除了总容量，还要确认链接产生的代码及 `.data` 初值装载范围能放进 IRAM；BIN 大小以本次构建结果为准，不使用历史数值。
 
 Full DDR profile 中使用 DDR 的逻辑地址范围，不会实例化这两块本地 BRAM。若后续 NPU 实现需要空间，可在评估地址图、仲裁与带宽后重新规划这些逻辑资源；本次没有增加 NPU 计算单元或缓冲区。
 
-默认选择 Full DDR：`SOC_CPU_MEM_BRAM=0`。`soc/soc_addr_map.vh` 是 SoC memory/peripheral base、已实现的 MMIO offset/control bit 和 profile 配置值的唯一维护来源。菜单保存时会在其中应用 profile、Flash 起始地址、映像长度和 UART TX FPIOA 引脚。C/汇编配置头文件以及 manifest 默认生成到 `build/menuconfig/`，不会复制到或改写 `bsp/include/`。
+默认选择 Full DDR：`SOC_CPU_MEM_BRAM=0`。`soc/soc_addr_map.vh` 是 SoC memory/peripheral base、已实现的 MMIO offset/control bit 和 profile 配置值的唯一维护来源。菜单保存时会在其中应用 profile、CPU 频率、Flash 起始地址、映像长度和 UART TX FPIOA 引脚。C/汇编配置头文件以及 manifest 默认生成到 `build/menuconfig/`，同时同步 BSP 生成头文件到 `bsp/include/`。
 
 BRAM CPU 的取指接口按同步 IRAM 时序工作：请求地址被接受后，指令数据与 response-valid 随时钟返回。CPU 复位期间，Flash 装载器取得 RAM 编程端口；写在 `valid && ready` 时完成，读回请求在一个时钟后伴随 `ready` 和对应数据应答。校验完成、CPU reset 释放后，该端口转由 LSU 使用。IRAM 的另一端口供取指，DRAM 为单端口 RAM。BRAM 地址内的 LSU 请求由本地 RAM 处理，范围外的 MMIO 请求走现有 AXI backend；load 会等待数据 response-valid，store 等待 ready，保证同步读延迟不会提前放行流水线。为此，Htop 增加 profile 生成选择和 BRAM 端口连接，Hifu 增加同步取指队列与预测处理，Hexu 以 MEM 接受状态门控 EX 请求，Hmemu 在 WB 停顿时保留已返回的 load 数据。BRAM profile 会移除 ICache、DCache、DDR bridge/controller 和 Camera 实例。
 
@@ -32,7 +32,7 @@ make menuconfig
 
 用方向键移动、Enter 进入或切换选项，选择 Full DDR 或 CoreMark BRAM，设置 Flash 起始地址、映像长度、固件 BIN（若已存在）和 UART TX FPIOA pin。首次构建时 BIN 尚不存在，可先留空，但 loader 长度应保持或输入非零的 4 字节对齐值；当前 map 的历史默认值为 32768。保存时会生成 `input_bin: null` 的无固件 manifest，避免留下旧 BIN 清单。修改完成后按 Esc 两次，在是否保存的询问中选择 Yes，保存并退出；也可以按 Tab 选中 Save，保持默认配置文件名保存后，再选择 Exit 退出。另存到其他路径的配置不会应用到工程 RTL。按 Esc 两次返回并退出时，若出现保存询问并选择 No，会丢弃本次菜单更改。只有保存到默认配置文件且通过校验的配置才会应用到 `soc/soc_addr_map.vh`。
 
-默认配置文件是 `build/menuconfig/.config`，默认输出目录是 `build/menuconfig/`，其中包含 `soc_defs.h`、`soc_defs_asm.inc`、`flash_manifest.json`，以及必要时的 `0xFF` padded BIN。未选择 BIN 时 manifest 会记录 `input_bin: null`、输入大小 0，且不会复制或生成 BIN 文件。首次打开菜单会依据当前 `soc/soc_addr_map.vh` 初始化 `.config`；后续打开保留已保存的菜单选择。环境变量 `SOC_CONFIG_SOURCE`、`SOC_CONFIG_FILE`、`SOC_CONFIG_OUTPUT` 可将输入、配置和生成目录指向其他位置，主要用于隔离配置操作。Kconfig 菜单进程在输出目录运行；固件 BIN 路径仍相对于仓库根目录解析。
+默认配置文件是 `build/menuconfig/.config`，默认输出目录是 `build/menuconfig/`，其中包含 `soc_defs.h`、`soc_defs_asm.inc`、`flash_manifest.json`、`clock_config.json`，以及必要时的 `0xFF` padded BIN。未选择 BIN 时不会复制或生成 BIN。首次打开菜单依据当前 RTL 初始化 `.config`；旧配置首次增加 CPU 频率时也从当前 RTL 补入，不重置其他选择。环境变量 `SOC_CONFIG_SOURCE`、`SOC_CONFIG_FILE`、`SOC_CONFIG_OUTPUT`、`SOC_CONFIG_FDC`、`SOC_CONFIG_BSP_OUTPUT` 可指定输入、配置、输出、约束和 BSP 头文件目录。做隔离操作时需一起覆盖 FDC 和 BSP 输出，否则仍会同步仓库默认文件。BIN 相对路径从仓库根目录解析。
 
 本项目构建 Kconfig 工具时启用 `KCONFIG_NO_SYMBOL_DEPFILES`，不再生成 `include/config/soc/**/*.h` 这类空白逐项依赖标记文件；项目未使用 Kbuild 的逐项依赖机制。`.config`、`auto.conf`、`autoconf.h` 和配置依赖清单仍正常生成。已有的空白标记文件不会自动删除，也不需要手动填写。可运行 `make kconfig-test` 验证首次生成、配置变更及旧配置项移除后的输出。
 
@@ -50,13 +50,46 @@ wc -c bsp/bsp_app/example/coremark/coremark.bin
 make menuconfig
 ```
 
-Full DDR profile 可选开启 preprocessing；CoreMark BRAM 会关闭 cache、DDR、Camera 和 preprocessing。Kconfig 会阻止不支持的 profile/预处理组合。BSP Makefile、linker script、CoreMark 源码和 BSP 输出均保持原样；`build/menuconfig/` 中的生成头文件不会自动同步进 BSP。
+Full DDR profile 可选开启 preprocessing；CoreMark BRAM 会关闭 cache、DDR、Camera 和 preprocessing。保存会同步 `bsp/include/soc_defs.h` 和 `soc_defs_asm.inc`。单目、双目及 CoreMark 的构建入口也会按当前 RTL 检查／生成头文件，并把头文件作为对象依赖；频率变化后直接重新 `make` 即可，无须为了更新频率手动清理对象。内容未变时保留头文件时间戳，不触发无意义重编译。
 
-当前 CoreMark BSP 端 `COREMARK_UART_TX_FPIOA` 固定为 0，菜单中的 UART pin 只配置 RTL FPIOA，并未接入 CoreMark 编译参数。因此选择远程 pin 31 不会自动改变固件串口引脚。本文不修改 BSP Makefile、`link.lds`、CoreMark 源码或 BSP BIN。
+当前 CoreMark BSP 端 `COREMARK_UART_TX_FPIOA` 固定为 0，菜单中的 UART pin 只配置 RTL FPIOA，并未接入 CoreMark 编译参数。因此选择远程 pin 31 不会自动改变固件串口引脚。时钟联动没有改变这个引脚选择行为或 linker script。
+
+## CPU 频率配置与联动
+
+菜单新增 `CPU clock frequency (Hz; soc/soc_addr_map.vh)`，默认仍为 70000000。这里填的是 **CPU PLL 输出频率**，不是板上 27 MHz 输入时钟。
+
+保存时统一更新 `SOC_CPU_HZ`、FDC 的 CPU 时钟倍率和 BSP 头文件；CPU 频率 CSR 默认值从同一配置计算。另生成 `clock_config.json`，记录频率、CSR、FDC 倍率、CPU 域异常超时周期和需手工设置 PLL 的提示。保存前验证所有文本输出，写入失败时尝试回退已替换文件；这不是断电／进程崩溃情况下的跨文件原子事务。失败后先修正错误并重新保存，不要直接综合部分配置。
+
+| 项目 | 规则 |
+| --- | --- |
+| 配置范围 | 1 MHz～327.67 MHz，且为 10 kHz 整数倍；这是现有 CSR 的编码范围，不是 FPGA 可运行频率承诺 |
+| CSR `mimpid` | 保留容量信息位，低 15 位为 `SOC_CPU_HZ / 10000` |
+| FDC | 固定按板上 27 MHz 输入计算 CPU 倍率，只更新 `SOC_CPU_CLOCK` 标记块内倍率；保留 PLL pin 路径及其他约束 |
+| BSP 构建 | 同步频率头文件，并使依赖它的固件对象在配置变化后重新编译 |
+| CPU 域异常超时 | `soc/soc_timeout.vh` 保持原 70 MHz 下的启动握手约 1.43 ms、诊断快照约 14.29 ms、DDR 初始化约 1 s 上限；周期数向上取整 |
+| 外设速度 | 不修改 SPI 分频、SCCB 延时、摄像头配置／帧率、DMA 时钟或数据通路 |
+| 不变的时钟域 | DDR、Camera PCLK、NPU 运算和 JTAG；这些域的 DMA／前处理超时不按 CPU 频率修改 |
+
+例如设置 90 MHz 后，FDC 倍率为 `10/3`，CSR 为 `0x10202328`。软件／配置回归覆盖 70、90、100、70.5 MHz 及编码边界；不代表这些频率已通过实板时序。
+
+异常超时仅决定多久收不到应答才报错，不要求设备等待至上限：正常应答到来后仍按原状态机立即继续。计算为编译期常量，不增加运行时除法器、限速器、帧间等待或 DMA 背压逻辑。仅按 CPU 时钟缩放这三类硬件异常上限，DDR 域 DMA 超时、软件轮询次数与 SCCB 忙等保持原实现。
+
+保持 SPI 分频和 SCCB 延时源码不变，不代表提频后外部通信速度不变：固定分频产生的 SPI 时钟仍会随 CPU 提频变快，软件忙等的实际时间可能缩短。这是未限速的结果；若超过器件规格，仍可能出现真实通信故障，异常超时修正不能修复该故障。需另外检查外设协议兼容性，PDS timing report 不能替代该检查。本次不生成新 Camera BIN，也不运行 PDS 或生成 bitstream。
+
+使用步骤：
+
+1. `make menuconfig` 填写频率并保存。
+2. 重新构建所用固件，例如 `make -C bsp/camera_stereo_app all diagnostics`。
+3. 再打开菜单，选择新 BIN；若需精确长度，Loader image bytes 设为 0，然后保存。
+4. 在 PDS 中手工把实际 PLL 输出设为相同频率，重新综合／布局布线／生成位流。
+5. 检查时钟和时序报告。保留的 `get_pins` 路径必须实际命中对应 PLL，尤其切换 DDR／BRAM profile 后；本工具不能替代 PDS 的对象解析和 STA。
+6. 烧录匹配的新位流与固件。旧位流、新频率固件不能混用。
+
+可运行 `make config-check` 检查 RTL、FDC 倍率及 BSP 头文件是否一致；`make config-test` 在临时副本测试频率切换、旧配置迁移、非法输入／输出失败保护及 CPU 频率 CSR RTL。`make config-headers` 只按当前 RTL 重生成 BSP 头文件，不修改 PLL 或 FDC。
 
 ## 镜像长度、对齐和 manifest
 
-本次默认 BSP 产物 `coremark.bin` 为 29144 字节（`0x71D8`）；起始地址 `0x00A00000`，因此映像结束地址（不含）为 `0x00A071D8`。每次构建后用 `wc -c` 查看实际长度，在菜单选择该 BIN 并将 Loader image bytes 设为 0，使 manifest 记录 BIN 精确长度。不要仅因历史默认值为 32768 就把短 BIN 按 32768 字节读取。
+历史 CoreMark BIN 曾为 29144 字节；频率联动或其他代码修改后长度可能改变。每次构建后用 `wc -c` 查看实际长度，再选择新 BIN 并将 Loader image bytes 设为 0。不要沿用历史长度或仅因默认值为 32768 就把短 BIN 按 32768 字节读取。
 
 装载长度必须大于零且是 4 字节整数倍，且不能小于所选 BIN；可以大于 BIN，以便按 `0xFF` 补齐。Flash 起始地址也必须 4 字节对齐。SPI 读地址是 24 位，逻辑可寻址范围为 `[0x000000, 0x1000000)`；这不代表已确认外部 Flash 器件的物理容量。从 `0xA00000` 起的 6 MiB 只是该 24 位逻辑窗口中剩余的地址范围。保存时配置工具会检查 `FLASH_BASE + BOOT_IMAGE_BYTES` 不越过窗口。
 

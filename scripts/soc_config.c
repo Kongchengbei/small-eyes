@@ -47,6 +47,7 @@ typedef struct {
     char firmware[PATH_CAP];
     uint64_t flash_base;
     uint64_t image_bytes;
+    uint64_t cpu_hz;
     bool preprocess;
     bool uart_remote;
 } Config;
@@ -54,7 +55,7 @@ typedef struct {
 static const char *editable_names[] = {
     "SOC_CPU_MEM_BRAM", "SOC_ENABLE_ICACHE", "SOC_ENABLE_DCACHE",
     "SOC_ENABLE_DDR", "SOC_ENABLE_CAMERA", "SOC_ENABLE_PREPROCESS",
-    "SOC_FLASH_BASE", "SOC_BOOT_IMAGE_BYTES", "SOC_UART_TX_FPIOA"
+    "SOC_FLASH_BASE", "SOC_BOOT_IMAGE_BYTES", "SOC_UART_TX_FPIOA", "SOC_CPU_HZ"
 };
 
 static char *trim(char *s) {
@@ -87,6 +88,10 @@ static int write_all(FILE *f, const char *s, size_t n) {
 }
 
 static int atomic_write(const char *path, const char *data, size_t len) {
+    char *existing = NULL; size_t existing_len = 0;
+    if (read_file(path, &existing, &existing_len) == 0 && existing_len == len &&
+        !memcmp(existing, data, len)) { free(existing); return 0; }
+    free(existing);
     struct stat old_st;
     bool had_old = stat(path, &old_st) == 0;
     char tmp[PATH_CAP + 32];
@@ -108,6 +113,70 @@ static int atomic_write(const char *path, const char *data, size_t len) {
     unlink(tmp);
     errno = saved;
     return -1;
+}
+
+/* Stage every text output before replacing any. Roll back completed replacements
+ * on a commit error. This is not a crash-atomic filesystem transaction. */
+typedef struct {
+    const char *path, *data;
+    char *old;
+    size_t old_len;
+    char staged[PATH_CAP + 32];
+    bool existed, changed, committed;
+} FileUpdate;
+
+static int commit_updates(FileUpdate *files, size_t count) {
+    int rc = -1;
+    for (size_t i = 0; i < count; ++i) {
+        FileUpdate *u = &files[i]; struct stat st;
+        for (size_t j = 0; j < i; ++j) {
+            struct stat other;
+            if (!strcmp(u->path, files[j].path) ||
+                (stat(u->path, &st) == 0 && stat(files[j].path, &other) == 0 &&
+                 st.st_dev == other.st_dev && st.st_ino == other.st_ino)) {
+                fprintf(stderr, "soc_config: output paths overlap: %s\n", u->path);
+                goto cleanup;
+            }
+        }
+        if (lstat(u->path, &st) == 0) {
+            if (!S_ISREG(st.st_mode) || read_file(u->path, &u->old, &u->old_len) != 0) {
+                fprintf(stderr, "soc_config: output is not a readable regular file: %s\n", u->path);
+                goto cleanup;
+            }
+            u->existed = true;
+            if (u->old_len == strlen(u->data) && !memcmp(u->old, u->data, u->old_len)) continue;
+        } else if (errno != ENOENT) goto cleanup;
+        if (snprintf(u->staged, sizeof(u->staged), "%s.tmp.XXXXXX", u->path) >= (int)sizeof(u->staged)) goto cleanup;
+        int fd = mkstemp(u->staged);
+        if (fd < 0) { u->staged[0] = '\0'; goto cleanup; }
+        if (u->existed && fchmod(fd, st.st_mode & 07777) != 0) { close(fd); goto cleanup; }
+        FILE *f = fdopen(fd, "wb");
+        if (!f) { close(fd); goto cleanup; }
+        int bad = write_all(f, u->data, strlen(u->data)) || fflush(f) || fsync(fd);
+        if (fclose(f) != 0) bad = 1;
+        if (bad) goto cleanup;
+        u->changed = true;
+    }
+    for (size_t i = 0; i < count; ++i) {
+        FileUpdate *u = &files[i];
+        if (!u->changed) continue;
+        if (rename(u->staged, u->path) != 0) {
+            fprintf(stderr, "soc_config: commit failed for %s: %s\n", u->path, strerror(errno));
+            for (size_t j = 0; j < i; ++j) if (files[j].committed) {
+                int bad = files[j].existed ? atomic_write(files[j].path, files[j].old, files[j].old_len) : unlink(files[j].path);
+                if (bad) fprintf(stderr, "soc_config: ROLLBACK FAILED: inspect %s\n", files[j].path);
+            }
+            goto cleanup;
+        }
+        u->staged[0] = '\0'; u->committed = true;
+    }
+    rc = 0;
+cleanup:
+    for (size_t i = 0; i < count; ++i) {
+        if (files[i].staged[0]) unlink(files[i].staged);
+        free(files[i].old);
+    }
+    return rc;
 }
 
 static int mkdir_p(const char *path) {
@@ -369,12 +438,21 @@ static bool validate_defs(Definitions *d) {
         "SOC_BOOT_IMAGE_BYTES", "SOC_IRAM_BASE", "SOC_IRAM_BYTES",
         "SOC_DRAM_BASE", "SOC_DRAM_BYTES", "SOC_UART_TX_FPIOA",
         "SOC_ENABLE_ICACHE", "SOC_ENABLE_DCACHE", "SOC_ENABLE_DDR",
-        "SOC_ENABLE_CAMERA", "SOC_ENABLE_PREPROCESS", "SOC_DDR_BASE", "SOC_DDR_BYTES"
+        "SOC_ENABLE_CAMERA", "SOC_ENABLE_PREPROCESS", "SOC_DDR_BASE", "SOC_DDR_BYTES",
+        "SOC_CPU_HZ", "SOC_UART_BAUD"
     };
     uint64_t v[sizeof(required) / sizeof(required[0])];
     for (size_t i = 0; i < sizeof(required) / sizeof(required[0]); ++i)
         if (!get_value(d, required[i], &v[i])) return false;
 #define V(name) (find_def(d, name)->value)
+    if (V("SOC_CPU_HZ") < 1000000 || V("SOC_CPU_HZ") > 327670000 || V("SOC_CPU_HZ") % 10000) {
+        fprintf(stderr, "soc_config: SOC_CPU_HZ must be 1000000..327670000 Hz and a multiple of 10000 (CSR encoding, not a timing guarantee)\n");
+        return false;
+    }
+    if (!V("SOC_UART_BAUD") || V("SOC_CPU_HZ") < V("SOC_UART_BAUD") ||
+        V("SOC_CPU_HZ") / V("SOC_UART_BAUD") > 65536) {
+        fprintf(stderr, "soc_config: CPU frequency/baud cannot fit the 16-bit UART divider\n"); return false;
+    }
     if (V("SOC_CPU_MEM_BRAM") > 1) { fprintf(stderr, "soc_config: SOC_CPU_MEM_BRAM must be 0 or 1\n"); return false; }
     const char *bools[] = { "SOC_ENABLE_ICACHE", "SOC_ENABLE_DCACHE", "SOC_ENABLE_DDR", "SOC_ENABLE_CAMERA", "SOC_ENABLE_PREPROCESS" };
     for (size_t i = 0; i < sizeof(bools)/sizeof(bools[0]); ++i)
@@ -469,17 +547,37 @@ static int parse_config(const char *path, Config *c) {
     if (config_get(text, "CONFIG_SOC_FIRMWARE_BIN", firmware, sizeof(firmware)) != 1) firmware[0] = '\0';
     strcpy(c->profile, bram ? "bram" : "full");
     strcpy(c->firmware, firmware); c->preprocess = preprocess; c->uart_remote = remote;
+    int hz_present = config_get(text, "CONFIG_SOC_CPU_HZ", number, sizeof(number));
+    if (hz_present < 0 || (hz_present == 1 && parse_cli_number(number, "SOC_CPU_HZ", &c->cpu_hz) != 0)) {
+        free(text); return -1;
+    }
+    if (hz_present == 1 && c->cpu_hz == 0) {
+        fprintf(stderr, "soc_config: SOC_CPU_HZ cannot be zero\n"); free(text); return -1;
+    }
     free(text); return 0;
 }
 
 static int seed_config(const char *source, const char *config) {
     struct stat st;
-    if (stat(config, &st) == 0) { printf("Preserved existing config %s\n", config); return 0; }
-    if (errno != ENOENT) { fprintf(stderr, "soc_config: cannot inspect %s: %s\n", config, strerror(errno)); return 2; }
+    bool exists = stat(config, &st) == 0;
+    if (!exists && errno != ENOENT) { fprintf(stderr, "soc_config: cannot inspect %s: %s\n", config, strerror(errno)); return 2; }
     Definitions d; char *src = NULL;
     int rc = load_defs(source, &d, &src);
     if (rc) { free(src); return 2; }
     if (!validate_defs(&d)) { free(src); return 2; }
+    if (exists) {
+        char *old = NULL, number[128];
+        if (read_file(config, &old, NULL) != 0) { free(src); return 2; }
+        int present = config_get(old, "CONFIG_SOC_CPU_HZ", number, sizeof(number));
+        if (present != 0) { free(old); free(src); printf("Preserved existing config %s\n", config); return present < 0 ? 2 : 0; }
+        size_t cap = strlen(old) + 80;
+        char *updated = malloc(cap);
+        if (!updated) { free(old); free(src); return 2; }
+        snprintf(updated, cap, "%s\nCONFIG_SOC_CPU_HZ=%" PRIu64 "\n", old, find_def(&d, "SOC_CPU_HZ")->value);
+        int bad = atomic_write(config, updated, strlen(updated));
+        free(updated); free(old); free(src);
+        return bad ? 2 : 0;
+    }
     uint64_t pin = find_def(&d, "SOC_UART_TX_FPIOA")->value;
     uint64_t fl = find_def(&d, "SOC_FLASH_BASE")->value;
     uint64_t len = find_def(&d, "SOC_BOOT_IMAGE_BYTES")->value;
@@ -490,12 +588,13 @@ static int seed_config(const char *source, const char *config) {
         "%s\n"
         "CONFIG_SOC_FIRMWARE_BIN=\"\"\n"
         "CONFIG_SOC_FLASH_BASE=0x%" PRIX64 "\n"
-        "CONFIG_SOC_BOOT_IMAGE_BYTES=%" PRIu64 "\n",
+        "CONFIG_SOC_BOOT_IMAGE_BYTES=%" PRIu64 "\n"
+        "CONFIG_SOC_CPU_HZ=%" PRIu64 "\n",
         find_def(&d, "SOC_CPU_MEM_BRAM")->value ? "# CONFIG_SOC_PROFILE_FULL is not set" : "CONFIG_SOC_PROFILE_FULL=y",
         find_def(&d, "SOC_CPU_MEM_BRAM")->value ? "CONFIG_SOC_PROFILE_BRAM=y" : "# CONFIG_SOC_PROFILE_BRAM is not set",
         pin == 31 ? "CONFIG_SOC_UART_REMOTE=y\n# CONFIG_SOC_UART_LOCAL is not set" : "CONFIG_SOC_UART_LOCAL=y\n# CONFIG_SOC_UART_REMOTE is not set",
         find_def(&d, "SOC_ENABLE_PREPROCESS")->value ? "CONFIG_SOC_ENABLE_PREPROCESS=y" : "# CONFIG_SOC_ENABLE_PREPROCESS is not set",
-        fl, len);
+        fl, len, find_def(&d, "SOC_CPU_HZ")->value);
     free(src);
     if (n < 0 || (size_t)n >= sizeof(buf)) { fprintf(stderr, "soc_config: seed config overflow\n"); return 2; }
     char *parent = strdup(config); if (!parent) return 2;
@@ -594,7 +693,7 @@ static char *rewrite_source_text(const char *text, Definitions *defs) {
                 size_t suffix_n = (size_t)(line_end - comment_at);
                 char value[64];
                 if (!strcmp(name, "SOC_FLASH_BASE")) snprintf(value, sizeof(value), "24'h%06" PRIX64, d->value);
-                else if (!strcmp(name, "SOC_BOOT_IMAGE_BYTES")) snprintf(value, sizeof(value), "32'd%" PRIu64, d->value);
+                else if (!strcmp(name, "SOC_BOOT_IMAGE_BYTES") || !strcmp(name, "SOC_CPU_HZ")) snprintf(value, sizeof(value), "32'd%" PRIu64, d->value);
                 else snprintf(value, sizeof(value), "%" PRIu64, d->value);
                 if (outlen + prefix_n + strlen(value) + suffix_n + 2 > cap) { cap = (outlen + prefix_n + strlen(value) + suffix_n + 2) * 2; char *b = realloc(out, cap); if (!b) { free(out); return NULL; } out = b; }
                 memcpy(out + outlen, orig, prefix_n); outlen += prefix_n;
@@ -725,7 +824,73 @@ static int emit_headers(const char *source, const char *outdir, Definitions *def
     (void)source; return 0;
 }
 
-static int command_apply(const char *source, const char *config_path, const char *outdir) {
+static uint64_t gcd_u64(uint64_t a, uint64_t b) {
+    while (b) { uint64_t next = a % b; a = b; b = next; }
+    return a;
+}
+
+/* Only replace the two numeric ratio lines inside the managed block. Keep the
+ * input/JTAG/PCLK clocks, pin endpoint, and all unrelated constraints intact. */
+static char *render_fdc(const char *text, uint64_t hz) {
+    const char *begin_mark = "# BEGIN SOC_CPU_CLOCK";
+    const char *end_mark = "# END SOC_CPU_CLOCK";
+    const char *begin = strstr(text, begin_mark), *end = strstr(text, end_mark);
+    if (!begin || !end || end <= begin || strstr(begin + 1, begin_mark) || strstr(end + 1, end_mark)) {
+        fprintf(stderr, "soc_config: FDC needs exactly one BEGIN/END SOC_CPU_CLOCK block\n"); return NULL;
+    }
+    uint64_t divisor = gcd_u64(hz, 27000000);
+    size_t cap = strlen(text) + 256, len = 0;
+    char *out = malloc(cap); if (!out) return NULL;
+    unsigned multiply = 0, divide = 0, clock = 0;
+    const char *p = text;
+    while (*p) {
+        const char *e = strchr(p, '\n'); size_t n = e ? (size_t)(e - p) + 1 : strlen(p);
+        if (p > begin && p < end) {
+            const char *t = p; while (*t == ' ' || *t == '\t') ++t;
+            const char *key = NULL; uint64_t value = 0;
+            if (!strncmp(t, "-multiply_by", 12) && isspace((unsigned char)t[12])) {
+                key = "-multiply_by"; value = hz / divisor; ++multiply;
+            } else if (!strncmp(t, "-divide_by", 10) && isspace((unsigned char)t[10])) {
+                key = "-divide_by"; value = 27000000 / divisor; ++divide;
+            } else if (!strncmp(t, "create_generated_clock -name cpu_clk", 35)) ++clock;
+            if (key) {
+                append(out, cap, &len, "    %s %" PRIu64 " \\\n", key, value);
+                p += n; continue;
+            }
+        }
+        memcpy(out + len, p, n); len += n; p += n;
+    }
+    out[len] = '\0';
+    if (multiply != 1 || divide != 1 || clock != 1) {
+        fprintf(stderr, "soc_config: malformed CPU clock FDC block; refusing partial update\n");
+        free(out); return NULL;
+    }
+    return out;
+}
+
+static char *render_clock_report(Definitions *d) {
+    uint64_t hz = find_def(d, "SOC_CPU_HZ")->value;
+    uint64_t ratio = gcd_u64(hz, 27000000);
+    char *out = malloc(2048); if (!out) return NULL;
+    snprintf(out, 2048,
+        "{\n  \"cpu_hz\": %" PRIu64 ",\n  \"board_input_hz\": 27000000,\n"
+        "  \"pll_configuration\": \"manual in PDS; must match cpu_hz\",\n"
+        "  \"timing_guaranteed\": false,\n"
+        "  \"fdc_multiply_by\": %" PRIu64 ",\n  \"fdc_divide_by\": %" PRIu64 ",\n"
+        "  \"mimpid\": \"0x%08" PRIX64 "\",\n"
+        "  \"boot_timeout_cpu_cycles\": %" PRIu64 ",\n"
+        "  \"ddr_init_timeout_cpu_cycles\": %" PRIu64 ",\n"
+        "  \"camera_snapshot_timeout_cpu_cycles\": %" PRIu64 ",\n"
+        "  \"timeout_policy\": \"error deadlines only; preserve 70 MHz wall-time budgets; no mandatory waits\",\n"
+        "  \"peripheral_configuration\": \"SPI/SCCB rates unchanged in source; review overclock compatibility separately\",\n"
+        "  \"unchanged_clock_domains\": [\"DDR\", \"Camera PCLK\", \"NPU datapath\", \"JTAG\"]\n}\n",
+        hz, hz / ratio, UINT64_C(27000000) / ratio, UINT64_C(0x10200000) | (hz / 10000),
+        (hz + 699) / 700, hz, (hz + 69) / 70);
+    return out;
+}
+
+static int command_apply(const char *source, const char *config_path, const char *outdir,
+                         const char *fdc, const char *bspdir) {
     Config c = {0}; if (parse_config(config_path, &c) != 0) return 2;
     Definitions defs; char *source_text = NULL;
     if (load_defs(source, &defs, &source_text) != 0) { free(source_text); return 2; }
@@ -734,7 +899,7 @@ static int command_apply(const char *source, const char *config_path, const char
         "SOC_ENABLE_CAMERA", "SOC_ENABLE_PREPROCESS", "SOC_FLASH_BASE",
         "SOC_BOOT_IMAGE_BYTES", "SOC_UART_TX_FPIOA", "SOC_FLASH_ADDRESS_BYTES",
         "SOC_IRAM_BASE", "SOC_IRAM_BYTES", "SOC_DRAM_BASE", "SOC_DRAM_BYTES",
-        "SOC_DDR_BASE", "SOC_DDR_BYTES"
+        "SOC_DDR_BASE", "SOC_DDR_BYTES", "SOC_CPU_HZ", "SOC_UART_BAUD"
     };
     for (size_t i = 0; i < sizeof(needed) / sizeof(needed[0]); ++i) {
         if (!find_def(&defs, needed[i])) {
@@ -743,6 +908,12 @@ static int command_apply(const char *source, const char *config_path, const char
             return 2;
         }
     }
+    uint64_t old_hz = find_def(&defs, "SOC_CPU_HZ")->value;
+    if (!c.cpu_hz) c.cpu_hz = old_hz; // Preserve frequency for legacy non-menu configs.
+    if (c.cpu_hz != old_hz && !fdc) {
+        fprintf(stderr, "soc_config: changing CPU frequency requires --fdc PATH\n"); free(source_text); return 2;
+    }
+    find_def(&defs, "SOC_CPU_HZ")->value = c.cpu_hz;
     const bool bram = !strcmp(c.profile, "bram");
     uint64_t *profile_values[] = { &find_def(&defs, "SOC_CPU_MEM_BRAM")->value,
         &find_def(&defs, "SOC_ENABLE_ICACHE")->value, &find_def(&defs, "SOC_ENABLE_DCACHE")->value,
@@ -762,13 +933,29 @@ static int command_apply(const char *source, const char *config_path, const char
     if (parse_definitions_text(rewritten, &checkdefs) != 0 || !validate_defs(&checkdefs)) {
         fprintf(stderr, "soc_config: proposed source update failed validation\n"); free(rewritten); return 2;
     }
-    if (mkdir_p(outdir) != 0) { fprintf(stderr, "soc_config: cannot create output directory %s: %s\n", outdir, strerror(errno)); free(rewritten); return 2; }
+    char *fdc_text = NULL, *new_fdc = NULL;
+    if (fdc && (read_file(fdc, &fdc_text, NULL) != 0 || !(new_fdc = render_fdc(fdc_text, c.cpu_hz)))) {
+        fprintf(stderr, "soc_config: cannot prepare FDC update: %s\n", fdc);
+        free(fdc_text); free(rewritten); return 2;
+    }
+    free(fdc_text);
+    if (mkdir_p(outdir) != 0) { fprintf(stderr, "soc_config: cannot create output directory %s: %s\n", outdir, strerror(errno)); free(rewritten); free(new_fdc); return 2; }
     char *h = render_header(&checkdefs), *a = render_asm(&checkdefs);
-    if (!h || !a) { free(h); free(a); free(rewritten); return 2; }
+    if (!h || !a) { free(h); free(a); free(rewritten); free(new_fdc); return 2; }
     char hpath[PATH_CAP], apath[PATH_CAP], mpath[PATH_CAP], padded[PATH_CAP];
+    char bpath[PATH_CAP], bapath[PATH_CAP], clockpath[PATH_CAP];
     snprintf(hpath, sizeof(hpath), "%s/soc_defs.h", outdir);
     snprintf(apath, sizeof(apath), "%s/soc_defs_asm.inc", outdir);
     snprintf(mpath, sizeof(mpath), "%s/flash_manifest.json", outdir);
+    snprintf(clockpath, sizeof(clockpath), "%s/clock_config.json", outdir);
+    if (bspdir && mkdir_p(bspdir) != 0) {
+        fprintf(stderr, "soc_config: cannot create BSP header directory %s\n", bspdir);
+        free(h); free(a); free(rewritten); free(new_fdc); return 2;
+    }
+    if (bspdir) {
+        snprintf(bpath, sizeof(bpath), "%s/soc_defs.h", bspdir);
+        snprintf(bapath, sizeof(bapath), "%s/soc_defs_asm.inc", bspdir);
+    }
     const char *artifact = NULL, *padded_for_json = NULL;
     if (c.firmware[0]) {
         const char *base = strrchr(c.firmware, '/'); base = base ? base + 1 : c.firmware;
@@ -784,19 +971,29 @@ static int command_apply(const char *source, const char *config_path, const char
     char *manifest = NULL;
     manifest = make_manifest(source, c.firmware[0] ? c.firmware : NULL,
                              c.profile, c.flash_base, image, bin_size, padded_for_json);
-    if (!manifest) { free(h); free(a); free(rewritten); return 2; }
+    if (!manifest) { free(h); free(a); free(rewritten); free(new_fdc); return 2; }
     /* Stage artifacts and validate all inputs before replacing the authority. */
-    if (artifact && copy_or_pad(c.firmware, artifact, image) != 0) { fprintf(stderr, "soc_config: cannot stage BIN artifact: %s\n", strerror(errno)); free(h); free(a); free(rewritten); free(manifest); return 2; }
-    if (atomic_write(hpath, h, strlen(h)) || atomic_write(apath, a, strlen(a)) ||
-        atomic_write(mpath, manifest, strlen(manifest))) {
-        fprintf(stderr, "soc_config: cannot write generated artifacts: %s\n", strerror(errno)); free(h); free(a); free(rewritten); free(manifest); return 2;
+    if (artifact && copy_or_pad(c.firmware, artifact, image) != 0) { fprintf(stderr, "soc_config: cannot stage BIN artifact: %s\n", strerror(errno)); free(h); free(a); free(rewritten); free(manifest); free(new_fdc); return 2; }
+    char *report = render_clock_report(&checkdefs);
+    if (!report) { free(h); free(a); free(rewritten); free(manifest); free(new_fdc); return 2; }
+    FileUpdate files[8] = {
+        {.path=hpath, .data=h}, {.path=apath, .data=a},
+        {.path=mpath, .data=manifest}, {.path=clockpath, .data=report}
+    };
+    size_t count = 4;
+    if (bspdir) {
+        files[count++] = (FileUpdate){.path=bpath, .data=h};
+        files[count++] = (FileUpdate){.path=bapath, .data=a};
     }
-    free(h); free(a); free(manifest);
-    if (atomic_write(source, rewritten, strlen(rewritten)) != 0) {
-        fprintf(stderr, "soc_config: cannot atomically update %s: %s\n", source, strerror(errno)); free(rewritten); return 2;
-    }
-    free(rewritten);
+    if (fdc) files[count++] = (FileUpdate){.path=fdc, .data=new_fdc};
+    files[count++] = (FileUpdate){.path=source, .data=rewritten};
+    int bad = commit_updates(files, count);
+    free(h); free(a); free(manifest); free(rewritten); free(new_fdc); free(report);
+    if (bad) { fprintf(stderr, "soc_config: could not commit configuration outputs\n"); return 2; }
     printf("Updated %s\nGenerated %s and %s\n", source, hpath, apath);
+    if (fdc) printf("Updated CPU clock ratio in %s (27 MHz board input unchanged)\n", fdc);
+    if (bspdir) printf("Synchronized BSP headers in %s\n", bspdir);
+    printf("CPU=%" PRIu64 " Hz; configure PLL manually in PDS, rebuild firmware/bitstream and check timing.\n", c.cpu_hz);
     if (c.firmware[0]) printf("Generated %s (image %" PRIu64 " bytes at 0x%06" PRIX64 ")\n", mpath, image, c.flash_base);
     return 0;
 }
@@ -804,8 +1001,8 @@ static int command_apply(const char *source, const char *config_path, const char
 static void usage(FILE *f) {
     fprintf(f, "Usage:\n"
         "  soc_config seed --source PATH --config PATH\n"
-        "  soc_config apply --source PATH --config PATH --output-dir PATH\n"
-        "  soc_config check --source PATH [--bin PATH] [--header PATH] [--asm PATH]\n"
+        "  soc_config apply --source PATH --config PATH --output-dir PATH [--fdc PATH] [--bsp-output-dir PATH]\n"
+        "  soc_config check --source PATH [--bin PATH] [--header PATH] [--asm PATH] [--fdc PATH]\n"
         "  soc_config generate-header --source PATH --output-dir PATH\n");
 }
 
@@ -821,7 +1018,7 @@ int main(int argc, char **argv) {
     if (!strcmp(command, "apply")) {
         char *config = find_arg(argc, argv, "--config"), *outdir = find_arg(argc, argv, "--output-dir");
         if (!config || !outdir) { usage(stderr); return 2; }
-        return command_apply(source, config, outdir);
+        return command_apply(source, config, outdir, find_arg(argc, argv, "--fdc"), find_arg(argc, argv, "--bsp-output-dir"));
     }
     if (!strcmp(command, "generate-header")) {
         char *outdir = find_arg(argc, argv, "--output-dir"); if (!outdir) { usage(stderr); return 2; }
@@ -838,6 +1035,15 @@ int main(int argc, char **argv) {
         }
         if (header && !same_header_values(header, &d, false)) return 2;
         if (asm && !same_header_values(asm, &d, true)) return 2;
+        char *fdc = find_arg(argc, argv, "--fdc");
+        if (fdc) {
+            char *original = NULL, *expected = NULL;
+            if (read_file(fdc, &original, NULL) != 0) return 2;
+            expected = render_fdc(original, find_def(&d, "SOC_CPU_HZ")->value);
+            bool match = expected && !strcmp(original, expected);
+            free(original); free(expected);
+            if (!match) { fprintf(stderr, "soc_config: CPU clock FDC ratio is stale or invalid\n"); return 2; }
+        }
         printf("Configuration valid: %zu definitions; flash 0x%06" PRIX64 "+%" PRIu64 " bytes\n", d.count, find_def(&d, "SOC_FLASH_BASE")->value, find_def(&d, "SOC_BOOT_IMAGE_BYTES")->value);
         return 0;
     }

@@ -1,7 +1,10 @@
 `timescale 1ns / 1ps
+`include "../soc/soc_addr_map.vh"
 
 // RV32IM machine-mode CSR block.
-module Hcsr (
+module Hcsr #(
+    parameter [31:0] CPU_HZ = `SOC_CPU_HZ
+) (
     input         clk,
     input         rst,
 
@@ -26,8 +29,8 @@ module Hcsr (
 );
 
     localparam [31:0] CSR_MVENDORID_VALUE = 32'h0011_4514;
-    // 低 15 位以 10 kHz 为单位描述板上 CPU PLL：70 MHz。
-    localparam [31:0] CSR_MIMPID_VALUE    = 32'h1020_1B58;
+    // 保持现有 ABI：低 15 位为频率 / 10 kHz，高位的存储容量信息不变。
+    localparam [31:0] CSR_MIMPID_VALUE    = 32'h1020_0000 | (CPU_HZ / 32'd10000);
     localparam [31:0] MSTATUS_RESET       = 32'h0000_1800;
     localparam [31:0] MIE_WR_MASK         = 32'h0000_0880; // MEIE, MTIE
 
