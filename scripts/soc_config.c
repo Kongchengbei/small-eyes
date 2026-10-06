@@ -16,6 +16,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <unistd.h>
+#include "bram_init.h"
 
 #define MAX_DEFS 512
 #define NAME_CAP 128
@@ -45,6 +46,7 @@ typedef struct {
 typedef struct {
     char profile[16];
     char firmware[PATH_CAP];
+    char firmware_hex[PATH_CAP];
     uint64_t flash_base;
     uint64_t image_bytes;
     uint64_t cpu_hz;
@@ -465,7 +467,7 @@ static bool validate_defs(Definitions *d) {
     if (V("SOC_UART_TX_FPIOA") != 0 && V("SOC_UART_TX_FPIOA") != 31) { fprintf(stderr, "soc_config: SOC_UART_TX_FPIOA must be 0 or 31\n"); return false; }
     uint64_t flash = V("SOC_FLASH_BASE"), flash_bytes = V("SOC_FLASH_ADDRESS_BYTES"), image = V("SOC_BOOT_IMAGE_BYTES");
     if (flash % 4) { fprintf(stderr, "soc_config: SOC_FLASH_BASE must be 4-byte aligned\n"); return false; }
-    if (!image) { fprintf(stderr, "soc_config: SOC_BOOT_IMAGE_BYTES must be nonzero without a selected BIN\n"); return false; }
+    if (!image && !V("SOC_CPU_MEM_BRAM")) { fprintf(stderr, "soc_config: SOC_BOOT_IMAGE_BYTES must be nonzero without a selected BIN\n"); return false; }
     if (image % 4) { fprintf(stderr, "soc_config: SOC_BOOT_IMAGE_BYTES must be a multiple of 4 bytes; manually pad/align the image length\n"); return false; }
     if (flash >= flash_bytes || image > flash_bytes - flash) { fprintf(stderr, "soc_config: flash image range exceeds 24-bit flash address space\n"); return false; }
     uint64_t ib = V("SOC_IRAM_BASE"), is = V("SOC_IRAM_BYTES"), db = V("SOC_DRAM_BASE"), ds = V("SOC_DRAM_BYTES");
@@ -475,7 +477,7 @@ static bool validate_defs(Definitions *d) {
     uint64_t ddrb = V("SOC_DDR_BASE"), ddrs = V("SOC_DDR_BYTES");
     if (ddrb + ddrs < ddrb || ib < ddrb || db + ds > ddrb + ddrs) { fprintf(stderr, "soc_config: IRAM/DRAM layout exceeds DDR address window\n"); return false; }
     if (V("SOC_CPU_MEM_BRAM")) {
-        if (image > is + ds) { fprintf(stderr, "soc_config: BRAM profile can hold at most IRAM+DRAM bytes\n"); return false; }
+        if (is != 32768 || ds != 16384) { fprintf(stderr, "soc_config: vendor BRAM IPs require 32 KiB IRAM and 16 KiB DRAM\n"); return false; }
     } else if (image > ddrs) { fprintf(stderr, "soc_config: boot image exceeds configured DDR capacity\n"); return false; }
 #undef V
     return true;
@@ -540,13 +542,16 @@ static int parse_config(const char *path, Config *c) {
     /* bool symbols that Kconfig omits are disabled. */
     if (!config_bool(text, "CONFIG_SOC_ENABLE_PREPROCESS", &preprocess)) preprocess = false;
     char number[128], firmware[PATH_CAP];
-    if (config_get(text, "CONFIG_SOC_FLASH_BASE", number, sizeof(number)) != 1 || parse_cli_number(number, "SOC_FLASH_BASE", &c->flash_base) != 0 ||
-        config_get(text, "CONFIG_SOC_BOOT_IMAGE_BYTES", number, sizeof(number)) != 1 || parse_cli_number(number, "SOC_BOOT_IMAGE_BYTES", &c->image_bytes) != 0) {
+    if (full && (config_get(text, "CONFIG_SOC_FLASH_BASE", number, sizeof(number)) != 1 || parse_cli_number(number, "SOC_FLASH_BASE", &c->flash_base) != 0 ||
+        config_get(text, "CONFIG_SOC_BOOT_IMAGE_BYTES", number, sizeof(number)) != 1 || parse_cli_number(number, "SOC_BOOT_IMAGE_BYTES", &c->image_bytes) != 0)) {
         fprintf(stderr, "soc_config: config must define SOC_FLASH_BASE and SOC_BOOT_IMAGE_BYTES\n"); free(text); return -1;
     }
     if (config_get(text, "CONFIG_SOC_FIRMWARE_BIN", firmware, sizeof(firmware)) != 1) firmware[0] = '\0';
     strcpy(c->profile, bram ? "bram" : "full");
     strcpy(c->firmware, firmware); c->preprocess = preprocess; c->uart_remote = remote;
+    if (config_get(text, "CONFIG_SOC_FIRMWARE_HEX", c->firmware_hex, sizeof(c->firmware_hex)) < 0) {
+        fprintf(stderr, "soc_config: invalid CONFIG_SOC_FIRMWARE_HEX path\n"); free(text); return -1;
+    }
     int hz_present = config_get(text, "CONFIG_SOC_CPU_HZ", number, sizeof(number));
     if (hz_present < 0 || (hz_present == 1 && parse_cli_number(number, "SOC_CPU_HZ", &c->cpu_hz) != 0)) {
         free(text); return -1;
@@ -587,6 +592,7 @@ static int seed_config(const char *source, const char *config) {
         "%s\n"
         "%s\n"
         "CONFIG_SOC_FIRMWARE_BIN=\"\"\n"
+        "CONFIG_SOC_FIRMWARE_HEX=\"\"\n"
         "CONFIG_SOC_FLASH_BASE=0x%" PRIX64 "\n"
         "CONFIG_SOC_BOOT_IMAGE_BYTES=%" PRIu64 "\n"
         "CONFIG_SOC_CPU_HZ=%" PRIu64 "\n",
@@ -795,6 +801,82 @@ static char *make_manifest(const char *source, const char *bin,
     return s;
 }
 
+static char *make_bram_manifest(const char *source, const char *hex,
+                                const char *params, const BramInitImage *image) {
+    /* json_escape can expand a control character to six bytes. */
+    char esource[PATH_CAP * 6], ehex[PATH_CAP * 6], eparams[PATH_CAP * 6];
+    json_escape(source, esource, sizeof(esource));
+    json_escape(hex, ehex, sizeof(ehex));
+    json_escape(params, eparams, sizeof(eparams));
+    size_t cap = sizeof(esource) + sizeof(ehex) + sizeof(eparams) + 1024;
+    char *s = malloc(cap);
+    if (!s) return NULL;
+    snprintf(s, cap,
+        "{\n  \"format\": \"soc-bram-init-manifest-v1\",\n"
+        "  \"profile\": \"bram\",\n  \"boot_source\": \"bitstream imem initialization\",\n"
+        "  \"address_source\": \"%s\",\n  \"input_hex\": \"%s\",\n"
+        "  \"input_words\": %zu,\n  \"decoded_program_bytes\": %zu,\n"
+        "  \"iram_capacity_bytes\": 32768,\n  \"dram_capacity_bytes\": 16384,\n"
+        "  \"padding_word\": \"0x00000013\",\n  \"input_sum32\": \"0x%08" PRIX32 "\",\n"
+        "  \"initialization_parameters\": \"%s\",\n  \"user_load_required\": false,\n"
+        "  \"action\": \"Rebuild and program the FPGA bitstream; no manual RAM IP regeneration and no program BIN User Load.\"\n}\n",
+        esource, ehex, image->word_count, image->word_count * 4,
+        image->sum32, eparams);
+    return s;
+}
+
+/* Changing an include alone is not reliably noticed by the PDS GUI. Update a
+ * normal, listed RTL source too, without touching its functional RAM logic. */
+static int prepare_bram_wrapper(const char *initdir, const char *params,
+                                char *path, size_t path_cap, char **updated) {
+    if (snprintf(path, path_cap, "%s/../imem.v", initdir) >= (int)path_cap) return -1;
+    char *old = NULL;
+    if (read_file(path, &old, NULL) != 0) {
+        if (errno == ENOENT) return 0; /* Isolated test/generation directory. */
+        fprintf(stderr, "soc_config: cannot read imem wrapper %s\n", path); return -1;
+    }
+    const char *marker = "// SOC_BRAM_IMAGE_FINGERPRINT:";
+    char *begin = strstr(old, marker);
+    char *line_start = begin;
+    if (begin) while (line_start > old && line_start[-1] != '\n') --line_start;
+    bool standalone = begin != NULL;
+    if (begin) for (char *p = line_start; p < begin; ++p)
+        if (*p != ' ' && *p != '\t') standalone = false;
+    if (!standalone || strstr(begin + 1, marker)) {
+        fprintf(stderr, "soc_config: imem wrapper needs exactly one image fingerprint marker\n");
+        free(old); return -1;
+    }
+    char *end = strchr(begin, '\n');
+    if (!end) end = old + strlen(old);
+    uint64_t hash = UINT64_C(14695981039346656037);
+    for (const unsigned char *p = (const unsigned char *)params; *p; ++p)
+        hash = (hash ^ *p) * UINT64_C(1099511628211);
+    char line[96];
+    int n = snprintf(line, sizeof(line), "%s %016" PRIX64, marker, hash);
+    size_t head = (size_t)(begin - old), tail = strlen(end);
+    *updated = malloc(head + (size_t)n + tail + 1);
+    if (!*updated) { free(old); return -1; }
+    memcpy(*updated, old, head);
+    memcpy(*updated + head, line, (size_t)n);
+    memcpy(*updated + head + (size_t)n, end, tail + 1);
+    free(old);
+    return 0;
+}
+
+static bool updates_overwrite_input(const FileUpdate *files, size_t count, const char *input) {
+    struct stat input_st, output_st;
+    if (stat(input, &input_st) != 0) return true;
+    for (size_t i = 0; i < count; ++i) {
+        if (!strcmp(input, files[i].path) ||
+            (stat(files[i].path, &output_st) == 0 && input_st.st_dev == output_st.st_dev &&
+             input_st.st_ino == output_st.st_ino)) {
+            fprintf(stderr, "soc_config: output must not overwrite input image %s\n", input);
+            return true;
+        }
+    }
+    return false;
+}
+
 static int validate_bin(Config *c, Definitions *d, uint64_t *image, uint64_t *bin_size) {
     uint64_t length = c->image_bytes;
     if (c->firmware[0]) {
@@ -953,7 +1035,7 @@ static char *render_clock_report(Definitions *d) {
 }
 
 static int command_apply(const char *source, const char *config_path, const char *outdir,
-                         const char *fdc, const char *bspdir) {
+                         const char *fdc, const char *bspdir, const char *bramdir) {
     Config c = {0}; if (parse_config(config_path, &c) != 0) return 2;
     Definitions defs; char *source_text = NULL;
     if (load_defs(source, &defs, &source_text) != 0) { free(source_text); return 2; }
@@ -989,42 +1071,62 @@ static int command_apply(const char *source, const char *config_path, const char
         &find_def(&defs, "SOC_UART_TX_FPIOA")->value };
     *profile_values[0] = bram; *profile_values[1] = !bram; *profile_values[2] = !bram;
     *profile_values[3] = !bram; *profile_values[4] = !bram;
-    *profile_values[5] = c.preprocess; *profile_values[6] = c.flash_base;
+    *profile_values[5] = c.preprocess;
+    /* The hidden Flash fields are irrelevant in BRAM mode. Keep the start
+     * address in the source so switching back to DDR does not erase it. */
+    if (!bram) *profile_values[6] = c.flash_base;
     *profile_values[7] = c.uart_remote ? 31 : 0;
     if (bram && c.preprocess) { fprintf(stderr, "soc_config: BRAM profile requires preprocessing disabled\n"); free(source_text); return 2; }
-    uint64_t image, bin_size;
-    if (validate_bin(&c, &defs, &image, &bin_size) != 0) { free(source_text); return 2; }
+    uint64_t image = 0, bin_size = 0;
+    BramInitImage bram_image = {0};
+    if (bram) {
+        if (!c.firmware_hex[0]) {
+            fprintf(stderr, "soc_config: BRAM now uses bitstream initialization; select Firmware HEX/DAT path (raw BIN is not accepted)\n");
+            free(source_text); return 2;
+        }
+        find_def(&defs, "SOC_BOOT_IMAGE_BYTES")->value = 0;
+        if (!validate_defs(&defs) || bram_init_prepare(c.firmware_hex, &bram_image) != 0) {
+            free(source_text); return 2;
+        }
+    } else if (validate_bin(&c, &defs, &image, &bin_size) != 0) { free(source_text); return 2; }
     char *rewritten = rewrite_source_text(source_text, &defs); free(source_text);
-    if (!rewritten) { fprintf(stderr, "soc_config: unable to prepare atomic soc_addr_map.vh update\n"); return 2; }
+    if (!rewritten) { fprintf(stderr, "soc_config: unable to prepare atomic soc_addr_map.vh update\n"); bram_init_free(&bram_image); return 2; }
     Definitions checkdefs;
     if (parse_definitions_text(rewritten, &checkdefs) != 0 || !validate_defs(&checkdefs)) {
-        fprintf(stderr, "soc_config: proposed source update failed validation\n"); free(rewritten); return 2;
+        fprintf(stderr, "soc_config: proposed source update failed validation\n"); free(rewritten); bram_init_free(&bram_image); return 2;
     }
     char *fdc_text = NULL, *new_fdc = NULL;
     if (fdc && (read_file(fdc, &fdc_text, NULL) != 0 || !(new_fdc = render_fdc(fdc_text, c.cpu_hz, bram)))) {
         fprintf(stderr, "soc_config: cannot prepare FDC update: %s\n", fdc);
-        free(fdc_text); free(rewritten); return 2;
+        free(fdc_text); free(rewritten); bram_init_free(&bram_image); return 2;
     }
     free(fdc_text);
-    if (mkdir_p(outdir) != 0) { fprintf(stderr, "soc_config: cannot create output directory %s: %s\n", outdir, strerror(errno)); free(rewritten); free(new_fdc); return 2; }
+    if (mkdir_p(outdir) != 0 || (bram && mkdir_p(bramdir) != 0)) { fprintf(stderr, "soc_config: cannot create output/init directories: %s\n", strerror(errno)); free(rewritten); free(new_fdc); bram_init_free(&bram_image); return 2; }
     char *h = render_header(&checkdefs), *a = render_asm(&checkdefs);
-    if (!h || !a) { free(h); free(a); free(rewritten); free(new_fdc); return 2; }
+    if (!h || !a) { free(h); free(a); free(rewritten); free(new_fdc); bram_init_free(&bram_image); return 2; }
     char hpath[PATH_CAP], apath[PATH_CAP], mpath[PATH_CAP], padded[PATH_CAP];
     char bpath[PATH_CAP], bapath[PATH_CAP], clockpath[PATH_CAP];
+    char ipath[PATH_CAP], wpath[PATH_CAP], bram_manifest_path[PATH_CAP];
     snprintf(hpath, sizeof(hpath), "%s/soc_defs.h", outdir);
     snprintf(apath, sizeof(apath), "%s/soc_defs_asm.inc", outdir);
     snprintf(mpath, sizeof(mpath), "%s/flash_manifest.json", outdir);
     snprintf(clockpath, sizeof(clockpath), "%s/clock_config.json", outdir);
+    if (snprintf(ipath, sizeof(ipath), "%s/imem_init_param.v", bramdir) >= (int)sizeof(ipath) ||
+        snprintf(wpath, sizeof(wpath), "%s/imem_init_words.hex", bramdir) >= (int)sizeof(wpath) ||
+        snprintf(bram_manifest_path, sizeof(bram_manifest_path), "%s/bram_init_manifest.json", outdir) >= (int)sizeof(bram_manifest_path)) {
+        fprintf(stderr, "soc_config: initialization output path too long\n");
+        free(h); free(a); free(rewritten); free(new_fdc); bram_init_free(&bram_image); return 2;
+    }
     if (bspdir && mkdir_p(bspdir) != 0) {
         fprintf(stderr, "soc_config: cannot create BSP header directory %s\n", bspdir);
-        free(h); free(a); free(rewritten); free(new_fdc); return 2;
+        free(h); free(a); free(rewritten); free(new_fdc); bram_init_free(&bram_image); return 2;
     }
     if (bspdir) {
         snprintf(bpath, sizeof(bpath), "%s/soc_defs.h", bspdir);
         snprintf(bapath, sizeof(bapath), "%s/soc_defs_asm.inc", bspdir);
     }
     const char *artifact = NULL, *padded_for_json = NULL;
-    if (c.firmware[0]) {
+    if (!bram && c.firmware[0]) {
         const char *base = strrchr(c.firmware, '/'); base = base ? base + 1 : c.firmware;
         if (image > bin_size) {
             const char *dot = strrchr(base, '.');
@@ -1036,41 +1138,87 @@ static int command_apply(const char *source, const char *config_path, const char
         }
     }
     char *manifest = NULL;
-    manifest = make_manifest(source, c.firmware[0] ? c.firmware : NULL,
-                             c.profile, c.flash_base, image, bin_size, padded_for_json);
-    if (!manifest) { free(h); free(a); free(rewritten); free(new_fdc); return 2; }
+    manifest = bram ? strdup("{\n  \"format\": \"soc-flash-disabled-v1\",\n  \"profile\": \"bram\",\n  \"input_bin\": null,\n  \"user_load_required\": false,\n  \"action\": \"Use bram_init_manifest.json and rebuild the bitstream; Flash loader is disabled.\"\n}\n") :
+        make_manifest(source, c.firmware[0] ? c.firmware : NULL,
+                      c.profile, c.flash_base, image, bin_size, padded_for_json);
+    char *bram_manifest = bram ? make_bram_manifest(source, c.firmware_hex, ipath, &bram_image) : NULL;
+    if (!manifest || (bram && !bram_manifest)) { free(h); free(a); free(rewritten); free(new_fdc); free(manifest); free(bram_manifest); bram_init_free(&bram_image); return 2; }
     /* Stage artifacts and validate all inputs before replacing the authority. */
-    if (artifact && copy_or_pad(c.firmware, artifact, image) != 0) { fprintf(stderr, "soc_config: cannot stage BIN artifact: %s\n", strerror(errno)); free(h); free(a); free(rewritten); free(manifest); free(new_fdc); return 2; }
+    if (artifact && copy_or_pad(c.firmware, artifact, image) != 0) { fprintf(stderr, "soc_config: cannot stage BIN artifact: %s\n", strerror(errno)); free(h); free(a); free(rewritten); free(manifest); free(new_fdc); free(bram_manifest); bram_init_free(&bram_image); return 2; }
     char *report = render_clock_report(&checkdefs);
-    if (!report) { free(h); free(a); free(rewritten); free(manifest); free(new_fdc); return 2; }
-    FileUpdate files[8] = {
+    if (!report) { free(h); free(a); free(rewritten); free(manifest); free(new_fdc); free(bram_manifest); bram_init_free(&bram_image); return 2; }
+    char wrapper_path[PATH_CAP], *wrapper = NULL;
+    if (bram && prepare_bram_wrapper(bramdir, bram_image.params, wrapper_path, sizeof(wrapper_path), &wrapper) != 0) {
+        free(h); free(a); free(manifest); free(rewritten); free(new_fdc); free(report);
+        free(bram_manifest); bram_init_free(&bram_image); return 2;
+    }
+    FileUpdate files[12] = {
         {.path=hpath, .data=h}, {.path=apath, .data=a},
         {.path=mpath, .data=manifest}, {.path=clockpath, .data=report}
     };
     size_t count = 4;
+    if (bram) {
+        files[count++] = (FileUpdate){.path=ipath, .data=bram_image.params};
+        files[count++] = (FileUpdate){.path=wpath, .data=bram_image.words_hex};
+        files[count++] = (FileUpdate){.path=bram_manifest_path, .data=bram_manifest};
+        if (wrapper) files[count++] = (FileUpdate){.path=wrapper_path, .data=wrapper};
+    }
     if (bspdir) {
         files[count++] = (FileUpdate){.path=bpath, .data=h};
         files[count++] = (FileUpdate){.path=bapath, .data=a};
     }
     if (fdc) files[count++] = (FileUpdate){.path=fdc, .data=new_fdc};
     files[count++] = (FileUpdate){.path=source, .data=rewritten};
-    int bad = commit_updates(files, count);
+    int bad = bram && updates_overwrite_input(files, count, c.firmware_hex) ? -1 : commit_updates(files, count);
     free(h); free(a); free(manifest); free(rewritten); free(new_fdc); free(report);
+    free(wrapper); free(bram_manifest); bram_init_free(&bram_image);
     if (bad) { fprintf(stderr, "soc_config: could not commit configuration outputs\n"); return 2; }
     printf("Updated %s\nGenerated %s and %s\n", source, hpath, apath);
     if (fdc) printf("Synchronized CPU/JTAG paths, clock ratio and DDR IO standards in %s (profile=%s; board pins/voltages unchanged)\n", fdc, c.profile);
     if (bspdir) printf("Synchronized BSP headers in %s\n", bspdir);
-    printf("CPU=%" PRIu64 " Hz; configure PLL manually in PDS, rebuild firmware/bitstream and check timing.\n", c.cpu_hz);
-    if (c.firmware[0]) printf("Generated %s (image %" PRIu64 " bytes at 0x%06" PRIX64 ")\n", mpath, image, c.flash_base);
+    printf("CPU=%" PRIu64 " Hz; keep actual PLL and firmware clock configuration consistent; rebuild bitstream and check timing.\n", c.cpu_hz);
+    if (bram) printf("Initialized vendor imem from %s; generated %s. Rebuild bitstream; no IP regeneration or program User Load.\n", c.firmware_hex, ipath);
+    else if (c.firmware[0]) printf("Generated %s (image %" PRIu64 " bytes at 0x%06" PRIX64 ")\n", mpath, image, c.flash_base);
     return 0;
+}
+
+static int command_bram_init(const char *hex, const char *outdir) {
+    BramInitImage image = {0};
+    if (bram_init_prepare(hex, &image) != 0) return 2;
+    if (mkdir_p(outdir) != 0) { perror(outdir); bram_init_free(&image); return 2; }
+    char params[PATH_CAP], words[PATH_CAP];
+    if (snprintf(params, sizeof(params), "%s/imem_init_param.v", outdir) >= (int)sizeof(params) ||
+        snprintf(words, sizeof(words), "%s/imem_init_words.hex", outdir) >= (int)sizeof(words)) {
+        fprintf(stderr, "soc_config: initialization output path too long\n"); bram_init_free(&image); return 2;
+    }
+    struct stat input_st, output_st;
+    if (stat(hex, &input_st) != 0 || !strcmp(hex, params) || !strcmp(hex, words) ||
+        (stat(params, &output_st) == 0 && input_st.st_dev == output_st.st_dev && input_st.st_ino == output_st.st_ino) ||
+        (stat(words, &output_st) == 0 && input_st.st_dev == output_st.st_dev && input_st.st_ino == output_st.st_ino)) {
+        fprintf(stderr, "soc_config: initialization outputs must not overwrite the selected HEX/DAT file\n");
+        bram_init_free(&image); return 2;
+    }
+    char wrapper_path[PATH_CAP], *wrapper = NULL;
+    if (prepare_bram_wrapper(outdir, image.params, wrapper_path, sizeof(wrapper_path), &wrapper) != 0) {
+        bram_init_free(&image); return 2;
+    }
+    FileUpdate files[3] = {{.path=params, .data=image.params}, {.path=words, .data=image.words_hex}};
+    size_t count = 2;
+    if (wrapper) files[count++] = (FileUpdate){.path=wrapper_path, .data=wrapper};
+    int rc = updates_overwrite_input(files, count, hex) ? -1 : commit_updates(files, count);
+    if (!rc) printf("BRAM_INIT: %zu words (%zu program bytes), sum32=0x%08" PRIX32 "; generated %s\n",
+                    image.word_count, image.word_count * 4, image.sum32, params);
+    free(wrapper); bram_init_free(&image);
+    return rc ? 2 : 0;
 }
 
 static void usage(FILE *f) {
     fprintf(f, "Usage:\n"
         "  soc_config seed --source PATH --config PATH\n"
-        "  soc_config apply --source PATH --config PATH --output-dir PATH [--fdc PATH] [--bsp-output-dir PATH]\n"
+        "  soc_config apply --source PATH --config PATH --output-dir PATH [--fdc PATH] [--bsp-output-dir PATH] [--bram-init-dir PATH]\n"
         "  soc_config check --source PATH [--bin PATH] [--header PATH] [--asm PATH] [--fdc PATH]\n"
-        "  soc_config generate-header --source PATH --output-dir PATH\n");
+        "  soc_config generate-header --source PATH --output-dir PATH\n"
+        "  soc_config bram-init --source PATH --hex PATH --output-dir PATH\n");
 }
 
 int main(int argc, char **argv) {
@@ -1078,6 +1226,11 @@ int main(int argc, char **argv) {
     const char *command = argv[1];
     char *source = find_arg(argc, argv, "--source");
     if (!source) { usage(stderr); return 2; }
+    if (!strcmp(command, "bram-init")) {
+        char *hex = find_arg(argc, argv, "--hex"), *outdir = find_arg(argc, argv, "--output-dir");
+        if (!hex || !*hex || !outdir) { usage(stderr); return 2; }
+        return command_bram_init(hex, outdir);
+    }
     if (!strcmp(command, "seed")) {
         char *config = find_arg(argc, argv, "--config"); if (!config) { usage(stderr); return 2; }
         return seed_config(source, config);
@@ -1085,7 +1238,9 @@ int main(int argc, char **argv) {
     if (!strcmp(command, "apply")) {
         char *config = find_arg(argc, argv, "--config"), *outdir = find_arg(argc, argv, "--output-dir");
         if (!config || !outdir) { usage(stderr); return 2; }
-        return command_apply(source, config, outdir, find_arg(argc, argv, "--fdc"), find_arg(argc, argv, "--bsp-output-dir"));
+        char *bramdir = find_arg(argc, argv, "--bram-init-dir");
+        return command_apply(source, config, outdir, find_arg(argc, argv, "--fdc"),
+                             find_arg(argc, argv, "--bsp-output-dir"), bramdir ? bramdir : "IP/imem/rtl");
     }
     if (!strcmp(command, "generate-header")) {
         char *outdir = find_arg(argc, argv, "--output-dir"); if (!outdir) { usage(stderr); return 2; }

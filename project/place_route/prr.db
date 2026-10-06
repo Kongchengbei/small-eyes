@@ -386,30 +386,6 @@
             <data>NA</data>
         </row>
         <row>
-            <data>flash_miso</data>
-            <data>input</data>
-            <data>R15</data>
-            <data>BANKL5</data>
-            <data>3.3</data>
-            <data>LVCMOS33</data>
-            <data>NA</data>
-            <data>NONE</data>
-            <data>NA</data>
-            <data>NA</data>
-            <data>NA</data>
-            <data>NA</data>
-            <data>NA</data>
-            <data>NA</data>
-            <data>NA</data>
-            <data>NA</data>
-            <data>NA</data>
-            <data>NA</data>
-            <data>ON</data>
-            <data>NA</data>
-            <data>YES</data>
-            <data>NA</data>
-        </row>
-        <row>
             <data>flash_mosi</data>
             <data>output</data>
             <data>R14</data>
@@ -4094,9 +4070,9 @@
             <data>IOBS_0_900</data>
             <data>BANKL5</data>
             <data>DIFFIO_L5_G0_00N_MISO_D1_DI</data>
-            <data>flash_miso</data>
-            <data>input</data>
-            <data>YES</data>
+            <data></data>
+            <data></data>
+            <data></data>
         </row>
         <row>
             <data>N14</data>
@@ -6609,43 +6585,43 @@
             <data>6</data>
             <row>
                 <data>  FF</data>
-                <data>3403</data>
+                <data>3357</data>
                 <data>240600</data>
                 <data>2</data>
             </row>
             <row>
                 <data>  LUT</data>
-                <data>3617</data>
+                <data>3556</data>
                 <data>120300</data>
-                <data>4</data>
+                <data>3</data>
             </row>
             <row>
                 <data>  LUT-FF pairs</data>
-                <data>986</data>
+                <data>912</data>
                 <data>120300</data>
                 <data>1</data>
             </row>
         </row>
         <row>
             <data>Use of CLMS</data>
-            <data>525</data>
+            <data>426</data>
             <data>9875</data>
-            <data>6</data>
+            <data>5</data>
             <row>
                 <data>  FF</data>
-                <data>1137</data>
+                <data>974</data>
                 <data>79000</data>
                 <data>2</data>
             </row>
             <row>
                 <data>  LUT</data>
-                <data>1251</data>
+                <data>1018</data>
                 <data>39500</data>
-                <data>4</data>
+                <data>3</data>
             </row>
             <row>
                 <data>  LUT-FF pairs</data>
-                <data>330</data>
+                <data>287</data>
                 <data>39500</data>
                 <data>1</data>
             </row>
@@ -6676,9 +6652,9 @@
         </row>
         <row>
             <data>Use of DRM</data>
-            <data>20</data>
+            <data>12</data>
             <data>415</data>
-            <data>5</data>
+            <data>3</data>
         </row>
         <row>
             <data>Use of GCLK_INBUF_SYN</data>
@@ -6700,15 +6676,15 @@
         </row>
         <row>
             <data>Use of HARD0</data>
-            <data>452</data>
+            <data>422</data>
             <data>25050</data>
             <data>2</data>
         </row>
         <row>
             <data>Use of HCKB</data>
-            <data>5</data>
+            <data>3</data>
             <data>120</data>
-            <data>5</data>
+            <data>3</data>
             <row>
                 <data> HCKB dataused</data>
                 <data>0</data>
@@ -6730,7 +6706,7 @@
         </row>
         <row>
             <data>Use of IO</data>
-            <data>122</data>
+            <data>121</data>
             <data>400</data>
             <data>31</data>
             <row>
@@ -6741,7 +6717,7 @@
             </row>
             <row>
                 <data>  IOBS</data>
-                <data>56</data>
+                <data>55</data>
                 <data>208</data>
                 <data>27</data>
             </row>
@@ -6760,7 +6736,7 @@
         </row>
         <row>
             <data>Use of IOLHR</data>
-            <data>122</data>
+            <data>121</data>
             <data>500</data>
             <data>25</data>
         </row>
@@ -6945,11 +6921,11 @@
         </column_headers>
         <row>
             <data>Hfpga_soc</data>
-            <data>4377</data>
-            <data>4540</data>
+            <data>4203</data>
+            <data>4331</data>
             <data>0</data>
             <data>4</data>
-            <data>20</data>
+            <data>12</data>
             <data>0</data>
             <data>0</data>
             <data>1</data>
@@ -6959,7 +6935,7 @@
             <data>1</data>
             <data>0</data>
             <data>0</data>
-            <data>122</data>
+            <data>121</data>
             <data>0</data>
             <data>0</data>
             <data>0</data>
@@ -6971,11 +6947,11 @@
             <data>2</data>
             <row>
                 <data>g_bram_profile.u_bram_profile</data>
-                <data>4377</data>
-                <data>4540</data>
+                <data>4203</data>
+                <data>4331</data>
                 <data>0</data>
                 <data>4</data>
-                <data>20</data>
+                <data>12</data>
                 <data>0</data>
                 <data>0</data>
                 <data>0</data>
@@ -6997,11 +6973,11 @@
                 <data>0</data>
                 <row>
                     <data>u_cpu</data>
-                    <data>3449</data>
-                    <data>3361</data>
+                    <data>3466</data>
+                    <data>3356</data>
                     <data>0</data>
                     <data>4</data>
-                    <data>20</data>
+                    <data>12</data>
                     <data>0</data>
                     <data>0</data>
                     <data>0</data>
@@ -7022,15 +6998,12 @@
                     <data>0</data>
                     <data>0</data>
                     <row>
-                        <data>gen_cpu_bram.u_bram_mem</data>
-                        <data>93</data>
-                        <data>17</data>
+                        <data>gen_cpu_bram.gen_vendor_bram.u_bram_mem</data>
+                        <data>21</data>
+                        <data>12</data>
                         <data>0</data>
                         <data>0</data>
-                        <data>20</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
+                        <data>12</data>
                         <data>0</data>
                         <data>0</data>
                         <data>0</data>
@@ -7047,10 +7020,121 @@
                         <data>0</data>
                         <data>0</data>
                         <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <row>
+                            <data>u_dmem</data>
+                            <data>2</data>
+                            <data>3</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>4</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <row>
+                                <data>U_ipm2l_dpram_dmem</data>
+                                <data>2</data>
+                                <data>3</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>4</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                            </row>
+                        </row>
+                        <row>
+                            <data>u_imem</data>
+                            <data>4</data>
+                            <data>6</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>8</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <data>0</data>
+                            <row>
+                                <data>U_ipm2l_dpram_imem</data>
+                                <data>4</data>
+                                <data>6</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>8</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                                <data>0</data>
+                            </row>
+                        </row>
                     </row>
                     <row>
                         <data>u_axi_bridge</data>
-                        <data>84</data>
+                        <data>70</data>
                         <data>108</data>
                         <data>0</data>
                         <data>0</data>
@@ -7077,7 +7161,7 @@
                     </row>
                     <row>
                         <data>u_btb</data>
-                        <data>375</data>
+                        <data>361</data>
                         <data>992</data>
                         <data>0</data>
                         <data>0</data>
@@ -7104,7 +7188,7 @@
                     </row>
                     <row>
                         <data>u_exu</data>
-                        <data>1509</data>
+                        <data>1543</data>
                         <data>807</data>
                         <data>0</data>
                         <data>4</data>
@@ -7130,7 +7214,7 @@
                         <data>0</data>
                         <row>
                             <data>u_alu</data>
-                            <data>315</data>
+                            <data>316</data>
                             <data>0</data>
                             <data>0</data>
                             <data>0</data>
@@ -7157,7 +7241,7 @@
                         </row>
                         <row>
                             <data>u_csr</data>
-                            <data>543</data>
+                            <data>552</data>
                             <data>357</data>
                             <data>0</data>
                             <data>0</data>
@@ -7184,7 +7268,7 @@
                         </row>
                         <row>
                             <data>u_div</data>
-                            <data>228</data>
+                            <data>230</data>
                             <data>200</data>
                             <data>0</data>
                             <data>0</data>
@@ -7211,7 +7295,7 @@
                         </row>
                         <row>
                             <data>u_mul</data>
-                            <data>86</data>
+                            <data>85</data>
                             <data>66</data>
                             <data>0</data>
                             <data>4</data>
@@ -7239,7 +7323,7 @@
                     </row>
                     <row>
                         <data>u_idu</data>
-                        <data>875</data>
+                        <data>876</data>
                         <data>1089</data>
                         <data>0</data>
                         <data>0</data>
@@ -7293,7 +7377,7 @@
                     </row>
                     <row>
                         <data>u_ifu</data>
-                        <data>373</data>
+                        <data>404</data>
                         <data>260</data>
                         <data>0</data>
                         <data>0</data>
@@ -7374,62 +7458,8 @@
                     </row>
                 </row>
                 <row>
-                    <data>u_flash_bram_boot</data>
-                    <data>190</data>
-                    <data>204</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <row>
-                        <data>u_flash_reader</data>
-                        <data>119</data>
-                        <data>104</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                        <data>0</data>
-                    </row>
-                </row>
-                <row>
                     <data>u_fpioa</data>
-                    <data>183</data>
+                    <data>181</data>
                     <data>256</data>
                     <data>0</data>
                     <data>0</data>
@@ -7456,7 +7486,7 @@
                 </row>
                 <row>
                     <data>u_jtag</data>
-                    <data>279</data>
+                    <data>281</data>
                     <data>510</data>
                     <data>0</data>
                     <data>0</data>
@@ -7482,7 +7512,7 @@
                     <data>0</data>
                     <row>
                         <data>u_jtag_dm</data>
-                        <data>165</data>
+                        <data>166</data>
                         <data>277</data>
                         <data>0</data>
                         <data>0</data>
@@ -7563,7 +7593,7 @@
                     </row>
                     <row>
                         <data>u_jtag_driver</data>
-                        <data>114</data>
+                        <data>115</data>
                         <data>233</data>
                         <data>0</data>
                         <data>0</data>
@@ -7672,7 +7702,7 @@
                 </row>
                 <row>
                     <data>u_mem</data>
-                    <data>176</data>
+                    <data>172</data>
                     <data>149</data>
                     <data>0</data>
                     <data>0</data>
@@ -7726,7 +7756,7 @@
                 </row>
                 <row>
                     <data>u_uart0_tx</data>
-                    <data>40</data>
+                    <data>42</data>
                     <data>50</data>
                     <data>0</data>
                     <data>0</data>
@@ -7765,10 +7795,10 @@
             <data>RAM(GB)</data>
         </column_headers>
         <row>
-            <data>0h:0m:18s</data>
+            <data>0h:0m:17s</data>
             <data>0h:0m:22s</data>
-            <data>0h:1m:39s</data>
-            <data>3,047</data>
+            <data>0h:1m:34s</data>
+            <data>3,052</data>
             <data>WINDOWS 10 x86_64</data>
             <data>13th Gen Intel(R) Core(TM) i7-13650HX</data>
             <data>24</data>
@@ -8182,7 +8212,7 @@
             <data message="6">ConstraintEditor-2001: [F:/SocFpga/project/device_map/Hfpga_soc.pcf(line number: 143)] Object 'clk_p' is dangling, which has no connection. it will be ignored.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/project/device_map/Hfpga_soc.pcf(line number: 144)] | Port flash_miso has been placed at location R15, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2001: [F:/SocFpga/project/device_map/Hfpga_soc.pcf(line number: 144)] Object 'flash_miso' is dangling, which has no connection. it will be ignored.</data>
         </row>
         <row>
             <data message="4">Column Clock Check open.</data>
@@ -8191,16 +8221,16 @@
             <data message="6">Place-2028: GLOBAL_CLOCK: the driver g_bram_profile.u_bram_profile/u_jtag_tck_buf/opit_1 fixed at IOLHR_16_798 is unreasonable. Sub-optimal placement for a clock source and a clock buffer.</data>
         </row>
         <row>
-            <data message="4">GP end with result: density(0.003352)</data>
+            <data message="4">GP end with result: density(0.002535)</data>
         </row>
         <row>
             <data message="4">Process macros using &quot;Global&quot;.</data>
         </row>
         <row>
-            <data message="4">GP end with result: density(0.001177)</data>
+            <data message="4">GP end with result: density(0.001006)</data>
         </row>
         <row>
-            <data message="4">LUT6D pack result: There are 1926 LUT6 in collection, pack success:117</data>
+            <data message="4">LUT6D pack result: There are 1808 LUT6 in collection, pack success:103</data>
         </row>
         <row>
             <data message="4">Design net g_bram_profile.u_bram_profile/JTAG_TCK_in is routed by general path.</data>
@@ -8209,16 +8239,10 @@
             <data message="6">Route-2036: The clock path from g_bram_profile.u_bram_profile/u_jtag_tck_buf/opit_1:DI_TO_CLK to clkbufg_1/gopclkbufg:CLK is routed by SRB.</data>
         </row>
         <row>
-            <data message="4">Design net g_bram_profile.u_bram_profile/flash_spi_sck is routed by general path.</data>
-        </row>
-        <row>
-            <data message="6">Route-2036: The clock path from g_bram_profile.u_bram_profile/u_flash_bram_boot/u_flash_reader/spi_sck/opit_0_inv_L6QL5Q:L5Q to GRS_INST/grs_ccs:UMCLK is routed by SRB.</data>
-        </row>
-        <row>
             <data message="4">Design net ntclkbufg_1 is routed by general path.</data>
         </row>
         <row>
-            <data message="6">Route-2036: The clock path from clkbufg_1/gopclkbufg:CLKOUT to g_bram_profile.u_bram_profile/u_jtag/u_jtag_driver/dm_resp_data[39]/opit_0_inv:CLK is routed by SRB.</data>
+            <data message="6">Route-2036: The clock path from clkbufg_1/gopclkbufg:CLKOUT to g_bram_profile.u_bram_profile/u_jtag/u_jtag_driver/dm_resp_data[23]/opit_0_inv:CLK is routed by SRB.</data>
         </row>
     </table>
     <general_container id="pnr_settings">
@@ -8492,7 +8516,7 @@
                     <data>clkbufg_0/gopclkbufg</data>
                     <data>USCM_383_930</data>
                     <data>ntclkbufg_0</data>
-                    <data>4077</data>
+                    <data>3860</data>
                     <data>0</data>
                     <data>g_bram_profile.u_bram_profile/u_pll/u_gpll/gpll_inst</data>
                     <data>CLKOUT0</data>
@@ -8539,10 +8563,10 @@
                     <data>g_bram_profile.u_bram_profile/u_pll/u_gpll/gpll_inst</data>
                     <data>GPLL_7_1381</data>
                     <data>CLKIN2</data>
-                    <data>_GND429</data>
+                    <data>_GND307</data>
                     <data> - </data>
                     <data> - </data>
-                    <data>GND_429</data>
+                    <data>GND_307</data>
                     <data>Z</data>
                     <data>CLMA_21_1404</data>
                 </row>
@@ -8551,7 +8575,7 @@
                     <data>GPLL_7_1381</data>
                     <data>CLKOUT0</data>
                     <data>g_bram_profile.u_bram_profile/cpu_clk</data>
-                    <data>4077</data>
+                    <data>3860</data>
                     <data>0</data>
                     <data> ... </data>
                     <data> ... </data>

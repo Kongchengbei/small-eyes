@@ -7,15 +7,17 @@
 | 配置 | `SOC_CPU_MEM_BRAM` | 硬件组成 | 启动目标 |
 | --- | ---: | --- | --- |
 | Full DDR（默认） | 0 | ICache、DCache、DDR3、Camera；预处理默认关闭，可在 full 配置中单独开启 | 等待 DDR 初始化后从 Flash 搬到 DDR `0x80000000` |
-| CoreMark BRAM | 1 | ICache、DCache、DDR3、Camera、预处理均关闭；保留 PLL、CPU、UART、FPIOA、CSR/timer、JTAG/debug | Flash 镜像进入本地 IRAM/DRAM，校验完成后从 IRAM `0x80000000` 开始执行 |
+| CoreMark BRAM | 1 | ICache、DCache、DDR3、Camera、预处理及运行期 Flash 搬运均关闭；保留 PLL、CPU、UART、FPIOA、CSR/timer、JTAG/debug | 用户 DAT/HEX 生成 IMEM IP 初始化参数，随位流进入 BRAM，从 `0x80000000` 执行 |
 
-BRAM 地址布局固定为 IRAM `0x80000000`、32 KiB，紧接着 DRAM `0x80008000`、16 KiB。`bsp/bsp_app/link.lds` 已按该地址规划：代码与初始化数据的 Flash 装载映像放在 IRAM，运行期 `.data`、`.bss` 和栈放在 DRAM，栈固定 4 KiB。镜像装载器总容量为 48 KiB。除了总容量，还要确认链接产生的代码及 `.data` 初值装载范围能放进 IRAM；BIN 大小以本次构建结果为准，不使用历史数值。
+BRAM 地址布局固定为 IRAM `0x80000000`、32 KiB，紧接着 DRAM `0x80008000`、16 KiB。保留原 `bsp/bsp_app/link.lds`：代码和 `.data` 初值装载映像放在 IRAM，程序启动时复制 `.data` 到 DRAM，并清零 `.bss`；栈仍在 DRAM，固定 4 KiB。本次没有修改 CoreMark 源码、迭代次数、编译选项或链接脚本。DAT 必须由适合这套地址布局的程序转换而来，最多 8192 个 32 位字。
 
 Full DDR profile 中使用 DDR 的逻辑地址范围，不会实例化这两块本地 BRAM。若后续 NPU 实现需要空间，可在评估地址图、仲裁与带宽后重新规划这些逻辑资源；本次没有增加 NPU 计算单元或缓冲区。
 
 默认选择 Full DDR：`SOC_CPU_MEM_BRAM=0`。`soc/soc_addr_map.vh` 是 SoC memory/peripheral base、已实现的 MMIO offset/control bit 和 profile 配置值的唯一维护来源。菜单保存时会在其中应用 profile、CPU 频率、Flash 起始地址、映像长度和 UART TX FPIOA 引脚。C/汇编配置头文件以及 manifest 默认生成到 `build/menuconfig/`，同时同步 BSP 生成头文件到 `bsp/include/`。
 
-BRAM CPU 的取指接口按同步 IRAM 时序工作：请求地址被接受后，指令数据与 response-valid 随时钟返回。CPU 复位期间，Flash 装载器取得 RAM 编程端口；写在 `valid && ready` 时完成，读回请求在一个时钟后伴随 `ready` 和对应数据应答。校验完成、CPU reset 释放后，该端口转由 LSU 使用。IRAM 的另一端口供取指，DRAM 为单端口 RAM。BRAM 地址内的 LSU 请求由本地 RAM 处理，范围外的 MMIO 请求走现有 AXI backend；load 会等待数据 response-valid，store 等待 ready，保证同步读延迟不会提前放行流水线。为此，Htop 增加 profile 生成选择和 BRAM 端口连接，Hifu 增加同步取指队列与预测处理，Hexu 以 MEM 接受状态门控 EX 请求，Hmemu 在 WB 停顿时保留已返回的 load 数据。BRAM profile 会移除 ICache、DCache、DDR bridge/controller 和 Camera 实例。
+生产 BRAM 配置通过 `cpu/cpu_bram_ip_mem.v` 例化恢复的 `IP/imem` 和 `IP/dmem` 厂商双端口 RAM。IMEM 的 A 口用于取指，B 口用于 LSU 读取代码／初始数据；DMEM 的 B 口用于运行期读写，A 口闲置。同步 RAM 的读数据和 response-valid 随时钟返回，沿用当前 CPU 的等待接口；范围外的 MMIO 仍走现有 AXI backend。`Htop` 用 `BRAM_VENDOR_IP=1` 选择厂商实现，旧推断式 RAM 仅保留用于独立单元测试。两种实现不会在生产配置中同时例化。
+
+生产 BRAM 配置不例化 `flash_bram_boot`，其编程接口固定闲置，Flash 片选保持无效。程序已经存在于 RAM 的初始化参数中，PLL 锁定、复位同步和原有复位计数结束后直接释放 CPU。`core_active` 表示 CPU 已解除复位，不表示 CoreMark 已完成。UART/FPIOA 没有关闭。旧 Flash→BRAM 装载器源码保留作为独立测试，不再是 BRAM 生产启动路径。
 
 ## 环境准备
 
@@ -30,13 +32,19 @@ cd /mnt/f/SocFpga
 make menuconfig
 ```
 
-用方向键移动、Enter 进入或切换选项，选择 Full DDR 或 CoreMark BRAM，设置 Flash 起始地址、映像长度、固件 BIN（若已存在）和 UART TX FPIOA pin。首次构建时 BIN 尚不存在，可先留空，但 loader 长度应保持或输入非零的 4 字节对齐值；当前 map 的历史默认值为 32768。保存时会生成 `input_bin: null` 的无固件 manifest，避免留下旧 BIN 清单。修改完成后按 Esc 两次，在是否保存的询问中选择 Yes，保存并退出；也可以按 Tab 选中 Save，保持默认配置文件名保存后，再选择 Exit 退出。另存到其他路径的配置不会应用到工程 RTL。按 Esc 两次返回并退出时，若出现保存询问并选择 No，会丢弃本次菜单更改。只有保存到默认配置文件且通过校验的配置才会应用到 `soc/soc_addr_map.vh`。
+用方向键移动、Enter 进入或切换选项。Full DDR 显示 Firmware BIN、Flash 起始地址和 Loader image bytes；CoreMark BRAM 隐藏这些无关项，改为显示 Firmware HEX/DAT path。BRAM 必须选择有效 DAT 后才能保存应用，例如 `test/coremark_local.dat` 或 `/mnt/f/SocFpga/test/coremark_local.dat`。WSL 菜单填写 Linux 路径，不填 `F:\...`。
 
-默认配置文件是 `build/menuconfig/.config`，默认输出目录是 `build/menuconfig/`，其中包含 `soc_defs.h`、`soc_defs_asm.inc`、`flash_manifest.json`、`clock_config.json`，以及必要时的 `0xFF` padded BIN。未选择 BIN 时不会复制或生成 BIN。首次打开菜单依据当前 RTL 初始化 `.config`；旧配置首次增加 CPU 频率时也从当前 RTL 补入，不重置其他选择。环境变量 `SOC_CONFIG_SOURCE`、`SOC_CONFIG_FILE`、`SOC_CONFIG_OUTPUT`、`SOC_CONFIG_FDC`、`SOC_CONFIG_BSP_OUTPUT` 可指定输入、配置、输出、约束和 BSP 头文件目录。做隔离操作时需一起覆盖 FDC 和 BSP 输出，否则仍会同步仓库默认文件。BIN 相对路径从仓库根目录解析。
+DAT 每个词必须是 8 位十六进制数，大小写、Windows CRLF 和空白均可，最多 8192 个字；原始 BIN 不接受。不足 8192 字时，余下 IMEM 填充 `00000013`。保存自动生成 `IP/imem/rtl/imem_init_param.v`，保持厂商 RAM 的参数排列，不要求手工重新生成 IP。`imem_init_words.hex` 是核对／仿真文件，PDS 实际使用 INIT 参数。文件内容变化但路径不变时，也需要明确 Save 再退出。初始化内容变化还会更新工程已列出的 `IP/imem/imem.v` 中的指纹注释，便于 PDS 识别普通 RTL 文件已变；请仍明确执行重新编译，不仅依赖 GUI 的提示。
+
+修改完成后按 Esc 两次，在是否保存的询问中选择 Yes；或 Tab 选 Save，保持默认配置文件名后 Exit。另存到其他路径不会应用工程。Discard 不改 RTL。只有保存到默认配置且通过校验后才更新工程。
+
+默认配置是 `build/menuconfig/.config`，输出包括 `soc_defs.h`、`soc_defs_asm.inc`、`flash_manifest.json`、`clock_config.json`。BRAM 另生成 `bram_init_manifest.json`，并将 `SOC_BOOT_IMAGE_BYTES` 置 0，表示不使用运行期 Flash 装载；其 Flash manifest 明确标为禁用、无需 User Load。DDR 的 0 则仍表示自动采用 BIN 长度，最终 RTL 得到实际非零长度。
+
+环境变量 `SOC_CONFIG_SOURCE`、`SOC_CONFIG_FILE`、`SOC_CONFIG_OUTPUT`、`SOC_CONFIG_FDC`、`SOC_CONFIG_BSP_OUTPUT`、`SOC_CONFIG_BRAM_INIT_DIR` 可覆盖对应路径。隔离测试需一起覆盖 FDC、BSP 和初始化目录，避免修改仓库默认文件。BIN/DAT 相对路径从仓库根目录解析。
 
 本项目构建 Kconfig 工具时启用 `KCONFIG_NO_SYMBOL_DEPFILES`，不再生成 `include/config/soc/**/*.h` 这类空白逐项依赖标记文件；项目未使用 Kbuild 的逐项依赖机制。`.config`、`auto.conf`、`autoconf.h` 和配置依赖清单仍正常生成。已有的空白标记文件不会自动删除，也不需要手动填写。可运行 `make kconfig-test` 验证首次生成、配置变更及旧配置项移除后的输出。
 
-先保存 profile 和软件选项，再按项目原有方式构建 BSP：
+如果需要修改固件源码／软件时钟配置，仍按项目原有方式构建 BSP：
 
 ```sh
 make -C bsp/bsp_app/example/coremark clean
@@ -44,7 +52,7 @@ make -C bsp/bsp_app/example/coremark all
 wc -c bsp/bsp_app/example/coremark/coremark.bin
 ```
 
-构建完成后再次打开菜单，选择刚生成的 BIN，并将 Loader image bytes 设为 0（自动使用 BIN 精确长度），然后保存默认配置并 Exit。若固件内容或长度改变，重新选择新 BIN 并保存 manifest。任何会影响 RTL 的 profile、Flash 起始地址或装载长度变化，都需要生成与新设置匹配的位流。
+构建后，DDR 选择新 BIN 并按其长度保存；BRAM 使用你自己的转换工具得到 DAT 后选择它。仅在 DDR/BRAM 间切换，如果已有固件的链接布局、软件频率和引脚配置兼容，不要求重新编译固件。本次直接使用用户提供的 `test/coremark_local.dat`，未重新构建 CoreMark。
 
 ```sh
 make menuconfig
@@ -93,7 +101,7 @@ BRAM profile 没有 DDR PHY。保留的 `mem_ck`／`mem_ck_n` 分别是常量 0�
 
 可运行 `make config-check` 检查 RTL、FDC 倍率／profile 路径／DDR 引脚标准及 BSP 头文件是否一致；`make config-test` 在临时副本测试频率与 DDR／BRAM 双向切换、旧 JTAG／PLL 路径与不匹配 IO 标准检测、管理块格式／写入失败保护、旧配置迁移及 CPU 频率 CSR RTL，并逐字比较其他引脚约束不变。修改频率或 profile 必须提供 `--fdc`，菜单入口已自动提供。`make config-headers` 只按当前 RTL 重生成 BSP 头文件，不修改 PLL 或 FDC。
 
-## 镜像长度、对齐和 manifest
+## DDR 镜像长度、对齐和 manifest
 
 历史 CoreMark BIN 曾为 29144 字节；频率联动或其他代码修改后长度可能改变。每次构建后用 `wc -c` 查看实际长度，再选择新 BIN 并将 Loader image bytes 设为 0。不要沿用历史长度或仅因默认值为 32768 就把短 BIN 按 32768 字节读取。
 
@@ -109,24 +117,40 @@ build/menuconfig/flash_manifest.json
 
 ## 生成 profile 位流并在 PDS 烧写
 
-先在 WSL 保存配置，再交由操作者在 Windows/PDS 中打开现有工程。PDS 用户负责确认项目包含新 RTL 文件 `soc/Hfpga_soc_bram_profile.v`、`soc/flash_boot/flash_bram_boot.v` 和 `cpu/cpu_bram_mem.v`，然后按所选 profile 重新执行编译、综合、布局布线和位流生成。BRAM 选择 `SOC_CPU_MEM_BRAM=1`；Full DDR 使用 0。更改 profile、Flash 起始地址或装载长度后，都要生成匹配的新位流；同 profile 下若新 BIN 长度变化，也要更新长度配置并生成新位流。只有 profile、基址和长度都未变时，才可直接替换并重新烧写 BIN。
+先在 WSL 保存配置，再在 Windows/PDS 打开现有工程。`project/project.pds` 已加入 `cpu/cpu_bram_ip_mem.v` 和 `IP/imem`、`IP/dmem` 的 wrapper／底层 RTL。`imem_init_param.v` 是模块内部 include，不作为独立 Verilog 顶层文件列入。没有加入会引用旧绝对 DAT 路径的 IDF，也不需要打开 IP 编辑器重生成。按所选 profile 重新编译、综合、布局布线、生成位流；BRAM 的 DAT 内容变化也必须重新生成位流。
 
-在 PDS Flash 烧写页，按 manifest 使用对应软件文件和 `flash_start_address`。典型组合是 FPGA 配置位流放在配置区地址 `0x000000`，原始程序 BIN 放在用户区 `0x00A00000`；如果 manifest 指定 padded 文件，则使用该文件。烧写后在 PDS 执行擦除/编程/校验时，确保校验对象与 manifest 的文件及地址完全一致。
+BRAM：只烧录新位流，程序随位流进入 IMEM；不需要将 CoreMark BIN／DAT 放到 User Load `0xA00000`。Flash 旧用户区内容不影响这条启动路径。
 
-本文没有运行 PDS，也没有生成新 `.sbit` / `.sfc`、烧写 Flash、下载位流或做实板验证。RTL 文件进入工程和离线仿真都不能替代 PDS 对目标器件的综合、资源、引脚、布线和时序确认。BRAM RAM 的通用 RTL/Yosys 检查显示 IRAM 为同步双端口、DRAM 为同步单端口；目标 Pango 器件的实际 BRAM 推断数量和映射仍待用户在 PDS 中检查。
+DDR：仍按 Flash manifest 烧写程序 BIN，典型地址为 `0x00A00000`；若指定 padded 文件则使用它。位流仍放配置区。不要把文本 DAT 当作 DDR 装载器的原始 BIN。
+
+本次没有运行 PDS、生成 `.sbit` / `.sfc` 或做实板验证。厂商 RAM 模型的例化和仿真通过不替代目标器件的综合、资源、引脚、布线与时序检查；这些由用户完成。关闭外设是否满足赛事规则，应以赛事原文为准，本次没有对 CoreMark 程序作专项优化。
 
 ## 上电后启动过程
 
-Full DDR 位流启动后，DDR 控制器先完成初始化；启动逻辑再从 Flash 基址读取配置长度的原始映像，按每 4 字节小端组字，写入 DDR `0x80000000` 并逐字读回校验。BRAM 位流启动不等待 DDR：装载逻辑从 Flash 读取同样格式的原始映像，写到 IRAM，再按同步 RAM 接口逐字读回校验。两种 profile 均在校验完成后释放 CPU reset；Flash 地址越界、长度不合规、超时或读回不匹配都会保持 CPU reset。外部复位可重新启动装载流程。
+Full DDR 启动后，DDR 控制器先初始化；启动逻辑从 Flash 基址读取原始映像，按每 4 字节小端组字写到 DDR `0x80000000`，读回校验后释放 CPU。BRAM 不等待 DDR、不读取 Flash，配置位流中的 INIT 参数已经填入 IMEM，时钟／复位准备完成即可执行。
 
-当前 SPI 通路使用单颗 Flash、X1、模式 0、`03h` Read Data 命令和 24 位字节地址。镜像没有自定义头部、校验和或字节序转换；加载器读多少字节由生成到 RTL 的 `SOC_BOOT_IMAGE_BYTES` 决定。启动后本地 CoreMark UART 默认 115200、FPIOA0，预期起始提示为：
+DDR 的 SPI 通路仍为 X1、模式 0、`03h` 和 24 位地址。BRAM 无这一步。两种配置中，本地 CoreMark UART 默认 115200、FPIOA0，预期启动提示为：
 
 ```text
 Start CoreMark CPU=70000000 Hz UART=115200 TX_FPIOA=0
 ```
 
-默认 `ITERATIONS=0` 使用 CoreMark 自动迭代选择；正式成绩需使用满足基准运行时间要求的完整运行，并核对最终 CRC。短迭代仿真输出不能作为成绩。
+本次保留输入 DAT/BIN 已有的迭代设置，没有修改迭代次数。正式成绩仍需满足基准运行时间要求并核对最终 CRC；启动仿真不能作为成绩。
 
 ## 验证范围
 
-历史验证曾覆盖 DDR/Camera 与 BRAM 仿真、SPI 装载、CPU ISA、CSR/timer 和 CoreMark CRC fixture；短迭代 fixture 会显示运行时间不足 10 秒的提示，不能作为成绩。当前根 Makefile 已按要求精简为原生 Kconfig 菜单入口，不再提供此前的硬件回归调度目标。任何仿真结果都不能证明目标器件的 BRAM 映射、时序、引脚和实板启动；这些仍由用户在 PDS 与板上确认。
+历史验证曾覆盖 DDR/Camera 与 BRAM 仿真、SPI 装载、CPU ISA、CSR/timer 和 CoreMark CRC fixture；短迭代 fixture 会显示运行时间不足 10 秒的提示，不能作为成绩。当前根 Makefile 支持 `make all=<testbench 名称>run`，可用 `make sim-list` 查看测试列表。任何仿真结果都不能证明目标器件的 BRAM 映射、时序、引脚和实板启动；这些仍由用户在 PDS 与板上确认。
+
+### BRAM 模式的实际 DAT / 厂商 RAM 串口启动测试
+
+```sh
+make bram-init HEX=test/coremark_local.dat
+make all=tb_cpu_bram_ip_memrun SIM_TIMEOUT=30
+make all=tb_coremark_bram_ip_uartrun SIM_TIMEOUT=90
+```
+
+`tb_cpu_bram_ip_mem` 通过实际 PDS `GTP_DRM36K_E1` 仿真模型，核对 IMEM 全部 8192 字、LSU 的 IRAM 读取和 DMEM 的字节写掩码。`tb_coremark_bram_ip_uart` 从当前生成的 INIT 参数启动完整 `Hfpga_soc`，没有 Flash 模型、测试台预填 RAM 或强制跳过 CPU 启动。`PDS_SIM_DIR` 可指定厂商仿真模型目录，默认使用本机 PDS 安装路径。
+
+仿真 PLL 按配置 CPU 频率运行；独立接收器从顶层 `fpioa[0]` 按 115200、8N1 解码 55 字节启动提示，检查编程接口和 Flash 保持闲置。成功后打印 PASS。旧 `tb_coremark_bram_uart` 的 Flash→BRAM 生产启动假设已过时，不能用其旧结果代表当前路径。
+
+该测试只验证启动提示，不等待最终 CoreMark 得分和 CRC。厂商 RAM 使用实际模型，但 PLL／IO 等仍有仿真替代，不能证明实板串口、PLL 或时序通过；最终还需烧写新位流验证。

@@ -1,5 +1,5 @@
 //
-// Generated (version 2022.2-SP6.4<build 146967>) at Tue Oct  6 17:56:18 2026
+// Generated (version 2022.2-SP6.4<build 146967>) at Tue Oct  6 21:24:40 2026
 //
 
 module cpu_bram_mem
@@ -129167,7 +129167,7 @@ module Hfpga_soc
             .T (1'b1));
 	// ../../soc/Hfpga_soc.v:118
 
-(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="H4", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15D_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_n_tri[0]  */ #(
+(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="H4", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_n_tri[0]  */ #(
             .IOSTANDARD("DEFAULT"), 
             .SLEW_RATE("SLOW"), 
             .DRIVE_STRENGTH("8"))
@@ -129177,7 +129177,7 @@ module Hfpga_soc
             .T (1'b1));
 	// ../../soc/Hfpga_soc.v:117
 
-(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="G7", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15D_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_n_tri[1]  */ #(
+(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="G7", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_n_tri[1]  */ #(
             .IOSTANDARD("DEFAULT"), 
             .SLEW_RATE("SLOW"), 
             .DRIVE_STRENGTH("8"))
@@ -129187,7 +129187,7 @@ module Hfpga_soc
             .T (1'b1));
 	// ../../soc/Hfpga_soc.v:117
 
-(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="A5", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15D_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_n_tri[2]  */ #(
+(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="A5", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_n_tri[2]  */ #(
             .IOSTANDARD("DEFAULT"), 
             .SLEW_RATE("SLOW"), 
             .DRIVE_STRENGTH("8"))
@@ -129197,7 +129197,7 @@ module Hfpga_soc
             .T (1'b1));
 	// ../../soc/Hfpga_soc.v:117
 
-(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="B1", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15D_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_n_tri[3]  */ #(
+(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="B1", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_n_tri[3]  */ #(
             .IOSTANDARD("DEFAULT"), 
             .SLEW_RATE("SLOW"), 
             .DRIVE_STRENGTH("8"))
@@ -129207,7 +129207,7 @@ module Hfpga_soc
             .T (1'b1));
 	// ../../soc/Hfpga_soc.v:117
 
-(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="J4", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15D_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_tri[0]  */ #(
+(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="J4", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_tri[0]  */ #(
             .IOSTANDARD("DEFAULT"), 
             .SLEW_RATE("SLOW"), 
             .DRIVE_STRENGTH("8"))
@@ -129217,7 +129217,7 @@ module Hfpga_soc
             .T (1'b1));
 	// ../../soc/Hfpga_soc.v:116
 
-(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="H7", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15D_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_tri[1]  */ #(
+(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="H7", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_tri[1]  */ #(
             .IOSTANDARD("DEFAULT"), 
             .SLEW_RATE("SLOW"), 
             .DRIVE_STRENGTH("8"))
@@ -129227,7 +129227,7 @@ module Hfpga_soc
             .T (1'b1));
 	// ../../soc/Hfpga_soc.v:116
 
-(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="B5", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15D_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_tri[2]  */ #(
+(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="B5", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_tri[2]  */ #(
             .IOSTANDARD("DEFAULT"), 
             .SLEW_RATE("SLOW"), 
             .DRIVE_STRENGTH("8"))
@@ -129237,7 +129237,7 @@ module Hfpga_soc
             .T (1'b1));
 	// ../../soc/Hfpga_soc.v:116
 
-(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="C1", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15D_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_tri[3]  */ #(
+(* PAP_IO_DIRECTION="INOUT", PAP_IO_LOC="C1", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUFT /* \g_bram_profile.u_bram_profile.mem_dqs_tri[3]  */ #(
             .IOSTANDARD("DEFAULT"), 
             .SLEW_RATE("SLOW"), 
             .DRIVE_STRENGTH("8"))
@@ -129810,7 +129810,7 @@ module Hfpga_soc
             .I (1'b1));
 	// ../../soc/Hfpga_soc.v:111
 
-(* PAP_IO_DIRECTION="OUTPUT", PAP_IO_LOC="U5", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15D_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUF /* mem_ck_n_obuf */ #(
+(* PAP_IO_DIRECTION="OUTPUT", PAP_IO_LOC="U5", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUF /* mem_ck_n_obuf */ #(
             .IOSTANDARD("DEFAULT"), 
             .SLEW_RATE("SLOW"), 
             .DRIVE_STRENGTH("8"))
@@ -129819,7 +129819,7 @@ module Hfpga_soc
             .I (1'b1));
 	// ../../soc/Hfpga_soc.v:107
 
-(* PAP_IO_DIRECTION="OUTPUT", PAP_IO_LOC="U6", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15D_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUF /* mem_ck_obuf */ #(
+(* PAP_IO_DIRECTION="OUTPUT", PAP_IO_LOC="U6", PAP_IO_VCCIO="1.5", PAP_IO_STANDARD="HSTL15_I", PAP_IO_DRIVE="8", PAP_IO_NONE="TRUE", PAP_IO_SLEW="SLOW" *)    GTP_OUTBUF /* mem_ck_obuf */ #(
             .IOSTANDARD("DEFAULT"), 
             .SLEW_RATE("SLOW"), 
             .DRIVE_STRENGTH("8"))

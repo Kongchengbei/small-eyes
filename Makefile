@@ -6,7 +6,8 @@ include scripts/sim.mk
 .PHONY: menuconfig kconfig-tools kconfig-test clean distclean
 menuconfig: $(SOC_CONFIG_TOOL) kconfig-tools
 	@SOC_CONFIG_SOURCE='$(SOC_CONFIG_SOURCE)' SOC_CONFIG_FILE='$(SOC_CONFIG_FILE)' SOC_CONFIG_OUTPUT='$(SOC_CONFIG_OUTPUT)' \
-	 SOC_CONFIG_FDC='$(SOC_CONFIG_FDC)' SOC_CONFIG_BSP_OUTPUT='$(SOC_CONFIG_BSP_OUTPUT)' scripts/menuconfig.sh
+	 SOC_CONFIG_FDC='$(SOC_CONFIG_FDC)' SOC_CONFIG_BSP_OUTPUT='$(SOC_CONFIG_BSP_OUTPUT)' \
+	 SOC_CONFIG_BRAM_INIT_DIR='$(SOC_CONFIG_BRAM_INIT_DIR)' scripts/menuconfig.sh
 
 kconfig-tools:
 	@$(MAKE) -s -C scripts/kconfig all

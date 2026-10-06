@@ -16,6 +16,7 @@ SOC_CONFIG_FILE=$(absolute_path "${SOC_CONFIG_FILE:-build/menuconfig/.config}")
 SOC_CONFIG_OUTPUT=$(absolute_path "${SOC_CONFIG_OUTPUT:-build/menuconfig}")
 SOC_CONFIG_FDC=$(absolute_path "${SOC_CONFIG_FDC:-soc.fdc}")
 SOC_CONFIG_BSP_OUTPUT=$(absolute_path "${SOC_CONFIG_BSP_OUTPUT:-bsp/include}")
+SOC_CONFIG_BRAM_INIT_DIR=$(absolute_path "${SOC_CONFIG_BRAM_INIT_DIR:-IP/imem/rtl}")
 
 CONFIG_DIR=$(dirname -- "$SOC_CONFIG_FILE")
 mkdir -p "$CONFIG_DIR" "$SOC_CONFIG_OUTPUT"
@@ -61,7 +62,7 @@ if ! cmp -s -- "$BASELINE" "$SOC_CONFIG_FILE" || [ "$BEFORE" != "$AFTER" ]; then
 	cd "$ROOT"
 	"$SOC_TOOL" apply --source "$SOC_CONFIG_SOURCE" --config "$SOC_CONFIG_FILE" \
 		--output-dir "$SOC_CONFIG_OUTPUT" --fdc "$SOC_CONFIG_FDC" \
-		--bsp-output-dir "$SOC_CONFIG_BSP_OUTPUT"
+		--bsp-output-dir "$SOC_CONFIG_BSP_OUTPUT" --bram-init-dir "$SOC_CONFIG_BRAM_INIT_DIR"
 else
 	echo "Configuration unchanged; authoritative address map was not modified."
 fi

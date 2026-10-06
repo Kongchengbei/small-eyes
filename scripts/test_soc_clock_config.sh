@@ -24,12 +24,13 @@ config_for() {
     printf '%s\n' 'CONFIG_SOC_PROFILE_FULL=y' '# CONFIG_SOC_PROFILE_BRAM is not set' \
         '# CONFIG_SOC_ENABLE_PREPROCESS is not set' 'CONFIG_SOC_UART_LOCAL=y' \
         '# CONFIG_SOC_UART_REMOTE is not set' 'CONFIG_SOC_FIRMWARE_BIN=""' \
+        "CONFIG_SOC_FIRMWARE_HEX=\"$ROOT/scripts/tests/bram_config.hex\"" \
         'CONFIG_SOC_FLASH_BASE=0xA00000' 'CONFIG_SOC_BOOT_IMAGE_BYTES=32768' \
         "CONFIG_SOC_CPU_HZ=$hz" > "$CONFIG"
 }
 apply_config() {
     "$TOOL" apply --source "$SOURCE" --config "$CONFIG" --output-dir "$OUT" \
-        --fdc "$FDC" --bsp-output-dir "$TEST_DIR/bsp" > "$TEST_DIR/apply.log"
+        --fdc "$FDC" --bsp-output-dir "$TEST_DIR/bsp" --bram-init-dir "$TEST_DIR/ip" > "$TEST_DIR/apply.log"
 }
 check_config() {
     "$TOOL" check --source "$SOURCE" --fdc "$FDC" \

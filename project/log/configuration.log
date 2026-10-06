@@ -5048,3 +5048,1055 @@ Cable index 0:USB Cable II/fffffffffffffffe
 [Debug] [2026-10-6 18:42:25] end to send jtag flash verify cmd
 [Debug] [2026-10-6 18:42:25] end to send jtag flash program cmd.
 [Debug] [2026-10-6 18:42:25] Log::Print : COMMAND[Verify Outer Flash] execute successfully, takes 11.0 secs.
+[Info] [2026-10-6 19:32:55] /***************************End Configration***************************/
+[Info] [2026-10-6 19:33:14] /***************************Start Configuration***************************/
+[Info] [2026-10-6 19:33:14] Path: F:/PDS_2022.2-SP6.4/bin
+[Info] [2026-10-6 19:33:14] Version: 146967
+[Info] [2026-10-6 19:33:15] Current Path: F:/SocFpga/project
+[Info] [2026-10-6 19:33:15] PDS Dir Path: F:/SocFpga/project
+[Debug] [2026-10-6 19:33:20] Begin to Converte file.
+[Debug] [2026-10-6 19:34:49] begin to parse sfc file.
+[Debug] [2026-10-6 19:34:49] begin to get device info from CFG file...
+[Debug] [2026-10-6 19:34:49] end to get device info from CFG file...
+[Debug] [2026-10-6 19:34:49] begin to get device info from CFG file...
+[Debug] [2026-10-6 19:34:49] end to get device info from CFG file...
+[Debug] [2026-10-6 19:34:49] end to parse sfc file.
+[Debug] [2026-10-6 19:34:49] Log::Print : The Start Address of bit file F:/SocFpga/project/generate_bitstream/Hfpga_soc.sbit: 0x0
+[Debug] [2026-10-6 19:34:49] Log::Print : The Start Address of User Data F:/SocFpga/test/coremark_local.bin: 0xa00000
+[Debug] [2026-10-6 19:34:51] End to Converte file.
+[Info] [2026-10-6 19:34:52] Configuration is not connect with server. connect first then scan chain.
+[Debug] [2026-10-6 19:34:52] Client Local host name:ZHAO-Zhenxiang
+[Debug] [2026-10-6 19:34:52] Client Local Address:192.168.56.1
+[Debug] [2026-10-6 19:34:52] Client Local Address:192.168.202.1
+[Debug] [2026-10-6 19:34:52] Client Local Address:192.168.192.1
+[Debug] [2026-10-6 19:34:52] Client Local Address:192.168.1.104
+[Debug] [2026-10-6 19:34:52] Server Address:127.0.0.1, Port:65420
+[Debug] [2026-10-6 19:34:53] Log::Print : Connecting to server[127.0.0.1 : 65420].
+[Info] [2026-10-6 19:34:53] Connect OK, Server: 127.0.0.1  Port: 65420
+[Debug] [2026-10-6 19:34:53] Finish.
+[Info] [2026-10-6 19:34:53] Connect server succeeded
+[Debug] [2026-10-6 19:34:53] Send RPC:1
+[Debug] [2026-10-6 19:34:53] Send cmd [check version information:40004] OK
+[Debug] [2026-10-6 19:34:53] Log::Print : Connect to server[127.0.0.1 : 65420] successfully.
+[Debug] [2026-10-6 19:34:54] Send RPC:2
+[Debug] [2026-10-6 19:34:54] Send cmd [get_cable_paras:40010] OK
+[Debug] [2026-10-6 19:34:54] Begin to send initialize chain cmd...
+[Debug] [2026-10-6 19:34:54] Send RPC:3
+[Debug] [2026-10-6 19:34:54] Send cmd [Open config cable:20001] OK
+[Debug] [2026-10-6 19:34:54] End to send initialize chain cmd.
+[Debug] [2026-10-6 19:34:54] COMMAND[check version information] execute successfully, takes 1.2 secs.
+[Debug] [2026-10-6 19:34:54] Log::Print : COMMAND[check version information] execute successfully, takes 1.2 secs.
+[Debug] [2026-10-6 19:34:56] COMMAND[get_cable_paras] execute successfully, takes 2.0 secs.
+[Debug] [2026-10-6 19:34:56] Log::Print : The cable List : 
+Cable index 0:USB Cable II/fffffffffffffffe 
+
+[Debug] [2026-10-6 19:34:56] Log::Print : COMMAND[get_cable_paras] execute successfully, takes 2.0 secs.
+[Debug] [2026-10-6 19:34:57] begin the exec of open cable cmd...
+[Debug] [2026-10-6 19:34:57] Begin to deal with chain from server...
+[Debug] [2026-10-6 19:34:57] Begin to set user chain...
+[Debug] [2026-10-6 19:34:57] End to set user chain.
+[Debug] [2026-10-6 19:34:57] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 19:34:57] End to update graphic item and tree item ...
+[Debug] [2026-10-6 19:34:57] Log::Print : PANGO USB CABLE II cable driver: D2XX DLL
+[Debug] [2026-10-6 19:34:57] Log::Print : PG2L200H
+[Debug] [2026-10-6 19:34:57] Log::Print : This device configure situation (done bit): 1
+[Info] [2026-10-6 19:38:28] set OpenLastPath: F:/SocFpga/project/generate_bitstream/Hfpga_soc.sbit
+[Debug] [2026-10-6 19:38:28] begin to get device info from CFG file...
+[Debug] [2026-10-6 19:38:28] end to get device info from CFG file...
+[Debug] [2026-10-6 19:38:28] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 19:38:28] End to update graphic item and tree item ...
+[Debug] [2026-10-6 19:38:28] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 19:38:28] End to update graphic item and tree item ...
+[Debug] [2026-10-6 19:38:28] End to deal wiht chain from server.
+[Debug] [2026-10-6 19:38:28] end the exec of open cable cmd.
+[Debug] [2026-10-6 19:38:28] COMMAND[Open config cable] execute successfully, takes 213.4 secs.
+[Debug] [2026-10-6 19:38:28] Log::Print : COMMAND[Open config cable] execute successfully, takes 213.4 secs.
+[Debug] [2026-10-6 19:38:29] Begin to send scan outer flash cmd...
+[Debug] [2026-10-6 19:38:29] Send RPC:4
+[Debug] [2026-10-6 19:38:29] Send cmd [Scan Outer SPI Flash:20300] OK
+[Debug] [2026-10-6 19:38:29] End to send scan outer flash cmd.
+[Debug] [2026-10-6 19:38:30] begin to exec scan jtag flash cmd...
+[Debug] [2026-10-6 19:38:30] Begin to initialize JtagFlash for selected FPGA Device...
+[Debug] [2026-10-6 19:38:30] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 19:38:30] End to update graphic item and tree item ...
+[Info] [2026-10-6 19:38:32] set OpenLastPath: F:/SocFpga/project/generate_bitstream/Hfpga_soc.sfc
+[Debug] [2026-10-6 19:38:32] begin to check SFC File and Flash Device Read Mode.
+[Debug] [2026-10-6 19:38:32] end to check SFC File and Flash Device Read Mode.
+[Debug] [2026-10-6 19:38:32] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 19:38:32] End to update graphic item and tree item ...
+[Debug] [2026-10-6 19:38:32] End to initialize OuterFlash for selected FPGA Device...
+[Debug] [2026-10-6 19:38:32] end to exec scan jtag flash cmd...
+[Debug] [2026-10-6 19:38:32] COMMAND[Scan Outer SPI Flash] execute successfully, takes 2.5 secs.
+[Debug] [2026-10-6 19:38:32] Log::Print : COMMAND[Scan Outer SPI Flash] execute successfully, takes 2.5 secs.
+[Debug] [2026-10-6 19:38:36] begin to send promgram jtag flash cmd.
+[Debug] [2026-10-6 19:38:36] begin to send jtag flash erase cmd
+[Debug] [2026-10-6 19:38:36] Send RPC:5
+[Debug] [2026-10-6 19:38:36] Begin to send embed flash erase data.
+[Debug] [2026-10-6 19:38:36] Begin to send flash erase data.
+[Debug] [2026-10-6 19:38:36] End to send flash erase data.
+[Debug] [2026-10-6 19:38:36] End to send embed flash erase data.
+[Debug] [2026-10-6 19:38:36] Send cmd [Erase Outer Flash:20302] OK
+[Debug] [2026-10-6 19:38:36] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 19:38:36] The value of Progress is 1
+[Debug] [2026-10-6 19:38:38] The value of Progress is 6
+[Debug] [2026-10-6 19:38:40] The value of Progress is 10
+[Debug] [2026-10-6 19:38:42] The value of Progress is 15
+[Debug] [2026-10-6 19:38:44] The value of Progress is 20
+[Debug] [2026-10-6 19:38:45] The value of Progress is 25
+[Debug] [2026-10-6 19:38:47] The value of Progress is 30
+[Debug] [2026-10-6 19:38:49] The value of Progress is 35
+[Debug] [2026-10-6 19:38:51] The value of Progress is 40
+[Debug] [2026-10-6 19:38:52] The value of Progress is 45
+[Debug] [2026-10-6 19:38:54] The value of Progress is 50
+[Debug] [2026-10-6 19:38:56] The value of Progress is 55
+[Debug] [2026-10-6 19:38:58] The value of Progress is 60
+[Debug] [2026-10-6 19:38:59] The value of Progress is 65
+[Debug] [2026-10-6 19:39:01] The value of Progress is 70
+[Debug] [2026-10-6 19:39:03] The value of Progress is 75
+[Debug] [2026-10-6 19:39:05] The value of Progress is 80
+[Debug] [2026-10-6 19:39:06] The value of Progress is 85
+[Debug] [2026-10-6 19:39:08] The value of Progress is 90
+[Debug] [2026-10-6 19:39:10] The value of Progress is 95
+[Debug] [2026-10-6 19:39:11] The value of Progress is 100
+[Debug] [2026-10-6 19:39:12] COMMAND[Erase Outer Flash] execute finish, takes 35.7 secs.
+[Debug] [2026-10-6 19:39:12] end to send jtag flash erase cmd.
+[Debug] [2026-10-6 19:39:12] Send RPC:6
+[Debug] [2026-10-6 19:39:12] Begin to send jtag flash program data.
+[Debug] [2026-10-6 19:39:12] Begin to send flash program data.
+[Debug] [2026-10-6 19:39:12] End to send flash program data.
+[Debug] [2026-10-6 19:39:12] End to send embed flash program data.
+[Debug] [2026-10-6 19:39:12] Send cmd [Program Outer Flash:20301] OK
+[Debug] [2026-10-6 19:39:12] Log::Print : COMMAND[Erase Outer Flash] execute finish, takes 35.7 secs.
+[Debug] [2026-10-6 19:39:12] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 19:39:14] The value of Progress is 1
+[Debug] [2026-10-6 19:39:24] The value of Progress is 6
+[Debug] [2026-10-6 19:39:30] The value of Progress is 10
+[Debug] [2026-10-6 19:39:38] The value of Progress is 15
+[Debug] [2026-10-6 19:39:47] The value of Progress is 20
+[Debug] [2026-10-6 19:39:55] The value of Progress is 25
+[Debug] [2026-10-6 19:40:03] The value of Progress is 30
+[Debug] [2026-10-6 19:40:11] The value of Progress is 35
+[Debug] [2026-10-6 19:40:20] The value of Progress is 40
+[Debug] [2026-10-6 19:40:28] The value of Progress is 45
+[Debug] [2026-10-6 19:40:36] The value of Progress is 50
+[Debug] [2026-10-6 19:40:44] The value of Progress is 55
+[Debug] [2026-10-6 19:40:53] The value of Progress is 60
+[Debug] [2026-10-6 19:41:01] The value of Progress is 65
+[Debug] [2026-10-6 19:41:09] The value of Progress is 70
+[Debug] [2026-10-6 19:41:17] The value of Progress is 75
+[Debug] [2026-10-6 19:41:25] The value of Progress is 80
+[Debug] [2026-10-6 19:41:34] The value of Progress is 85
+[Debug] [2026-10-6 19:41:42] The value of Progress is 90
+[Debug] [2026-10-6 19:41:50] The value of Progress is 95
+[Debug] [2026-10-6 19:41:58] The value of Progress is 100
+[Debug] [2026-10-6 19:41:59] COMMAND[Program Outer Flash] execute finish, takes 166.9 secs.
+[Debug] [2026-10-6 19:41:59] begin to send jtag flash verify cmd
+[Debug] [2026-10-6 19:41:59] Send RPC:7
+[Debug] [2026-10-6 19:41:59] Begin to send embed flash verify data.
+[Debug] [2026-10-6 19:41:59] Begin to send flash verify data.
+[Debug] [2026-10-6 19:41:59] End to send flash verify data.
+[Debug] [2026-10-6 19:41:59] End to send embed flash verify data.
+[Debug] [2026-10-6 19:41:59] Send cmd [Verify Outer Flash:20303] OK
+[Debug] [2026-10-6 19:41:59] Log::Print : COMMAND[Program Outer Flash] execute finish, takes 166.9 secs.
+[Debug] [2026-10-6 19:41:59] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 19:41:59] The value of Progress is 1
+[Debug] [2026-10-6 19:41:59] The value of Progress is 6
+[Debug] [2026-10-6 19:42:00] The value of Progress is 10
+[Debug] [2026-10-6 19:42:00] The value of Progress is 15
+[Debug] [2026-10-6 19:42:01] The value of Progress is 20
+[Debug] [2026-10-6 19:42:01] The value of Progress is 25
+[Debug] [2026-10-6 19:42:02] The value of Progress is 30
+[Debug] [2026-10-6 19:42:02] The value of Progress is 35
+[Debug] [2026-10-6 19:42:03] The value of Progress is 40
+[Debug] [2026-10-6 19:42:03] The value of Progress is 45
+[Debug] [2026-10-6 19:42:04] The value of Progress is 50
+[Debug] [2026-10-6 19:42:05] The value of Progress is 55
+[Debug] [2026-10-6 19:42:05] The value of Progress is 60
+[Debug] [2026-10-6 19:42:06] The value of Progress is 65
+[Debug] [2026-10-6 19:42:06] The value of Progress is 70
+[Debug] [2026-10-6 19:42:07] The value of Progress is 75
+[Debug] [2026-10-6 19:42:07] The value of Progress is 80
+[Debug] [2026-10-6 19:42:08] The value of Progress is 85
+[Debug] [2026-10-6 19:42:08] The value of Progress is 90
+[Debug] [2026-10-6 19:42:09] The value of Progress is 95
+[Debug] [2026-10-6 19:42:09] The value of Progress is 100
+[Debug] [2026-10-6 19:42:09] COMMAND[Verify Outer Flash] execute successfully, takes 10.8 secs.
+[Debug] [2026-10-6 19:42:09] end to send jtag flash verify cmd
+[Debug] [2026-10-6 19:42:09] end to send jtag flash program cmd.
+[Debug] [2026-10-6 19:42:09] Log::Print : COMMAND[Verify Outer Flash] execute successfully, takes 10.8 secs.
+[Debug] [2026-10-6 19:42:35] begin to send jtag flash verify cmd
+[Debug] [2026-10-6 19:42:35] Send RPC:8
+[Debug] [2026-10-6 19:42:35] Begin to send embed flash verify data.
+[Debug] [2026-10-6 19:42:35] Begin to send flash verify data.
+[Debug] [2026-10-6 19:42:35] End to send flash verify data.
+[Debug] [2026-10-6 19:42:35] End to send embed flash verify data.
+[Debug] [2026-10-6 19:42:35] Send cmd [Verify Outer Flash:20303] OK
+[Debug] [2026-10-6 19:42:35] Log::Print : The start address of operating flash is 0x0.
+[Error] [2026-10-6 19:42:40] fail to exec Verify Outer Flash cmd...
+[Debug] [2026-10-6 19:42:40] end to send jtag flash verify cmd
+[Error] [2026-10-6 19:42:40] MsgOut: JtagServer-0306: No devices detected while scanning the JTAG chain, failed detecting JTAG device chain.
+[Warn] [2026-10-6 19:42:40] MsgOut: Configuration-4003: Configuration execute warning: Maybe the cable frequency is high or file error, decreasing frequency may avoid fail or check file. And check flash mode whether device supports.
+[Error] [2026-10-6 19:42:40] MsgOut: Configuration-0008: The command 'Verify Outer Flash' execute fail.
+[Debug] [2026-10-6 19:43:13] begin to send jtag flash verify cmd
+[Debug] [2026-10-6 19:43:13] Send RPC:9
+[Debug] [2026-10-6 19:43:13] Begin to send embed flash verify data.
+[Debug] [2026-10-6 19:43:13] Begin to send flash verify data.
+[Debug] [2026-10-6 19:43:13] End to send flash verify data.
+[Debug] [2026-10-6 19:43:13] End to send embed flash verify data.
+[Debug] [2026-10-6 19:43:13] Send cmd [Verify Outer Flash:20303] OK
+[Debug] [2026-10-6 19:43:13] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 19:43:13] The value of Progress is 1
+[Debug] [2026-10-6 19:43:14] The value of Progress is 6
+[Debug] [2026-10-6 19:43:14] The value of Progress is 10
+[Debug] [2026-10-6 19:43:15] The value of Progress is 15
+[Debug] [2026-10-6 19:43:15] The value of Progress is 20
+[Debug] [2026-10-6 19:43:16] The value of Progress is 25
+[Debug] [2026-10-6 19:43:16] The value of Progress is 30
+[Debug] [2026-10-6 19:43:17] The value of Progress is 35
+[Debug] [2026-10-6 19:43:17] The value of Progress is 40
+[Debug] [2026-10-6 19:43:18] The value of Progress is 45
+[Debug] [2026-10-6 19:43:18] The value of Progress is 50
+[Debug] [2026-10-6 19:43:19] The value of Progress is 55
+[Debug] [2026-10-6 19:43:19] The value of Progress is 60
+[Debug] [2026-10-6 19:43:20] The value of Progress is 65
+[Debug] [2026-10-6 19:43:20] The value of Progress is 70
+[Debug] [2026-10-6 19:43:21] The value of Progress is 75
+[Debug] [2026-10-6 19:43:21] The value of Progress is 80
+[Debug] [2026-10-6 19:43:22] The value of Progress is 85
+[Debug] [2026-10-6 19:43:22] The value of Progress is 90
+[Debug] [2026-10-6 19:43:23] The value of Progress is 95
+[Debug] [2026-10-6 19:43:23] The value of Progress is 100
+[Debug] [2026-10-6 19:43:24] COMMAND[Verify Outer Flash] execute successfully, takes 11.0 secs.
+[Debug] [2026-10-6 19:43:24] end to send jtag flash verify cmd
+[Debug] [2026-10-6 19:43:24] Log::Print : COMMAND[Verify Outer Flash] execute successfully, takes 11.0 secs.
+[Info] [2026-10-6 20:40:56] /***************************End Configration***************************/
+[Info] [2026-10-6 20:46:43] /***************************Start Configuration***************************/
+[Info] [2026-10-6 20:46:43] Path: F:/PDS_2022.2-SP6.4/bin
+[Info] [2026-10-6 20:46:43] Version: 146967
+[Info] [2026-10-6 20:46:45] Current Path: F:/SocFpga/project
+[Info] [2026-10-6 20:46:45] PDS Dir Path: F:/SocFpga/project
+[Debug] [2026-10-6 20:46:48] Begin to Converte file.
+[Debug] [2026-10-6 20:47:20] begin to parse sfc file.
+[Debug] [2026-10-6 20:47:20] begin to get device info from CFG file...
+[Debug] [2026-10-6 20:47:20] end to get device info from CFG file...
+[Debug] [2026-10-6 20:47:20] begin to get device info from CFG file...
+[Debug] [2026-10-6 20:47:20] end to get device info from CFG file...
+[Debug] [2026-10-6 20:47:20] end to parse sfc file.
+[Debug] [2026-10-6 20:47:20] Log::Print : The Start Address of bit file F:/SocFpga/project/generate_bitstream/Hfpga_soc.sbit: 0x0
+[Debug] [2026-10-6 20:47:20] Log::Print : The Start Address of User Data F:/SocFpga/test/coremark_local.bin: 0xa00000
+[Debug] [2026-10-6 20:47:21] End to Converte file.
+[Info] [2026-10-6 20:47:23] Configuration is not connect with server. connect first then scan chain.
+[Debug] [2026-10-6 20:47:23] Client Local host name:ZHAO-Zhenxiang
+[Debug] [2026-10-6 20:47:23] Client Local Address:192.168.56.1
+[Debug] [2026-10-6 20:47:23] Client Local Address:192.168.202.1
+[Debug] [2026-10-6 20:47:23] Client Local Address:192.168.192.1
+[Debug] [2026-10-6 20:47:23] Client Local Address:192.168.1.104
+[Debug] [2026-10-6 20:47:23] Server Address:127.0.0.1, Port:65420
+[Debug] [2026-10-6 20:47:23] Log::Print : Connecting to server[127.0.0.1 : 65420].
+[Info] [2026-10-6 20:47:23] Connect OK, Server: 127.0.0.1  Port: 65420
+[Debug] [2026-10-6 20:47:23] Finish.
+[Info] [2026-10-6 20:47:23] Connect server succeeded
+[Debug] [2026-10-6 20:47:23] Send RPC:1
+[Debug] [2026-10-6 20:47:23] Send cmd [check version information:40004] OK
+[Debug] [2026-10-6 20:47:23] Log::Print : Connect to server[127.0.0.1 : 65420] successfully.
+[Debug] [2026-10-6 20:47:25] Send RPC:2
+[Debug] [2026-10-6 20:47:25] Send cmd [get_cable_paras:40010] OK
+[Debug] [2026-10-6 20:47:25] Begin to send initialize chain cmd...
+[Debug] [2026-10-6 20:47:25] Send RPC:3
+[Debug] [2026-10-6 20:47:25] Send cmd [Open config cable:20001] OK
+[Debug] [2026-10-6 20:47:25] End to send initialize chain cmd.
+[Debug] [2026-10-6 20:47:25] COMMAND[check version information] execute successfully, takes 1.2 secs.
+[Debug] [2026-10-6 20:47:25] Log::Print : COMMAND[check version information] execute successfully, takes 1.2 secs.
+[Debug] [2026-10-6 20:47:26] COMMAND[get_cable_paras] execute successfully, takes 1.9 secs.
+[Debug] [2026-10-6 20:47:26] Log::Print : The cable List : 
+Cable index 0:USB Cable II/fffffffffffffffe 
+
+[Debug] [2026-10-6 20:47:26] Log::Print : COMMAND[get_cable_paras] execute successfully, takes 1.9 secs.
+[Error] [2026-10-6 20:47:31] fail to exec Open config cable cmd...
+[Debug] [2026-10-6 20:47:31] Log::Print : PANGO USB CABLE II cable driver: D2XX DLL
+[Error] [2026-10-6 20:47:31] MsgOut: JtagServer-0306: No devices detected while scanning the JTAG chain, failed detecting JTAG device chain.
+[Warn] [2026-10-6 20:47:31] MsgOut: Please check the device power, cable connection situation and whether put the chip in the right way or not.
+   If these do not work, try to restart the software.
+[Error] [2026-10-6 20:47:31] MsgOut: Configuration-0008: The command 'Open config cable' execute fail.
+[Debug] [2026-10-6 20:48:00] Begin to send initialize chain cmd...
+[Debug] [2026-10-6 20:48:00] Send RPC:4
+[Debug] [2026-10-6 20:48:00] Send cmd [Open config cable:20001] OK
+[Debug] [2026-10-6 20:48:00] End to send initialize chain cmd.
+[Debug] [2026-10-6 20:48:01] begin the exec of open cable cmd...
+[Debug] [2026-10-6 20:48:01] Begin to deal with chain from server...
+[Debug] [2026-10-6 20:48:01] Begin to set user chain...
+[Debug] [2026-10-6 20:48:01] End to set user chain.
+[Debug] [2026-10-6 20:48:01] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 20:48:01] End to update graphic item and tree item ...
+[Debug] [2026-10-6 20:48:01] Log::Print : PANGO USB CABLE II cable driver: D2XX DLL
+[Debug] [2026-10-6 20:48:01] Log::Print : PG2L200H
+[Debug] [2026-10-6 20:48:01] Log::Print : This device configure situation (done bit): 0
+[Info] [2026-10-6 20:48:07] set OpenLastPath: F:/SocFpga/project/generate_bitstream/Hfpga_soc.sbit
+[Debug] [2026-10-6 20:48:07] begin to get device info from CFG file...
+[Debug] [2026-10-6 20:48:07] end to get device info from CFG file...
+[Debug] [2026-10-6 20:48:07] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 20:48:07] End to update graphic item and tree item ...
+[Debug] [2026-10-6 20:48:07] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 20:48:07] End to update graphic item and tree item ...
+[Debug] [2026-10-6 20:48:07] End to deal wiht chain from server.
+[Debug] [2026-10-6 20:48:07] end the exec of open cable cmd.
+[Debug] [2026-10-6 20:48:07] COMMAND[Open config cable] execute successfully, takes 7.0 secs.
+[Debug] [2026-10-6 20:48:07] Log::Print : COMMAND[Open config cable] execute successfully, takes 7.0 secs.
+[Debug] [2026-10-6 20:48:09] Begin to send scan outer flash cmd...
+[Debug] [2026-10-6 20:48:09] Send RPC:5
+[Debug] [2026-10-6 20:48:09] Send cmd [Scan Outer SPI Flash:20300] OK
+[Debug] [2026-10-6 20:48:09] End to send scan outer flash cmd.
+[Debug] [2026-10-6 20:48:09] begin to exec scan jtag flash cmd...
+[Debug] [2026-10-6 20:48:09] Begin to initialize JtagFlash for selected FPGA Device...
+[Debug] [2026-10-6 20:48:09] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 20:48:09] End to update graphic item and tree item ...
+[Info] [2026-10-6 20:48:11] set OpenLastPath: F:/SocFpga/project/generate_bitstream/Hfpga_soc.sfc
+[Debug] [2026-10-6 20:48:11] begin to check SFC File and Flash Device Read Mode.
+[Debug] [2026-10-6 20:48:11] end to check SFC File and Flash Device Read Mode.
+[Debug] [2026-10-6 20:48:11] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 20:48:11] End to update graphic item and tree item ...
+[Debug] [2026-10-6 20:48:11] End to initialize OuterFlash for selected FPGA Device...
+[Debug] [2026-10-6 20:48:11] end to exec scan jtag flash cmd...
+[Debug] [2026-10-6 20:48:11] COMMAND[Scan Outer SPI Flash] execute successfully, takes 2.0 secs.
+[Debug] [2026-10-6 20:48:11] Log::Print : COMMAND[Scan Outer SPI Flash] execute successfully, takes 2.0 secs.
+[Debug] [2026-10-6 20:48:12] begin to send promgram jtag flash cmd.
+[Debug] [2026-10-6 20:48:12] begin to send jtag flash erase cmd
+[Debug] [2026-10-6 20:48:12] Send RPC:6
+[Debug] [2026-10-6 20:48:12] Begin to send embed flash erase data.
+[Debug] [2026-10-6 20:48:12] Begin to send flash erase data.
+[Debug] [2026-10-6 20:48:12] End to send flash erase data.
+[Debug] [2026-10-6 20:48:12] End to send embed flash erase data.
+[Debug] [2026-10-6 20:48:12] Send cmd [Erase Outer Flash:20302] OK
+[Debug] [2026-10-6 20:48:12] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 20:48:13] The value of Progress is 1
+[Debug] [2026-10-6 20:48:15] The value of Progress is 6
+[Debug] [2026-10-6 20:48:17] The value of Progress is 10
+[Debug] [2026-10-6 20:48:18] The value of Progress is 15
+[Debug] [2026-10-6 20:48:20] The value of Progress is 20
+[Debug] [2026-10-6 20:48:22] The value of Progress is 25
+[Debug] [2026-10-6 20:48:23] The value of Progress is 30
+[Debug] [2026-10-6 20:48:25] The value of Progress is 35
+[Debug] [2026-10-6 20:48:27] The value of Progress is 40
+[Debug] [2026-10-6 20:48:29] The value of Progress is 45
+[Debug] [2026-10-6 20:48:30] The value of Progress is 50
+[Debug] [2026-10-6 20:48:32] The value of Progress is 55
+[Debug] [2026-10-6 20:48:34] The value of Progress is 60
+[Debug] [2026-10-6 20:48:36] The value of Progress is 65
+[Debug] [2026-10-6 20:48:37] The value of Progress is 70
+[Debug] [2026-10-6 20:48:39] The value of Progress is 75
+[Debug] [2026-10-6 20:48:41] The value of Progress is 80
+[Debug] [2026-10-6 20:48:43] The value of Progress is 85
+[Debug] [2026-10-6 20:48:44] The value of Progress is 90
+[Debug] [2026-10-6 20:48:46] The value of Progress is 95
+[Debug] [2026-10-6 20:48:48] The value of Progress is 100
+[Debug] [2026-10-6 20:48:48] COMMAND[Erase Outer Flash] execute finish, takes 35.4 secs.
+[Debug] [2026-10-6 20:48:48] end to send jtag flash erase cmd.
+[Debug] [2026-10-6 20:48:48] Send RPC:7
+[Debug] [2026-10-6 20:48:48] Begin to send jtag flash program data.
+[Debug] [2026-10-6 20:48:48] Begin to send flash program data.
+[Debug] [2026-10-6 20:48:48] End to send flash program data.
+[Debug] [2026-10-6 20:48:48] End to send embed flash program data.
+[Debug] [2026-10-6 20:48:48] Send cmd [Program Outer Flash:20301] OK
+[Debug] [2026-10-6 20:48:48] Log::Print : COMMAND[Erase Outer Flash] execute finish, takes 35.4 secs.
+[Debug] [2026-10-6 20:48:48] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 20:48:50] The value of Progress is 1
+[Debug] [2026-10-6 20:49:00] The value of Progress is 6
+[Debug] [2026-10-6 20:49:06] The value of Progress is 10
+[Debug] [2026-10-6 20:49:15] The value of Progress is 15
+[Debug] [2026-10-6 20:49:23] The value of Progress is 20
+[Debug] [2026-10-6 20:49:31] The value of Progress is 25
+[Debug] [2026-10-6 20:49:39] The value of Progress is 30
+[Debug] [2026-10-6 20:49:48] The value of Progress is 35
+[Debug] [2026-10-6 20:49:56] The value of Progress is 40
+[Debug] [2026-10-6 20:50:04] The value of Progress is 45
+[Debug] [2026-10-6 20:50:12] The value of Progress is 50
+[Debug] [2026-10-6 20:50:21] The value of Progress is 55
+[Debug] [2026-10-6 20:50:29] The value of Progress is 60
+[Debug] [2026-10-6 20:50:37] The value of Progress is 65
+[Debug] [2026-10-6 20:50:45] The value of Progress is 70
+[Debug] [2026-10-6 20:50:54] The value of Progress is 75
+[Debug] [2026-10-6 20:51:02] The value of Progress is 80
+[Debug] [2026-10-6 20:51:10] The value of Progress is 85
+[Debug] [2026-10-6 20:51:18] The value of Progress is 90
+[Debug] [2026-10-6 20:51:27] The value of Progress is 95
+[Debug] [2026-10-6 20:51:35] The value of Progress is 100
+[Debug] [2026-10-6 20:51:35] COMMAND[Program Outer Flash] execute finish, takes 167.2 secs.
+[Debug] [2026-10-6 20:51:35] begin to send jtag flash verify cmd
+[Debug] [2026-10-6 20:51:35] Send RPC:8
+[Debug] [2026-10-6 20:51:35] Begin to send embed flash verify data.
+[Debug] [2026-10-6 20:51:35] Begin to send flash verify data.
+[Debug] [2026-10-6 20:51:35] End to send flash verify data.
+[Debug] [2026-10-6 20:51:35] End to send embed flash verify data.
+[Debug] [2026-10-6 20:51:35] Send cmd [Verify Outer Flash:20303] OK
+[Debug] [2026-10-6 20:51:35] Log::Print : COMMAND[Program Outer Flash] execute finish, takes 167.2 secs.
+[Debug] [2026-10-6 20:51:35] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 20:51:35] The value of Progress is 1
+[Debug] [2026-10-6 20:51:36] The value of Progress is 6
+[Debug] [2026-10-6 20:51:36] The value of Progress is 10
+[Debug] [2026-10-6 20:51:37] The value of Progress is 15
+[Debug] [2026-10-6 20:51:37] The value of Progress is 20
+[Debug] [2026-10-6 20:51:38] The value of Progress is 25
+[Debug] [2026-10-6 20:51:38] The value of Progress is 30
+[Debug] [2026-10-6 20:51:39] The value of Progress is 35
+[Debug] [2026-10-6 20:51:39] The value of Progress is 40
+[Debug] [2026-10-6 20:51:40] The value of Progress is 45
+[Debug] [2026-10-6 20:51:41] The value of Progress is 50
+[Debug] [2026-10-6 20:51:41] The value of Progress is 55
+[Debug] [2026-10-6 20:51:42] The value of Progress is 60
+[Debug] [2026-10-6 20:51:42] The value of Progress is 65
+[Debug] [2026-10-6 20:51:43] The value of Progress is 70
+[Debug] [2026-10-6 20:51:43] The value of Progress is 75
+[Debug] [2026-10-6 20:51:44] The value of Progress is 80
+[Debug] [2026-10-6 20:51:44] The value of Progress is 85
+[Debug] [2026-10-6 20:51:45] The value of Progress is 90
+[Debug] [2026-10-6 20:51:45] The value of Progress is 95
+[Debug] [2026-10-6 20:51:46] The value of Progress is 100
+[Debug] [2026-10-6 20:51:46] COMMAND[Verify Outer Flash] execute successfully, takes 11.0 secs.
+[Debug] [2026-10-6 20:51:46] end to send jtag flash verify cmd
+[Debug] [2026-10-6 20:51:46] end to send jtag flash program cmd.
+[Debug] [2026-10-6 20:51:46] Log::Print : COMMAND[Verify Outer Flash] execute successfully, takes 11.0 secs.
+[Info] [2026-10-6 20:55:55] /***************************End Configration***************************/
+[Info] [2026-10-6 21:04:35] /***************************Start Configuration***************************/
+[Info] [2026-10-6 21:04:35] Path: F:/PDS_2022.2-SP6.4/bin
+[Info] [2026-10-6 21:04:35] Version: 146967
+[Info] [2026-10-6 21:04:36] Current Path: F:/SocFpga/project
+[Info] [2026-10-6 21:04:36] PDS Dir Path: F:/SocFpga/project
+[Debug] [2026-10-6 21:04:42] Begin to Converte file.
+[Debug] [2026-10-6 21:05:07] begin to parse sfc file.
+[Debug] [2026-10-6 21:05:07] begin to get device info from CFG file...
+[Debug] [2026-10-6 21:05:07] end to get device info from CFG file...
+[Debug] [2026-10-6 21:05:07] begin to get device info from CFG file...
+[Debug] [2026-10-6 21:05:07] end to get device info from CFG file...
+[Debug] [2026-10-6 21:05:07] end to parse sfc file.
+[Debug] [2026-10-6 21:05:08] Log::Print : The Start Address of bit file F:/SocFpga/project/generate_bitstream/Hfpga_soc.sbit: 0x0
+[Debug] [2026-10-6 21:05:08] Log::Print : The Start Address of User Data F:/SocFpga/test/coremark_local.bin: 0xa00000
+[Debug] [2026-10-6 21:05:08] End to Converte file.
+[Info] [2026-10-6 21:05:10] Configuration is not connect with server. connect first then scan chain.
+[Debug] [2026-10-6 21:05:10] Client Local host name:ZHAO-Zhenxiang
+[Debug] [2026-10-6 21:05:10] Client Local Address:192.168.56.1
+[Debug] [2026-10-6 21:05:10] Client Local Address:192.168.202.1
+[Debug] [2026-10-6 21:05:10] Client Local Address:192.168.192.1
+[Debug] [2026-10-6 21:05:10] Client Local Address:192.168.1.104
+[Debug] [2026-10-6 21:05:10] Server Address:127.0.0.1, Port:65420
+[Debug] [2026-10-6 21:05:10] Log::Print : Connecting to server[127.0.0.1 : 65420].
+[Info] [2026-10-6 21:05:11] Connect OK, Server: 127.0.0.1  Port: 65420
+[Debug] [2026-10-6 21:05:11] Finish.
+[Info] [2026-10-6 21:05:11] Connect server succeeded
+[Debug] [2026-10-6 21:05:11] Send RPC:1
+[Debug] [2026-10-6 21:05:11] Send cmd [check version information:40004] OK
+[Debug] [2026-10-6 21:05:11] Log::Print : Connect to server[127.0.0.1 : 65420] successfully.
+[Debug] [2026-10-6 21:05:12] Send RPC:2
+[Debug] [2026-10-6 21:05:12] Send cmd [get_cable_paras:40010] OK
+[Debug] [2026-10-6 21:05:12] Begin to send initialize chain cmd...
+[Debug] [2026-10-6 21:05:12] Send RPC:3
+[Debug] [2026-10-6 21:05:12] Send cmd [Open config cable:20001] OK
+[Debug] [2026-10-6 21:05:12] End to send initialize chain cmd.
+[Debug] [2026-10-6 21:05:12] COMMAND[check version information] execute successfully, takes 1.1 secs.
+[Debug] [2026-10-6 21:05:12] Log::Print : COMMAND[check version information] execute successfully, takes 1.1 secs.
+[Debug] [2026-10-6 21:05:14] COMMAND[get_cable_paras] execute successfully, takes 1.9 secs.
+[Debug] [2026-10-6 21:05:14] Log::Print : The cable List : 
+Cable index 0:USB Cable II/fffffffffffffffe 
+
+[Debug] [2026-10-6 21:05:14] Log::Print : COMMAND[get_cable_paras] execute successfully, takes 1.9 secs.
+[Debug] [2026-10-6 21:05:14] begin the exec of open cable cmd...
+[Debug] [2026-10-6 21:05:14] Begin to deal with chain from server...
+[Debug] [2026-10-6 21:05:14] Begin to set user chain...
+[Debug] [2026-10-6 21:05:14] End to set user chain.
+[Debug] [2026-10-6 21:05:14] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 21:05:14] End to update graphic item and tree item ...
+[Debug] [2026-10-6 21:05:14] Log::Print : PANGO USB CABLE II cable driver: D2XX DLL
+[Debug] [2026-10-6 21:05:14] Log::Print : PG2L200H
+[Debug] [2026-10-6 21:05:14] Log::Print : This device configure situation (done bit): 1
+[Info] [2026-10-6 21:05:23] set OpenLastPath: F:/SocFpga/project/generate_bitstream/Hfpga_soc.sbit
+[Debug] [2026-10-6 21:05:23] begin to get device info from CFG file...
+[Debug] [2026-10-6 21:05:23] end to get device info from CFG file...
+[Debug] [2026-10-6 21:05:23] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 21:05:23] End to update graphic item and tree item ...
+[Debug] [2026-10-6 21:05:23] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 21:05:23] End to update graphic item and tree item ...
+[Debug] [2026-10-6 21:05:23] End to deal wiht chain from server.
+[Debug] [2026-10-6 21:05:23] end the exec of open cable cmd.
+[Debug] [2026-10-6 21:05:23] COMMAND[Open config cable] execute successfully, takes 11.2 secs.
+[Debug] [2026-10-6 21:05:23] Log::Print : COMMAND[Open config cable] execute successfully, takes 11.2 secs.
+[Debug] [2026-10-6 21:05:25] Begin to send scan outer flash cmd...
+[Debug] [2026-10-6 21:05:25] Send RPC:4
+[Debug] [2026-10-6 21:05:25] Send cmd [Scan Outer SPI Flash:20300] OK
+[Debug] [2026-10-6 21:05:25] End to send scan outer flash cmd.
+[Debug] [2026-10-6 21:05:25] begin to exec scan jtag flash cmd...
+[Debug] [2026-10-6 21:05:25] Begin to initialize JtagFlash for selected FPGA Device...
+[Debug] [2026-10-6 21:05:25] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 21:05:25] End to update graphic item and tree item ...
+[Info] [2026-10-6 21:05:27] set OpenLastPath: F:/SocFpga/project/generate_bitstream/Hfpga_soc.sfc
+[Debug] [2026-10-6 21:05:27] begin to check SFC File and Flash Device Read Mode.
+[Debug] [2026-10-6 21:05:27] end to check SFC File and Flash Device Read Mode.
+[Debug] [2026-10-6 21:05:27] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 21:05:27] End to update graphic item and tree item ...
+[Debug] [2026-10-6 21:05:27] End to initialize OuterFlash for selected FPGA Device...
+[Debug] [2026-10-6 21:05:27] end to exec scan jtag flash cmd...
+[Debug] [2026-10-6 21:05:27] COMMAND[Scan Outer SPI Flash] execute successfully, takes 2.2 secs.
+[Debug] [2026-10-6 21:05:27] Log::Print : COMMAND[Scan Outer SPI Flash] execute successfully, takes 2.2 secs.
+[Debug] [2026-10-6 21:05:29] begin to send promgram jtag flash cmd.
+[Debug] [2026-10-6 21:05:29] begin to send jtag flash erase cmd
+[Debug] [2026-10-6 21:05:29] Send RPC:5
+[Debug] [2026-10-6 21:05:29] Begin to send embed flash erase data.
+[Debug] [2026-10-6 21:05:29] Begin to send flash erase data.
+[Debug] [2026-10-6 21:05:29] End to send flash erase data.
+[Debug] [2026-10-6 21:05:29] End to send embed flash erase data.
+[Debug] [2026-10-6 21:05:29] Send cmd [Erase Outer Flash:20302] OK
+[Debug] [2026-10-6 21:05:29] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 21:05:29] The value of Progress is 1
+[Debug] [2026-10-6 21:05:31] The value of Progress is 6
+[Debug] [2026-10-6 21:05:33] The value of Progress is 10
+[Debug] [2026-10-6 21:05:35] The value of Progress is 15
+[Debug] [2026-10-6 21:05:37] The value of Progress is 20
+[Debug] [2026-10-6 21:05:38] The value of Progress is 25
+[Debug] [2026-10-6 21:05:40] The value of Progress is 30
+[Debug] [2026-10-6 21:05:42] The value of Progress is 35
+[Debug] [2026-10-6 21:05:43] The value of Progress is 40
+[Debug] [2026-10-6 21:05:45] The value of Progress is 45
+[Debug] [2026-10-6 21:05:47] The value of Progress is 50
+[Debug] [2026-10-6 21:05:49] The value of Progress is 55
+[Debug] [2026-10-6 21:05:50] The value of Progress is 60
+[Debug] [2026-10-6 21:05:52] The value of Progress is 65
+[Debug] [2026-10-6 21:05:54] The value of Progress is 70
+[Debug] [2026-10-6 21:05:56] The value of Progress is 75
+[Debug] [2026-10-6 21:05:57] The value of Progress is 80
+[Debug] [2026-10-6 21:05:59] The value of Progress is 85
+[Debug] [2026-10-6 21:06:01] The value of Progress is 90
+[Debug] [2026-10-6 21:06:03] The value of Progress is 95
+[Debug] [2026-10-6 21:06:04] The value of Progress is 100
+[Debug] [2026-10-6 21:06:04] COMMAND[Erase Outer Flash] execute finish, takes 35.5 secs.
+[Debug] [2026-10-6 21:06:04] end to send jtag flash erase cmd.
+[Debug] [2026-10-6 21:06:04] Send RPC:6
+[Debug] [2026-10-6 21:06:04] Begin to send jtag flash program data.
+[Debug] [2026-10-6 21:06:04] Begin to send flash program data.
+[Debug] [2026-10-6 21:06:04] End to send flash program data.
+[Debug] [2026-10-6 21:06:04] End to send embed flash program data.
+[Debug] [2026-10-6 21:06:04] Send cmd [Program Outer Flash:20301] OK
+[Debug] [2026-10-6 21:06:04] Log::Print : COMMAND[Erase Outer Flash] execute finish, takes 35.5 secs.
+[Debug] [2026-10-6 21:06:04] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 21:06:07] The value of Progress is 1
+[Debug] [2026-10-6 21:06:17] The value of Progress is 6
+[Debug] [2026-10-6 21:06:23] The value of Progress is 10
+[Debug] [2026-10-6 21:06:31] The value of Progress is 15
+[Debug] [2026-10-6 21:06:40] The value of Progress is 20
+[Debug] [2026-10-6 21:06:48] The value of Progress is 25
+[Debug] [2026-10-6 21:06:56] The value of Progress is 30
+[Debug] [2026-10-6 21:07:04] The value of Progress is 35
+[Debug] [2026-10-6 21:07:13] The value of Progress is 40
+[Debug] [2026-10-6 21:07:21] The value of Progress is 45
+[Debug] [2026-10-6 21:07:29] The value of Progress is 50
+[Debug] [2026-10-6 21:07:37] The value of Progress is 55
+[Debug] [2026-10-6 21:07:46] The value of Progress is 60
+[Debug] [2026-10-6 21:07:54] The value of Progress is 65
+[Debug] [2026-10-6 21:08:02] The value of Progress is 70
+[Debug] [2026-10-6 21:08:10] The value of Progress is 75
+[Debug] [2026-10-6 21:08:18] The value of Progress is 80
+[Debug] [2026-10-6 21:08:27] The value of Progress is 85
+[Debug] [2026-10-6 21:08:35] The value of Progress is 90
+[Debug] [2026-10-6 21:08:43] The value of Progress is 95
+[Debug] [2026-10-6 21:08:51] The value of Progress is 100
+[Debug] [2026-10-6 21:08:51] COMMAND[Program Outer Flash] execute finish, takes 167.0 secs.
+[Debug] [2026-10-6 21:08:51] begin to send jtag flash verify cmd
+[Debug] [2026-10-6 21:08:51] Send RPC:7
+[Debug] [2026-10-6 21:08:51] Begin to send embed flash verify data.
+[Debug] [2026-10-6 21:08:51] Begin to send flash verify data.
+[Debug] [2026-10-6 21:08:51] End to send flash verify data.
+[Debug] [2026-10-6 21:08:51] End to send embed flash verify data.
+[Debug] [2026-10-6 21:08:52] Send cmd [Verify Outer Flash:20303] OK
+[Debug] [2026-10-6 21:08:52] Log::Print : COMMAND[Program Outer Flash] execute finish, takes 167.0 secs.
+[Debug] [2026-10-6 21:08:52] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 21:08:52] The value of Progress is 1
+[Debug] [2026-10-6 21:08:52] The value of Progress is 6
+[Debug] [2026-10-6 21:08:53] The value of Progress is 10
+[Debug] [2026-10-6 21:08:53] The value of Progress is 15
+[Debug] [2026-10-6 21:08:54] The value of Progress is 20
+[Debug] [2026-10-6 21:08:54] The value of Progress is 25
+[Debug] [2026-10-6 21:08:55] The value of Progress is 30
+[Debug] [2026-10-6 21:08:55] The value of Progress is 35
+[Debug] [2026-10-6 21:08:56] The value of Progress is 40
+[Debug] [2026-10-6 21:08:56] The value of Progress is 45
+[Debug] [2026-10-6 21:08:57] The value of Progress is 50
+[Debug] [2026-10-6 21:08:57] The value of Progress is 55
+[Debug] [2026-10-6 21:08:58] The value of Progress is 60
+[Debug] [2026-10-6 21:08:59] The value of Progress is 65
+[Debug] [2026-10-6 21:08:59] The value of Progress is 70
+[Debug] [2026-10-6 21:09:00] The value of Progress is 75
+[Debug] [2026-10-6 21:09:00] The value of Progress is 80
+[Debug] [2026-10-6 21:09:01] The value of Progress is 85
+[Debug] [2026-10-6 21:09:01] The value of Progress is 90
+[Debug] [2026-10-6 21:09:02] The value of Progress is 95
+[Debug] [2026-10-6 21:09:02] The value of Progress is 100
+[Debug] [2026-10-6 21:09:02] COMMAND[Verify Outer Flash] execute successfully, takes 10.8 secs.
+[Debug] [2026-10-6 21:09:02] end to send jtag flash verify cmd
+[Debug] [2026-10-6 21:09:02] end to send jtag flash program cmd.
+[Debug] [2026-10-6 21:09:02] Log::Print : COMMAND[Verify Outer Flash] execute successfully, takes 10.8 secs.
+[Debug] [2026-10-6 21:23:33] Begin to delete graphic item and tree item ...
+[Debug] [2026-10-6 21:23:33] Begin to remove all device in BS mode...
+[Debug] [2026-10-6 21:23:33] begin remove user device...
+[Debug] [2026-10-6 21:23:33] begin remove user device...
+[Debug] [2026-10-6 21:23:33] end remove user device.
+[Debug] [2026-10-6 21:23:33] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 21:23:33] End to update graphic item and tree item ...
+[Debug] [2026-10-6 21:23:33] end remove user device.
+[Debug] [2026-10-6 21:23:33] End to remove devices in BS mode...
+[Debug] [2026-10-6 21:23:33] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 21:23:33] End to update graphic item and tree item ...
+[Debug] [2026-10-6 21:23:33] End to delete graphic item and tree item ...
+[Info] [2026-10-6 21:24:01] /***************************End Configration***************************/
+[Info] [2026-10-6 21:27:38] /***************************Start Configuration***************************/
+[Info] [2026-10-6 21:27:38] Path: F:/PDS_2022.2-SP6.4/bin
+[Info] [2026-10-6 21:27:38] Version: 146967
+[Info] [2026-10-6 21:27:39] Current Path: F:/SocFpga/project
+[Info] [2026-10-6 21:27:39] PDS Dir Path: F:/SocFpga/project
+[Debug] [2026-10-6 21:27:43] Begin to Converte file.
+[Debug] [2026-10-6 21:28:12] begin to parse sfc file.
+[Debug] [2026-10-6 21:28:12] begin to get device info from CFG file...
+[Debug] [2026-10-6 21:28:12] end to get device info from CFG file...
+[Debug] [2026-10-6 21:28:12] begin to get device info from CFG file...
+[Debug] [2026-10-6 21:28:12] end to get device info from CFG file...
+[Debug] [2026-10-6 21:28:12] end to parse sfc file.
+[Debug] [2026-10-6 21:28:12] Log::Print : The Start Address of bit file F:/SocFpga/project/generate_bitstream/Hfpga_soc.sbit: 0x0
+[Debug] [2026-10-6 21:28:12] Log::Print : The Start Address of User Data F:/SocFpga/test/coremark_local.bin: 0xa00000
+[Debug] [2026-10-6 21:28:13] End to Converte file.
+[Info] [2026-10-6 21:28:15] Configuration is not connect with server. connect first then scan chain.
+[Debug] [2026-10-6 21:28:15] Client Local host name:ZHAO-Zhenxiang
+[Debug] [2026-10-6 21:28:15] Client Local Address:192.168.56.1
+[Debug] [2026-10-6 21:28:15] Client Local Address:192.168.202.1
+[Debug] [2026-10-6 21:28:15] Client Local Address:192.168.192.1
+[Debug] [2026-10-6 21:28:15] Client Local Address:192.168.1.104
+[Debug] [2026-10-6 21:28:15] Server Address:127.0.0.1, Port:65420
+[Debug] [2026-10-6 21:28:15] Log::Print : Connecting to server[127.0.0.1 : 65420].
+[Info] [2026-10-6 21:28:15] Connect OK, Server: 127.0.0.1  Port: 65420
+[Debug] [2026-10-6 21:28:15] Finish.
+[Info] [2026-10-6 21:28:15] Connect server succeeded
+[Debug] [2026-10-6 21:28:15] Send RPC:1
+[Debug] [2026-10-6 21:28:15] Send cmd [check version information:40004] OK
+[Debug] [2026-10-6 21:28:15] Log::Print : Connect to server[127.0.0.1 : 65420] successfully.
+[Debug] [2026-10-6 21:28:16] Send RPC:2
+[Debug] [2026-10-6 21:28:16] Send cmd [get_cable_paras:40010] OK
+[Debug] [2026-10-6 21:28:16] Begin to send initialize chain cmd...
+[Debug] [2026-10-6 21:28:16] Send RPC:3
+[Debug] [2026-10-6 21:28:16] Send cmd [Open config cable:20001] OK
+[Debug] [2026-10-6 21:28:16] End to send initialize chain cmd.
+[Debug] [2026-10-6 21:28:16] COMMAND[check version information] execute successfully, takes 1.1 secs.
+[Debug] [2026-10-6 21:28:16] Log::Print : COMMAND[check version information] execute successfully, takes 1.1 secs.
+[Debug] [2026-10-6 21:28:18] COMMAND[get_cable_paras] execute successfully, takes 1.9 secs.
+[Debug] [2026-10-6 21:28:18] Log::Print : The cable List : 
+Cable index 0:USB Cable II/fffffffffffffffe 
+
+[Debug] [2026-10-6 21:28:18] Log::Print : COMMAND[get_cable_paras] execute successfully, takes 1.9 secs.
+[Debug] [2026-10-6 21:28:19] begin the exec of open cable cmd...
+[Debug] [2026-10-6 21:28:19] Begin to deal with chain from server...
+[Debug] [2026-10-6 21:28:19] Begin to set user chain...
+[Debug] [2026-10-6 21:28:19] End to set user chain.
+[Debug] [2026-10-6 21:28:19] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 21:28:19] End to update graphic item and tree item ...
+[Debug] [2026-10-6 21:28:19] Log::Print : PANGO USB CABLE II cable driver: D2XX DLL
+[Debug] [2026-10-6 21:28:19] Log::Print : PG2L200H
+[Debug] [2026-10-6 21:28:19] Log::Print : This device configure situation (done bit): 0
+[Info] [2026-10-6 21:28:25] set OpenLastPath: F:/SocFpga/project/generate_bitstream/Hfpga_soc.sbit
+[Debug] [2026-10-6 21:28:25] begin to get device info from CFG file...
+[Debug] [2026-10-6 21:28:25] end to get device info from CFG file...
+[Debug] [2026-10-6 21:28:25] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 21:28:25] End to update graphic item and tree item ...
+[Debug] [2026-10-6 21:28:25] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 21:28:25] End to update graphic item and tree item ...
+[Debug] [2026-10-6 21:28:25] End to deal wiht chain from server.
+[Debug] [2026-10-6 21:28:25] end the exec of open cable cmd.
+[Debug] [2026-10-6 21:28:25] COMMAND[Open config cable] execute successfully, takes 8.9 secs.
+[Debug] [2026-10-6 21:28:25] Log::Print : COMMAND[Open config cable] execute successfully, takes 8.9 secs.
+[Debug] [2026-10-6 21:28:27] Begin to send scan outer flash cmd...
+[Debug] [2026-10-6 21:28:27] Send RPC:4
+[Debug] [2026-10-6 21:28:27] Send cmd [Scan Outer SPI Flash:20300] OK
+[Debug] [2026-10-6 21:28:27] End to send scan outer flash cmd.
+[Debug] [2026-10-6 21:28:27] begin to exec scan jtag flash cmd...
+[Debug] [2026-10-6 21:28:27] Begin to initialize JtagFlash for selected FPGA Device...
+[Debug] [2026-10-6 21:28:27] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 21:28:27] End to update graphic item and tree item ...
+[Info] [2026-10-6 21:28:29] set OpenLastPath: F:/SocFpga/project/generate_bitstream/Hfpga_soc.sfc
+[Debug] [2026-10-6 21:28:29] begin to check SFC File and Flash Device Read Mode.
+[Debug] [2026-10-6 21:28:29] end to check SFC File and Flash Device Read Mode.
+[Debug] [2026-10-6 21:28:29] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 21:28:29] End to update graphic item and tree item ...
+[Debug] [2026-10-6 21:28:29] End to initialize OuterFlash for selected FPGA Device...
+[Debug] [2026-10-6 21:28:29] end to exec scan jtag flash cmd...
+[Debug] [2026-10-6 21:28:29] COMMAND[Scan Outer SPI Flash] execute successfully, takes 1.7 secs.
+[Debug] [2026-10-6 21:28:29] Log::Print : COMMAND[Scan Outer SPI Flash] execute successfully, takes 1.7 secs.
+[Debug] [2026-10-6 21:28:31] begin to send promgram jtag flash cmd.
+[Debug] [2026-10-6 21:28:31] begin to send jtag flash erase cmd
+[Debug] [2026-10-6 21:28:31] Send RPC:5
+[Debug] [2026-10-6 21:28:31] Begin to send embed flash erase data.
+[Debug] [2026-10-6 21:28:31] Begin to send flash erase data.
+[Debug] [2026-10-6 21:28:31] End to send flash erase data.
+[Debug] [2026-10-6 21:28:31] End to send embed flash erase data.
+[Debug] [2026-10-6 21:28:31] Send cmd [Erase Outer Flash:20302] OK
+[Debug] [2026-10-6 21:28:31] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 21:28:31] The value of Progress is 1
+[Debug] [2026-10-6 21:28:33] The value of Progress is 6
+[Debug] [2026-10-6 21:28:35] The value of Progress is 10
+[Debug] [2026-10-6 21:28:37] The value of Progress is 15
+[Debug] [2026-10-6 21:28:38] The value of Progress is 20
+[Debug] [2026-10-6 21:28:40] The value of Progress is 25
+[Debug] [2026-10-6 21:28:42] The value of Progress is 30
+[Debug] [2026-10-6 21:28:43] The value of Progress is 35
+[Debug] [2026-10-6 21:28:45] The value of Progress is 40
+[Debug] [2026-10-6 21:28:47] The value of Progress is 45
+[Debug] [2026-10-6 21:28:49] The value of Progress is 50
+[Debug] [2026-10-6 21:28:50] The value of Progress is 55
+[Debug] [2026-10-6 21:28:52] The value of Progress is 60
+[Debug] [2026-10-6 21:28:54] The value of Progress is 65
+[Debug] [2026-10-6 21:28:56] The value of Progress is 70
+[Debug] [2026-10-6 21:28:57] The value of Progress is 75
+[Debug] [2026-10-6 21:28:59] The value of Progress is 80
+[Debug] [2026-10-6 21:29:01] The value of Progress is 85
+[Debug] [2026-10-6 21:29:03] The value of Progress is 90
+[Debug] [2026-10-6 21:29:04] The value of Progress is 95
+[Debug] [2026-10-6 21:29:06] The value of Progress is 100
+[Debug] [2026-10-6 21:29:06] COMMAND[Erase Outer Flash] execute finish, takes 35.4 secs.
+[Debug] [2026-10-6 21:29:06] end to send jtag flash erase cmd.
+[Debug] [2026-10-6 21:29:06] Send RPC:6
+[Debug] [2026-10-6 21:29:06] Begin to send jtag flash program data.
+[Debug] [2026-10-6 21:29:06] Begin to send flash program data.
+[Debug] [2026-10-6 21:29:06] End to send flash program data.
+[Debug] [2026-10-6 21:29:06] End to send embed flash program data.
+[Debug] [2026-10-6 21:29:06] Send cmd [Program Outer Flash:20301] OK
+[Debug] [2026-10-6 21:29:06] Log::Print : COMMAND[Erase Outer Flash] execute finish, takes 35.4 secs.
+[Debug] [2026-10-6 21:29:06] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 21:29:08] The value of Progress is 1
+[Debug] [2026-10-6 21:29:18] The value of Progress is 6
+[Debug] [2026-10-6 21:29:25] The value of Progress is 10
+[Debug] [2026-10-6 21:29:33] The value of Progress is 15
+[Debug] [2026-10-6 21:29:41] The value of Progress is 20
+[Debug] [2026-10-6 21:29:49] The value of Progress is 25
+[Debug] [2026-10-6 21:29:58] The value of Progress is 30
+[Debug] [2026-10-6 21:30:06] The value of Progress is 35
+[Debug] [2026-10-6 21:30:14] The value of Progress is 40
+[Debug] [2026-10-6 21:30:22] The value of Progress is 45
+[Debug] [2026-10-6 21:30:31] The value of Progress is 50
+[Debug] [2026-10-6 21:30:39] The value of Progress is 55
+[Debug] [2026-10-6 21:30:47] The value of Progress is 60
+[Debug] [2026-10-6 21:30:55] The value of Progress is 65
+[Debug] [2026-10-6 21:31:04] The value of Progress is 70
+[Debug] [2026-10-6 21:31:12] The value of Progress is 75
+[Debug] [2026-10-6 21:31:20] The value of Progress is 80
+[Debug] [2026-10-6 21:31:28] The value of Progress is 85
+[Debug] [2026-10-6 21:31:36] The value of Progress is 90
+[Debug] [2026-10-6 21:31:45] The value of Progress is 95
+[Debug] [2026-10-6 21:31:53] The value of Progress is 100
+[Debug] [2026-10-6 21:31:53] COMMAND[Program Outer Flash] execute finish, takes 167.0 secs.
+[Debug] [2026-10-6 21:31:53] begin to send jtag flash verify cmd
+[Debug] [2026-10-6 21:31:53] Send RPC:7
+[Debug] [2026-10-6 21:31:53] Begin to send embed flash verify data.
+[Debug] [2026-10-6 21:31:53] Begin to send flash verify data.
+[Debug] [2026-10-6 21:31:53] End to send flash verify data.
+[Debug] [2026-10-6 21:31:53] End to send embed flash verify data.
+[Debug] [2026-10-6 21:31:53] Send cmd [Verify Outer Flash:20303] OK
+[Debug] [2026-10-6 21:31:53] Log::Print : COMMAND[Program Outer Flash] execute finish, takes 167.0 secs.
+[Debug] [2026-10-6 21:31:53] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 21:31:53] The value of Progress is 1
+[Debug] [2026-10-6 21:31:54] The value of Progress is 6
+[Debug] [2026-10-6 21:31:54] The value of Progress is 10
+[Debug] [2026-10-6 21:31:55] The value of Progress is 15
+[Debug] [2026-10-6 21:31:55] The value of Progress is 20
+[Debug] [2026-10-6 21:31:56] The value of Progress is 25
+[Debug] [2026-10-6 21:31:56] The value of Progress is 30
+[Debug] [2026-10-6 21:31:57] The value of Progress is 35
+[Debug] [2026-10-6 21:31:57] The value of Progress is 40
+[Debug] [2026-10-6 21:31:58] The value of Progress is 45
+[Debug] [2026-10-6 21:31:59] The value of Progress is 50
+[Debug] [2026-10-6 21:31:59] The value of Progress is 55
+[Debug] [2026-10-6 21:32:00] The value of Progress is 60
+[Debug] [2026-10-6 21:32:00] The value of Progress is 65
+[Debug] [2026-10-6 21:32:01] The value of Progress is 70
+[Debug] [2026-10-6 21:32:01] The value of Progress is 75
+[Debug] [2026-10-6 21:32:02] The value of Progress is 80
+[Debug] [2026-10-6 21:32:02] The value of Progress is 85
+[Debug] [2026-10-6 21:32:03] The value of Progress is 90
+[Debug] [2026-10-6 21:32:03] The value of Progress is 95
+[Debug] [2026-10-6 21:32:04] The value of Progress is 100
+[Debug] [2026-10-6 21:32:04] COMMAND[Verify Outer Flash] execute successfully, takes 11.0 secs.
+[Debug] [2026-10-6 21:32:04] end to send jtag flash verify cmd
+[Debug] [2026-10-6 21:32:04] end to send jtag flash program cmd.
+[Debug] [2026-10-6 21:32:04] Log::Print : COMMAND[Verify Outer Flash] execute successfully, takes 11.0 secs.
+[Info] [2026-10-6 22:18:43] /***************************End Configration***************************/
+[Info] [2026-10-6 22:28:57] /***************************Start Configuration***************************/
+[Info] [2026-10-6 22:28:57] Path: F:/PDS_2022.2-SP6.4/bin
+[Info] [2026-10-6 22:28:57] Version: 146967
+[Info] [2026-10-6 22:28:58] Current Path: F:/SocFpga/project
+[Info] [2026-10-6 22:28:58] PDS Dir Path: F:/SocFpga/project
+[Debug] [2026-10-6 22:29:06] Begin to Converte file.
+[Debug] [2026-10-6 22:29:14] begin to parse sfc file.
+[Debug] [2026-10-6 22:29:14] begin to get device info from CFG file...
+[Debug] [2026-10-6 22:29:14] end to get device info from CFG file...
+[Debug] [2026-10-6 22:29:14] begin to get device info from CFG file...
+[Debug] [2026-10-6 22:29:14] end to get device info from CFG file...
+[Debug] [2026-10-6 22:29:14] end to parse sfc file.
+[Debug] [2026-10-6 22:29:14] Log::Print : The Start Address of bit file F:/SocFpga/project/generate_bitstream/Hfpga_soc.sbit: 0x0
+[Debug] [2026-10-6 22:29:15] End to Converte file.
+[Info] [2026-10-6 22:29:16] Configuration is not connect with server. connect first then scan chain.
+[Debug] [2026-10-6 22:29:16] Client Local host name:ZHAO-Zhenxiang
+[Debug] [2026-10-6 22:29:16] Client Local Address:192.168.56.1
+[Debug] [2026-10-6 22:29:16] Client Local Address:192.168.202.1
+[Debug] [2026-10-6 22:29:16] Client Local Address:192.168.192.1
+[Debug] [2026-10-6 22:29:16] Client Local Address:192.168.1.104
+[Debug] [2026-10-6 22:29:16] Server Address:127.0.0.1, Port:65420
+[Debug] [2026-10-6 22:29:16] Log::Print : Connecting to server[127.0.0.1 : 65420].
+[Info] [2026-10-6 22:29:17] Connect OK, Server: 127.0.0.1  Port: 65420
+[Debug] [2026-10-6 22:29:17] Finish.
+[Info] [2026-10-6 22:29:17] Connect server succeeded
+[Debug] [2026-10-6 22:29:17] Send RPC:1
+[Debug] [2026-10-6 22:29:17] Send cmd [check version information:40004] OK
+[Debug] [2026-10-6 22:29:17] Log::Print : Connect to server[127.0.0.1 : 65420] successfully.
+[Debug] [2026-10-6 22:29:18] Send RPC:2
+[Debug] [2026-10-6 22:29:18] Send cmd [get_cable_paras:40010] OK
+[Debug] [2026-10-6 22:29:18] Begin to send initialize chain cmd...
+[Debug] [2026-10-6 22:29:18] Send RPC:3
+[Debug] [2026-10-6 22:29:18] Send cmd [Open config cable:20001] OK
+[Debug] [2026-10-6 22:29:18] End to send initialize chain cmd.
+[Debug] [2026-10-6 22:29:18] COMMAND[check version information] execute successfully, takes 1.1 secs.
+[Debug] [2026-10-6 22:29:18] Log::Print : COMMAND[check version information] execute successfully, takes 1.1 secs.
+[Debug] [2026-10-6 22:29:20] COMMAND[get_cable_paras] execute successfully, takes 1.9 secs.
+[Debug] [2026-10-6 22:29:20] Log::Print : The cable List : 
+Cable index 0:USB Cable II/fffffffffffffffe 
+
+[Debug] [2026-10-6 22:29:20] Log::Print : COMMAND[get_cable_paras] execute successfully, takes 1.9 secs.
+[Debug] [2026-10-6 22:29:20] begin the exec of open cable cmd...
+[Debug] [2026-10-6 22:29:20] Begin to deal with chain from server...
+[Debug] [2026-10-6 22:29:20] Begin to set user chain...
+[Debug] [2026-10-6 22:29:20] End to set user chain.
+[Debug] [2026-10-6 22:29:20] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 22:29:20] End to update graphic item and tree item ...
+[Debug] [2026-10-6 22:29:20] Log::Print : PANGO USB CABLE II cable driver: D2XX DLL
+[Debug] [2026-10-6 22:29:20] Log::Print : PG2L200H
+[Debug] [2026-10-6 22:29:20] Log::Print : This device configure situation (done bit): 0
+[Info] [2026-10-6 22:29:23] set OpenLastPath: F:/SocFpga/project/generate_bitstream/Hfpga_soc.sbit
+[Debug] [2026-10-6 22:29:23] begin to get device info from CFG file...
+[Debug] [2026-10-6 22:29:23] end to get device info from CFG file...
+[Debug] [2026-10-6 22:29:23] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 22:29:23] End to update graphic item and tree item ...
+[Debug] [2026-10-6 22:29:23] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 22:29:23] End to update graphic item and tree item ...
+[Debug] [2026-10-6 22:29:23] End to deal wiht chain from server.
+[Debug] [2026-10-6 22:29:23] end the exec of open cable cmd.
+[Debug] [2026-10-6 22:29:23] COMMAND[Open config cable] execute successfully, takes 4.7 secs.
+[Debug] [2026-10-6 22:29:23] Log::Print : COMMAND[Open config cable] execute successfully, takes 4.7 secs.
+[Debug] [2026-10-6 22:29:25] Begin to send programming cmd...
+[Debug] [2026-10-6 22:29:25] Send RPC:4
+[Debug] [2026-10-6 22:29:25] Begin to send program data.
+[Debug] [2026-10-6 22:29:25] End to send program data.
+[Debug] [2026-10-6 22:29:25] Send cmd [Program:20002] OK
+[Debug] [2026-10-6 22:29:26] The value of Progress is 6
+[Debug] [2026-10-6 22:29:26] The value of Progress is 10
+[Debug] [2026-10-6 22:29:27] The value of Progress is 15
+[Debug] [2026-10-6 22:29:27] The value of Progress is 20
+[Debug] [2026-10-6 22:29:27] The value of Progress is 25
+[Debug] [2026-10-6 22:29:28] The value of Progress is 30
+[Debug] [2026-10-6 22:29:28] The value of Progress is 35
+[Debug] [2026-10-6 22:29:28] The value of Progress is 40
+[Debug] [2026-10-6 22:29:29] The value of Progress is 45
+[Debug] [2026-10-6 22:29:29] The value of Progress is 50
+[Debug] [2026-10-6 22:29:30] The value of Progress is 55
+[Debug] [2026-10-6 22:29:30] The value of Progress is 60
+[Debug] [2026-10-6 22:29:30] The value of Progress is 65
+[Debug] [2026-10-6 22:29:31] The value of Progress is 70
+[Debug] [2026-10-6 22:29:31] The value of Progress is 75
+[Debug] [2026-10-6 22:29:32] The value of Progress is 80
+[Debug] [2026-10-6 22:29:32] The value of Progress is 85
+[Debug] [2026-10-6 22:29:32] The value of Progress is 90
+[Debug] [2026-10-6 22:29:33] The value of Progress is 95
+[Debug] [2026-10-6 22:29:33] The value of Progress is 100
+[Debug] [2026-10-6 22:29:33] COMMAND[Program] execute successfully, takes 8.1 secs.
+[Debug] [2026-10-6 22:29:33] End to send programming cmd.
+[Debug] [2026-10-6 22:29:33] Log::Print : The done bit is 1
+[Debug] [2026-10-6 22:29:33] Log::Print : COMMAND[Program] execute successfully, takes 8.1 secs.
+[Debug] [2026-10-6 22:29:36] Begin to send verify cmd in BS mode...
+[Debug] [2026-10-6 22:29:36] Begin to check mask file.
+[Debug] [2026-10-6 22:29:36] End to check mask file.
+[Debug] [2026-10-6 22:29:36] Send RPC:5
+[Debug] [2026-10-6 22:29:36] Begin to send verify data.
+[Debug] [2026-10-6 22:29:36] End to send verify data.
+[Debug] [2026-10-6 22:29:36] Send cmd [Verify:20004] OK
+[Debug] [2026-10-6 22:29:37] The value of Progress is 6
+[Debug] [2026-10-6 22:29:38] The value of Progress is 10
+[Debug] [2026-10-6 22:29:38] The value of Progress is 15
+[Debug] [2026-10-6 22:29:39] The value of Progress is 20
+[Debug] [2026-10-6 22:29:39] The value of Progress is 25
+[Debug] [2026-10-6 22:29:40] The value of Progress is 30
+[Debug] [2026-10-6 22:29:41] The value of Progress is 35
+[Debug] [2026-10-6 22:29:41] The value of Progress is 40
+[Debug] [2026-10-6 22:29:42] The value of Progress is 45
+[Debug] [2026-10-6 22:29:42] The value of Progress is 50
+[Debug] [2026-10-6 22:29:43] The value of Progress is 55
+[Debug] [2026-10-6 22:29:43] The value of Progress is 60
+[Debug] [2026-10-6 22:29:44] The value of Progress is 65
+[Debug] [2026-10-6 22:29:45] The value of Progress is 70
+[Debug] [2026-10-6 22:29:45] The value of Progress is 75
+[Debug] [2026-10-6 22:29:46] The value of Progress is 80
+[Debug] [2026-10-6 22:29:46] The value of Progress is 85
+[Debug] [2026-10-6 22:29:47] The value of Progress is 90
+[Debug] [2026-10-6 22:29:47] The value of Progress is 95
+[Debug] [2026-10-6 22:29:48] The value of Progress is 100
+[Debug] [2026-10-6 22:29:48] COMMAND[Verify] execute successfully, takes 12.0 secs.
+[Debug] [2026-10-6 22:29:48] End to send verify cmd in BS mode.
+[Debug] [2026-10-6 22:29:48] Log::Print : COMMAND[Verify] execute successfully, takes 12.0 secs.
+[Debug] [2026-10-6 22:35:54] Begin to send scan outer flash cmd...
+[Debug] [2026-10-6 22:35:54] Send RPC:6
+[Debug] [2026-10-6 22:35:54] Send cmd [Scan Outer SPI Flash:20300] OK
+[Debug] [2026-10-6 22:35:54] End to send scan outer flash cmd.
+[Debug] [2026-10-6 22:35:54] begin to exec scan jtag flash cmd...
+[Debug] [2026-10-6 22:35:54] Begin to initialize JtagFlash for selected FPGA Device...
+[Debug] [2026-10-6 22:35:54] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 22:35:54] End to update graphic item and tree item ...
+[Info] [2026-10-6 22:35:56] set OpenLastPath: F:/SocFpga/project/generate_bitstream/Hfpga_soc.sfc
+[Debug] [2026-10-6 22:35:56] begin to check SFC File and Flash Device Read Mode.
+[Debug] [2026-10-6 22:35:56] end to check SFC File and Flash Device Read Mode.
+[Debug] [2026-10-6 22:35:56] Begin to update graphic item and tree item ...
+[Debug] [2026-10-6 22:35:56] End to update graphic item and tree item ...
+[Debug] [2026-10-6 22:35:56] End to initialize OuterFlash for selected FPGA Device...
+[Debug] [2026-10-6 22:35:56] end to exec scan jtag flash cmd...
+[Debug] [2026-10-6 22:35:56] COMMAND[Scan Outer SPI Flash] execute successfully, takes 1.9 secs.
+[Debug] [2026-10-6 22:35:56] Log::Print : COMMAND[Scan Outer SPI Flash] execute successfully, takes 1.9 secs.
+[Debug] [2026-10-6 22:35:58] begin to send promgram jtag flash cmd.
+[Debug] [2026-10-6 22:35:58] begin to send jtag flash erase cmd
+[Debug] [2026-10-6 22:35:58] Send RPC:7
+[Debug] [2026-10-6 22:35:58] Begin to send embed flash erase data.
+[Debug] [2026-10-6 22:35:58] Begin to send flash erase data.
+[Debug] [2026-10-6 22:35:58] End to send flash erase data.
+[Debug] [2026-10-6 22:35:58] End to send embed flash erase data.
+[Debug] [2026-10-6 22:35:58] Send cmd [Erase Outer Flash:20302] OK
+[Debug] [2026-10-6 22:35:58] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 22:35:58] The value of Progress is 1
+[Error] [2026-10-6 22:36:02] fail to exec Erase Outer Flash cmd...
+[Debug] [2026-10-6 22:36:02] end to send jtag flash erase cmd.
+[Error] [2026-10-6 22:36:02] Flash Erasing failed before programming.
+[Error] [2026-10-6 22:36:02] MsgOut: Configuration-0008: The command 'Erase Outer Flash' execute fail.
+[Debug] [2026-10-6 22:36:05] begin to send promgram jtag flash cmd.
+[Debug] [2026-10-6 22:36:05] begin to send jtag flash erase cmd
+[Debug] [2026-10-6 22:36:05] Send RPC:8
+[Debug] [2026-10-6 22:36:05] Begin to send embed flash erase data.
+[Debug] [2026-10-6 22:36:05] Begin to send flash erase data.
+[Debug] [2026-10-6 22:36:05] End to send flash erase data.
+[Debug] [2026-10-6 22:36:05] End to send embed flash erase data.
+[Debug] [2026-10-6 22:36:05] Send cmd [Erase Outer Flash:20302] OK
+[Debug] [2026-10-6 22:36:05] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 22:36:05] The value of Progress is 1
+[Debug] [2026-10-6 22:36:08] The value of Progress is 6
+[Debug] [2026-10-6 22:36:09] The value of Progress is 10
+[Debug] [2026-10-6 22:36:10] The value of Progress is 15
+[Debug] [2026-10-6 22:36:12] The value of Progress is 20
+[Debug] [2026-10-6 22:36:13] The value of Progress is 25
+[Debug] [2026-10-6 22:36:15] The value of Progress is 30
+[Debug] [2026-10-6 22:36:16] The value of Progress is 35
+[Debug] [2026-10-6 22:36:18] The value of Progress is 40
+[Debug] [2026-10-6 22:36:19] The value of Progress is 45
+[Debug] [2026-10-6 22:36:21] The value of Progress is 50
+[Debug] [2026-10-6 22:36:22] The value of Progress is 55
+[Debug] [2026-10-6 22:36:24] The value of Progress is 60
+[Debug] [2026-10-6 22:36:25] The value of Progress is 65
+[Debug] [2026-10-6 22:36:27] The value of Progress is 70
+[Debug] [2026-10-6 22:36:28] The value of Progress is 75
+[Debug] [2026-10-6 22:36:30] The value of Progress is 80
+[Debug] [2026-10-6 22:36:31] The value of Progress is 85
+[Debug] [2026-10-6 22:36:33] The value of Progress is 90
+[Debug] [2026-10-6 22:36:34] The value of Progress is 95
+[Debug] [2026-10-6 22:36:36] The value of Progress is 100
+[Debug] [2026-10-6 22:36:36] COMMAND[Erase Outer Flash] execute finish, takes 30.7 secs.
+[Debug] [2026-10-6 22:36:36] end to send jtag flash erase cmd.
+[Debug] [2026-10-6 22:36:36] Send RPC:9
+[Debug] [2026-10-6 22:36:36] Begin to send jtag flash program data.
+[Debug] [2026-10-6 22:36:36] Begin to send flash program data.
+[Debug] [2026-10-6 22:36:36] End to send flash program data.
+[Debug] [2026-10-6 22:36:36] End to send embed flash program data.
+[Debug] [2026-10-6 22:36:36] Send cmd [Program Outer Flash:20301] OK
+[Debug] [2026-10-6 22:36:36] Log::Print : COMMAND[Erase Outer Flash] execute finish, takes 30.7 secs.
+[Debug] [2026-10-6 22:36:36] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 22:36:38] The value of Progress is 1
+[Debug] [2026-10-6 22:36:47] The value of Progress is 6
+[Debug] [2026-10-6 22:36:52] The value of Progress is 10
+[Debug] [2026-10-6 22:37:00] The value of Progress is 15
+[Debug] [2026-10-6 22:37:07] The value of Progress is 20
+[Debug] [2026-10-6 22:37:14] The value of Progress is 25
+[Debug] [2026-10-6 22:37:21] The value of Progress is 30
+[Debug] [2026-10-6 22:37:28] The value of Progress is 35
+[Debug] [2026-10-6 22:37:36] The value of Progress is 40
+[Debug] [2026-10-6 22:37:43] The value of Progress is 45
+[Debug] [2026-10-6 22:37:50] The value of Progress is 50
+[Debug] [2026-10-6 22:37:57] The value of Progress is 55
+[Debug] [2026-10-6 22:38:04] The value of Progress is 60
+[Debug] [2026-10-6 22:38:12] The value of Progress is 65
+[Debug] [2026-10-6 22:38:19] The value of Progress is 70
+[Debug] [2026-10-6 22:38:26] The value of Progress is 75
+[Debug] [2026-10-6 22:38:33] The value of Progress is 80
+[Debug] [2026-10-6 22:38:40] The value of Progress is 85
+[Debug] [2026-10-6 22:38:48] The value of Progress is 90
+[Debug] [2026-10-6 22:38:55] The value of Progress is 95
+[Debug] [2026-10-6 22:39:02] The value of Progress is 100
+[Debug] [2026-10-6 22:39:02] COMMAND[Program Outer Flash] execute finish, takes 146.2 secs.
+[Debug] [2026-10-6 22:39:02] begin to send jtag flash verify cmd
+[Debug] [2026-10-6 22:39:02] Send RPC:10
+[Debug] [2026-10-6 22:39:02] Begin to send embed flash verify data.
+[Debug] [2026-10-6 22:39:02] Begin to send flash verify data.
+[Debug] [2026-10-6 22:39:02] End to send flash verify data.
+[Debug] [2026-10-6 22:39:02] End to send embed flash verify data.
+[Debug] [2026-10-6 22:39:02] Send cmd [Verify Outer Flash:20303] OK
+[Debug] [2026-10-6 22:39:02] Log::Print : COMMAND[Program Outer Flash] execute finish, takes 146.2 secs.
+[Debug] [2026-10-6 22:39:02] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 22:39:02] The value of Progress is 1
+[Debug] [2026-10-6 22:39:03] The value of Progress is 6
+[Debug] [2026-10-6 22:39:03] The value of Progress is 10
+[Debug] [2026-10-6 22:39:04] The value of Progress is 15
+[Debug] [2026-10-6 22:39:04] The value of Progress is 20
+[Debug] [2026-10-6 22:39:05] The value of Progress is 25
+[Debug] [2026-10-6 22:39:05] The value of Progress is 30
+[Debug] [2026-10-6 22:39:05] The value of Progress is 35
+[Debug] [2026-10-6 22:39:06] The value of Progress is 40
+[Debug] [2026-10-6 22:39:06] The value of Progress is 45
+[Debug] [2026-10-6 22:39:07] The value of Progress is 50
+[Debug] [2026-10-6 22:39:07] The value of Progress is 55
+[Debug] [2026-10-6 22:39:08] The value of Progress is 60
+[Debug] [2026-10-6 22:39:08] The value of Progress is 65
+[Debug] [2026-10-6 22:39:09] The value of Progress is 70
+[Debug] [2026-10-6 22:39:09] The value of Progress is 75
+[Debug] [2026-10-6 22:39:10] The value of Progress is 80
+[Debug] [2026-10-6 22:39:10] The value of Progress is 85
+[Debug] [2026-10-6 22:39:11] The value of Progress is 90
+[Debug] [2026-10-6 22:39:11] The value of Progress is 95
+[Debug] [2026-10-6 22:39:11] The value of Progress is 100
+[Debug] [2026-10-6 22:39:12] COMMAND[Verify Outer Flash] execute successfully, takes 9.7 secs.
+[Debug] [2026-10-6 22:39:12] end to send jtag flash verify cmd
+[Debug] [2026-10-6 22:39:12] end to send jtag flash program cmd.
+[Debug] [2026-10-6 22:39:12] Log::Print : COMMAND[Verify Outer Flash] execute successfully, takes 9.7 secs.
+[Debug] [2026-10-6 22:39:38] begin to send jtag flash verify cmd
+[Debug] [2026-10-6 22:39:38] Send RPC:11
+[Debug] [2026-10-6 22:39:38] Begin to send embed flash verify data.
+[Debug] [2026-10-6 22:39:38] Begin to send flash verify data.
+[Debug] [2026-10-6 22:39:38] End to send flash verify data.
+[Debug] [2026-10-6 22:39:38] End to send embed flash verify data.
+[Debug] [2026-10-6 22:39:38] Send cmd [Verify Outer Flash:20303] OK
+[Debug] [2026-10-6 22:39:38] Log::Print : The start address of operating flash is 0x0.
+[Debug] [2026-10-6 22:39:39] The value of Progress is 1
+[Debug] [2026-10-6 22:39:39] The value of Progress is 6
+[Debug] [2026-10-6 22:39:40] The value of Progress is 10
+[Debug] [2026-10-6 22:39:40] The value of Progress is 15
+[Debug] [2026-10-6 22:39:40] The value of Progress is 20
+[Debug] [2026-10-6 22:39:41] The value of Progress is 25
+[Debug] [2026-10-6 22:39:41] The value of Progress is 30
+[Debug] [2026-10-6 22:39:42] The value of Progress is 35
+[Debug] [2026-10-6 22:39:42] The value of Progress is 40
+[Debug] [2026-10-6 22:39:43] The value of Progress is 45
+[Debug] [2026-10-6 22:39:43] The value of Progress is 50
+[Debug] [2026-10-6 22:39:44] The value of Progress is 55
+[Debug] [2026-10-6 22:39:44] The value of Progress is 60
+[Debug] [2026-10-6 22:39:45] The value of Progress is 65
+[Debug] [2026-10-6 22:39:45] The value of Progress is 70
+[Debug] [2026-10-6 22:39:46] The value of Progress is 75
+[Debug] [2026-10-6 22:39:46] The value of Progress is 80
+[Debug] [2026-10-6 22:39:46] The value of Progress is 85
+[Debug] [2026-10-6 22:39:47] The value of Progress is 90
+[Debug] [2026-10-6 22:39:47] The value of Progress is 95
+[Debug] [2026-10-6 22:39:48] The value of Progress is 100
+[Debug] [2026-10-6 22:39:48] COMMAND[Verify Outer Flash] execute successfully, takes 9.5 secs.
+[Debug] [2026-10-6 22:39:48] end to send jtag flash verify cmd
+[Debug] [2026-10-6 22:39:48] Log::Print : COMMAND[Verify Outer Flash] execute successfully, takes 9.5 secs.
+[Info] [2026-10-6 22:41:41] /***************************End Configration***************************/

@@ -25,7 +25,7 @@
 
 `define SOC_FLASH_BASE               24'hA00000
 `define SOC_FLASH_ADDRESS_BYTES      32'd16777216
-`define SOC_BOOT_IMAGE_BYTES         32'd32768
+`define SOC_BOOT_IMAGE_BYTES         32'd0
 `define SOC_IRAM_BASE                32'h8000_0000
 `define SOC_IRAM_BYTES               32'd32768
 `define SOC_DRAM_BASE                32'h8000_8000

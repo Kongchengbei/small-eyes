@@ -52,6 +52,12 @@ F:/SocFpga/soc/camera_regs.vh|F:/SocFpga/soc/soc_addr_map.vh|
 
 F:/SocFpga/soc/Hcamera_dma.v|F:/SocFpga/soc/camera_regs.vh|
 
+
+
+
+F:/SocFpga/IP/imem/rtl/ipm2l_dpram_v1_9_imem.v|F:/SocFpga/IP/imem/rtl/imem_init_param.v|
+
+
 F:/SocFpga/IP/DataRAM/rtl/ipm2l_spram_v1_8_DataRAM.v|F:/SocFpga/IP/DataRAM/rtl/DataRAM_Reset_Value.v|
 
 

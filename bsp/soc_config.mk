@@ -9,7 +9,7 @@ BSP_SOC_ASM_HEADER := $(BSP_SOC_ROOT)/bsp/include/soc_defs_asm.inc
 .PHONY: bsp-soc-config-force
 bsp-soc-config-force:
 
-$(BSP_SOC_TOOL): $(BSP_SOC_ROOT)/scripts/soc_config.c
+$(BSP_SOC_TOOL): $(BSP_SOC_ROOT)/scripts/soc_config.c $(BSP_SOC_ROOT)/scripts/bram_init.h
 	@$(MAKE) --no-print-directory -C '$(BSP_SOC_ROOT)' build/menuconfig/soc_config
 
 $(BSP_SOC_HEADER): bsp-soc-config-force $(BSP_SOC_SOURCE) $(BSP_SOC_TOOL)

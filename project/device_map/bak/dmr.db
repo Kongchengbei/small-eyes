@@ -4479,10 +4479,10 @@
             <data>RAM(GB)</data>
         </column_headers>
         <row>
-            <data>0h:0m:3s</data>
-            <data>0h:0m:3s</data>
-            <data>0h:0m:11s</data>
-            <data>499</data>
+            <data>0h:0m:2s</data>
+            <data>0h:0m:2s</data>
+            <data>0h:0m:12s</data>
+            <data>500</data>
             <data>WINDOWS 10 x86_64</data>
             <data>13th Gen Intel(R) Core(TM) i7-13650HX</data>
             <data>24</data>
@@ -10321,7 +10321,7 @@
                     <data>inout</data>
                     <data>J4</data>
                     <data>1.5</data>
-                    <data>HSTL15D_I</data>
+                    <data>HSTL15_I</data>
                     <data>8</data>
                     <data>NONE</data>
                     <data>SLOW</data>
@@ -10354,7 +10354,7 @@
                     <data>inout</data>
                     <data>H7</data>
                     <data>1.5</data>
-                    <data>HSTL15D_I</data>
+                    <data>HSTL15_I</data>
                     <data>8</data>
                     <data>NONE</data>
                     <data>SLOW</data>
@@ -10387,7 +10387,7 @@
                     <data>inout</data>
                     <data>B5</data>
                     <data>1.5</data>
-                    <data>HSTL15D_I</data>
+                    <data>HSTL15_I</data>
                     <data>8</data>
                     <data>NONE</data>
                     <data>SLOW</data>
@@ -10420,7 +10420,7 @@
                     <data>inout</data>
                     <data>C1</data>
                     <data>1.5</data>
-                    <data>HSTL15D_I</data>
+                    <data>HSTL15_I</data>
                     <data>8</data>
                     <data>NONE</data>
                     <data>SLOW</data>
@@ -10453,7 +10453,7 @@
                     <data>inout</data>
                     <data>H4</data>
                     <data>1.5</data>
-                    <data>HSTL15D_I</data>
+                    <data>HSTL15_I</data>
                     <data>8</data>
                     <data>NONE</data>
                     <data>SLOW</data>
@@ -10486,7 +10486,7 @@
                     <data>inout</data>
                     <data>G7</data>
                     <data>1.5</data>
-                    <data>HSTL15D_I</data>
+                    <data>HSTL15_I</data>
                     <data>8</data>
                     <data>NONE</data>
                     <data>SLOW</data>
@@ -10519,7 +10519,7 @@
                     <data>inout</data>
                     <data>A5</data>
                     <data>1.5</data>
-                    <data>HSTL15D_I</data>
+                    <data>HSTL15_I</data>
                     <data>8</data>
                     <data>NONE</data>
                     <data>SLOW</data>
@@ -10552,7 +10552,7 @@
                     <data>inout</data>
                     <data>B1</data>
                     <data>1.5</data>
-                    <data>HSTL15D_I</data>
+                    <data>HSTL15_I</data>
                     <data>8</data>
                     <data>NONE</data>
                     <data>SLOW</data>
@@ -11509,7 +11509,7 @@
                     <data>output</data>
                     <data>U6</data>
                     <data>1.5</data>
-                    <data>HSTL15D_I</data>
+                    <data>HSTL15_I</data>
                     <data>8</data>
                     <data>NONE</data>
                     <data>SLOW</data>
@@ -11542,7 +11542,7 @@
                     <data>output</data>
                     <data>U5</data>
                     <data>1.5</data>
-                    <data>HSTL15D_I</data>
+                    <data>HSTL15_I</data>
                     <data>8</data>
                     <data>NONE</data>
                     <data>SLOW</data>

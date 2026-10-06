@@ -40,6 +40,12 @@ if [[ ! -f "$testbench" ]]; then
     exit 2
 fi
 
+if [[ "$selector" == tb_coremark_bram_uart || "$selector" == tb_hfpga_soc_bram_boot ]]; then
+    echo "error: $selector is a legacy Flash-to-BRAM startup bench; the production BRAM profile now boots from vendor INIT parameters." >&2
+    echo 'Use tb_coremark_bram_ip_uart for production startup, or tb_cpu_bram_ip_mem for the full vendor-memory check.' >&2
+    exit 2
+fi
+
 simulator="${SIMULATOR:-verilator}"
 jobs="${SIM_JOBS:-2}"
 timeout_seconds="${SIM_TIMEOUT:-120}"
@@ -107,8 +113,35 @@ fi
 mapfile -t rtl_sources < <(find cpu soc jtag -type f \
     \( -name '*.v' -o -name '*.sv' \) ! -path cpu/cache_bram.v | sort)
 sources=("${rtl_sources[@]}" sim/camera_ddr_model.sv sim/ov5640_sccb_model.sv)
-if [[ "$selector" == tb_hfpga_soc_bram_boot ]]; then
-    sources+=(sim/stubs/bram_profile_clock_stubs.v)
+if [[ "$selector" == tb_cpu_bram_ip_mem || "$selector" == tb_coremark_bram_ip_uart ]]; then
+    pds_sim_dir="${PDS_SIM_DIR:-/mnt/f/PDS_2022.2-SP6.4/arch/vendor/pango/verilog/simulation}"
+    for required_file in \
+        "$pds_sim_dir/GTP_DRM36K_E1.v" "$pds_sim_dir/GTP_GRS.v" \
+        IP/imem/imem.v IP/imem/rtl/ipm2l_dpram_v1_9_imem.v IP/imem/rtl/imem_init_param.v IP/imem/rtl/imem_init_words.hex \
+        IP/dmem/dmem.v IP/dmem/rtl/ipm2l_dpram_v1_9_dmem.v IP/dmem/rtl/dmem_init_param.v \
+        cpu/cpu_bram_ip_mem.v; do
+        if [[ ! -f "$required_file" ]]; then
+            echo "error: vendor BRAM simulation input missing: $required_file" >&2
+            echo 'Set PDS_SIM_DIR to the PDS Verilog simulation-model directory if needed.' >&2
+            exit 2
+        fi
+    done
+    sources+=(
+        IP/imem/imem.v IP/imem/rtl/ipm2l_dpram_v1_9_imem.v
+        IP/dmem/dmem.v IP/dmem/rtl/ipm2l_dpram_v1_9_dmem.v
+        "$pds_sim_dir/GTP_DRM36K_E1.v" "$pds_sim_dir/GTP_GRS.v"
+    )
+    extra_flags+=(-IIP/imem/rtl -IIP/dmem/rtl)
+fi
+if [[ "$selector" == tb_coremark_bram_ip_uart ]]; then
+    pds_sim_dir="${PDS_SIM_DIR:-/mnt/f/PDS_2022.2-SP6.4/arch/vendor/pango/verilog/simulation}"
+    if [[ ! -f "$pds_sim_dir/GTP_CFGCLK.v" ]]; then
+        echo "error: vendor BRAM simulation input missing: $pds_sim_dir/GTP_CFGCLK.v" >&2
+        echo 'Set PDS_SIM_DIR to the PDS Verilog simulation-model directory if needed.' >&2
+        exit 2
+    fi
+    sources+=(sim/stubs/bram_profile_clock_stubs.v "$pds_sim_dir/GTP_CFGCLK.v")
+    extra_flags+=(-DBRAM_VENDOR_IP_SIM -DBRAM_UART_REAL_CLOCK)
 fi
 sources+=("$testbench")
 

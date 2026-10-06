@@ -3,6 +3,9 @@
 module Htop #(
     parameter RESET_PC = 32'h8000_0000,
     parameter BRAM_MODE = 1'b0,
+    // Select the production vendor RAM wrappers with synthesis-time INIT
+    // parameters. The inferred implementation remains available to benches.
+    parameter BRAM_VENDOR_IP = 1'b0,
     parameter [31:0] DDR_BASE   = 32'h8000_0000,
     parameter [31:0] DDR_BYTES  = 32'h4000_0000,
     parameter [31:0] IRAM_BASE  = 32'h8000_0000,
@@ -329,6 +332,26 @@ module Htop #(
     end endgenerate
 
     generate if (BRAM_MODE) begin: gen_cpu_bram
+        if (BRAM_VENDOR_IP) begin: gen_vendor_bram
+        cpu_bram_ip_mem #(
+            .IRAM_BASE(IRAM_BASE), .IRAM_BYTES(IRAM_BYTES),
+            .DRAM_BASE(DRAM_BASE), .DRAM_BYTES(DRAM_BYTES)
+        ) u_bram_mem (
+            .clk(clk), .rst(rst),
+            .if_req_valid(if_req_valid), .if_req_addr(if_req_pc),
+            .if_req_ready(bram_if_ready), .if_rsp_valid(bram_if_resp_valid),
+            .if_rsp_data(bram_if_resp_data),
+            .data_req_valid(dmem_valid), .data_req_write(dmem_wen),
+            .data_req_addr(dmem_addr), .data_req_wdata(dmem_wdata),
+            .data_req_wstrb(dmem_wmask), .data_req_ready(bram_data_ready),
+            .data_rsp_valid(bram_data_rsp_valid), .data_rsp_data(bram_data_rsp_data),
+            .data_addr_local(bram_data_local),
+            .prog_valid(bram_prog_valid), .prog_write(bram_prog_write),
+            .prog_addr(bram_prog_addr), .prog_wdata(bram_prog_wdata),
+            .prog_wstrb(bram_prog_wstrb), .prog_ready(bram_prog_ready),
+            .prog_rdata(bram_prog_rdata)
+        );
+        end else begin: gen_inferred_bram
         cpu_bram_mem #(
             .IRAM_BASE(IRAM_BASE), .IRAM_BYTES(IRAM_BYTES),
             .DRAM_BASE(DRAM_BASE), .DRAM_BYTES(DRAM_BYTES)
@@ -347,6 +370,7 @@ module Htop #(
             .prog_wstrb(bram_prog_wstrb), .prog_ready(bram_prog_ready),
             .prog_rdata(bram_prog_rdata)
         );
+        end
         assign dmem_ready = !rst && (bram_data_local ? bram_data_ready :
                             ((ex_ins[6:0] == 7'b0100011) ? dc_wr_rdy : dc_rd_rdy));
         assign dmem_rsp_valid = bram_load_route_valid &&

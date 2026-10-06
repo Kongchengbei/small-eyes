@@ -3647,7 +3647,7 @@
             <data>g_bram_profile.u_bram_profile/u_pll/u_gpll</data>
             <data>clkbufg_0</data>
             <data>ntclkbufg_0</data>
-            <data>4351</data>
+            <data>4126</data>
         </row>
         <row>
             <data>O</data>
@@ -3664,9 +3664,9 @@
             <data>Fanout</data>
         </column_headers>
         <row>
-            <data>g_bram_profile.u_bram_profile/N30_1</data>
-            <data>g_bram_profile.u_bram_profile/N30_1</data>
-            <data>1099</data>
+            <data>g_bram_profile.u_bram_profile/N15_1</data>
+            <data>g_bram_profile.u_bram_profile/N15_1</data>
+            <data>895</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/N3</data>
@@ -3675,13 +3675,13 @@
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/cpu_rst</data>
-            <data>g_bram_profile.u_bram_profile/N47_10</data>
+            <data>g_bram_profile.u_bram_profile/N29_3</data>
             <data>2939</data>
         </row>
         <row>
             <data>_$$_GND_$$_</data>
             <data>_$$_GND_$$_</data>
-            <data>41</data>
+            <data>25</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N1630</data>
@@ -3818,17 +3818,17 @@
         <row>
             <data>ntclkbufg_0</data>
             <data>clkbufg_0</data>
-            <data>4351</data>
+            <data>4126</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/cpu_rst</data>
-            <data>g_bram_profile.u_bram_profile/N47_10</data>
-            <data>3026</data>
+            <data>g_bram_profile.u_bram_profile/N29_3</data>
+            <data>3007</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/N30_1</data>
-            <data>g_bram_profile.u_bram_profile/N30_1</data>
-            <data>1099</data>
+            <data>g_bram_profile.u_bram_profile/N15_1</data>
+            <data>g_bram_profile.u_bram_profile/N15_1</data>
+            <data>895</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/dbg_id_ins [22]</data>
@@ -3873,17 +3873,17 @@
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [0]</data>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[0]</data>
-            <data>161</data>
+            <data>165</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/dbg_id_pc [5]</data>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/id_pc_reg[5]</data>
-            <data>140</data>
+            <data>148</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/dbg_id_pc [4]</data>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/id_pc_reg[4]</data>
-            <data>140</data>
+            <data>148</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/dbg_id_ins [21]</data>
@@ -3891,14 +3891,19 @@
             <data>139</data>
         </row>
         <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [6]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[6]</data>
+            <data>137</data>
+        </row>
+        <row>
             <data>g_bram_profile.u_bram_profile/dbg_id_ins [16]</data>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/id_ins_reg[16]</data>
             <data>136</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/dbg_ctrl [21]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/N0_1</data>
-            <data>129</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [7]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[7]</data>
+            <data>128</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/btb_lookup_pc [3]</data>
@@ -3906,14 +3911,14 @@
             <data>125</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_alu_op [0]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_alu_op[0]</data>
-            <data>122</data>
+            <data>g_bram_profile.u_bram_profile/dbg_ctrl [21]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/N0_1</data>
+            <data>125</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [6]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[6]</data>
-            <data>112</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_alu_op [0]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_alu_op[0]</data>
+            <data>121</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_div/busy_reg</data>
@@ -3928,7 +3933,7 @@
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/alu_src2 [3]</data>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/N94[3]</data>
-            <data>100</data>
+            <data>101</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/alu_src2 [2]</data>
@@ -3946,28 +3951,23 @@
             <data>96</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [7]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[7]</data>
-            <data>91</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/alu_src2 [0]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/N94[0]</data>
-            <data>83</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/alu_src2 [1]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/N94[1]</data>
+            <data>90</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/dbg_id_pc [3]</data>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/id_pc_reg[3]</data>
-            <data>81</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/alu_src2[1]_cpy</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/N94[1]_cpy</data>
-            <data>79</data>
+            <data>89</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/dbg_id_ins [20]</data>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/id_ins_reg[20]</data>
+            <data>74</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [11]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[11]</data>
             <data>74</data>
         </row>
         <row>
@@ -3981,14 +3981,19 @@
             <data>70</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [11]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[11]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_m_op [0]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_m_op[0]</data>
             <data>69</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/g_bram_profile.u_bram_profile/debug_dmem_addr[1]_cpy</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_alu/N49_34[1]_cpy</data>
-            <data>67</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_m_op [3]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_m_op[3]</data>
+            <data>69</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_m_op [2]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_m_op[2]</data>
+            <data>69</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_div/N248</data>
@@ -3996,8 +4001,13 @@
             <data>66</data>
         </row>
         <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_src2_is_imm</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_src2_is_imm</data>
+            <data>66</data>
+        </row>
+        <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_ifu/N142</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_ifu/N1</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_ifu/N13_ac1_inv</data>
             <data>66</data>
         </row>
         <row>
@@ -4012,17 +4022,12 @@
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_ifu/N238</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_ifu/N167</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_ifu/N238</data>
             <data>64</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_alu_op [3]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_alu_op[3]</data>
-            <data>64</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/store_word</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/N166</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_ifu/_N7889</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_ifu/N239_9</data>
             <data>64</data>
         </row>
         <row>
@@ -4036,88 +4041,88 @@
             <data>62</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N620</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N620</data>
-            <data>60</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N584</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N580</data>
-            <data>60</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N616</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N612</data>
-            <data>60</data>
-        </row>
-        <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N560</data>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N560</data>
-            <data>60</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N624</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N620</data>
-            <data>60</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N588</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N588</data>
-            <data>60</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N580</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N580</data>
-            <data>60</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N592</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N588</data>
-            <data>60</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N596</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N596</data>
-            <data>60</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N600</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N596</data>
             <data>60</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N632</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N632</data>
+            <data>60</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N628</data>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N628</data>
             <data>60</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N608</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N624</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N624</data>
+            <data>60</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N588</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N588</data>
+            <data>60</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N592</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N592</data>
+            <data>60</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N580</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N580</data>
+            <data>60</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N604</data>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N604</data>
             <data>60</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N612</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N612</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N596</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N596</data>
+            <data>60</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N620</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N620</data>
+            <data>60</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N600</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N600</data>
+            <data>60</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/dbg_id_pc [2]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/id_pc_reg[2]</data>
+            <data>60</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N616</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N616</data>
             <data>60</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N568</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N560</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N568</data>
             <data>60</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_src2_is_imm</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_src2_is_imm</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N612</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N612</data>
             <data>60</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N604</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N604</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N608</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N608</data>
             <data>60</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N628</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N628</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N584</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N584</data>
             <data>60</data>
         </row>
         <row>
@@ -4126,7 +4131,12 @@
             <data>59</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/_N27439</data>
+            <data>g_bram_profile.u_bram_profile/mmio_req_addr [3]</data>
+            <data>g_bram_profile.u_bram_profile/u_mem/N891_3_3</data>
+            <data>58</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/_N30076</data>
             <data>g_bram_profile.u_bram_profile/u_cpu/N4_1</data>
             <data>58</data>
         </row>
@@ -4136,9 +4146,9 @@
             <data>58</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/mmio_req_addr [3]</data>
-            <data>g_bram_profile.u_bram_profile/u_mem/N891_7_3</data>
-            <data>58</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_alu_op [3]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_alu_op[3]</data>
+            <data>57</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/dbg_id_ins [2]</data>
@@ -4151,9 +4161,9 @@
             <data>54</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_ifu/_N8316</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_ifu/N239_9</data>
-            <data>54</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_memu/N84</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/N50_3</data>
+            <data>53</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/dbg_id_ins [4]</data>
@@ -4161,29 +4171,19 @@
             <data>52</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/dbg_id_pc [2]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/id_pc_reg[2]</data>
-            <data>52</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/alu_src2[0]_cpy</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/N94[0]_cpy</data>
+            <data>51</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_memu/N84</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/N50_3</data>
+            <data>g_bram_profile.u_bram_profile/dbg_ctrl [26]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/N50_5</data>
             <data>49</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/gen_cpu_bram.u_bram_mem/b_read_bank_iram</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/gen_cpu_bram.u_bram_mem/b_read_bank_iram</data>
-            <data>49</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/_N27671</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N532_7</data>
-            <data>48</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/gen_cpu_bram.u_bram_mem/b_prog_valid</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/gen_cpu_bram.u_bram_mem/N33</data>
-            <data>48</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_memu/N108</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_memu/N108</data>
+            <data>47</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_memu/N120</data>
@@ -4193,7 +4193,12 @@
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/id_is_jalr</data>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/N363</data>
-            <data>44</data>
+            <data>45</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/N247</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/N247_2</data>
+            <data>45</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/alu_src1 [31]</data>
@@ -4201,29 +4206,19 @@
             <data>44</data>
         </row>
         <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [2]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[2]</data>
+            <data>43</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/_N35806</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/N141_20[2]_1</data>
+            <data>41</data>
+        </row>
+        <row>
             <data>g_bram_profile.u_bram_profile/dbg_ctrl [22]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N1219_1</data>
-            <data>44</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_csr/_N27489</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_csr/csr_rdata_44[12]_1</data>
-            <data>43</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/branch_taken</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/branch_taken_1_or[0]_1</data>
-            <data>43</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/ex_wb_sel [0]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_wb_sel[0]</data>
-            <data>42</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/dbg_ctrl [26]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/N50_5</data>
-            <data>42</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_btb/N1042_1</data>
+            <data>41</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_jtag/u_jtag_driver/N325</data>
@@ -4236,24 +4231,44 @@
             <data>41</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [1]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[1]</data>
-            <data>41</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_src2 [31]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_src2[31]</data>
-            <data>41</data>
-        </row>
-        <row>
             <data>g_bram_profile.u_bram_profile/u_jtag/u_jtag_dm/rx/N68</data>
             <data>g_bram_profile.u_bram_profile/u_jtag/u_jtag_dm/rx/N68</data>
             <data>41</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/N247</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/N247_2</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_csr/_N30189</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_csr/csr_rdata_33[22]_2</data>
             <data>41</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/ex_wb_sel [0]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_wb_sel[0]</data>
+            <data>41</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/ex_result [1]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_alu/N49_34[1]</data>
+            <data>40</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_jtag/u_jtag_driver/tx/N90</data>
+            <data>g_bram_profile.u_bram_profile/u_jtag/u_jtag_driver/tx/N90</data>
+            <data>40</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_csr/take_exception</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_csr/N15</data>
+            <data>40</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_op [2]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_op[2]</data>
+            <data>40</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_csr/_N30194</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_csr/csr_rdata_12[2]_1</data>
+            <data>40</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_jtag/u_jtag_driver/N317</data>
@@ -4261,18 +4276,8 @@
             <data>40</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_csr/_N27607</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_csr/csr_rdata_46[2]_1</data>
-            <data>40</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_jtag/u_jtag_driver/tx/N90</data>
-            <data>g_bram_profile.u_bram_profile/u_jtag/u_jtag_driver/tx/N90</data>
-            <data>40</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [2]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[2]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [1]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[1]</data>
             <data>40</data>
         </row>
         <row>
@@ -4281,18 +4286,13 @@
             <data>40</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [3]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[3]</data>
-            <data>39</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_csr/_N30192</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/u_csr/csr_rdata_12[0]_1</data>
+            <data>40</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_op [2]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_op[2]</data>
-            <data>39</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/dbg_id_ins [19]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/id_ins_reg[19]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/_N35710</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_idu/N273_109[0]_2</data>
             <data>39</data>
         </row>
         <row>
@@ -4301,19 +4301,19 @@
             <data>39</data>
         </row>
         <row>
-            <data>g_bram_profile.u_bram_profile/dbg_ctrl [13]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_memu/N7</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr [3]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_csr_addr[3]</data>
+            <data>39</data>
+        </row>
+        <row>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_src2 [31]</data>
+            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_src2[31]</data>
             <data>39</data>
         </row>
         <row>
             <data>g_bram_profile.u_bram_profile/u_jtag/u_jtag_driver/rx/N68</data>
             <data>g_bram_profile.u_bram_profile/u_jtag/u_jtag_driver/rx/N68</data>
             <data>39</data>
-        </row>
-        <row>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_m_op [0]</data>
-            <data>g_bram_profile.u_bram_profile/u_cpu/u_exu/ex_m_op[0]</data>
-            <data>38</data>
         </row>
     </table>
     <table id="device_map_resource_usage" title="Resource Usage Summary" column_number="4">
@@ -4331,13 +4331,13 @@
         </row>
         <row>
             <data>FF</data>
-            <data>4540</data>
+            <data>4331</data>
             <data>319600</data>
             <data>2</data>
         </row>
         <row>
             <data>LUT</data>
-            <data>4494</data>
+            <data>4306</data>
             <data>159800</data>
             <data>3</data>
         </row>
@@ -4349,13 +4349,13 @@
         </row>
         <row>
             <data>DRM</data>
-            <data>20</data>
+            <data>12</data>
             <data>415</data>
-            <data>5</data>
+            <data>3</data>
         </row>
         <row>
             <data>IO</data>
-            <data>122</data>
+            <data>121</data>
             <data>400</data>
             <data>31</data>
         </row>
@@ -4479,10 +4479,10 @@
             <data>RAM(GB)</data>
         </column_headers>
         <row>
-            <data>0h:0m:2s</data>
-            <data>0h:0m:2s</data>
-            <data>0h:0m:12s</data>
-            <data>500</data>
+            <data>0h:0m:1s</data>
+            <data>0h:0m:1s</data>
+            <data>0h:0m:13s</data>
+            <data>501</data>
             <data>WINDOWS 10 x86_64</data>
             <data>13th Gen Intel(R) Core(TM) i7-13650HX</data>
             <data>24</data>
@@ -4495,18 +4495,6 @@
         </row>
         <row>
             <data message="4">The instance clkbufg_1(GTP_CLKBUFG) has been inserted on the net g_bram_profile.u_bram_profile/JTAG_TCK_in in design, driver pin O(instance g_bram_profile.u_bram_profile/u_jtag_tck_buf) -&gt; load pin I(instance g_bram_profile.u_bram_profile/u_jtag/u_jtag_driver/N358).</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: g_bram_profile.u_bram_profile/u_flash_bram_boot/N59_2_0/gateop, insts:17.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: g_bram_profile.u_bram_profile/u_flash_bram_boot/N74_1_0/gateop, insts:2.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: g_bram_profile.u_bram_profile/u_flash_bram_boot/N155.eq_0/gateop, insts:16.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: g_bram_profile.u_bram_profile/u_flash_bram_boot/N164_1_1/gateop, insts:12.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: g_bram_profile.u_bram_profile/u_mem/N5_1_1/gateop, insts:30.</data>
@@ -4561,12 +4549,6 @@
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: g_bram_profile.u_bram_profile/u_cpu/u_ifu/N34_1_1/gateop, insts:29.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: g_bram_profile.u_bram_profile/u_flash_bram_boot/u_flash_reader/N39_1_1/gateop, insts:31.</data>
-        </row>
-        <row>
-            <data message="4">Infer CARRY group, base inst: g_bram_profile.u_bram_profile/u_flash_bram_boot/u_flash_reader/N121_1.fsub_1/gateop, insts:31.</data>
         </row>
         <row>
             <data message="4">Infer CARRY group, base inst: g_bram_profile.u_bram_profile/u_jtag/u_jtag_dm/N260_0/gateop, insts:33.</data>

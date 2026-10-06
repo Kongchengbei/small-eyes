@@ -1,0 +1,315 @@
+#ifndef SOCFPGA_BRAM_INIT_H
+#define SOCFPGA_BRAM_INIT_H
+
+/*
+ * Generate the Pango IMEM localparam image used by the checked-in 32-bit,
+ * byte-enabled, 8192-word instruction RAM.  This is deliberately a header:
+ * soc_config.c includes it so the native config helper has no extra link step.
+ */
+
+#include <ctype.h>
+#include <errno.h>
+#include <stdint.h>
+#include <stdarg.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define BRAM_INIT_WORDS 8192U
+#define BRAM_INIT_NOP UINT32_C(0x00000013)
+
+typedef struct BramInitImage {
+	char *params;
+	char *words_hex;
+	size_t word_count;
+	uint32_t sum32;
+} BramInitImage;
+
+static void bram_init_free(BramInitImage *image)
+{
+	if (image == NULL)
+		return;
+	free(image->params);
+	free(image->words_hex);
+	memset(image, 0, sizeof(*image));
+}
+
+static int bram_init_is_space(unsigned char c)
+{
+	return c == ' ' || c == '\t' || c == '\n' || c == '\r' ||
+	       c == '\v' || c == '\f';
+}
+
+static int bram_init_hex_value(unsigned char c)
+{
+	if (c >= '0' && c <= '9')
+		return c - '0';
+	if (c >= 'a' && c <= 'f')
+		return c - 'a' + 10;
+	if (c >= 'A' && c <= 'F')
+		return c - 'A' + 10;
+	return -1;
+}
+
+static int bram_init_read_words(const char *path, uint32_t words[BRAM_INIT_WORDS],
+				size_t *word_count, uint32_t *sum32)
+{
+	FILE *fp;
+	unsigned char token[8];
+	size_t token_len = 0;
+	size_t count = 0;
+	uint32_t sum = 0;
+	unsigned long line = 1;
+	int ch;
+	int failed = 0;
+
+	fp = fopen(path, "rb");
+	if (fp == NULL) {
+		fprintf(stderr, "bram-init: cannot open '%s': %s\n", path,
+			strerror(errno));
+		return -1;
+	}
+
+	while ((ch = fgetc(fp)) != EOF) {
+		unsigned char c = (unsigned char)ch;
+		if (c == 0) {
+			fprintf(stderr, "bram-init: '%s': embedded NUL at line %lu\n",
+				path, line);
+			failed = 1;
+			break;
+		}
+		if (bram_init_is_space(c)) {
+			if (token_len != 0) {
+				uint32_t value = 0;
+				size_t i;
+				if (token_len != 8) {
+					fprintf(stderr,
+						"bram-init: '%s': expected 8 hex digits at line %lu (got %zu)\n",
+						path, line, token_len);
+					failed = 1;
+					break;
+				}
+				for (i = 0; i < 8; ++i)
+					value = (value << 4) | (uint32_t)bram_init_hex_value(token[i]);
+				if (count == BRAM_INIT_WORDS) {
+					fprintf(stderr,
+						"bram-init: '%s': more than %u words\n",
+						path, BRAM_INIT_WORDS);
+					failed = 1;
+					break;
+				}
+				words[count++] = value;
+				sum += value;
+				token_len = 0;
+			}
+			if (c == '\n')
+				++line;
+			continue;
+		}
+		if (bram_init_hex_value(c) < 0) {
+			fprintf(stderr,
+				"bram-init: '%s': invalid character 0x%02X at line %lu\n",
+				path, c, line);
+			failed = 1;
+			break;
+		}
+		if (token_len == sizeof(token)) {
+			fprintf(stderr,
+				"bram-init: '%s': token longer than 8 hex digits at line %lu\n",
+				path, line);
+			failed = 1;
+			break;
+		}
+		token[token_len++] = c;
+	}
+
+	if (!failed && ferror(fp)) {
+		fprintf(stderr, "bram-init: error reading '%s': %s\n", path,
+			strerror(errno));
+		failed = 1;
+	}
+	if (!failed && token_len != 0) {
+		uint32_t value = 0;
+		size_t i;
+		if (token_len != 8) {
+			fprintf(stderr,
+				"bram-init: '%s': expected 8 hex digits at line %lu (got %zu)\n",
+				path, line, token_len);
+			failed = 1;
+		} else if (count == BRAM_INIT_WORDS) {
+			fprintf(stderr, "bram-init: '%s': more than %u words\n", path,
+				BRAM_INIT_WORDS);
+			failed = 1;
+		} else {
+			for (i = 0; i < 8; ++i)
+				value = (value << 4) | (uint32_t)bram_init_hex_value(token[i]);
+			words[count++] = value;
+			sum += value;
+		}
+	}
+	if (fclose(fp) != 0 && !failed) {
+		fprintf(stderr, "bram-init: error closing '%s': %s\n", path,
+			strerror(errno));
+		failed = 1;
+	}
+	if (!failed && count == 0) {
+		fprintf(stderr, "bram-init: '%s': no words found\n", path);
+		failed = 1;
+	}
+	if (failed)
+		return -1;
+	*word_count = count;
+	*sum32 = sum;
+	return 0;
+}
+
+typedef struct BramInitString {
+	char *data;
+	size_t length;
+	size_t capacity;
+} BramInitString;
+
+static int bram_init_appendf(BramInitString *s, const char *format, ...)
+{
+	va_list ap;
+	va_list copy;
+	int needed;
+	size_t required;
+	char *grown;
+
+	va_start(ap, format);
+	va_copy(copy, ap);
+	needed = vsnprintf(NULL, 0, format, copy);
+	va_end(copy);
+	if (needed < 0) {
+		va_end(ap);
+		return -1;
+	}
+	required = s->length + (size_t)needed + 1;
+	if (required > s->capacity) {
+		size_t capacity = s->capacity ? s->capacity : 4096;
+		while (capacity < required) {
+			if (capacity > SIZE_MAX / 2) {
+				va_end(ap);
+				return -1;
+			}
+			capacity *= 2;
+		}
+		grown = (char *)realloc(s->data, capacity);
+		if (grown == NULL) {
+			va_end(ap);
+			return -1;
+		}
+		s->data = grown;
+		s->capacity = capacity;
+	}
+	(void)vsnprintf(s->data + s->length, s->capacity - s->length,
+			format, ap);
+	va_end(ap);
+	s->length += (size_t)needed;
+	return 0;
+}
+
+static int bram_init_make_params(const uint32_t words[BRAM_INIT_WORDS],
+				 BramInitString *params)
+{
+	static const char digits[] = "0123456789ABCDEF";
+	unsigned init;
+	unsigned block;
+	unsigned lane;
+
+	if (bram_init_appendf(params,
+		"// Generated by soc_config bram-init. Do not edit by hand.\n"
+		"// Pango IMEM: 8192 x 32, 8-bit byte enables, NOP padded.\n") != 0)
+		return -1;
+
+	for (init = 0; init < 128; ++init) {
+		for (block = 0; block < 4; ++block) {
+			for (lane = 0; lane < 2; ++lane) {
+				unsigned char bits[288] = { 0 };
+				unsigned address;
+				char hex[73];
+				unsigned bit;
+				const unsigned base_word = block * 2048U + init * 16U;
+
+				for (address = 0; address < 16; ++address) {
+					uint32_t value = words[base_word + address];
+					uint16_t half = (uint16_t)(value >> (lane * 16U));
+					unsigned offset = address * 18U;
+					unsigned bit_in_byte;
+					for (bit_in_byte = 0; bit_in_byte < 8; ++bit_in_byte) {
+						bits[offset + bit_in_byte] =
+							(unsigned char)((half >> bit_in_byte) & 1U);
+						bits[offset + 9U + bit_in_byte] =
+							(unsigned char)((half >> (8U + bit_in_byte)) & 1U);
+					}
+				}
+				for (bit = 0; bit < 72; ++bit) {
+					unsigned nibble = 0;
+					unsigned k;
+					for (k = 0; k < 4; ++k)
+						nibble = (nibble << 1) |
+							bits[287U - (bit * 4U + k)];
+					hex[bit] = digits[nibble];
+				}
+				hex[72] = '\0';
+				if (bram_init_appendf(params,
+					"localparam INIT_%02X_%u_%u = 288'h%s;\n",
+					init, block, lane, hex) != 0)
+					return -1;
+			}
+		}
+	}
+
+	for (init = 0; init < 128; ++init) {
+		if (bram_init_appendf(params,
+			"localparam INIT_%02X = { INIT_%02X_3_1, INIT_%02X_3_0, "
+			"INIT_%02X_2_1, INIT_%02X_2_0, INIT_%02X_1_1, "
+			"INIT_%02X_1_0, INIT_%02X_0_1, INIT_%02X_0_0 };\n",
+			init, init, init, init, init, init, init, init, init) != 0)
+			return -1;
+	}
+	return 0;
+}
+
+static int bram_init_prepare(const char *path, BramInitImage *out)
+{
+	uint32_t words[BRAM_INIT_WORDS];
+	size_t input_count = 0;
+	uint32_t sum32 = 0;
+	size_t i;
+	char *words_hex;
+	BramInitString params = { 0 };
+
+	if (out == NULL || path == NULL) {
+		fprintf(stderr, "bram-init: path and output image are required\n");
+		return -1;
+	}
+	memset(out, 0, sizeof(*out));
+	if (bram_init_read_words(path, words, &input_count, &sum32) != 0)
+		return -1;
+	for (i = input_count; i < BRAM_INIT_WORDS; ++i)
+		words[i] = BRAM_INIT_NOP;
+
+	words_hex = (char *)malloc((BRAM_INIT_WORDS * 9U) + 1U);
+	if (words_hex == NULL) {
+		fprintf(stderr, "bram-init: out of memory formatting normalized words\n");
+		return -1;
+	}
+	for (i = 0; i < BRAM_INIT_WORDS; ++i)
+		(void)snprintf(words_hex + i * 9U, 10U, "%08X\n", words[i]);
+
+	if (bram_init_make_params(words, &params) != 0) {
+		fprintf(stderr, "bram-init: out of memory formatting vendor parameters\n");
+		free(words_hex);
+		free(params.data);
+		return -1;
+	}
+	out->params = params.data;
+	out->words_hex = words_hex;
+	out->word_count = input_count;
+	out->sum32 = sum32;
+	return 0;
+}
+
+#endif /* SOCFPGA_BRAM_INIT_H */

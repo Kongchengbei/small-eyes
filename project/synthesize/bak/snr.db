@@ -24132,10 +24132,10 @@ Total I/O ports = 122 of 400 (30.50%)
             <data>RAM(GB)</data>
         </column_headers>
         <row>
-            <data>0h:0m:10s</data>
-            <data>0h:0m:10s</data>
-            <data>0h:0m:24s</data>
-            <data>610</data>
+            <data>0h:0m:5s</data>
+            <data>0h:0m:5s</data>
+            <data>0h:0m:26s</data>
+            <data>616</data>
             <data>WINDOWS 10 x86_64</data>
             <data>13th Gen Intel(R) Core(TM) i7-13650HX</data>
             <data>24</data>
@@ -24405,52 +24405,52 @@ Total I/O ports = 122 of 400 (30.50%)
             <data message="6">ConstraintEditor-2009: p:fpioa[31] is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 529)] | Port mem_dq[15] has been placed at location G6, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 532)] | Port mem_dq[15] has been placed at location G6, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 543)] | Port mem_dq[13] has been placed at location E6, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 546)] | Port mem_dq[13] has been placed at location E6, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 550)] | Port mem_dq[12] has been placed at location G8, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 553)] | Port mem_dq[12] has been placed at location G8, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 557)] | Port mem_dq[11] has been placed at location D6, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 560)] | Port mem_dq[11] has been placed at location D6, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 564)] | Port mem_dq[10] has been placed at location H8, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 567)] | Port mem_dq[10] has been placed at location H8, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 578)] | Port mem_dq[8] has been placed at location H6, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 581)] | Port mem_dq[8] has been placed at location H6, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 585)] | Port mem_dq[7] has been placed at location J5, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 588)] | Port mem_dq[7] has been placed at location J5, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 599)] | Port mem_dq[5] has been placed at location K7, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 602)] | Port mem_dq[5] has been placed at location K7, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 613)] | Port mem_dq[3] has been placed at location L8, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 616)] | Port mem_dq[3] has been placed at location L8, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 627)] | Port mem_dq[1] has been placed at location J6, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 630)] | Port mem_dq[1] has been placed at location J6, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 760)] | Port mem_dqs[1] has been placed at location H7, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 763)] | Port mem_dqs[1] has been placed at location H7, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 767)] | Port mem_dqs[0] has been placed at location J4, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 770)] | Port mem_dqs[0] has been placed at location J4, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 788)] | Port mem_dqs_n[1] has been placed at location G7, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 791)] | Port mem_dqs_n[1] has been placed at location G7, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 795)] | Port mem_dqs_n[0] has been placed at location H4, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 798)] | Port mem_dqs_n[0] has been placed at location H4, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 844)] | Port mem_dm[0] has been placed at location K6, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 847)] | Port mem_dm[0] has been placed at location K6, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 938)] | Port flash_cs_n has been placed at location P18, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 941)] | Port flash_cs_n has been placed at location P18, whose type is share pin.</data>
         </row>
         <row>
             <data message="6">ConstraintEditor-2009: p:flash_cs_n is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.</data>
@@ -24459,7 +24459,7 @@ Total I/O ports = 122 of 400 (30.50%)
             <data message="6">ConstraintEditor-2009: p:flash_cs_n is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 943)] | Port flash_cs2_n has been placed at location F25, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 946)] | Port flash_cs2_n has been placed at location F25, whose type is share pin.</data>
         </row>
         <row>
             <data message="6">ConstraintEditor-2009: p:flash_cs2_n is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.</data>
@@ -24468,7 +24468,7 @@ Total I/O ports = 122 of 400 (30.50%)
             <data message="6">ConstraintEditor-2009: p:flash_cs2_n is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 948)] | Port flash_mosi has been placed at location R14, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 951)] | Port flash_mosi has been placed at location R14, whose type is share pin.</data>
         </row>
         <row>
             <data message="6">ConstraintEditor-2009: p:flash_mosi is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.</data>
@@ -24477,10 +24477,10 @@ Total I/O ports = 122 of 400 (30.50%)
             <data message="6">ConstraintEditor-2009: p:flash_mosi is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 953)] | Port flash_miso has been placed at location R15, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 956)] | Port flash_miso has been placed at location R15, whose type is share pin.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 958)] | Port flash_wp_n has been placed at location P14, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 961)] | Port flash_wp_n has been placed at location P14, whose type is share pin.</data>
         </row>
         <row>
             <data message="6">ConstraintEditor-2009: p:flash_wp_n is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.</data>
@@ -24489,7 +24489,7 @@ Total I/O ports = 122 of 400 (30.50%)
             <data message="6">ConstraintEditor-2009: p:flash_wp_n is lack of PAP_IO_SLEW, OUTPUT or INOUT PORT had better set PAP_IO_SLEW, the optional value is {SLOW, FAST}.</data>
         </row>
         <row>
-            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 963)] | Port flash_hold_n has been placed at location N14, whose type is share pin.</data>
+            <data message="6">ConstraintEditor-2002: [F:/SocFpga/soc.fdc(line number: 966)] | Port flash_hold_n has been placed at location N14, whose type is share pin.</data>
         </row>
         <row>
             <data message="6">ConstraintEditor-2009: p:flash_hold_n is lack of PAP_IO_DRIVE, OUTPUT or INOUT PORT had better set PAP_IO_DRIVE, the optional value is {8, 4, 12, 16}.</data>

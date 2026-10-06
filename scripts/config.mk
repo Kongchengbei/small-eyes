@@ -3,15 +3,16 @@ SOC_CONFIG_FILE ?= build/menuconfig/.config
 SOC_CONFIG_OUTPUT ?= build/menuconfig
 SOC_CONFIG_FDC ?= soc.fdc
 SOC_CONFIG_BSP_OUTPUT ?= bsp/include
+SOC_CONFIG_BRAM_INIT_DIR ?= IP/imem/rtl
 SOC_CONFIG_CC ?= gcc
 
 SOC_CONFIG_TOOL := build/menuconfig/soc_config
 
-$(SOC_CONFIG_TOOL): scripts/soc_config.c
+$(SOC_CONFIG_TOOL): scripts/soc_config.c scripts/bram_init.h
 	@mkdir -p "$(dir $@)"
 	$(SOC_CONFIG_CC) -std=c11 -O2 -Wall -Wextra -Werror "$<" -o "$@"
 
-.PHONY: config-headers config-check config-test
+.PHONY: config-headers config-check config-test bram-init
 config-headers: $(SOC_CONFIG_TOOL)
 	@$(SOC_CONFIG_TOOL) generate-header --source '$(SOC_CONFIG_SOURCE)' --output-dir '$(SOC_CONFIG_BSP_OUTPUT)'
 
@@ -21,3 +22,10 @@ config-check: $(SOC_CONFIG_TOOL)
 
 config-test: $(SOC_CONFIG_TOOL) kconfig-tools
 	@sh scripts/test_soc_clock_config.sh
+	@sh scripts/test_soc_bram_config.sh
+	@sh scripts/tests/test_bram_init.sh
+
+# Refresh a selected text image without changing hardware configuration.
+bram-init: $(SOC_CONFIG_TOOL)
+	@$(SOC_CONFIG_TOOL) bram-init --source '$(SOC_CONFIG_SOURCE)' --hex '$(HEX)' \
+	 --output-dir '$(SOC_CONFIG_BRAM_INIT_DIR)'

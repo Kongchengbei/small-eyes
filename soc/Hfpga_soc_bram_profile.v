@@ -5,9 +5,9 @@
 `include "../soc/config.v"
 `endif
 
-// CoreMark/small-app profile. The CPU's internal IRAM/DRAM replace the caches
-// and DDR path; the system clock, boot Flash, UART, FPIOA, JTAG, and debug
-// interfaces stay compatible with the board-level Hfpga_soc pinout.
+// CoreMark/small-app profile. Vendor initialized IRAM/DRAM replace the caches
+// and DDR path; the system clock, UART, FPIOA, JTAG, and debug interfaces stay
+// compatible with the board-level Hfpga_soc pinout.
 module Hfpga_soc_bram_profile #(
     parameter MEM_FILE = `PROG_FPGA_PATH,
     parameter [23:0] FLASH_BASE = `SOC_FLASH_BASE,
@@ -91,34 +91,21 @@ module Hfpga_soc_bram_profile #(
     end
     wire sys_rst_n = rst_sync_q2;
 
-    wire boot_done, boot_error;
-    wire [3:0] boot_error_code;
-    wire flash_clk_enable, flash_spi_sck;
     wire prog_valid, prog_write, prog_ready;
     wire [31:0] prog_addr, prog_wdata, prog_rdata;
     wire [3:0] prog_wstrb;
-
-    flash_bram_boot #(
-        .FLASH_BASE(FLASH_BASE), .IMAGE_BYTES(BOOT_IMAGE_BYTES),
-        .MEM_BASE(IRAM_BASE),
-        .MEM_BYTES(IRAM_BYTES + DRAM_BYTES), .SPI_CLK_DIV(SPI_DIV),
-        .TIMEOUT_CYCLES(`SOC_BOOT_TIMEOUT_CYCLES)
-    ) u_flash_bram_boot (
-        .clk(cpu_clk), .rst_n(sys_rst_n),
-        .flash_cs_n(flash_cs_n), .flash_cs2_n(flash_cs2_n),
-        .flash_mosi(flash_mosi), .flash_miso(flash_miso),
-        .flash_wp_n(flash_wp_n), .flash_hold_n(flash_hold_n),
-        .flash_sck(flash_spi_sck),
-        .prog_valid(prog_valid), .prog_write(prog_write),
-        .prog_addr(prog_addr), .prog_wdata(prog_wdata),
-        .prog_wstrb(prog_wstrb), .prog_ready(prog_ready),
-        .prog_rdata(prog_rdata), .boot_done(boot_done),
-        .boot_error(boot_error), .boot_error_code(boot_error_code),
-        .flash_clk_enable(flash_clk_enable)
-    );
-
-    GTP_CFGCLK u_flash_cfgclk (.CLKIN(flash_spi_sck), .CE_N(~flash_clk_enable));
-    assign core_active = boot_done && !boot_error;
+    // Initialization is carried in the vendor RAM INIT parameters. Keep the
+    // legacy programming interface idle and leave the external Flash pins safe.
+    assign prog_valid = 1'b0;
+    assign prog_write = 1'b0;
+    assign prog_addr = 32'b0;
+    assign prog_wdata = 32'b0;
+    assign prog_wstrb = 4'b0;
+    assign flash_cs_n = 1'b1;
+    assign flash_cs2_n = 1'b1;
+    assign flash_mosi = 1'b0;
+    assign flash_wp_n = 1'b1;
+    assign flash_hold_n = 1'b1;
     assign cam1_reset_n = 1'b0;
     assign cam2_reset_n = 1'b0;
     assign cam1_scl = 1'bz;
@@ -171,11 +158,13 @@ module Hfpga_soc_bram_profile #(
         else if (cpu_rst_cnt != 4'hf) cpu_rst_cnt <= cpu_rst_cnt + 1'b1;
     end
     wire cpu_rst = !sys_rst_n || (cpu_rst_cnt != 4'hf) ||
-                   !boot_done || boot_error || jtag_reset_req || jtag_halt_req;
+                   jtag_reset_req || jtag_halt_req;
+    assign core_active = sys_rst_n && !cpu_rst;
 
     Htop #(
         .RESET_PC(IRAM_BASE), .DDR_BASE(IRAM_BASE),
         .DDR_BYTES(IRAM_BYTES + DRAM_BYTES), .BRAM_MODE(1'b1),
+        .BRAM_VENDOR_IP(1'b1),
         .IRAM_BASE(IRAM_BASE), .IRAM_BYTES(IRAM_BYTES),
         .DRAM_BASE(DRAM_BASE), .DRAM_BYTES(DRAM_BYTES)
     ) u_cpu (
@@ -201,9 +190,9 @@ module Hfpga_soc_bram_profile #(
         .debug_btb_predict_next_pc(debug_btb_predict_next_pc),
         .debug_actual_next_pc(debug_actual_next_pc), .debug_flush_pc(debug_flush_pc),
         .debug_ctrl(cpu_debug_ctrl),
-        .bram_prog_valid(prog_valid), .bram_prog_write(prog_write),
-        .bram_prog_addr(prog_addr), .bram_prog_wdata(prog_wdata),
-        .bram_prog_wstrb(prog_wstrb), .bram_prog_ready(prog_ready),
+        .bram_prog_valid(1'b0), .bram_prog_write(1'b0),
+        .bram_prog_addr(32'b0), .bram_prog_wdata(32'b0),
+        .bram_prog_wstrb(4'b0), .bram_prog_ready(prog_ready),
         .bram_prog_rdata(prog_rdata)
     );
 
