@@ -829,19 +829,40 @@ static uint64_t gcd_u64(uint64_t a, uint64_t b) {
     return a;
 }
 
-/* Only replace the two numeric ratio lines inside the managed block. Keep the
- * input/JTAG/PCLK clocks, pin endpoint, and all unrelated constraints intact. */
-static char *render_fdc(const char *text, uint64_t hz) {
+static const char *ddr_profile_io_ports[] = {
+    "mem_dqs[0]", "mem_dqs[1]", "mem_dqs[2]", "mem_dqs[3]",
+    "mem_dqs_n[0]", "mem_dqs_n[1]", "mem_dqs_n[2]", "mem_dqs_n[3]",
+    "mem_ck", "mem_ck_n"
+};
+
+/* Generate scopes use '.', module instance scopes use '/' in PDS compile
+ * names. Update owned CPU/JTAG blocks and only the ten listed DDR IO standards.
+ * BRAM has ordinary static/tri-state buffers, not DDR PHY differential buffers.
+ * Keep LOC, VCCIO (1.5 V), drive, slew, input clocks and other constraints intact. */
+static char *render_fdc(const char *text, uint64_t hz, bool bram) {
     const char *begin_mark = "# BEGIN SOC_CPU_CLOCK";
     const char *end_mark = "# END SOC_CPU_CLOCK";
     const char *begin = strstr(text, begin_mark), *end = strstr(text, end_mark);
     if (!begin || !end || end <= begin || strstr(begin + 1, begin_mark) || strstr(end + 1, end_mark)) {
         fprintf(stderr, "soc_config: FDC needs exactly one BEGIN/END SOC_CPU_CLOCK block\n"); return NULL;
     }
+    const char *jbegin_mark = "# BEGIN SOC_JTAG_ROUTE";
+    const char *jend_mark = "# END SOC_JTAG_ROUTE";
+    const char *jbegin = strstr(text, jbegin_mark), *jend = strstr(text, jend_mark);
+    if (!jbegin || !jend || jend <= jbegin || strstr(jbegin + 1, jbegin_mark) ||
+        strstr(jend + 1, jend_mark) || !(jend < begin || end < jbegin)) {
+        fprintf(stderr, "soc_config: FDC needs one separate BEGIN/END SOC_JTAG_ROUTE block\n"); return NULL;
+    }
+    const char *pll_pin = bram ? "g_bram_profile.u_bram_profile/u_pll/u_gpll:CLKOUT0"
+                               : "g_ddr_profile.u_pll/u_gpll:CLKOUT0";
+    const char *jtag_net = bram ? "g_bram_profile.u_bram_profile/JTAG_TCK_in"
+                                : "g_ddr_profile.JTAG_TCK_in";
+    const char *ddr_io_standard = bram ? "HSTL15_I" : "HSTL15D_I";
+    unsigned io_seen[sizeof(ddr_profile_io_ports) / sizeof(ddr_profile_io_ports[0])] = {0};
     uint64_t divisor = gcd_u64(hz, 27000000);
-    size_t cap = strlen(text) + 256, len = 0;
+    size_t cap = strlen(text) + 512, len = 0;
     char *out = malloc(cap); if (!out) return NULL;
-    unsigned multiply = 0, divide = 0, clock = 0;
+    unsigned multiply = 0, divide = 0, clock = 0, pin = 0, route = 0;
     const char *p = text;
     while (*p) {
         const char *e = strchr(p, '\n'); size_t n = e ? (size_t)(e - p) + 1 : strlen(p);
@@ -853,17 +874,59 @@ static char *render_fdc(const char *text, uint64_t hz) {
             } else if (!strncmp(t, "-divide_by", 10) && isspace((unsigned char)t[10])) {
                 key = "-divide_by"; value = 27000000 / divisor; ++divide;
             } else if (!strncmp(t, "create_generated_clock -name cpu_clk", 35)) ++clock;
+            else if (!strncmp(t, "[get_pins {", 11)) {
+                ++pin;
+                append(out, cap, &len, "    [get_pins {%s}]\n", pll_pin);
+                p += n; continue;
+            }
             if (key) {
                 append(out, cap, &len, "    %s %" PRIu64 " \\\n", key, value);
                 p += n; continue;
             }
         }
+        if (p > jbegin && p < jend) {
+            const char *t = p; while (*t == ' ' || *t == '\t') ++t;
+            if (!strncmp(t, "define_attribute {n:", 20)) {
+                ++route;
+                append(out, cap, &len,
+                    "define_attribute {n:%s} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}\n", jtag_net);
+                p += n; continue;
+            }
+        }
+        bool io_replaced = false;
+        const char *t = p; while (*t == ' ' || *t == '\t') ++t;
+        for (size_t i = 0; i < sizeof(io_seen) / sizeof(io_seen[0]); ++i) {
+            char prefix[128];
+            int prefix_len = snprintf(prefix, sizeof(prefix),
+                "define_attribute {p:%s} {PAP_IO_STANDARD} {", ddr_profile_io_ports[i]);
+            if (strncmp(t, prefix, (size_t)prefix_len)) continue;
+            size_t remaining = n - (size_t)(t - p) - (size_t)prefix_len;
+            char old_standard[32];
+            if (remaining >= sizeof(old_standard)) { free(out); return NULL; }
+            memcpy(old_standard, t + prefix_len, remaining); old_standard[remaining] = '\0';
+            char *standard = trim(old_standard);
+            if (strcmp(standard, "HSTL15_I}") && strcmp(standard, "HSTL15D_I}")) {
+                fprintf(stderr, "soc_config: unsupported DDR profile IO constraint for %s\n", ddr_profile_io_ports[i]);
+                free(out); return NULL;
+            }
+            ++io_seen[i];
+            append(out, cap, &len, "%s%s}\n", prefix, ddr_io_standard);
+            io_replaced = true;
+            break;
+        }
+        if (io_replaced) { p += n; continue; }
         memcpy(out + len, p, n); len += n; p += n;
     }
     out[len] = '\0';
-    if (multiply != 1 || divide != 1 || clock != 1) {
-        fprintf(stderr, "soc_config: malformed CPU clock FDC block; refusing partial update\n");
+    if (multiply != 1 || divide != 1 || clock != 1 || pin != 1 || route != 1) {
+        fprintf(stderr, "soc_config: malformed CPU/JTAG FDC blocks; refusing partial update\n");
         free(out); return NULL;
+    }
+    for (size_t i = 0; i < sizeof(io_seen) / sizeof(io_seen[0]); ++i) {
+        if (io_seen[i] != 1) {
+            fprintf(stderr, "soc_config: FDC needs exactly one IO standard for %s\n", ddr_profile_io_ports[i]);
+            free(out); return NULL;
+        }
     }
     return out;
 }
@@ -915,6 +978,10 @@ static int command_apply(const char *source, const char *config_path, const char
     }
     find_def(&defs, "SOC_CPU_HZ")->value = c.cpu_hz;
     const bool bram = !strcmp(c.profile, "bram");
+    if (bram != (find_def(&defs, "SOC_CPU_MEM_BRAM")->value != 0) && !fdc) {
+        fprintf(stderr, "soc_config: changing hardware profile requires --fdc PATH\n");
+        free(source_text); return 2;
+    }
     uint64_t *profile_values[] = { &find_def(&defs, "SOC_CPU_MEM_BRAM")->value,
         &find_def(&defs, "SOC_ENABLE_ICACHE")->value, &find_def(&defs, "SOC_ENABLE_DCACHE")->value,
         &find_def(&defs, "SOC_ENABLE_DDR")->value, &find_def(&defs, "SOC_ENABLE_CAMERA")->value,
@@ -934,7 +1001,7 @@ static int command_apply(const char *source, const char *config_path, const char
         fprintf(stderr, "soc_config: proposed source update failed validation\n"); free(rewritten); return 2;
     }
     char *fdc_text = NULL, *new_fdc = NULL;
-    if (fdc && (read_file(fdc, &fdc_text, NULL) != 0 || !(new_fdc = render_fdc(fdc_text, c.cpu_hz)))) {
+    if (fdc && (read_file(fdc, &fdc_text, NULL) != 0 || !(new_fdc = render_fdc(fdc_text, c.cpu_hz, bram)))) {
         fprintf(stderr, "soc_config: cannot prepare FDC update: %s\n", fdc);
         free(fdc_text); free(rewritten); return 2;
     }
@@ -991,7 +1058,7 @@ static int command_apply(const char *source, const char *config_path, const char
     free(h); free(a); free(manifest); free(rewritten); free(new_fdc); free(report);
     if (bad) { fprintf(stderr, "soc_config: could not commit configuration outputs\n"); return 2; }
     printf("Updated %s\nGenerated %s and %s\n", source, hpath, apath);
-    if (fdc) printf("Updated CPU clock ratio in %s (27 MHz board input unchanged)\n", fdc);
+    if (fdc) printf("Synchronized CPU/JTAG paths, clock ratio and DDR IO standards in %s (profile=%s; board pins/voltages unchanged)\n", fdc, c.profile);
     if (bspdir) printf("Synchronized BSP headers in %s\n", bspdir);
     printf("CPU=%" PRIu64 " Hz; configure PLL manually in PDS, rebuild firmware/bitstream and check timing.\n", c.cpu_hz);
     if (c.firmware[0]) printf("Generated %s (image %" PRIu64 " bytes at 0x%06" PRIX64 ")\n", mpath, image, c.flash_base);
@@ -1039,10 +1106,11 @@ int main(int argc, char **argv) {
         if (fdc) {
             char *original = NULL, *expected = NULL;
             if (read_file(fdc, &original, NULL) != 0) return 2;
-            expected = render_fdc(original, find_def(&d, "SOC_CPU_HZ")->value);
+            expected = render_fdc(original, find_def(&d, "SOC_CPU_HZ")->value,
+                                  find_def(&d, "SOC_CPU_MEM_BRAM")->value != 0);
             bool match = expected && !strcmp(original, expected);
             free(original); free(expected);
-            if (!match) { fprintf(stderr, "soc_config: CPU clock FDC ratio is stale or invalid\n"); return 2; }
+            if (!match) { fprintf(stderr, "soc_config: CPU/JTAG FDC paths or clock ratio or DDR IO standards are stale or invalid\n"); return 2; }
         }
         printf("Configuration valid: %zu definitions; flash 0x%06" PRIX64 "+%" PRIu64 " bytes\n", d.count, find_def(&d, "SOC_FLASH_BASE")->value, find_def(&d, "SOC_BOOT_IMAGE_BYTES")->value);
         return 0;

@@ -6,6 +6,8 @@
 
 
 
+F:/SocFpga/cpu/Hcsr.v|F:/SocFpga/soc/soc_addr_map.vh|
+
 
 
 
@@ -19,32 +21,34 @@
 
 F:/SocFpga/jtag/jtag_dm.v|F:/SocFpga/soc/defines.v|
 F:/SocFpga/soc/defines.v|F:/SocFpga/soc/config.v|
-
+F:/SocFpga/soc/config.v|F:/SocFpga/soc/soc_addr_map.vh|
 
 F:/SocFpga/jtag/jtag_top.v|F:/SocFpga/soc/defines.v|
 
 
 
+F:/SocFpga/soc/Hnpu_ctrl.v|F:/SocFpga/soc/soc_addr_map.vh|
+F:/SocFpga/soc/Hnpu_dma.v|F:/SocFpga/soc/soc_addr_map.vh|
+
+F:/SocFpga/soc/Hfpga_soc.v|F:/SocFpga/soc/soc_addr_map.vh|F:/SocFpga/soc/soc_timeout.vh|
+F:/SocFpga/soc/soc_timeout.vh|F:/SocFpga/soc/soc_addr_map.vh|
+F:/SocFpga/soc/Hfpga_soc_bram_profile.v|F:/SocFpga/soc/soc_addr_map.vh|F:/SocFpga/soc/soc_timeout.vh|
+F:/SocFpga/soc/Hcamera_sccb_gpio.v|F:/SocFpga/soc/soc_addr_map.vh|
+
+F:/SocFpga/soc/Hcamera_dvp_regs.v|F:/SocFpga/soc/soc_addr_map.vh|
+F:/SocFpga/soc/Hfpioa_simple.v|F:/SocFpga/soc/soc_addr_map.vh|
+
+F:/SocFpga/soc/Huart_tx.v|F:/SocFpga/soc/soc_addr_map.vh|
 
 
 
-F:/SocFpga/soc/Hfpga_soc.v|F:/SocFpga/soc/soc_addr_map.vh|
 
 
 
-
-
-
-
-
-
-
-
-
-
+F:/SocFpga/soc/Hcamera_preprocess.v|F:/SocFpga/soc/soc_addr_map.vh|
 F:/SocFpga/soc/Hpreprocess_stereo.v|F:/SocFpga/soc/soc_addr_map.vh|
-F:/SocFpga/soc/Hcamera_subsystem.v|F:/SocFpga/soc/camera_regs.vh|
-
+F:/SocFpga/soc/Hcamera_subsystem.v|F:/SocFpga/soc/camera_regs.vh|F:/SocFpga/soc/soc_addr_map.vh|F:/SocFpga/soc/soc_timeout.vh|
+F:/SocFpga/soc/camera_regs.vh|F:/SocFpga/soc/soc_addr_map.vh|
 
 F:/SocFpga/soc/Hcamera_dma.v|F:/SocFpga/soc/camera_regs.vh|
 

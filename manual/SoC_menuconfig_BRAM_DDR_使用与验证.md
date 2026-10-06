@@ -64,7 +64,7 @@ Full DDR profile 可选开启 preprocessing；CoreMark BRAM 会关闭 cache、DD
 | --- | --- |
 | 配置范围 | 1 MHz～327.67 MHz，且为 10 kHz 整数倍；这是现有 CSR 的编码范围，不是 FPGA 可运行频率承诺 |
 | CSR `mimpid` | 保留容量信息位，低 15 位为 `SOC_CPU_HZ / 10000` |
-| FDC | 固定按板上 27 MHz 输入计算 CPU 倍率，只更新 `SOC_CPU_CLOCK` 标记块内倍率；保留 PLL pin 路径及其他约束 |
+| FDC | 固定按板上 27 MHz 输入计算 CPU 倍率；同步 PLL／JTAG 层级路径，以及 10 个 DQS／CK 引脚的 profile 电气标准；引脚位置、电压及其他约束不变 |
 | BSP 构建 | 同步频率头文件，并使依赖它的固件对象在配置变化后重新编译 |
 | CPU 域异常超时 | `soc/soc_timeout.vh` 保持原 70 MHz 下的启动握手约 1.43 ms、诊断快照约 14.29 ms、DDR 初始化约 1 s 上限；周期数向上取整 |
 | 外设速度 | 不修改 SPI 分频、SCCB 延时、摄像头配置／帧率、DMA 时钟或数据通路 |
@@ -82,10 +82,16 @@ Full DDR profile 可选开启 preprocessing；CoreMark BRAM 会关闭 cache、DD
 2. 重新构建所用固件，例如 `make -C bsp/camera_stereo_app all diagnostics`。
 3. 再打开菜单，选择新 BIN；若需精确长度，Loader image bytes 设为 0，然后保存。
 4. 在 PDS 中手工把实际 PLL 输出设为相同频率，重新综合／布局布线／生成位流。
-5. 检查时钟和时序报告。保留的 `get_pins` 路径必须实际命中对应 PLL，尤其切换 DDR／BRAM profile 后；本工具不能替代 PDS 的对象解析和 STA。
+5. 检查约束导入、时钟和时序报告。自动生成的 `get_pins` 路径及 JTAG 内部连线必须实际命中，尤其切换 DDR／BRAM profile 后；本工具不能替代 PDS 的对象解析和 STA。
 6. 烧录匹配的新位流与固件。旧位流、新频率固件不能混用。
 
-可运行 `make config-check` 检查 RTL、FDC 倍率及 BSP 头文件是否一致；`make config-test` 在临时副本测试频率切换、旧配置迁移、非法输入／输出失败保护及 CPU 频率 CSR RTL。`make config-headers` 只按当前 RTL 重生成 BSP 头文件，不修改 PLL 或 FDC。
+FDC 中使用 PDS 编译日志的命名规则：generate 命名块与对象之间用 `.`，模块实例层级用 `/`。DDR profile 的 PLL pin 为 `g_ddr_profile.u_pll/u_gpll:CLKOUT0`，JTAG net 为 `g_ddr_profile.JTAG_TCK_in`；BRAM profile 分别为 `g_bram_profile.u_bram_profile/u_pll/u_gpll:CLKOUT0` 和 `g_bram_profile.u_bram_profile/JTAG_TCK_in`。只生成当前 profile 的一组约束，不同时引用未实例化的分支。上述端点根据当前 RTL 和编译日志推导，仍需 PDS 当前设计视图验证，不表示已经通过综合或布局布线。
+
+BRAM profile 没有 DDR PHY。保留的 `mem_ck`／`mem_ck_n` 分别是常量 0／1，`mem_dqs[3:0]`／`mem_dqs_n[3:0]` 是高阻，综合后是普通输出／三态缓冲器，不是差分 DDR 缓冲器。这 10 个端口只在 BRAM 模式使用单端 `HSTL15_I`，切回 DDR 模式自动恢复原来的 `HSTL15D_I`。所有 DDR 引脚位置、1.5 V VCCIO、方向、驱动、SLEW 和终端属性保持不变；DDR reset 仍拉低、CKE 仍拉低、CS 仍拉高，DQ／DQS 仍高阻。未使用的差分参考输入 `clk_p/n` 仍沿用原约束并由 PDS 按 dangling 忽略，不全局替换差分标准。
+
+配置工具要求上述每个端口恰好有一条标准约束，缺失、重复或未知标准会在写入前拒绝更新。此修正针对已有 BRAM 网表与差分标准不匹配的报错，仍需实际 PDS 重新综合／device map／place & route 验证；仿真与文本检查不证明电气检查或时序通过。缺少 SLEW／DRIVE 及 share-pin 的提示与本次阻塞错误不同，本次不为消除提示统一修改其他引脚电气属性。
+
+可运行 `make config-check` 检查 RTL、FDC 倍率／profile 路径／DDR 引脚标准及 BSP 头文件是否一致；`make config-test` 在临时副本测试频率与 DDR／BRAM 双向切换、旧 JTAG／PLL 路径与不匹配 IO 标准检测、管理块格式／写入失败保护、旧配置迁移及 CPU 频率 CSR RTL，并逐字比较其他引脚约束不变。修改频率或 profile 必须提供 `--fdc`，菜单入口已自动提供。`make config-headers` 只按当前 RTL 重生成 BSP 头文件，不修改 PLL 或 FDC。
 
 ## 镜像长度、对齐和 manifest
 

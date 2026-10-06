@@ -13,7 +13,9 @@ create_clock -period {100.000} [get_ports {JTAG_TCK}] -name JTAG_CLK
 create_clock -period {10.000} [get_ports {cam1_pclk}] -name CAM1_PCLK
 create_clock -period {10.000} [get_ports {cam2_pclk}] -name CAM2_PCLK
 
-define_attribute {n:JTAG_TCK_in} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}
+# BEGIN SOC_JTAG_ROUTE (managed by menuconfig; follows the selected profile)
+define_attribute {n:g_bram_profile.u_bram_profile/JTAG_TCK_in} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}
+# END SOC_JTAG_ROUTE
 
 
 # BEGIN SOC_CPU_CLOCK (managed by menuconfig; PLL is configured manually in PDS)
@@ -22,7 +24,7 @@ create_generated_clock -name cpu_clk \
     -master_clock clk \
     -multiply_by 70 \
     -divide_by 27 \
-    [get_pins {u_pll/u_gpll:CLKOUT0}]
+    [get_pins {g_bram_profile.u_bram_profile/u_pll/u_gpll:CLKOUT0}]
 # END SOC_CPU_CLOCK
 # 异步时钟域声明
 set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {JTAG_CLK}]
@@ -410,7 +412,10 @@ define_attribute {p:JTAG_TMS} {PAP_IO_NONE} {TRUE}
 
 #----------------------DDR3 数据/地址/控制---------------------------
 # 以下约束来自板卡 DDR3 引脚表；DQS/DQ/CK 等信号必须成组使用 DDR 专用 IO。
-# 不要删除未被当前 RTL 逻辑“单独使用”的位，它们由 DDR PHY 统一驱动/采样。
+# DDR 模式下不要删除未被当前 RTL 逻辑“单独使用”的位，DDR PHY 成组使用。
+# menuconfig 只切换 mem_dqs[*]/mem_dqs_n[*]/mem_ck/mem_ck_n 的 IO_STANDARD：
+# DDR PHY 使用 HSTL15D_I；BRAM 停用 DDR 时普通静态/三态缓冲使用 HSTL15_I。
+# LOC、1.5 V VCCIO 和其他属性不变；BRAM 的 reset/CK/CKE/CS 停用状态不变。
 define_attribute {p:mem_dq[31]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dq[31]} {PAP_IO_LOC} {C2}
 define_attribute {p:mem_dq[31]} {PAP_IO_VCCIO} {1.5}
@@ -743,56 +748,56 @@ define_attribute {p:mem_a[0]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs[3]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs[3]} {PAP_IO_LOC} {C1}
 define_attribute {p:mem_dqs[3]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs[3]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs[3]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs[3]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs[3]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs[3]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs[2]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs[2]} {PAP_IO_LOC} {B5}
 define_attribute {p:mem_dqs[2]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs[2]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs[2]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs[2]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs[2]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs[2]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs[1]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs[1]} {PAP_IO_LOC} {H7}
 define_attribute {p:mem_dqs[1]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs[1]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs[1]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs[1]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs[1]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs[1]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs[0]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs[0]} {PAP_IO_LOC} {J4}
 define_attribute {p:mem_dqs[0]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs[0]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs[0]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs[0]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs[0]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs[0]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs_n[3]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs_n[3]} {PAP_IO_LOC} {B1}
 define_attribute {p:mem_dqs_n[3]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs_n[3]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs_n[3]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs_n[3]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs_n[3]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs_n[3]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs_n[2]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs_n[2]} {PAP_IO_LOC} {A5}
 define_attribute {p:mem_dqs_n[2]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs_n[2]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs_n[2]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs_n[2]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs_n[2]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs_n[2]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_LOC} {G7}
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs_n[1]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs_n[1]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_LOC} {H4}
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs_n[0]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs_n[0]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_SLEW} {SLOW}
@@ -855,14 +860,14 @@ define_attribute {p:mem_cas_n} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_ck} {PAP_IO_DIRECTION} {OUTPUT}
 define_attribute {p:mem_ck} {PAP_IO_LOC} {U6}
 define_attribute {p:mem_ck} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_ck} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_ck} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_ck} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_ck} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_ck} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_ck_n} {PAP_IO_DIRECTION} {OUTPUT}
 define_attribute {p:mem_ck_n} {PAP_IO_LOC} {U5}
 define_attribute {p:mem_ck_n} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_ck_n} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_ck_n} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_ck_n} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_ck_n} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_ck_n} {PAP_IO_SLEW} {SLOW}

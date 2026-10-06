@@ -33,18 +33,36 @@ apply_config() {
 }
 check_config() {
     "$TOOL" check --source "$SOURCE" --fdc "$FDC" \
-        --header "$TEST_DIR/bsp/soc_defs.h" --asm "$TEST_DIR/bsp/soc_defs_asm.inc" > /dev/null
-    cmp "$OUT/soc_defs.h" "$TEST_DIR/bsp/soc_defs.h"
-    # Anything outside the managed CPU clock block must remain byte-identical.
-    sed '/# BEGIN SOC_CPU_CLOCK/,/# END SOC_CPU_CLOCK/d' "$ROOT/soc.fdc" > "$TEST_DIR/other.original"
-    sed '/# BEGIN SOC_CPU_CLOCK/,/# END SOC_CPU_CLOCK/d' "$FDC" > "$TEST_DIR/other.current"
+        --header "$TEST_DIR/bsp/soc_defs.h" --asm "$TEST_DIR/bsp/soc_defs_asm.inc" > /dev/null || return 1
+    cmp "$OUT/soc_defs.h" "$TEST_DIR/bsp/soc_defs.h" || return 1
+    # All unrelated constraints, including every LOC/VCCIO/direction/drive/slew
+    # line, must remain byte-identical across profiles.
+    sed '/# BEGIN SOC_CPU_CLOCK/,/# END SOC_CPU_CLOCK/d; /# BEGIN SOC_JTAG_ROUTE/,/# END SOC_JTAG_ROUTE/d' \
+        "$ROOT/soc.fdc" | awk '/^define_attribute \{p:mem_(dqs(_n)?\[[0-3]\]|ck(_n)?)\} \{PAP_IO_STANDARD\}/ {next} {print}' > "$TEST_DIR/other.original"
+    sed '/# BEGIN SOC_CPU_CLOCK/,/# END SOC_CPU_CLOCK/d; /# BEGIN SOC_JTAG_ROUTE/,/# END SOC_JTAG_ROUTE/d' \
+        "$FDC" | awk '/^define_attribute \{p:mem_(dqs(_n)?\[[0-3]\]|ck(_n)?)\} \{PAP_IO_STANDARD\}/ {next} {print}' > "$TEST_DIR/other.current"
     cmp "$TEST_DIR/other.original" "$TEST_DIR/other.current"
+}
+check_paths() {
+    case "$1" in
+        full) pll='g_ddr_profile.u_pll/u_gpll:CLKOUT0'; net='g_ddr_profile.JTAG_TCK_in'; absent='g_bram_profile'; standard=HSTL15D_I ;;
+        bram) pll='g_bram_profile.u_bram_profile/u_pll/u_gpll:CLKOUT0'; net='g_bram_profile.u_bram_profile/JTAG_TCK_in'; absent='g_ddr_profile'; standard=HSTL15_I ;;
+    esac
+    rg -Fqx "    [get_pins {$pll}]" "$FDC"
+    rg -Fqx "define_attribute {n:$net} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}" "$FDC"
+    if rg -Fq "$absent" "$FDC"; then echo 'FAIL constraints for inactive profile' >&2; exit 1; fi
+    test "$(rg -c "^define_attribute \{p:mem_(dqs(_n)?\[[0-3]\]|ck(_n)?)\} \{PAP_IO_STANDARD\} \{$standard\}$" "$FDC")" -eq 10
+    # Disabled reference input constraints and the existing data/control IO
+    # standards must not be changed by the narrowly scoped profile adaptation.
+    rg -Fqx 'define_attribute {p:clk_p} {PAP_IO_STANDARD} {HSTL15D_I}' "$FDC"
+    rg -Fqx 'define_attribute {p:clk_n} {PAP_IO_STANDARD} {HSTL15D_I}' "$FDC"
 }
 
 for hz in 70000000 90000000 100000000 70500000 1000000 327670000; do
     config_for "$hz"
     apply_config
     check_config
+    check_paths full
     rg -q "SOC_CPU_HZ +32'd$hz$" "$SOURCE"
     rg -q "\"cpu_hz\": $hz," "$OUT/clock_config.json"
     case "$hz" in
@@ -99,6 +117,31 @@ cmp "$TEST_DIR/before.sha" "$TEST_DIR/after.sha"
 printf '%s\n' '# no managed clock block' > "$TEST_DIR/bad.fdc"
 if "$TOOL" apply --source "$SOURCE" --config "$CONFIG" --output-dir "$OUT" \
     --fdc "$TEST_DIR/bad.fdc" --bsp-output-dir "$TEST_DIR/bsp" > /dev/null 2>&1; then exit 1; fi
+# Missing/duplicated JTAG ownership markers, missing/duplicated endpoint or
+# route commands and overlapping blocks must fail without any partial write.
+for bad in jtag_missing jtag_duplicate pin_missing pin_duplicate route_missing route_duplicate overlap io_missing io_duplicate io_invalid; do
+    case "$bad" in
+        jtag_missing) sed '/# BEGIN SOC_JTAG_ROUTE/d' "$FDC" ;;
+        jtag_duplicate) sed '/# BEGIN SOC_JTAG_ROUTE/p' "$FDC" ;;
+        pin_missing) sed '/\[get_pins {/d' "$FDC" ;;
+        pin_duplicate) sed '/\[get_pins {/p' "$FDC" ;;
+        route_missing) sed '/^define_attribute {n:/d' "$FDC" ;;
+        route_duplicate) sed '/^define_attribute {n:/p' "$FDC" ;;
+        overlap) sed '/# END SOC_JTAG_ROUTE/d; /# END SOC_CPU_CLOCK/a # END SOC_JTAG_ROUTE' "$FDC" ;;
+        io_missing) sed '/^define_attribute {p:mem_ck} {PAP_IO_STANDARD}/d' "$FDC" ;;
+        io_duplicate) sed '/^define_attribute {p:mem_ck} {PAP_IO_STANDARD}/p' "$FDC" ;;
+        io_invalid) sed '/^define_attribute {p:mem_ck} {PAP_IO_STANDARD}/s/HSTL15D_I/LVCMOS33/' "$FDC" ;;
+    esac > "$TEST_DIR/bad.fdc"
+    sha256sum "$TEST_DIR/bad.fdc" > "$TEST_DIR/bad.before.sha"
+    if "$TOOL" apply --source "$SOURCE" --config "$CONFIG" --output-dir "$OUT" \
+        --fdc "$TEST_DIR/bad.fdc" --bsp-output-dir "$TEST_DIR/bsp" > /dev/null 2>&1; then
+        echo "FAIL accepted malformed FDC $bad" >&2; exit 1
+    fi
+    sha256sum "$TEST_DIR/bad.fdc" > "$TEST_DIR/bad.after.sha"
+    cmp "$TEST_DIR/bad.before.sha" "$TEST_DIR/bad.after.sha"
+    sha256sum "$SOURCE" "$FDC" "$OUT"/* "$TEST_DIR/bsp"/* > "$TEST_DIR/after.sha"
+    cmp "$TEST_DIR/before.sha" "$TEST_DIR/after.sha"
+done
 mkdir -p "$TEST_DIR/broken/soc_defs.h"
 if "$TOOL" apply --source "$SOURCE" --config "$CONFIG" --output-dir "$OUT" \
     --fdc "$FDC" --bsp-output-dir "$TEST_DIR/broken" > /dev/null 2>&1; then exit 1; fi
@@ -134,11 +177,52 @@ rg -q '^CONFIG_SOC_CPU_HZ=90000000$' "$TEST_DIR/legacy.config"
 "$TOOL" seed --source "$SOURCE" --config "$TEST_DIR/new.config"
 rg -q '^CONFIG_SOC_CPU_HZ=90000000$' "$TEST_DIR/new.config"
 
-# BRAM selection retains frequency and keeps the other clocks unchanged too.
+# BRAM selection updates both paths, retaining frequency and unrelated clocks.
 sed 's/^CONFIG_SOC_PROFILE_FULL=y$/# CONFIG_SOC_PROFILE_FULL is not set/;s/^# CONFIG_SOC_PROFILE_BRAM is not set$/CONFIG_SOC_PROFILE_BRAM=y/' \
     "$CONFIG" > "$TEST_DIR/bram.config"
 cp "$TEST_DIR/bram.config" "$CONFIG"
+# A profile change without a matching FDC update is unsafe even at the same Hz.
+sha256sum "$SOURCE" "$FDC" "$OUT"/* "$TEST_DIR/bsp"/* > "$TEST_DIR/before.sha"
+if "$TOOL" apply --source "$SOURCE" --config "$CONFIG" --output-dir "$OUT" \
+    --bsp-output-dir "$TEST_DIR/bsp" > /dev/null 2> "$TEST_DIR/error.log"; then exit 1; fi
+rg -q 'changing hardware profile requires --fdc' "$TEST_DIR/error.log"
+sha256sum "$SOURCE" "$FDC" "$OUT"/* "$TEST_DIR/bsp"/* > "$TEST_DIR/after.sha"
+cmp "$TEST_DIR/before.sha" "$TEST_DIR/after.sha"
 apply_config
 check_config
+check_paths bram
 rg -q 'SOC_CPU_MEM_BRAM +1$' "$SOURCE"
+
+# Independently stale JTAG and PLL paths must be detected (not just the ratio).
+cp "$FDC" "$TEST_DIR/good.fdc"
+for endpoint in jtag pll io; do
+    case "$endpoint" in
+        jtag) sed 's@g_bram_profile.u_bram_profile/JTAG_TCK_in@JTAG_TCK_in@' "$TEST_DIR/good.fdc" ;;
+        pll) sed 's@g_bram_profile.u_bram_profile/u_pll/u_gpll:CLKOUT0@u_pll/u_gpll:CLKOUT0@' "$TEST_DIR/good.fdc" ;;
+        io) sed '/^define_attribute {p:mem_ck} {PAP_IO_STANDARD}/s/HSTL15_I/HSTL15D_I/' "$TEST_DIR/good.fdc" ;;
+    esac > "$FDC"
+    if check_config 2> "$TEST_DIR/error.log"; then echo "FAIL accepted stale $endpoint path" >&2; exit 1; fi
+    rg -q 'CPU/JTAG FDC paths or clock ratio or DDR IO standards are stale' "$TEST_DIR/error.log"
+    apply_config
+    check_config
+    check_paths bram
+done
+
+# Repeat both directions and frequencies; no-op apply must preserve FDC mtime.
+for hz in 70000000 90000000; do
+    config_for "$hz"
+    apply_config
+    check_config
+    check_paths full
+    rg -q 'SOC_CPU_MEM_BRAM +0$' "$SOURCE"
+    sed 's/^CONFIG_SOC_PROFILE_FULL=y$/# CONFIG_SOC_PROFILE_FULL is not set/;s/^# CONFIG_SOC_PROFILE_BRAM is not set$/CONFIG_SOC_PROFILE_BRAM=y/' \
+        "$CONFIG" > "$TEST_DIR/bram.config"
+    cp "$TEST_DIR/bram.config" "$CONFIG"
+    apply_config
+    check_config
+    check_paths bram
+    before=$(stat -c '%y' "$FDC")
+    apply_config
+    test "$before" = "$(stat -c '%y' "$FDC")"
+done
 echo SOC_CLOCK_CONFIG_PASS
