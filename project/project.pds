@@ -199,6 +199,22 @@
                     (_format verilog)
                     (_timespec "2026-10-02T16:18:01")
                 )
+                (_file "../soc/Hrgb565_int8_lane.v"
+                    (_format verilog)
+                    (_timespec "2026-10-07T11:45:58")
+                )
+                (_file "../soc/Hrgb565_int8_stereo.v"
+                    (_format verilog)
+                    (_timespec "2026-10-07T11:45:58")
+                )
+                (_file "../soc/Hrgb565_int8_ddr_merge.v"
+                    (_format verilog)
+                    (_timespec "2026-10-07T11:45:58")
+                )
+                (_file "../soc/Hrgb565_int8_regs.v"
+                    (_format verilog)
+                    (_timespec "2026-10-07T11:45:58")
+                )
                 (_file "../soc/Hcamera_subsystem.v"
                     (_format verilog)
                     (_timespec "2026-10-06T12:08:13")

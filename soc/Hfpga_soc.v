@@ -56,6 +56,8 @@ module Hfpga_soc #(
     parameter [31:0] CAM1_MMIO_BYTES    = `SOC_CAM1_MMIO_BYTES,
     parameter [31:0] CAM2_MMIO_BASE     = `SOC_CAM2_MMIO_BASE,
     parameter [31:0] CAM2_MMIO_BYTES    = `SOC_CAM2_MMIO_BYTES,
+    parameter [31:0] INT8_MMIO_BASE    = `SOC_INT8_MMIO_BASE,
+    parameter [31:0] INT8_MMIO_BYTES   = `SOC_INT8_MMIO_BYTES,
     parameter [31:0] FPIOA_BASE         = `SOC_FPIOA_BASE,
     parameter [31:0] FPIOA_BYTES        = `SOC_FPIOA_BYTES
 ) (
@@ -572,6 +574,7 @@ module Hfpga_soc #(
 
     // ============ MMIO peripherals ========================================
     localparam [31:0] UART0_END  = UART0_BASE + UART0_BYTES;
+    localparam [31:0] INT8_MMIO_END = INT8_MMIO_BASE + INT8_MMIO_BYTES;
     localparam [31:0] CAM1_MMIO_END = CAM1_MMIO_BASE + CAM1_MMIO_BYTES;
     localparam [31:0] CAM2_MMIO_END = CAM2_MMIO_BASE + CAM2_MMIO_BYTES;
     localparam [31:0] FPIOA_END  = FPIOA_BASE + FPIOA_BYTES;
@@ -589,6 +592,9 @@ module Hfpga_soc #(
     wire fpioa_sel = mmio_req_valid &&
                      (mmio_req_addr >= FPIOA_BASE) &&
                      (mmio_req_addr <  FPIOA_END);
+    wire int8_addr_sel = (mmio_req_addr>=INT8_MMIO_BASE) &&
+                         (mmio_req_addr<INT8_MMIO_END);
+    wire int8_sel = mmio_req_valid && int8_addr_sel;
 
     Hnpu_ctrl #(
         .NPU_MMIO_BASE  (NPU_MMIO_BASE),
@@ -615,7 +621,10 @@ module Hfpga_soc #(
     );
 
     // UART TX data writes are the only peripheral access that can be busy.
+    wire int8_mmio_ready;
+    wire [31:0] int8_mmio_rdata;
     assign mmio_req_ready = uart_addr_sel ? uart_ready :
+                            int8_addr_sel ? int8_mmio_ready :
                             npu_addr_sel  ? npu_mmio_ready : 1'b1;
 
     wire [31:0] uart_rdata;
@@ -852,6 +861,7 @@ module Hfpga_soc #(
 
     assign mmio_req_rdata =
         uart_sel   ? uart_rdata        :
+        int8_sel   ? int8_mmio_rdata   :
         npu_sel    ? npu_mmio_rdata    :
         led_sel    ? {28'b0, led_value}:
         cam1_sel   ? cam1_rdata        :
@@ -1026,6 +1036,48 @@ module Hfpga_soc #(
     wire [3:0] pre_bank_ready;
     wire [1:0] pre_busy, pre_error;
     wire [63:0] pre_frames, pre_empty, pre_failed, pre_bad_releases, pre_error_code, pre_last_cycles;
+    wire int8_enable_ddr, int8_clear_errors_ddr;
+    wire [1:0] int8_desc_ready, int8_roi_release_valid, int8_roi_release_bank;
+    wire [63:0] int8_roi_release_frame;
+    wire [1:0] int8_busy, int8_error, int8_wait_slot, int8_wait_ddr, int8_wait_handoff;
+    wire [1023:0] int8_stats;
+    wire [1:0] npu_image_valid_int, npu_image_ready_int;
+    wire [15:0] npu_image_camera_int, npu_image_batch_count_int, npu_image_index_int;
+    wire [63:0] npu_image_frame_int, npu_image_generation_int, npu_image_data_addr_int;
+    wire [127:0] npu_image_box_int;
+    wire [5:0] npu_image_color_int;
+    wire [3:0] npu_image_block_int;
+    wire [7:0] npu_image_position_int;
+    wire [31:0] npu_image_width_int, npu_image_height_int;
+    wire [63:0] npu_image_bytes_int;
+    wire [1:0] npu_release_valid_int, npu_release_ready_int;
+    wire [15:0] npu_release_camera_int;
+    wire [63:0] npu_release_frame_int, npu_release_generation_int;
+    wire [3:0] npu_release_block_int;
+    wire [7:0] npu_release_position_int;
+    wire [59:0] int8_lane_araddr, int8_lane_awaddr;
+    wire [15:0] int8_lane_arid, int8_lane_arlen, int8_lane_arsize;
+    wire [3:0] int8_lane_arburst;
+    wire [1:0] int8_lane_arvalid, int8_lane_arready;
+    wire [511:0] int8_lane_rdata, int8_lane_wdata;
+    wire [15:0] int8_lane_rid, int8_lane_bid;
+    wire [3:0] int8_lane_rresp, int8_lane_bresp;
+    wire [1:0] int8_lane_rlast, int8_lane_rvalid, int8_lane_rready;
+    wire [15:0] int8_lane_awid, int8_lane_awlen, int8_lane_awsize;
+    wire [3:0] int8_lane_awburst;
+    wire [1:0] int8_lane_awvalid, int8_lane_awready;
+    wire [63:0] int8_lane_wstrb;
+    wire [1:0] int8_lane_wlast, int8_lane_wvalid, int8_lane_wready;
+    wire [1:0] int8_lane_bvalid, int8_lane_bready;
+    // A's per-image manager is not yet part of this source tree. Safe tie-offs
+    // keep valid records queued and prevent any slot from being falsely returned.
+    assign npu_image_ready_int=2'b00;
+    assign npu_release_valid_int=2'b00;
+    assign npu_release_camera_int=16'b0;
+    assign npu_release_frame_int=64'b0;
+    assign npu_release_block_int=4'b0;
+    assign npu_release_position_int=8'b0;
+    assign npu_release_generation_int=64'b0;
     wire [29:0] pre_axi_araddr, capture_axi_araddr;
     wire [7:0] pre_axi_arid, capture_axi_arid;
     wire [7:0] pre_axi_arlen, capture_axi_arlen;
@@ -1055,6 +1107,22 @@ module Hfpga_soc #(
     wire [1:0] pre_axi_bresp, capture_axi_bresp;
     wire pre_axi_bvalid, capture_axi_bvalid;
     wire pre_axi_bready, capture_axi_bready;
+    wire [29:0] capture_int8_araddr, capture_int8_awaddr;
+    wire [7:0] capture_int8_arid, capture_int8_arlen, capture_int8_awid, capture_int8_awlen;
+    wire [2:0] capture_int8_arsize, capture_int8_awsize;
+    wire [1:0] capture_int8_arburst, capture_int8_awburst;
+    wire capture_int8_arvalid, capture_int8_arready, capture_int8_rlast;
+    wire [255:0] capture_int8_rdata;
+    wire [7:0] capture_int8_rid;
+    wire [1:0] capture_int8_rresp;
+    wire capture_int8_rvalid, capture_int8_rready;
+    wire capture_int8_awvalid, capture_int8_awready, capture_int8_wlast;
+    wire [255:0] capture_int8_wdata;
+    wire [31:0] capture_int8_wstrb;
+    wire capture_int8_wvalid, capture_int8_wready;
+    wire [7:0] capture_int8_bid;
+    wire [1:0] capture_int8_bresp;
+    wire capture_int8_bvalid, capture_int8_bready;
 
     Hpreprocess_stereo #(.DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES)) u_preprocess_stereo (
         .clk(ddr_core_clk), .rst_n(sys_rst_n), .enable({2{PREPROCESS_ENABLE}}),
@@ -1068,13 +1136,14 @@ module Hfpga_soc #(
         .cfg_min_area({2{32'd16}}), .cfg_max_area({2{32'd307200}}),
         .cfg_min_fill(16'h4040), .cfg_min_aspect({2{16'd64}}),
         .cfg_max_aspect({2{16'd1024}}), .cfg_margin({2{16'd2}}),
-        // 尚无 NPU：不能假装自动完成/释放，第一份描述符就会等待真实消费者。
-        .result_valid(pre_result_valid), .result_ready(2'b0),
+        // 转换器为每路保留足以容纳整批的INT8位置后才握手接收。
+        .result_valid(pre_result_valid), .result_ready(int8_desc_ready),
         .result_camera(pre_result_camera), .result_bank(pre_result_bank),
         .result_frame(pre_result_frame), .result_addr(pre_result_addr), .result_count(pre_result_count),
         .result_width(pre_result_width), .result_height(pre_result_height),
         .result_stride(pre_result_stride), .result_boxes(pre_result_boxes), .result_colors(pre_result_colors),
-        .roi_release_valid(2'b0), .roi_release_bank(2'b0), .roi_release_frame(64'b0),
+        .roi_release_valid(int8_roi_release_valid), .roi_release_bank(int8_roi_release_bank),
+        .roi_release_frame(int8_roi_release_frame),
         .bank_ready_mask(pre_bank_ready), .busy(pre_busy),
         .frames_processed(pre_frames), .empty_frames(pre_empty), .failed_frames(pre_failed),
         .bad_releases(pre_bad_releases), .error(pre_error), .error_code(pre_error_code),
@@ -1108,6 +1177,107 @@ module Hfpga_soc #(
         .axi_bresp(pre_axi_bresp),
         .axi_bvalid(pre_axi_bvalid),
         .axi_bready(pre_axi_bready)
+    );
+
+    Hrgb565_int8_regs u_int8_regs (
+        .cpu_clk(cpu_clk), .ddr_clk(ddr_core_clk), .rst_n(sys_rst_n),
+        .mmio_valid(int8_sel), .mmio_wen(mmio_req_wen),
+        .mmio_addr(mmio_req_addr[7:0]), .mmio_wdata(mmio_req_wdata),
+        .mmio_wstrb(mmio_req_wstrb), .mmio_ready(int8_mmio_ready),
+        .mmio_rdata(int8_mmio_rdata), .busy_ddr(int8_busy),
+        .wait_slot_ddr(int8_wait_slot), .wait_ddr_ddr(int8_wait_ddr),
+        .wait_handoff_ddr(int8_wait_handoff), .error_ddr(int8_error),
+        .ddr_ready_ddr(ddr_init_done), .stats_ddr(int8_stats),
+        .enable_ddr(int8_enable_ddr), .clear_errors_ddr(int8_clear_errors_ddr)
+    );
+
+    Hrgb565_int8_stereo #(.DDR_BASE(DDR_BASE),.DDR_BYTES(DDR_BYTES)) u_rgb565_int8 (
+        .clk(ddr_core_clk), .rst_n(sys_rst_n),
+        .enable(PREPROCESS_ENABLE && ddr_init_done && int8_enable_ddr),
+        .clear_errors(int8_clear_errors_ddr),
+        .desc_valid(pre_result_valid), .desc_ready(int8_desc_ready),
+        .desc_camera(pre_result_camera), .desc_frame(pre_result_frame),
+        .desc_rgb_bank(pre_result_bank), .desc_rgb_base(pre_result_addr),
+        .desc_count(pre_result_count), .desc_width(pre_result_width),
+        .desc_height(pre_result_height), .desc_rgb_stride(pre_result_stride),
+        .desc_boxes(pre_result_boxes), .desc_colors(pre_result_colors),
+        .roi_release_valid(int8_roi_release_valid),.roi_release_bank(int8_roi_release_bank),
+        .roi_release_frame(int8_roi_release_frame),
+        .image_valid(npu_image_valid_int),.image_ready(npu_image_ready_int),
+        .image_camera(npu_image_camera_int),.image_frame(npu_image_frame_int),
+        .image_batch_count(npu_image_batch_count_int),.image_index(npu_image_index_int),
+        .image_box(npu_image_box_int),.image_color(npu_image_color_int),
+        .image_block(npu_image_block_int),.image_position(npu_image_position_int),
+        .image_generation(npu_image_generation_int),.image_data_addr(npu_image_data_addr_int),
+        .image_width(npu_image_width_int),.image_height(npu_image_height_int),
+        .image_data_bytes(npu_image_bytes_int),
+        .release_valid(npu_release_valid_int),.release_ready(npu_release_ready_int),
+        .release_camera(npu_release_camera_int),.release_frame(npu_release_frame_int),
+        .release_block(npu_release_block_int),.release_position(npu_release_position_int),
+        .release_generation(npu_release_generation_int),
+        .busy(int8_busy),.error(int8_error),.wait_slot(int8_wait_slot),
+        .wait_ddr(int8_wait_ddr),.wait_handoff(int8_wait_handoff),.stats(int8_stats),
+        .axi_araddr(int8_lane_araddr),.axi_arid(int8_lane_arid),.axi_arlen(int8_lane_arlen),
+        .axi_arsize(int8_lane_arsize),.axi_arburst(int8_lane_arburst),
+        .axi_arvalid(int8_lane_arvalid),.axi_arready(int8_lane_arready),
+        .axi_rdata(int8_lane_rdata),.axi_rid(int8_lane_rid),.axi_rresp(int8_lane_rresp),
+        .axi_rlast(int8_lane_rlast),.axi_rvalid(int8_lane_rvalid),.axi_rready(int8_lane_rready),
+        .axi_awaddr(int8_lane_awaddr),.axi_awid(int8_lane_awid),.axi_awlen(int8_lane_awlen),
+        .axi_awsize(int8_lane_awsize),.axi_awburst(int8_lane_awburst),
+        .axi_awvalid(int8_lane_awvalid),.axi_awready(int8_lane_awready),
+        .axi_wdata(int8_lane_wdata),.axi_wstrb(int8_lane_wstrb),.axi_wlast(int8_lane_wlast),
+        .axi_wvalid(int8_lane_wvalid),.axi_wready(int8_lane_wready),
+        .axi_bid(int8_lane_bid),.axi_bresp(int8_lane_bresp),
+        .axi_bvalid(int8_lane_bvalid),.axi_bready(int8_lane_bready)
+    );
+
+    Hrgb565_int8_ddr_merge u_int8_ddr_merge (
+        .clk(ddr_core_clk),.rst_n(sys_rst_n),
+        .cap_araddr(capture_axi_araddr),.cap_arid(capture_axi_arid),
+        .cap_arlen(capture_axi_arlen),.cap_arsize(capture_axi_arsize),
+        .cap_arburst(capture_axi_arburst),.cap_arvalid(capture_axi_arvalid),
+        .cap_arready(capture_axi_arready),.cap_rdata(capture_axi_rdata),
+        .cap_rid(capture_axi_rid),.cap_rresp(capture_axi_rresp),
+        .cap_rlast(capture_axi_rlast),.cap_rvalid(capture_axi_rvalid),
+        .cap_rready(capture_axi_rready),.cap_awaddr(capture_axi_awaddr),
+        .cap_awid(capture_axi_awid),.cap_awlen(capture_axi_awlen),
+        .cap_awsize(capture_axi_awsize),.cap_awburst(capture_axi_awburst),
+        .cap_awvalid(capture_axi_awvalid),.cap_awready(capture_axi_awready),
+        .cap_wdata(capture_axi_wdata),.cap_wstrb(capture_axi_wstrb),
+        .cap_wlast(capture_axi_wlast),.cap_wvalid(capture_axi_wvalid),
+        .cap_wready(capture_axi_wready),.cap_bid(capture_axi_bid),
+        .cap_bresp(capture_axi_bresp),.cap_bvalid(capture_axi_bvalid),
+        .cap_bready(capture_axi_bready),
+        .lane_araddr(int8_lane_araddr),.lane_arid(int8_lane_arid),
+        .lane_arlen(int8_lane_arlen),.lane_arsize(int8_lane_arsize),
+        .lane_arburst(int8_lane_arburst),.lane_arvalid(int8_lane_arvalid),
+        .lane_arready(int8_lane_arready),.lane_rdata(int8_lane_rdata),
+        .lane_rid(int8_lane_rid),.lane_rresp(int8_lane_rresp),
+        .lane_rlast(int8_lane_rlast),.lane_rvalid(int8_lane_rvalid),
+        .lane_rready(int8_lane_rready),.lane_awaddr(int8_lane_awaddr),
+        .lane_awid(int8_lane_awid),.lane_awlen(int8_lane_awlen),
+        .lane_awsize(int8_lane_awsize),.lane_awburst(int8_lane_awburst),
+        .lane_awvalid(int8_lane_awvalid),.lane_awready(int8_lane_awready),
+        .lane_wdata(int8_lane_wdata),.lane_wstrb(int8_lane_wstrb),
+        .lane_wlast(int8_lane_wlast),.lane_wvalid(int8_lane_wvalid),
+        .lane_wready(int8_lane_wready),.lane_bid(int8_lane_bid),
+        .lane_bresp(int8_lane_bresp),.lane_bvalid(int8_lane_bvalid),
+        .lane_bready(int8_lane_bready),
+        .out_araddr(capture_int8_araddr),.out_arid(capture_int8_arid),
+        .out_arlen(capture_int8_arlen),.out_arsize(capture_int8_arsize),
+        .out_arburst(capture_int8_arburst),.out_arvalid(capture_int8_arvalid),
+        .out_arready(capture_int8_arready),.out_rdata(capture_int8_rdata),
+        .out_rid(capture_int8_rid),.out_rresp(capture_int8_rresp),
+        .out_rlast(capture_int8_rlast),.out_rvalid(capture_int8_rvalid),
+        .out_rready(capture_int8_rready),.out_awaddr(capture_int8_awaddr),
+        .out_awid(capture_int8_awid),.out_awlen(capture_int8_awlen),
+        .out_awsize(capture_int8_awsize),.out_awburst(capture_int8_awburst),
+        .out_awvalid(capture_int8_awvalid),.out_awready(capture_int8_awready),
+        .out_wdata(capture_int8_wdata),.out_wstrb(capture_int8_wstrb),
+        .out_wlast(capture_int8_wlast),.out_wvalid(capture_int8_wvalid),
+        .out_wready(capture_int8_wready),.out_bid(capture_int8_bid),
+        .out_bresp(capture_int8_bresp),.out_bvalid(capture_int8_bvalid),
+        .out_bready(capture_int8_bready)
     );
 
     // Capture 与预处理合并，再由下一级与 CPU/启动桥合并。
@@ -1237,8 +1407,8 @@ module Hfpga_soc #(
         assign pre_axi_bvalid = 1'b0;
         assign capture_axi_bready = camera_axi_bready;
     end
-    // 第二个历史命名为 npu 的端口接 Camera + 前处理聚合通道。
-    // NPU 引擎接入时需扩展主机拓扑，当前没有隐式 NPU/Camera 共用端口。
+    // 第二个历史命名为npu的端口接Camera、前处理和INT8转换器公平合并后的通道。
+    // A的真实NPU DDR读主设备仍需后续接入，当前没有完整推理计算通路。
     Haxi_2m1s_arbiter u_camera_ddr_arbiter (
         .clk(ddr_core_clk), .rst_n(sys_rst_n),
         .cpu_axi_awaddr(bridge_axi_awaddr),
@@ -1270,35 +1440,35 @@ module Hfpga_soc #(
         .cpu_axi_rlast(bridge_axi_rlast),
         .cpu_axi_rvalid(bridge_axi_rvalid),
         .cpu_axi_rready(bridge_axi_rready),
-        .npu_axi_awaddr(capture_axi_awaddr),
-        .npu_axi_awid(capture_axi_awid),
-        .npu_axi_awlen(capture_axi_awlen),
-        .npu_axi_awsize(capture_axi_awsize),
-        .npu_axi_awburst(capture_axi_awburst),
-        .npu_axi_awvalid(capture_axi_awvalid),
-        .npu_axi_awready(capture_axi_awready),
-        .npu_axi_wdata(capture_axi_wdata),
-        .npu_axi_wstrb(capture_axi_wstrb),
-        .npu_axi_wlast(capture_axi_wlast),
-        .npu_axi_wvalid(capture_axi_wvalid),
-        .npu_axi_wready(capture_axi_wready),
-        .npu_axi_bid(capture_axi_bid),
-        .npu_axi_bresp(capture_axi_bresp),
-        .npu_axi_bvalid(capture_axi_bvalid),
-        .npu_axi_bready(capture_axi_bready),
-        .npu_axi_araddr(capture_axi_araddr),
-        .npu_axi_arid(capture_axi_arid),
-        .npu_axi_arlen(capture_axi_arlen),
-        .npu_axi_arsize(capture_axi_arsize),
-        .npu_axi_arburst(capture_axi_arburst),
-        .npu_axi_arvalid(capture_axi_arvalid),
-        .npu_axi_arready(capture_axi_arready),
-        .npu_axi_rdata(capture_axi_rdata),
-        .npu_axi_rid(capture_axi_rid),
-        .npu_axi_rresp(capture_axi_rresp),
-        .npu_axi_rlast(capture_axi_rlast),
-        .npu_axi_rvalid(capture_axi_rvalid),
-        .npu_axi_rready(capture_axi_rready),
+        .npu_axi_awaddr(capture_int8_awaddr),
+        .npu_axi_awid(capture_int8_awid),
+        .npu_axi_awlen(capture_int8_awlen),
+        .npu_axi_awsize(capture_int8_awsize),
+        .npu_axi_awburst(capture_int8_awburst),
+        .npu_axi_awvalid(capture_int8_awvalid),
+        .npu_axi_awready(capture_int8_awready),
+        .npu_axi_wdata(capture_int8_wdata),
+        .npu_axi_wstrb(capture_int8_wstrb),
+        .npu_axi_wlast(capture_int8_wlast),
+        .npu_axi_wvalid(capture_int8_wvalid),
+        .npu_axi_wready(capture_int8_wready),
+        .npu_axi_bid(capture_int8_bid),
+        .npu_axi_bresp(capture_int8_bresp),
+        .npu_axi_bvalid(capture_int8_bvalid),
+        .npu_axi_bready(capture_int8_bready),
+        .npu_axi_araddr(capture_int8_araddr),
+        .npu_axi_arid(capture_int8_arid),
+        .npu_axi_arlen(capture_int8_arlen),
+        .npu_axi_arsize(capture_int8_arsize),
+        .npu_axi_arburst(capture_int8_arburst),
+        .npu_axi_arvalid(capture_int8_arvalid),
+        .npu_axi_arready(capture_int8_arready),
+        .npu_axi_rdata(capture_int8_rdata),
+        .npu_axi_rid(capture_int8_rid),
+        .npu_axi_rresp(capture_int8_rresp),
+        .npu_axi_rlast(capture_int8_rlast),
+        .npu_axi_rvalid(capture_int8_rvalid),
+        .npu_axi_rready(capture_int8_rready),
         .ddr_axi_awaddr(ddr_axi_awaddr),
         .ddr_axi_awid(ddr_axi_awid),
         .ddr_axi_awlen(ddr_axi_awlen),
