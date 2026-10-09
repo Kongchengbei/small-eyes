@@ -48,4 +48,8 @@
 
 **未证实的内部机制：**不能据此宣称综合器已把数组误认成 FSM 状态、枚举出 `2^32` 张量地址或真的展开出某个精确大小的状态表。原来的 `E Memory alloc failed for size 17179869224` 是 PDS 主机进程的约 16 GiB 内存申请；DDR 映射没有因此增大。该精确的内部原因仍需 PDS 更详细的 FSM/内存报告才能确认。
 
+## `ASYNC_REG` 属性告警处理
+
+PDS 日志 `project/logbackup/run_2026-10-08-22-03-50.log:1351-1382` 记录了 `W: Sdm-2008: The attribute named ASYNC_REG is not legal, then it has no effect, ignore its value.`。这说明当前工程所用 PDS Compile 流程不接受该属性。边沿触发 RTL 仍描述原有触发器和连线，但日志不能证明 PDS 做了 CDC 识别或安全检查，也没有证据表明它因该属性提供布局或时序保护。已从自有综合 RTL 删除所有 `ASYNC_REG` 标记，避免保留无效属性和重复告警；没有用其他未经当前 PDS 验证的属性替代。CDC 电路由 RTL 中显式的两级寄存器同步、Gray 指针异步 FIFO 和请求/确认握手构成，详见[跨时钟同步实现说明](跨时钟同步实现说明.md)。删除属性不改变这些 RTL 结构，也不能据此声称工具会将同步器寄存器相邻放置或提供亚稳态 MTBF 保护。
+
 最终仍只验证了 PDS Compile/RTL elaboration。没有运行 testbench、synthesis、device map、place-and-route 或 FPGA 下载。经批准的 LaneComb unified diff 已应用到 `soc/Hrgb565_int8_lane.v`；当前该文件 SHA-256 应为 `90c86dd8327507b6fd7b3cbeca9178a89d621976a3532a68bc5e96ef9703d986`，与成功 FullSocComb 临时副本中的 lane 完全一致。

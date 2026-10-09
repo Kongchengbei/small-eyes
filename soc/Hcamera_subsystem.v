@@ -63,9 +63,9 @@ module Hcamera_subsystem #(
         SNAPSHOT_TIMEOUT_CYCLES[SNAP_COUNT_WIDTH-1:0] - 1'b1;
 
     // 各时钟域异步复位断言、两拍同步释放。
-    (* ASYNC_REG = "TRUE" *) reg cpu_rst_meta, cpu_rst_sync;
-    (* ASYNC_REG = "TRUE" *) reg mem_rst_meta, mem_rst_sync;
-    (* ASYNC_REG = "TRUE" *) reg pclk_rst_meta, pclk_rst_sync;
+    reg cpu_rst_meta, cpu_rst_sync;
+    reg mem_rst_meta, mem_rst_sync;
+    reg pclk_rst_meta, pclk_rst_sync;
     wire cpu_rst_n = cpu_rst_sync;
     wire mem_rst_n = mem_rst_sync;
     wire pclk_rst_n = pclk_rst_sync;
@@ -88,8 +88,8 @@ module Hcamera_subsystem #(
     reg [1:0] release_payload;
     reg clear_toggle;
     reg clear_pending_cpu;
-    (* ASYNC_REG = "TRUE" *) reg clear_ack_meta_cpu;
-    (* ASYNC_REG = "TRUE" *) reg clear_ack_sync_cpu;
+    reg clear_ack_meta_cpu;
+    reg clear_ack_sync_cpu;
     reg clear_ack_toggle_mem;
     reg snapshot_req_toggle;
 
@@ -130,32 +130,32 @@ module Hcamera_subsystem #(
                                          {2'b00, dvp_pixel};
 
     // CPU 域到 DDR 域的独立、保持型 mailbox。
-    (* ASYNC_REG = "TRUE" *) reg release_meta;
-    (* ASYNC_REG = "TRUE" *) reg release_sync;
+    reg release_meta;
+    reg release_sync;
     reg release_seen;
     reg release_valid_mem;
     reg [1:0] release_mask_mem;
-    (* ASYNC_REG = "TRUE" *) reg clear_meta;
-    (* ASYNC_REG = "TRUE" *) reg clear_sync;
+    reg clear_meta;
+    reg clear_sync;
     reg clear_seen;
     reg clear_errors_mem;
 
     // DVP 快照请求/应答及状态同步。
     reg pclk_snapshot_req_toggle;
-    (* ASYNC_REG = "TRUE" *) reg pclk_ack_meta;
-    (* ASYNC_REG = "TRUE" *) reg pclk_ack_sync;
-    (* ASYNC_REG = "TRUE" *) reg fault_meta;
-    (* ASYNC_REG = "TRUE" *) reg fault_sync;
+    reg pclk_ack_meta;
+    reg pclk_ack_sync;
+    reg fault_meta;
+    reg fault_sync;
     reg fault_seen;
     reg fifo_fault_mem;
-    (* ASYNC_REG = "TRUE" *) reg frame_active_meta;
-    (* ASYNC_REG = "TRUE" *) reg frame_active_sync;
-    (* ASYNC_REG = "TRUE" *) reg fifo_full_meta;
-    (* ASYNC_REG = "TRUE" *) reg fifo_full_sync;
-    (* ASYNC_REG = "TRUE" *) reg fifo_overflow_meta;
-    (* ASYNC_REG = "TRUE" *) reg fifo_overflow_sync;
-    (* ASYNC_REG = "TRUE" *) reg token_collision_meta;
-    (* ASYNC_REG = "TRUE" *) reg token_collision_sync;
+    reg frame_active_meta;
+    reg frame_active_sync;
+    reg fifo_full_meta;
+    reg fifo_full_sync;
+    reg fifo_overflow_meta;
+    reg fifo_overflow_sync;
+    reg token_collision_meta;
+    reg token_collision_sync;
 
     reg [31:0] snapshot_dvp_frame_count_mem;
     reg [31:0] snapshot_pclk_count_mem;
@@ -232,13 +232,13 @@ module Hcamera_subsystem #(
     localparam [1:0] MEM_SNAP_RETURN = 2'd2;
     reg [1:0] mem_snapshot_state;
     reg mem_snapshot_ack_toggle;
-    (* ASYNC_REG = "TRUE" *) reg cpu_req_meta;
-    (* ASYNC_REG = "TRUE" *) reg cpu_req_sync;
+    reg cpu_req_meta;
+    reg cpu_req_sync;
     reg cpu_req_seen;
-    (* ASYNC_REG = "TRUE" *) reg cpu_ack_meta;
-    (* ASYNC_REG = "TRUE" *) reg cpu_ack_sync;
-    (* ASYNC_REG = "TRUE" *) reg dma_enable_meta_mem;
-    (* ASYNC_REG = "TRUE" *) reg dma_enable_sync_mem;
+    reg cpu_ack_meta;
+    reg cpu_ack_sync;
+    reg dma_enable_meta_mem;
+    reg dma_enable_sync_mem;
 
     localparam [1:0] CPU_SNAP_IDLE = 2'd0;
     localparam [1:0] CPU_SNAP_WAIT = 2'd1;
@@ -408,8 +408,8 @@ module Hcamera_subsystem #(
         end
     end
 
-    (* ASYNC_REG = "TRUE" *) reg release_ack_meta;
-    (* ASYNC_REG = "TRUE" *) reg release_ack_sync;
+    reg release_ack_meta;
+    reg release_ack_sync;
     reg release_ack_toggle_mem;
     wire release_busy_cpu = (release_ack_sync != release_toggle);
     wire clear_busy_cpu = clear_pending_cpu || (clear_ack_sync_cpu != clear_toggle);

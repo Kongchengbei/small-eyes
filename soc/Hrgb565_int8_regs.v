@@ -17,22 +17,22 @@ module Hrgb565_int8_regs (
 );
     reg enable_cpu, stop_cpu;
     reg clear_toggle_cpu;
-    (* ASYNC_REG = "TRUE" *) reg enable_meta_ddr, enable_sync_ddr;
-    (* ASYNC_REG = "TRUE" *) reg clear_meta_ddr, clear_sync_ddr;
+    reg enable_meta_ddr, enable_sync_ddr;
+    reg clear_meta_ddr, clear_sync_ddr;
     reg clear_seen_ddr, clear_pulse_ddr;
 
     // Live status bits are individually synchronized; the multi-bit statistics
     // vector uses the request/acknowledge snapshot below.
-    (* ASYNC_REG = "TRUE" *) reg [1:0] busy_meta_cpu, busy_sync_cpu;
-    (* ASYNC_REG = "TRUE" *) reg [1:0] slot_meta_cpu, slot_sync_cpu;
-    (* ASYNC_REG = "TRUE" *) reg [1:0] ddrwait_meta_cpu, ddrwait_sync_cpu;
-    (* ASYNC_REG = "TRUE" *) reg [1:0] handoff_meta_cpu, handoff_sync_cpu;
-    (* ASYNC_REG = "TRUE" *) reg [1:0] error_meta_cpu, error_sync_cpu;
-    (* ASYNC_REG = "TRUE" *) reg ready_meta_cpu, ready_sync_cpu;
+    reg [1:0] busy_meta_cpu, busy_sync_cpu;
+    reg [1:0] slot_meta_cpu, slot_sync_cpu;
+    reg [1:0] ddrwait_meta_cpu, ddrwait_sync_cpu;
+    reg [1:0] handoff_meta_cpu, handoff_sync_cpu;
+    reg [1:0] error_meta_cpu, error_sync_cpu;
+    reg ready_meta_cpu, ready_sync_cpu;
 
     reg snapshot_req_toggle_cpu, snapshot_waiting_cpu, snapshot_ready_cpu;
-    (* ASYNC_REG = "TRUE" *) reg snapshot_ack_meta_cpu, snapshot_ack_sync_cpu;
-    (* ASYNC_REG = "TRUE" *) reg snapshot_req_meta_ddr, snapshot_req_sync_ddr;
+    reg snapshot_ack_meta_cpu, snapshot_ack_sync_cpu;
+    reg snapshot_req_meta_ddr, snapshot_req_sync_ddr;
     reg snapshot_req_seen_ddr, snapshot_ack_toggle_ddr;
     reg [1023:0] snapshot_stats_ddr, snapshot_stats_cpu;
 

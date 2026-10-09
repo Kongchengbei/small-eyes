@@ -31,10 +31,10 @@ module Hcamera_async_fifo #(
     reg [ADDR_WIDTH:0] rd_bin;
     reg [ADDR_WIDTH:0] rd_gray;
 
-    (* ASYNC_REG = "TRUE" *) reg [ADDR_WIDTH:0] rd_gray_meta;
-    (* ASYNC_REG = "TRUE" *) reg [ADDR_WIDTH:0] rd_gray_sync;
-    (* ASYNC_REG = "TRUE" *) reg [ADDR_WIDTH:0] wr_gray_meta;
-    (* ASYNC_REG = "TRUE" *) reg [ADDR_WIDTH:0] wr_gray_sync;
+    reg [ADDR_WIDTH:0] rd_gray_meta;
+    reg [ADDR_WIDTH:0] rd_gray_sync;
+    reg [ADDR_WIDTH:0] wr_gray_meta;
+    reg [ADDR_WIDTH:0] wr_gray_sync;
 
     reg wr_rst_q1;
     reg wr_rst_q2;
