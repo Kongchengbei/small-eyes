@@ -96,7 +96,11 @@ module Hrgb565_int8_lane #(
     reg [31:0] free_count;
     reg [6:0] used_count_next;
     integer i, j, candidate;
-    integer found_count;
+    integer selector;
+    reg [SLOT_COUNT-1:0] reserve_mask;
+    reg [3:0] selected_count;
+    reg [31:0] selected_slot_addr [0:7];
+    reg [5:0] selected_slot_index [0:7];
 
     function [31:0] sat_inc;
         input [31:0] value;
@@ -155,6 +159,59 @@ module Hrgb565_int8_lane #(
         (desc_count == 0 || (desc_rgb_stride == `SOC_PRE_ROI_STRIDE_BYTES &&
           desc_rgb_base[4:0]==0 && desc_rgb_base >= DDR_BASE &&
           desc_last_end <= ddr_limit && source_bank_valid));
+
+    // Combinational first-free selection mirrors the former blocking found_count
+    // scan. Descriptor acceptance later commits this snapshot into slot ownership.
+    always @* begin
+        reserve_mask = {SLOT_COUNT{1'b0}};
+        selected_count = 4'd0;
+        for (selector=0; selector<8; selector=selector+1) begin
+            selected_slot_addr[selector] = 32'b0;
+            selected_slot_index[selector] = 6'b0;
+        end
+        for (selector=0; selector<SLOT_COUNT; selector=selector+1) begin
+            if (slot_state[selector]==0 && slot_generation[selector]!=32'hffff_ffff &&
+                selected_count<desc_count && selected_count<4'd8) begin
+                reserve_mask[selector] = 1'b1;
+                case (selected_count)
+                    4'd0: begin
+                        selected_slot_addr[0] = block_base(selector[5:0]);
+                        selected_slot_index[0] = selector[5:0];
+                    end
+                    4'd1: begin
+                        selected_slot_addr[1] = block_base(selector[5:0]);
+                        selected_slot_index[1] = selector[5:0];
+                    end
+                    4'd2: begin
+                        selected_slot_addr[2] = block_base(selector[5:0]);
+                        selected_slot_index[2] = selector[5:0];
+                    end
+                    4'd3: begin
+                        selected_slot_addr[3] = block_base(selector[5:0]);
+                        selected_slot_index[3] = selector[5:0];
+                    end
+                    4'd4: begin
+                        selected_slot_addr[4] = block_base(selector[5:0]);
+                        selected_slot_index[4] = selector[5:0];
+                    end
+                    4'd5: begin
+                        selected_slot_addr[5] = block_base(selector[5:0]);
+                        selected_slot_index[5] = selector[5:0];
+                    end
+                    4'd6: begin
+                        selected_slot_addr[6] = block_base(selector[5:0]);
+                        selected_slot_index[6] = selector[5:0];
+                    end
+                    4'd7: begin
+                        selected_slot_addr[7] = block_base(selector[5:0]);
+                        selected_slot_index[7] = selector[5:0];
+                    end
+                    default: begin end
+                endcase
+                selected_count = selected_count + 1'b1;
+            end
+        end
+    end
 
     always @* begin
         free_count=0;
@@ -308,17 +365,44 @@ module Hrgb565_int8_lane #(
                     roi_release_valid<=1'b1; roi_release_bank<=desc_rgb_bank;
                     roi_release_frame<=desc_frame;
                 end else begin
-                    found_count=0;
                     for (j=0;j<SLOT_COUNT;j=j+1) begin
-                        if (slot_state[j]==0 && slot_generation[j]!=32'hffff_ffff &&
-                            found_count<desc_count) begin
+                        if (reserve_mask[j]) begin
                             slot_state[j]<=1;
                             slot_generation[j]<=slot_generation[j]+1'b1;
                             slot_frame[j]<=desc_frame;
-                            batch_slot_addr[found_count]<=block_base(j[5:0]);
-                            batch_slot_index[found_count]<=j[5:0];
-                            found_count=found_count+1;
                         end
+                    end
+                    if (selected_count>0) begin
+                        batch_slot_addr[0]<=selected_slot_addr[0];
+                        batch_slot_index[0]<=selected_slot_index[0];
+                    end
+                    if (selected_count>1) begin
+                        batch_slot_addr[1]<=selected_slot_addr[1];
+                        batch_slot_index[1]<=selected_slot_index[1];
+                    end
+                    if (selected_count>2) begin
+                        batch_slot_addr[2]<=selected_slot_addr[2];
+                        batch_slot_index[2]<=selected_slot_index[2];
+                    end
+                    if (selected_count>3) begin
+                        batch_slot_addr[3]<=selected_slot_addr[3];
+                        batch_slot_index[3]<=selected_slot_index[3];
+                    end
+                    if (selected_count>4) begin
+                        batch_slot_addr[4]<=selected_slot_addr[4];
+                        batch_slot_index[4]<=selected_slot_index[4];
+                    end
+                    if (selected_count>5) begin
+                        batch_slot_addr[5]<=selected_slot_addr[5];
+                        batch_slot_index[5]<=selected_slot_index[5];
+                    end
+                    if (selected_count>6) begin
+                        batch_slot_addr[6]<=selected_slot_addr[6];
+                        batch_slot_index[6]<=selected_slot_index[6];
+                    end
+                    if (selected_count>7) begin
+                        batch_slot_addr[7]<=selected_slot_addr[7];
+                        batch_slot_index[7]<=selected_slot_index[7];
                     end
                     batch_frame_reg<=desc_frame; batch_bank_reg<=desc_rgb_bank;
                     batch_rgb_base<=desc_rgb_base; batch_rgb_stride<=desc_rgb_stride;
