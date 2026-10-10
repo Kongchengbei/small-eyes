@@ -25,7 +25,12 @@ module Hnpu_system #(
     parameter integer RESULT_FIFO_DEPTH = 8,
     parameter integer MAX_ROIS = 8,
     parameter integer MAX_FEATURES = 1024,
-    parameter integer MAX_CLASSES = 8
+    parameter integer MAX_CLASSES = 11,
+    parameter integer ENGINE_MODE = 0,
+    parameter integer MAX_MODEL_BYTES = 65536,
+    parameter integer IMAGE_MODE = 0,
+    parameter [31:0] MODEL_BASE = 32'h0000_0000,
+    parameter [31:0] MODEL_BYTES = 32'h0000_0000
 ) (
     input ddr_clk,
     input cpu_clk,
@@ -47,15 +52,40 @@ module Hnpu_system #(
     input [31:0] batch_weight_base,
     input [31:0] batch_weight_stride,
     input [31:0] batch_bias_base,
+    input [31:0] batch_model_base,
+    input [31:0] batch_model_bytes,
     input [7:0] batch_count,
     input [7:0] batch_class_count,
     input [5:0] batch_quant_shift,
     input [MAX_ROIS*64-1:0] batch_boxes,
     input [MAX_ROIS*3-1:0] batch_colors,
 
+    input [1:0] image_valid,
+    output wire [1:0] image_ready,
+    input [15:0] image_camera,
+    input [63:0] image_frame,
+    input [15:0] image_batch_count,
+    input [15:0] image_index,
+    input [127:0] image_box,
+    input [5:0] image_color,
+    input [3:0] image_block,
+    input [7:0] image_position,
+    input [63:0] image_generation,
+    input [63:0] image_data_addr,
+    input [31:0] image_width,
+    input [31:0] image_height,
+    input [63:0] image_data_bytes,
+
     output wire int8_release_valid,
     output wire int8_release_bank,
     output wire [31:0] int8_release_frame,
+    output wire [1:0] image_release_valid,
+    input [1:0] image_release_ready,
+    output wire [15:0] image_release_camera,
+    output wire [63:0] image_release_frame,
+    output wire [3:0] image_release_block,
+    output wire [7:0] image_release_position,
+    output wire [63:0] image_release_generation,
     output wire busy,
     output wire error,
     output wire [7:0] error_code,
@@ -66,6 +96,7 @@ module Hnpu_system #(
     output wire [31:0] error_rois,
     output wire [31:0] released_banks,
     output wire [31:0] fifo_overflows,
+    output wire result_reject,
 
     output wire [29:0] axi_araddr,
     output wire [7:0] axi_arid,
@@ -133,37 +164,93 @@ module Hnpu_system #(
         .engine_task_bytes(control_task_bytes), .irq(ctrl_irq)
     );
 
-    Hnpu_service #(
-        .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES), .AXI_ID(AXI_ID),
-        .QUEUE_DEPTH(QUEUE_DEPTH), .RESULT_DEPTH(RESULT_DEPTH),
-        .MAX_ROIS(MAX_ROIS), .MAX_FEATURES(MAX_FEATURES), .MAX_CLASSES(MAX_CLASSES)
-    ) u_service (
-        .clk(ddr_clk), .rst_n(rst_n), .enable(enable),
-        .clear_errors(clear_errors), .stop(stop),
-        .batch_valid(batch_valid), .batch_ready(batch_ready),
-        .batch_camera(batch_camera), .batch_frame(batch_frame), .batch_bank(batch_bank),
-        .batch_input_base(batch_input_base), .batch_input_stride(batch_input_stride),
-        .batch_input_bytes(batch_input_bytes), .batch_feature_count(batch_feature_count),
-        .batch_weight_base(batch_weight_base), .batch_weight_stride(batch_weight_stride),
-        .batch_bias_base(batch_bias_base), .batch_count(batch_count),
-        .batch_class_count(batch_class_count), .batch_quant_shift(batch_quant_shift),
-        .batch_boxes(batch_boxes), .batch_colors(batch_colors),
-        .result_valid(service_result_valid), .result_ready(service_result_ready),
-        .result_camera(), .result_frame(), .result_bank(), .result_roi(),
-        .result_box(), .result_color(), .result_class(), .result_confidence(),
-        .result_error(), .result_record(service_result_record),
-        .int8_release_valid(int8_release_valid), .int8_release_bank(int8_release_bank),
-        .int8_release_frame(int8_release_frame), .busy(busy), .error(error),
-        .error_code(error_code), .accepted_batches(accepted_batches),
-        .completed_batches(completed_batches), .dropped_batches(dropped_batches),
-        .completed_rois(completed_rois), .error_rois(error_rois),
-        .released_banks(released_banks), .fifo_overflows(fifo_overflows),
-        .axi_araddr(axi_araddr), .axi_arid(axi_arid), .axi_arlen(axi_arlen),
-        .axi_arsize(axi_arsize), .axi_arburst(axi_arburst),
-        .axi_arvalid(axi_arvalid), .axi_arready(axi_arready),
-        .axi_rdata(axi_rdata), .axi_rid(axi_rid), .axi_rresp(axi_rresp),
-        .axi_rlast(axi_rlast), .axi_rvalid(axi_rvalid), .axi_rready(axi_rready)
-    );
+    generate
+        if (IMAGE_MODE == 0) begin : g_batch_service
+            Hnpu_service #(
+                .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES), .AXI_ID(AXI_ID),
+                .QUEUE_DEPTH(QUEUE_DEPTH), .RESULT_DEPTH(RESULT_DEPTH),
+                .MAX_ROIS(MAX_ROIS), .MAX_FEATURES(MAX_FEATURES), .MAX_CLASSES(MAX_CLASSES),
+                .ENGINE_MODE(ENGINE_MODE), .MAX_MODEL_BYTES(MAX_MODEL_BYTES)
+            ) u_service (
+                .clk(ddr_clk), .rst_n(rst_n), .enable(enable),
+                .clear_errors(clear_errors), .stop(stop),
+                .batch_valid(batch_valid), .batch_ready(batch_ready),
+                .batch_camera(batch_camera), .batch_frame(batch_frame), .batch_bank(batch_bank),
+                .batch_input_base(batch_input_base), .batch_input_stride(batch_input_stride),
+                .batch_input_bytes(batch_input_bytes), .batch_feature_count(batch_feature_count),
+                .batch_weight_base(batch_weight_base), .batch_weight_stride(batch_weight_stride),
+                .batch_bias_base(batch_bias_base), .batch_count(batch_count),
+                .batch_model_base(batch_model_base), .batch_model_bytes(batch_model_bytes),
+                .batch_class_count(batch_class_count), .batch_quant_shift(batch_quant_shift),
+                .batch_boxes(batch_boxes), .batch_colors(batch_colors),
+                .result_valid(service_result_valid), .result_ready(service_result_ready),
+                .result_camera(), .result_frame(), .result_bank(), .result_roi(),
+                .result_box(), .result_color(), .result_class(), .result_confidence(),
+                .result_score(), .result_reject(result_reject), .result_error(),
+                .result_record(service_result_record),
+                .int8_release_valid(int8_release_valid), .int8_release_bank(int8_release_bank),
+                .int8_release_frame(int8_release_frame), .busy(busy), .error(error),
+                .error_code(error_code), .accepted_batches(accepted_batches),
+                .completed_batches(completed_batches), .dropped_batches(dropped_batches),
+                .completed_rois(completed_rois), .error_rois(error_rois),
+                .released_banks(released_banks), .fifo_overflows(fifo_overflows),
+                .axi_araddr(axi_araddr), .axi_arid(axi_arid), .axi_arlen(axi_arlen),
+                .axi_arsize(axi_arsize), .axi_arburst(axi_arburst),
+                .axi_arvalid(axi_arvalid), .axi_arready(axi_arready),
+                .axi_rdata(axi_rdata), .axi_rid(axi_rid), .axi_rresp(axi_rresp),
+                .axi_rlast(axi_rlast), .axi_rvalid(axi_rvalid), .axi_rready(axi_rready)
+            );
+            assign image_ready = 2'b00;
+            assign image_release_valid = 2'b00;
+            assign image_release_camera = 16'b0;
+            assign image_release_frame = 64'b0;
+            assign image_release_block = 4'b0;
+            assign image_release_position = 8'b0;
+            assign image_release_generation = 64'b0;
+        end else begin : g_image_service
+            Hnpu_image_service #(
+                .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES), .AXI_ID(AXI_ID),
+                .QUEUE_DEPTH(QUEUE_DEPTH * 2), .RESULT_DEPTH(RESULT_DEPTH),
+                .MAX_CLASSES(MAX_CLASSES), .MODEL_BASE(MODEL_BASE),
+                .MODEL_BYTES(MODEL_BYTES), .MAX_MODEL_BYTES(MAX_MODEL_BYTES)
+            ) u_service (
+                .clk(ddr_clk), .rst_n(rst_n), .enable(enable),
+                .clear_errors(clear_errors), .stop(stop),
+                .image_valid(image_valid), .image_ready(image_ready),
+                .image_camera(image_camera), .image_frame(image_frame),
+                .image_batch_count(image_batch_count), .image_index(image_index),
+                .image_box(image_box), .image_color(image_color),
+                .image_block(image_block), .image_position(image_position),
+                .image_generation(image_generation), .image_data_addr(image_data_addr),
+                .image_width(image_width), .image_height(image_height),
+                .image_data_bytes(image_data_bytes),
+                .release_valid(image_release_valid), .release_ready(image_release_ready),
+                .release_camera(image_release_camera), .release_frame(image_release_frame),
+                .release_block(image_release_block), .release_position(image_release_position),
+                .release_generation(image_release_generation),
+                .result_valid(service_result_valid), .result_ready(service_result_ready),
+                .result_camera(), .result_frame(), .result_roi(), .result_box(),
+                .result_color(), .result_class(), .result_confidence(), .result_score(),
+                .result_reject(result_reject), .result_error(),
+                .result_record(service_result_record), .busy(busy), .error(error),
+                .error_code(error_code), .accepted_images(accepted_batches),
+                .completed_images(completed_batches), .error_images(error_rois),
+                .fifo_overflows(fifo_overflows), .axi_araddr(axi_araddr),
+                .axi_arid(axi_arid), .axi_arlen(axi_arlen), .axi_arsize(axi_arsize),
+                .axi_arburst(axi_arburst), .axi_arvalid(axi_arvalid),
+                .axi_arready(axi_arready), .axi_rdata(axi_rdata), .axi_rid(axi_rid),
+                .axi_rresp(axi_rresp), .axi_rlast(axi_rlast), .axi_rvalid(axi_rvalid),
+                .axi_rready(axi_rready)
+            );
+            assign batch_ready = 1'b0;
+            assign int8_release_valid = 1'b0;
+            assign int8_release_bank = 1'b0;
+            assign int8_release_frame = 32'b0;
+            assign dropped_batches = 0;
+            assign completed_rois = completed_batches;
+            assign released_banks = completed_batches;
+        end
+    endgenerate
 
     Hnpu_result_bridge #(.FIFO_DEPTH(RESULT_FIFO_DEPTH)) u_result_bridge (
         .ddr_clk(ddr_clk), .cpu_clk(cpu_clk), .rst_n(rst_n),

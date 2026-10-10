@@ -8,6 +8,7 @@ tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT
 
 verilator_bin="${VERILATOR:-verilator}"
+pds_sim_dir="${PDS_SIM_DIR:-/mnt/f/PDS_2022.2-SP6.4/arch/vendor/pango/verilog/simulation}"
 
 cpu_rtl=(
     cpu/Btb.v cpu/HRegFile.v cpu/Halu.v cpu/Hcsr.v cpu/Hexu.v cpu/Hidu.v
@@ -23,10 +24,22 @@ soc_rtl=(
     soc/Hcamera_async_fifo.v soc/Hcamera_dma.v soc/Hcamera_subsystem.v
     soc/Haxi_2m1s_arbiter.v soc/Hpreprocess_color.v soc/Hpreprocess_regions.v
     soc/Hcamera_preprocess.v soc/Hpreprocess_stereo.v soc/ddr_axi_bridge.v
+    soc/Hnpu_fc_engine.v soc/Hnpu_cnn_engine.v soc/Hnpu_service.v
+    soc/Hnpu_image_service.v soc/Hnpu_result_mmio.v soc/Hnpu_result_bridge.v soc/Hnpu_system.v
     soc/flash_boot/spi_flash_byte_reader.v soc/flash_boot/flash_ddr_loader.v
     soc/flash_boot/flash_ddr_boot.v soc/flash_boot/flash_bram_boot.v
     sim/board_ip_lint_stubs.v
+    IP/imem/imem.v IP/imem/rtl/ipm2l_dpram_v1_9_imem.v
+    IP/dmem/dmem.v IP/dmem/rtl/ipm2l_dpram_v1_9_dmem.v
 )
+if [[ -f "$pds_sim_dir/GTP_DRM36K_E1.v" && -f "$pds_sim_dir/GTP_GRS.v" ]]; then
+    soc_rtl+=("$pds_sim_dir/GTP_DRM36K_E1.v" "$pds_sim_dir/GTP_GRS.v")
+    vendor_models_available=1
+else
+    echo "SKIP: DDR-profile lint needs vendor BRAM models at $pds_sim_dir" >&2
+    echo "      Set PDS_SIM_DIR to run the complete Hfpga_soc lint." >&2
+    vendor_models_available=0
+fi
 
 "$verilator_bin" --binary --timing --language 1800-2012 -I. -Isoc \
     --Wno-WIDTHTRUNC --Wno-BLKLOOPINIT \
@@ -46,11 +59,13 @@ SIMULATOR=verilator SIM_TIMEOUT=90 make tb_coremark_bram_ip_uartrun
 # The DDR profile remains a distinct configuration and retains its two
 # elaboration diagnostics. Direct vendor-BRAM elaboration/runtime coverage is
 # provided by the two production tests above.
-for preprocess in 0 1; do
-    "$verilator_bin" --lint-only --timing --language 1800-2012 -I. -Isoc \
-        --Wno-WIDTHTRUNC --Wno-BLKLOOPINIT --Wno-CASEINCOMPLETE --Wno-UNDRIVEN \
-        --top-module Hfpga_soc -GCPU_MEM_BRAM=0 -GPREPROCESS_ENABLE="$preprocess" \
-        "${cpu_rtl[@]}" cpu/cache_sram_beh.v "${jtag_rtl[@]}" "${soc_rtl[@]}"
-done
+if [[ "$vendor_models_available" == 1 ]]; then
+    for preprocess in 0 1; do
+        "$verilator_bin" --lint-only --timing --language 1800-2012 -I. -Isoc \
+            --Wno-WIDTHTRUNC --Wno-BLKLOOPINIT --Wno-CASEINCOMPLETE --Wno-UNDRIVEN \
+            --top-module Hfpga_soc -GCPU_MEM_BRAM=0 -GPREPROCESS_ENABLE="$preprocess" \
+            "${cpu_rtl[@]}" cpu/cache_sram_beh.v "${jtag_rtl[@]}" "${soc_rtl[@]}"
+    done
+fi
 
 echo "PASS: legacy Flash loader unit, production vendor-BRAM memory/UART tests, and DDR profile elaborations"

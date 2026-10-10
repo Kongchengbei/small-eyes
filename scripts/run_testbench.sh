@@ -7,7 +7,7 @@ repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 
 list_tests() {
-    find sim -maxdepth 1 -type f \( -name 'tb_*.sv' -o -name 'tb_*.v' \) \
+    find sim temp/tests -maxdepth 1 -type f \( -name 'tb_*.sv' -o -name 'tb_*.v' \) \
         -printf '%f\n' | sort
 }
 
@@ -24,6 +24,7 @@ fi
 
 # Accept a basename or sim/basename, optionally followed by .sv/.v and run.
 selector="${selector#sim/}"
+selector="${selector#temp/tests/}"
 selector="${selector%run}"
 selector="${selector%.sv}"
 selector="${selector%.v}"
@@ -31,12 +32,16 @@ if [[ ! "$selector" =~ ^tb_[a-zA-Z0-9_]+$ ]]; then
     echo "error: invalid testbench selector: ${1:-}" >&2
     exit 2
 fi
-testbench="sim/$selector.sv"
-if [[ ! -f "$testbench" ]]; then
-    testbench="sim/$selector.v"
-fi
-if [[ ! -f "$testbench" ]]; then
-    echo "error: testbench not found: sim/$selector.sv or .v; use make sim-list" >&2
+testbench=""
+for candidate in "sim/$selector.sv" "sim/$selector.v" \
+                "temp/tests/$selector.sv" "temp/tests/$selector.v"; do
+    if [[ -f "$candidate" ]]; then
+        testbench="$candidate"
+        break
+    fi
+done
+if [[ -z "$testbench" ]]; then
+    echo "error: testbench not found in sim/ or temp/tests/: $selector.sv/.v; use make sim-list" >&2
     exit 2
 fi
 

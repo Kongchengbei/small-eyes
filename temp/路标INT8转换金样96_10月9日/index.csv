@@ -1,0 +1,51 @@
+﻿name,source,sampled_vs_tensor32
+c01_black,逐层金样的构造输入,相同
+c02_white,逐层金样的构造输入,相同
+c03_checker,逐层金样的构造输入,相同
+c04_color_bars,逐层金样的构造输入,相同
+c05_L1_max,逐层金样的构造输入,相同
+c06_sat_L2,逐层金样的构造输入,相同
+c07_sat_L3,逐层金样的构造输入,相同
+c08_sat_L4,逐层金样的构造输入,相同
+c09_tie,逐层金样的构造输入,相同
+frame_000005_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000005_roi1,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000006_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000006_roi1,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000007_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000007_roi1,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000008_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000008_roi1,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000008_roi2,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000010_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000013_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000013_roi1,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000014_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000015_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000024_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000026_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000026_roi1,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000032_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000032_roi1,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000032_roi2,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000032_roi3,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000033_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000033_roi1,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000034_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000034_roi1,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000034_roi2,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000034_roi3,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000041_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000041_roi1,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000041_roi2,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000041_roi3,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000043_roi0,逐层金样的金样框（与模型包 golden_input 相同）,相同
+frame_000043_roi1,逐层金样的金样框（与模型包 golden_input 相同）,相同
+e01_allvalues,全取值第 1 张：像素依次为 0x0000 起的连续值（超过 0xFFFF 回到 0）,
+e02_allvalues,全取值第 2 张：像素依次为 0x2400 起的连续值（超过 0xFFFF 回到 0）,
+e03_allvalues,全取值第 3 张：像素依次为 0x4800 起的连续值（超过 0xFFFF 回到 0）,
+e04_allvalues,全取值第 4 张：像素依次为 0x6C00 起的连续值（超过 0xFFFF 回到 0）,
+e05_allvalues,全取值第 5 张：像素依次为 0x9000 起的连续值（超过 0xFFFF 回到 0）,
+e06_allvalues,全取值第 6 张：像素依次为 0xB400 起的连续值（超过 0xFFFF 回到 0）,
+e07_allvalues,全取值第 7 张：像素依次为 0xD800 起的连续值（超过 0xFFFF 回到 0）,
+e08_allvalues,全取值第 8 张：像素依次为 0xFC00 起的连续值（超过 0xFFFF 回到 0）,

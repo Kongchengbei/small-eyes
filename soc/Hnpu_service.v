@@ -16,7 +16,8 @@
 // result FIFO/CDC bridge can be placed above this service without changing the
 // ownership rules.  An INT8 bank is released exactly once, after the final ROI
 // of a batch has completed, and the original RGB565 bank release remains the
-// responsibility of the upstream converter.
+// responsibility of the upstream converter. ENGINE_MODE=0 preserves the
+// FC V1 engine; ENGINE_MODE=1 selects the candidate model-driven CNN engine.
 // ============================================================================
 module Hnpu_service #(
     parameter [31:0] DDR_BASE = `SOC_DDR_BASE,
@@ -26,7 +27,9 @@ module Hnpu_service #(
     parameter integer RESULT_DEPTH = 16,
     parameter integer MAX_ROIS = 8,
     parameter integer MAX_FEATURES = 1024,
-    parameter integer MAX_CLASSES = 8,
+    parameter integer MAX_CLASSES = 11,
+    parameter integer ENGINE_MODE = 0,
+    parameter integer MAX_MODEL_BYTES = 65536,
     // At most two camera queues plus one active batch can be waiting for a
     // release.  The extra entries also cover a completion arriving while a
     // drop release is being emitted.
@@ -50,6 +53,8 @@ module Hnpu_service #(
     input [31:0] batch_weight_base,
     input [31:0] batch_weight_stride,
     input [31:0] batch_bias_base,
+    input [31:0] batch_model_base,
+    input [31:0] batch_model_bytes,
     input [7:0]  batch_count,
     input [7:0]  batch_class_count,
     input [5:0]  batch_quant_shift,
@@ -66,6 +71,8 @@ module Hnpu_service #(
     output wire [2:0] result_color,
     output wire [7:0] result_class,
     output wire [15:0] result_confidence,
+    output wire [31:0] result_score,
+    output wire        result_reject,
     output wire [7:0] result_error,
     // Fixed 256-bit record for the CPU-domain result FIFO.  The individual
     // fields above remain available for DDR-domain scoreboards and adapters.
@@ -103,6 +110,9 @@ module Hnpu_service #(
 
     localparam integer PTR_BITS = (QUEUE_DEPTH <= 2) ? 1 : $clog2(QUEUE_DEPTH);
     localparam integer RES_PTR_BITS = (RESULT_DEPTH <= 2) ? 1 : $clog2(RESULT_DEPTH);
+    // Batch CNN callers provide the already-decimated model tensor.  The
+    // per-image service owns the separate 96x96 source-image contract.
+    localparam integer CNN_INPUT_BYTES = 32 * 32 * 4;
     reg [PTR_BITS-1:0] q_head [0:1], q_tail [0:1];
     reg [PTR_BITS:0] q_count [0:1];
     reg [31:0] q_frame [0:1][0:QUEUE_DEPTH-1];
@@ -114,6 +124,8 @@ module Hnpu_service #(
     reg [31:0] q_weight_base [0:1][0:QUEUE_DEPTH-1];
     reg [31:0] q_weight_stride [0:1][0:QUEUE_DEPTH-1];
     reg [31:0] q_bias_base [0:1][0:QUEUE_DEPTH-1];
+    reg [31:0] q_model_base [0:1][0:QUEUE_DEPTH-1];
+    reg [31:0] q_model_bytes [0:1][0:QUEUE_DEPTH-1];
     reg [7:0] q_count_rois [0:1][0:QUEUE_DEPTH-1];
     reg [7:0] q_class_count [0:1][0:QUEUE_DEPTH-1];
     reg [5:0] q_quant_shift [0:1][0:QUEUE_DEPTH-1];
@@ -127,6 +139,7 @@ module Hnpu_service #(
     reg [31:0] active_input_base, active_input_stride, active_input_bytes;
     reg [15:0] active_feature_count;
     reg [31:0] active_weight_base, active_weight_stride, active_bias_base;
+    reg [31:0] active_model_base, active_model_bytes;
     reg [7:0] active_count, active_class_count;
     reg [5:0] active_quant_shift;
     reg [63:0] active_boxes [0:MAX_ROIS-1];
@@ -143,6 +156,8 @@ module Hnpu_service #(
     reg [2:0] result_color_mem [0:RESULT_DEPTH-1];
     reg [7:0] result_class_mem [0:RESULT_DEPTH-1];
     reg [15:0] result_conf_mem [0:RESULT_DEPTH-1];
+    reg [31:0] result_score_mem [0:RESULT_DEPTH-1];
+    reg result_reject_mem [0:RESULT_DEPTH-1];
     reg [7:0] result_error_mem [0:RESULT_DEPTH-1];
     reg [RES_PTR_BITS-1:0] result_rd_ptr, result_wr_ptr;
     reg [RES_PTR_BITS:0] result_count;
@@ -162,9 +177,34 @@ module Hnpu_service #(
     wire selected_cam = (q_count[rr_next] != 0) ? rr_next : ~rr_next;
     wire batch_cam_valid = (batch_camera == 8'd1) || (batch_camera == 8'd2);
     wire batch_cam = (batch_camera == 8'd2);
+    wire [63:0] service_ddr_end = {32'b0, DDR_BASE} + {32'b0, DDR_BYTES};
+    wire [63:0] batch_input_end = {32'b0, batch_input_base} +
+                                  ({32'b0, batch_input_stride} *
+                                   ((batch_count != 0) ? (batch_count - 1'b1) : 0)) +
+                                  {32'b0, batch_input_bytes};
+    wire [63:0] batch_model_end = {32'b0, batch_model_base} + {32'b0, batch_model_bytes};
     wire batch_shape_valid = (batch_count != 0) && (batch_count <= MAX_ROIS) &&
                              (batch_class_count != 0) && (batch_class_count <= MAX_CLASSES) &&
-                             (batch_feature_count != 0) && (batch_feature_count <= MAX_FEATURES);
+                             ((ENGINE_MODE == 1) ?
+                              (batch_feature_count == batch_input_bytes) :
+                              ((batch_feature_count != 0) &&
+                               (batch_feature_count <= MAX_FEATURES)));
+    // The approved RoadSign/B-CNN32-0.1 input is one 32x32 HWC4 ROI:
+    // 4096 signed-INT8 bytes, with each ROI starting on a 32-byte boundary.
+    // Keep the FC path's older feature-count contract unchanged.
+    wire batch_cnn_format_valid = (ENGINE_MODE != 1) ||
+                                  ((batch_input_bytes == CNN_INPUT_BYTES) &&
+                                   (batch_input_stride >= batch_input_bytes) &&
+                                   ((batch_input_stride[4:0]) == 0) &&
+                                   ((batch_input_base[4:0]) == 0) &&
+                                   (batch_model_bytes >= 32'd128) &&
+                                   (batch_model_bytes <= MAX_MODEL_BYTES) &&
+                                   ((batch_model_bytes[4:0]) == 0) &&
+                                   ((batch_model_base[4:0]) == 0) &&
+                                   ({32'b0, batch_input_base} >= {32'b0, DDR_BASE}) &&
+                                   (batch_input_end <= service_ddr_end) &&
+                                   ({32'b0, batch_model_base} >= {32'b0, DDR_BASE}) &&
+                                   (batch_model_end <= service_ddr_end));
     wire batch_will_drop = active && (q_count[batch_cam] >= QUEUE_DEPTH);
     wire active_final_done = active && engine_done &&
                              (active_roi + 1 >= active_count);
@@ -180,6 +220,7 @@ module Hnpu_service #(
     // active.  This avoids a same-cycle scheduler/pop ambiguity and still
     // provides the required oldest-pending-batch eviction under load.
     assign batch_ready = enable && !stop && batch_cam_valid && batch_shape_valid &&
+                         batch_cnn_format_valid &&
                          batch_capacity_valid &&
                          !active_final_done &&
                          ((q_count[batch_cam] < QUEUE_DEPTH) || active);
@@ -193,9 +234,13 @@ module Hnpu_service #(
     assign result_color = result_color_mem[result_rd_ptr];
     assign result_class = result_class_mem[result_rd_ptr];
     assign result_confidence = result_conf_mem[result_rd_ptr];
+    assign result_score = result_score_mem[result_rd_ptr];
+    assign result_reject = result_reject_mem[result_rd_ptr];
     assign result_error = result_error_mem[result_rd_ptr];
     assign result_record = {
-        108'b0,
+        75'b0,
+        result_reject,
+        result_score,
         result_error,
         result_confidence,
         result_class,
@@ -214,25 +259,58 @@ module Hnpu_service #(
     wire [7:0] engine_error_code;
     wire [7:0] engine_class;
     wire [15:0] engine_confidence;
+    wire [31:0] engine_score;
+    wire engine_reject_cnn;
+    wire engine_reject = (ENGINE_MODE == 1) ? engine_reject_cnn : 1'b0;
 
-    Hnpu_fc_engine #(
-        .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES), .AXI_ID(AXI_ID),
-        .MAX_FEATURES(MAX_FEATURES), .MAX_CLASSES(MAX_CLASSES)
-    ) u_fc_engine (
-        .clk(clk), .rst_n(rst_n), .start(engine_start), .clear_error(clear_errors),
-        .input_addr(active_input_base + active_roi * active_input_stride),
-        .input_bytes(active_input_bytes), .weight_addr(active_weight_base),
-        .weight_stride(active_weight_stride), .bias_addr(active_bias_base),
-        .feature_count(active_feature_count), .class_count(active_class_count),
-        .quant_shift(active_quant_shift), .busy(engine_busy), .done_pulse(engine_done),
-        .error(engine_error), .error_code(engine_error_code), .result_class(engine_class),
-        .result_confidence(engine_confidence), .result_score(),
-        .axi_araddr(axi_araddr), .axi_arid(axi_arid), .axi_arlen(axi_arlen),
-        .axi_arsize(axi_arsize), .axi_arburst(axi_arburst), .axi_arvalid(axi_arvalid),
-        .axi_arready(axi_arready), .axi_rdata(axi_rdata), .axi_rid(axi_rid),
-        .axi_rresp(axi_rresp), .axi_rlast(axi_rlast), .axi_rvalid(axi_rvalid),
-        .axi_rready(axi_rready)
-    );
+    generate
+        if (ENGINE_MODE == 0) begin : g_fc_engine
+            Hnpu_fc_engine #(
+                .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES), .AXI_ID(AXI_ID),
+                .MAX_FEATURES(MAX_FEATURES), .MAX_CLASSES(MAX_CLASSES)
+            ) u_fc_engine (
+                .clk(clk), .rst_n(rst_n), .start(engine_start), .clear_error(clear_errors),
+                .input_addr(active_input_base + active_roi * active_input_stride),
+                .input_bytes(active_input_bytes), .weight_addr(active_weight_base),
+                .weight_stride(active_weight_stride), .bias_addr(active_bias_base),
+                .feature_count(active_feature_count), .class_count(active_class_count),
+                .quant_shift(active_quant_shift), .busy(engine_busy), .done_pulse(engine_done),
+                .error(engine_error), .error_code(engine_error_code), .result_class(engine_class),
+                .result_confidence(engine_confidence), .result_score(engine_score),
+                .axi_araddr(axi_araddr), .axi_arid(axi_arid), .axi_arlen(axi_arlen),
+                .axi_arsize(axi_arsize), .axi_arburst(axi_arburst), .axi_arvalid(axi_arvalid),
+                .axi_arready(axi_arready), .axi_rdata(axi_rdata), .axi_rid(axi_rid),
+                .axi_rresp(axi_rresp), .axi_rlast(axi_rlast), .axi_rvalid(axi_rvalid),
+                .axi_rready(axi_rready)
+            );
+        end else if (ENGINE_MODE == 1) begin : g_cnn_engine
+            Hnpu_cnn_engine #(
+                .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES), .AXI_ID(AXI_ID),
+                .MAX_MODEL_BYTES(MAX_MODEL_BYTES), .MAX_TENSOR_BYTES(65536),
+                .MAX_LAYERS(16), .MAX_CLASSES(MAX_CLASSES)
+            ) u_cnn_engine (
+                .clk(clk), .rst_n(rst_n), .start(engine_start), .clear_error(clear_errors),
+                .model_base(active_model_base), .model_bytes(active_model_bytes),
+                .input_addr(active_input_base + active_roi * active_input_stride),
+                .input_bytes(active_input_bytes),
+                .input_source_bytes(active_input_bytes), .input_downsample3(1'b0),
+                .busy(engine_busy),
+                .done_pulse(engine_done), .error(engine_error),
+                .error_code(engine_error_code), .result_class(engine_class),
+                .result_confidence(engine_confidence), .result_score(engine_score),
+                .result_reject(engine_reject_cnn),
+                .model_cache_hit(), .model_cache_valid(), .model_load_count(),
+                .model_load_beats(),
+                .axi_araddr(axi_araddr), .axi_arid(axi_arid), .axi_arlen(axi_arlen),
+                .axi_arsize(axi_arsize), .axi_arburst(axi_arburst),
+                .axi_arvalid(axi_arvalid), .axi_arready(axi_arready),
+                .axi_rdata(axi_rdata), .axi_rid(axi_rid), .axi_rresp(axi_rresp),
+                .axi_rlast(axi_rlast), .axi_rvalid(axi_rvalid), .axi_rready(axi_rready)
+            );
+        end else begin : g_bad_engine_mode
+            initial $fatal(1, "Hnpu_service ENGINE_MODE must be 0 (FC) or 1 (CNN)");
+        end
+    endgenerate
 
     integer i, j, k;
     integer cam_index;
@@ -255,7 +333,8 @@ module Hnpu_service #(
             active <= 0; active_cam <= 0; active_bank <= 0; active_frame <= 0;
             active_input_base <= 0; active_input_stride <= 0; active_input_bytes <= 0;
             active_feature_count <= 0; active_weight_base <= 0; active_weight_stride <= 0;
-            active_bias_base <= 0; active_count <= 0; active_class_count <= 0;
+            active_bias_base <= 0; active_model_base <= 0; active_model_bytes <= 0;
+            active_count <= 0; active_class_count <= 0;
             active_quant_shift <= 0; active_roi <= 0; engine_issued <= 0; rr_next <= 0;
             result_rd_ptr <= 0; result_wr_ptr <= 0; result_count <= 0; result_reserved <= 0;
             release_rd_ptr <= 0; release_wr_ptr <= 0; release_count <= 0;
@@ -318,6 +397,8 @@ module Hnpu_service #(
                 q_weight_base[cam_index][queue_index] <= batch_weight_base;
                 q_weight_stride[cam_index][queue_index] <= batch_weight_stride;
                 q_bias_base[cam_index][queue_index] <= batch_bias_base;
+                q_model_base[cam_index][queue_index] <= batch_model_base;
+                q_model_bytes[cam_index][queue_index] <= batch_model_bytes;
                 q_count_rois[cam_index][queue_index] <= batch_count;
                 q_class_count[cam_index][queue_index] <= batch_class_count;
                 q_quant_shift[cam_index][queue_index] <= batch_quant_shift;
@@ -359,6 +440,8 @@ module Hnpu_service #(
                     result_color_mem[result_wr_ptr] <= active_colors[active_roi];
                     result_class_mem[result_wr_ptr] <= engine_error ? 8'hff : engine_class;
                     result_conf_mem[result_wr_ptr] <= engine_error ? 0 : engine_confidence;
+                    result_score_mem[result_wr_ptr] <= engine_error ? 0 : engine_score;
+                    result_reject_mem[result_wr_ptr] <= engine_error ? 1'b0 : engine_reject;
                     result_error_mem[result_wr_ptr] <= engine_error ? engine_error_code : 0;
                     result_wr_ptr <= (result_wr_ptr == RESULT_DEPTH-1) ? 0 : result_wr_ptr + 1'b1;
                     result_count_next = result_count_next + 1;
@@ -392,6 +475,8 @@ module Hnpu_service #(
                 active_weight_base <= q_weight_base[take_cam][queue_index];
                 active_weight_stride <= q_weight_stride[take_cam][queue_index];
                 active_bias_base <= q_bias_base[take_cam][queue_index];
+                active_model_base <= q_model_base[take_cam][queue_index];
+                active_model_bytes <= q_model_bytes[take_cam][queue_index];
                 active_count <= q_count_rois[take_cam][queue_index];
                 active_class_count <= q_class_count[take_cam][queue_index];
                 active_quant_shift <= q_quant_shift[take_cam][queue_index];

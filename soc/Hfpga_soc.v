@@ -36,8 +36,8 @@ module Hfpga_soc #(
     // 本地主板 C24 对应 FPIOA0；远程板可覆盖为 31（AB26）。
     parameter integer UART_TX_DEFAULT_FPIOA = `SOC_UART_TX_FPIOA,
     parameter integer DDR_INIT_TIMEOUT_CYCLES = `SOC_DDR_INIT_TIMEOUT_CYCLES,
-    // NPU 消费者尚未接入；默认关闭，保持现有 Camera 调试 bin 的 release 语义。
-    // 1 时两路前处理自主消费，CPU Camera release 被屏蔽；无 NPU 归还会安全背压。
+    // NPU 消费者默认关闭，保持现有 Camera 调试 bin 的 release 语义。
+    // 1 时两路前处理输出进入共享 CNN NPU；无 NPU 归还会安全背压。
     parameter [0:0] PREPROCESS_ENABLE = `SOC_ENABLE_PREPROCESS,
     parameter [15:0] PREPROCESS_WIDTH = 16'd96,
     parameter [15:0] PREPROCESS_HEIGHT = 16'd96,
@@ -45,6 +45,11 @@ module Hfpga_soc #(
     parameter [31:0] CPU_CACHED_DDR_BYTES = `SOC_CPU_CACHED_DDR_BYTES,
     parameter [31:0] NPU_SHARED_BASE    = `SOC_NPU_SHARED_BASE,
     parameter [31:0] NPU_SHARED_BYTES   = `SOC_NPU_SHARED_BYTES,
+    parameter [0:0] NPU_IMAGE_ENABLE    = 1'b0,
+    parameter [31:0] NPU_MODEL_BASE      = `SOC_NPU_WEIGHT_BASE,
+    // Full-width v0.3 11-class package estimate: 62,720 bytes. Override
+    // with the final package length emitted by the model conversion tool.
+    parameter [31:0] NPU_MODEL_BYTES     = 32'd62720,
     parameter [31:0] MMIO_BASE          = `SOC_MMIO_BASE,
     parameter [31:0] MMIO_BYTES         = `SOC_MMIO_BYTES,
     parameter [31:0] NPU_MMIO_BASE      = `SOC_NPU_MMIO_BASE,
@@ -595,30 +600,9 @@ module Hfpga_soc #(
     wire int8_addr_sel = (mmio_req_addr>=INT8_MMIO_BASE) &&
                          (mmio_req_addr<INT8_MMIO_END);
     wire int8_sel = mmio_req_valid && int8_addr_sel;
-
-    Hnpu_ctrl #(
-        .NPU_MMIO_BASE  (NPU_MMIO_BASE),
-        .NPU_MMIO_BYTES (NPU_MMIO_BYTES)
-    ) u_npu_ctrl (
-        .clk                (cpu_clk),
-        .rst_n              (sys_rst_n),
-        .mmio_valid         (mmio_req_valid),
-        .mmio_wen           (mmio_req_wen),
-        .mmio_addr          (mmio_req_addr),
-        .mmio_wdata         (mmio_req_wdata),
-        .mmio_wstrb         (mmio_req_wstrb),
-        .mmio_addr_sel      (npu_addr_sel),
-        .mmio_sel           (npu_sel),
-        .mmio_ready         (npu_mmio_ready),
-        .mmio_rdata         (npu_mmio_rdata),
-        .start_pulse        (npu_start_pulse),
-        .engine_done        (npu_engine_done),
-        .engine_input_addr  (npu_engine_input_addr),
-        .engine_weight_addr (npu_engine_weight_addr),
-        .engine_output_addr (npu_engine_output_addr),
-        .engine_task_bytes  (npu_engine_task_bytes),
-        .irq                (npu_irq)
-    );
+    assign npu_addr_sel = (mmio_req_addr >= NPU_MMIO_BASE) &&
+                          (mmio_req_addr < NPU_MMIO_BASE + NPU_MMIO_BYTES);
+    assign npu_sel = mmio_req_valid && npu_addr_sel;
 
     // UART TX data writes are the only peripheral access that can be busy.
     wire int8_mmio_ready;
@@ -1069,15 +1053,31 @@ module Hfpga_soc #(
     wire [63:0] int8_lane_wstrb;
     wire [1:0] int8_lane_wlast, int8_lane_wvalid, int8_lane_wready;
     wire [1:0] int8_lane_bvalid, int8_lane_bready;
-    // A's per-image manager is not yet part of this source tree. Safe tie-offs
-    // keep valid records queued and prevent any slot from being falsely returned.
-    assign npu_image_ready_int=2'b00;
-    assign npu_release_valid_int=2'b00;
-    assign npu_release_camera_int=16'b0;
-    assign npu_release_frame_int=64'b0;
-    assign npu_release_block_int=4'b0;
-    assign npu_release_position_int=8'b0;
-    assign npu_release_generation_int=64'b0;
+    // Hnpu_system uses the same 256-bit DDR master contract as the existing
+    // capture/preprocess path.  The local arbiter below merges both readers
+    // before the established Camera/CPU DDR arbiter.
+    wire [29:0] npu_axi_araddr, npu_axi_awaddr;
+    wire [7:0] npu_axi_arid, npu_axi_awid, npu_axi_arlen, npu_axi_awlen;
+    wire [2:0] npu_axi_arsize, npu_axi_awsize;
+    wire [1:0] npu_axi_arburst, npu_axi_awburst;
+    wire npu_axi_arvalid, npu_axi_arready, npu_axi_rlast, npu_axi_rvalid, npu_axi_rready;
+    wire [255:0] npu_axi_rdata, npu_axi_wdata;
+    wire [7:0] npu_axi_rid, npu_axi_bid;
+    wire [1:0] npu_axi_rresp, npu_axi_bresp;
+    wire npu_axi_awvalid, npu_axi_awready, npu_axi_wlast, npu_axi_wvalid, npu_axi_wready;
+    wire [31:0] npu_axi_wstrb;
+    wire npu_axi_bvalid, npu_axi_bready;
+    wire [29:0] npu_merge_araddr, npu_merge_awaddr;
+    wire [7:0] npu_merge_arid, npu_merge_awid, npu_merge_arlen, npu_merge_awlen;
+    wire [2:0] npu_merge_arsize, npu_merge_awsize;
+    wire [1:0] npu_merge_arburst, npu_merge_awburst;
+    wire npu_merge_arvalid, npu_merge_arready, npu_merge_rlast, npu_merge_rvalid, npu_merge_rready;
+    wire [255:0] npu_merge_rdata, npu_merge_wdata;
+    wire [7:0] npu_merge_rid, npu_merge_bid;
+    wire [1:0] npu_merge_rresp, npu_merge_bresp;
+    wire npu_merge_awvalid, npu_merge_awready, npu_merge_wlast, npu_merge_wvalid, npu_merge_wready;
+    wire [31:0] npu_merge_wstrb;
+    wire npu_merge_bvalid, npu_merge_bready;
     wire [29:0] pre_axi_araddr, capture_axi_araddr;
     wire [7:0] pre_axi_arid, capture_axi_arid;
     wire [7:0] pre_axi_arlen, capture_axi_arlen;
@@ -1229,6 +1229,108 @@ module Hfpga_soc #(
         .axi_wvalid(int8_lane_wvalid),.axi_wready(int8_lane_wready),
         .axi_bid(int8_lane_bid),.axi_bresp(int8_lane_bresp),
         .axi_bvalid(int8_lane_bvalid),.axi_bready(int8_lane_bready)
+    );
+
+    // The image-mode system consumes the converter's per-ROI handshake and
+    // returns the exact slot ownership tuple.  NPU_IMAGE_ENABLE is a build
+    // parameter so the existing camera-only profile remains backpressured
+    // until a model package is explicitly placed in NPU_MODEL_BASE.
+    Hnpu_system #(
+        .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES),
+        .NPU_MMIO_BASE(NPU_MMIO_BASE), .NPU_MMIO_BYTES(NPU_MMIO_BYTES),
+        .AXI_ID(8'h80), .QUEUE_DEPTH(4), .RESULT_DEPTH(16),
+        .RESULT_FIFO_DEPTH(8), .MAX_ROIS(8), .MAX_FEATURES(1024),
+        .MAX_CLASSES(11), .ENGINE_MODE(1), .MAX_MODEL_BYTES(65536),
+        .IMAGE_MODE(NPU_IMAGE_ENABLE), .MODEL_BASE(NPU_MODEL_BASE),
+        .MODEL_BYTES(NPU_MODEL_BYTES)
+    ) u_npu_system (
+        .ddr_clk(ddr_core_clk), .cpu_clk(cpu_clk), .rst_n(sys_rst_n),
+        .enable(ddr_init_done && PREPROCESS_ENABLE && int8_enable_ddr),
+        .clear_errors(int8_clear_errors_ddr), .stop(1'b0),
+        .batch_valid(1'b0), .batch_ready(), .batch_camera(8'b0),
+        .batch_frame(32'b0), .batch_bank(1'b0), .batch_input_base(32'b0),
+        .batch_input_stride(32'b0), .batch_input_bytes(32'b0),
+        .batch_feature_count(16'b0), .batch_weight_base(32'b0),
+        .batch_weight_stride(32'b0), .batch_bias_base(32'b0),
+        .batch_model_base(32'b0), .batch_model_bytes(32'b0),
+        .batch_count(8'b0), .batch_class_count(8'b0), .batch_quant_shift(6'b0),
+        .batch_boxes(512'b0), .batch_colors(24'b0),
+        .image_valid(npu_image_valid_int), .image_ready(npu_image_ready_int),
+        .image_camera(npu_image_camera_int), .image_frame(npu_image_frame_int),
+        .image_batch_count(npu_image_batch_count_int), .image_index(npu_image_index_int),
+        .image_box(npu_image_box_int), .image_color(npu_image_color_int),
+        .image_block(npu_image_block_int), .image_position(npu_image_position_int),
+        .image_generation(npu_image_generation_int), .image_data_addr(npu_image_data_addr_int),
+        .image_width(npu_image_width_int), .image_height(npu_image_height_int),
+        .image_data_bytes(npu_image_bytes_int),
+        .int8_release_valid(), .int8_release_bank(), .int8_release_frame(),
+        .image_release_valid(npu_release_valid_int), .image_release_ready(npu_release_ready_int),
+        .image_release_camera(npu_release_camera_int), .image_release_frame(npu_release_frame_int),
+        .image_release_block(npu_release_block_int), .image_release_position(npu_release_position_int),
+        .image_release_generation(npu_release_generation_int), .busy(), .error(),
+        .error_code(), .accepted_batches(), .completed_batches(), .dropped_batches(),
+        .completed_rois(), .error_rois(), .released_banks(), .fifo_overflows(),
+        .result_reject(), .axi_araddr(npu_axi_araddr), .axi_arid(npu_axi_arid),
+        .axi_arlen(npu_axi_arlen), .axi_arsize(npu_axi_arsize), .axi_arburst(npu_axi_arburst),
+        .axi_arvalid(npu_axi_arvalid), .axi_arready(npu_axi_arready),
+        .axi_rdata(npu_axi_rdata), .axi_rid(npu_axi_rid), .axi_rresp(npu_axi_rresp),
+        .axi_rlast(npu_axi_rlast), .axi_rvalid(npu_axi_rvalid), .axi_rready(npu_axi_rready),
+        .mmio_valid(mmio_req_valid), .mmio_wen(mmio_req_wen), .mmio_addr(mmio_req_addr),
+        .mmio_wdata(mmio_req_wdata), .mmio_wstrb(mmio_req_wstrb),
+        .mmio_ready(npu_mmio_ready), .mmio_rdata(npu_mmio_rdata), .irq(npu_irq),
+        .start_pulse(npu_start_pulse), .control_engine_done(npu_engine_done),
+        .control_input_addr(npu_engine_input_addr), .control_weight_addr(npu_engine_weight_addr),
+        .control_output_addr(npu_engine_output_addr), .control_task_bytes(npu_engine_task_bytes)
+    );
+
+    // Merge NPU reads with the existing capture/preprocess request stream.
+    // This is a 256-bit-to-256-bit merge; no unsafe width conversion is used.
+    Haxi_2m1s_arbiter u_npu_int8_merge (
+        .clk(ddr_core_clk), .rst_n(sys_rst_n),
+        .cpu_axi_awaddr(capture_int8_awaddr), .cpu_axi_awid(capture_int8_awid),
+        .cpu_axi_awlen(capture_int8_awlen), .cpu_axi_awsize(capture_int8_awsize),
+        .cpu_axi_awburst(capture_int8_awburst), .cpu_axi_awvalid(capture_int8_awvalid),
+        .cpu_axi_awready(capture_int8_awready), .cpu_axi_wdata(capture_int8_wdata),
+        .cpu_axi_wstrb(capture_int8_wstrb), .cpu_axi_wlast(capture_int8_wlast),
+        .cpu_axi_wvalid(capture_int8_wvalid), .cpu_axi_wready(capture_int8_wready),
+        .cpu_axi_bid(capture_int8_bid), .cpu_axi_bresp(capture_int8_bresp),
+        .cpu_axi_bvalid(capture_int8_bvalid), .cpu_axi_bready(capture_int8_bready),
+        .cpu_axi_araddr(capture_int8_araddr), .cpu_axi_arid(capture_int8_arid),
+        .cpu_axi_arlen(capture_int8_arlen), .cpu_axi_arsize(capture_int8_arsize),
+        .cpu_axi_arburst(capture_int8_arburst), .cpu_axi_arvalid(capture_int8_arvalid),
+        .cpu_axi_arready(capture_int8_arready), .cpu_axi_rdata(capture_int8_rdata),
+        .cpu_axi_rid(capture_int8_rid), .cpu_axi_rresp(capture_int8_rresp),
+        .cpu_axi_rlast(capture_int8_rlast), .cpu_axi_rvalid(capture_int8_rvalid),
+        .cpu_axi_rready(capture_int8_rready),
+        // Hnpu_system is read-only in V1. Keep the write side explicitly
+        // inactive so no undriven nets enter the shared arbiter.
+        .npu_axi_awaddr(30'b0), .npu_axi_awid(8'b0), .npu_axi_awlen(8'b0),
+        .npu_axi_awsize(3'b0), .npu_axi_awburst(2'b0), .npu_axi_awvalid(1'b0),
+        .npu_axi_awready(), .npu_axi_wdata(256'b0), .npu_axi_wstrb(32'b0),
+        .npu_axi_wlast(1'b0), .npu_axi_wvalid(1'b0), .npu_axi_wready(),
+        .npu_axi_bid(), .npu_axi_bresp(), .npu_axi_bvalid(), .npu_axi_bready(1'b0),
+        .npu_axi_araddr(npu_axi_araddr), .npu_axi_arid(npu_axi_arid),
+        .npu_axi_arlen(npu_axi_arlen), .npu_axi_arsize(npu_axi_arsize),
+        .npu_axi_arburst(npu_axi_arburst), .npu_axi_arvalid(npu_axi_arvalid),
+        .npu_axi_arready(npu_axi_arready), .npu_axi_rdata(npu_axi_rdata),
+        .npu_axi_rid(npu_axi_rid), .npu_axi_rresp(npu_axi_rresp),
+        .npu_axi_rlast(npu_axi_rlast), .npu_axi_rvalid(npu_axi_rvalid),
+        .npu_axi_rready(npu_axi_rready),
+        .ddr_axi_awaddr(npu_merge_awaddr), .ddr_axi_awid(npu_merge_awid),
+        .ddr_axi_awlen(npu_merge_awlen), .ddr_axi_awsize(npu_merge_awsize),
+        .ddr_axi_awburst(npu_merge_awburst), .ddr_axi_awvalid(npu_merge_awvalid),
+        .ddr_axi_awready(npu_merge_awready), .ddr_axi_wdata(npu_merge_wdata),
+        .ddr_axi_wstrb(npu_merge_wstrb), .ddr_axi_wlast(npu_merge_wlast),
+        .ddr_axi_wvalid(npu_merge_wvalid), .ddr_axi_wready(npu_merge_wready),
+        .ddr_axi_bid(npu_merge_bid), .ddr_axi_bresp(npu_merge_bresp),
+        .ddr_axi_bvalid(npu_merge_bvalid), .ddr_axi_bready(npu_merge_bready),
+        .ddr_axi_araddr(npu_merge_araddr), .ddr_axi_arid(npu_merge_arid),
+        .ddr_axi_arlen(npu_merge_arlen), .ddr_axi_arsize(npu_merge_arsize),
+        .ddr_axi_arburst(npu_merge_arburst), .ddr_axi_arvalid(npu_merge_arvalid),
+        .ddr_axi_arready(npu_merge_arready), .ddr_axi_rdata(npu_merge_rdata),
+        .ddr_axi_rid(npu_merge_rid), .ddr_axi_rresp(npu_merge_rresp),
+        .ddr_axi_rlast(npu_merge_rlast), .ddr_axi_rvalid(npu_merge_rvalid),
+        .ddr_axi_rready(npu_merge_rready)
     );
 
     Hrgb565_int8_ddr_merge u_int8_ddr_merge (
@@ -1440,35 +1542,35 @@ module Hfpga_soc #(
         .cpu_axi_rlast(bridge_axi_rlast),
         .cpu_axi_rvalid(bridge_axi_rvalid),
         .cpu_axi_rready(bridge_axi_rready),
-        .npu_axi_awaddr(capture_int8_awaddr),
-        .npu_axi_awid(capture_int8_awid),
-        .npu_axi_awlen(capture_int8_awlen),
-        .npu_axi_awsize(capture_int8_awsize),
-        .npu_axi_awburst(capture_int8_awburst),
-        .npu_axi_awvalid(capture_int8_awvalid),
-        .npu_axi_awready(capture_int8_awready),
-        .npu_axi_wdata(capture_int8_wdata),
-        .npu_axi_wstrb(capture_int8_wstrb),
-        .npu_axi_wlast(capture_int8_wlast),
-        .npu_axi_wvalid(capture_int8_wvalid),
-        .npu_axi_wready(capture_int8_wready),
-        .npu_axi_bid(capture_int8_bid),
-        .npu_axi_bresp(capture_int8_bresp),
-        .npu_axi_bvalid(capture_int8_bvalid),
-        .npu_axi_bready(capture_int8_bready),
-        .npu_axi_araddr(capture_int8_araddr),
-        .npu_axi_arid(capture_int8_arid),
-        .npu_axi_arlen(capture_int8_arlen),
-        .npu_axi_arsize(capture_int8_arsize),
-        .npu_axi_arburst(capture_int8_arburst),
-        .npu_axi_arvalid(capture_int8_arvalid),
-        .npu_axi_arready(capture_int8_arready),
-        .npu_axi_rdata(capture_int8_rdata),
-        .npu_axi_rid(capture_int8_rid),
-        .npu_axi_rresp(capture_int8_rresp),
-        .npu_axi_rlast(capture_int8_rlast),
-        .npu_axi_rvalid(capture_int8_rvalid),
-        .npu_axi_rready(capture_int8_rready),
+        .npu_axi_awaddr(npu_merge_awaddr),
+        .npu_axi_awid(npu_merge_awid),
+        .npu_axi_awlen(npu_merge_awlen),
+        .npu_axi_awsize(npu_merge_awsize),
+        .npu_axi_awburst(npu_merge_awburst),
+        .npu_axi_awvalid(npu_merge_awvalid),
+        .npu_axi_awready(npu_merge_awready),
+        .npu_axi_wdata(npu_merge_wdata),
+        .npu_axi_wstrb(npu_merge_wstrb),
+        .npu_axi_wlast(npu_merge_wlast),
+        .npu_axi_wvalid(npu_merge_wvalid),
+        .npu_axi_wready(npu_merge_wready),
+        .npu_axi_bid(npu_merge_bid),
+        .npu_axi_bresp(npu_merge_bresp),
+        .npu_axi_bvalid(npu_merge_bvalid),
+        .npu_axi_bready(npu_merge_bready),
+        .npu_axi_araddr(npu_merge_araddr),
+        .npu_axi_arid(npu_merge_arid),
+        .npu_axi_arlen(npu_merge_arlen),
+        .npu_axi_arsize(npu_merge_arsize),
+        .npu_axi_arburst(npu_merge_arburst),
+        .npu_axi_arvalid(npu_merge_arvalid),
+        .npu_axi_arready(npu_merge_arready),
+        .npu_axi_rdata(npu_merge_rdata),
+        .npu_axi_rid(npu_merge_rid),
+        .npu_axi_rresp(npu_merge_rresp),
+        .npu_axi_rlast(npu_merge_rlast),
+        .npu_axi_rvalid(npu_merge_rvalid),
+        .npu_axi_rready(npu_merge_rready),
         .ddr_axi_awaddr(ddr_axi_awaddr),
         .ddr_axi_awid(ddr_axi_awid),
         .ddr_axi_awlen(ddr_axi_awlen),

@@ -1,0 +1,49 @@
+DESC batch=1 frame=00000011 bank=0 count=8 cyc=10
+IMG batch=1 frame=00000011 index=0 count=8 camera=1 block=0 position=0 gen=1 addr=b8800000 box=0b01010002000310 color=1 w=96 h=96 bytes=36864 expbox=0b01010002000310 expcolor=1 cyc=11982
+IMG batch=1 frame=00000011 index=1 count=8 camera=1 block=0 position=1 gen=1 addr=b8809000 box=0b01010102030311 color=2 w=96 h=96 bytes=36864 expbox=0b01010102030311 expcolor=2 cyc=23827
+IMG batch=1 frame=00000011 index=2 count=8 camera=1 block=0 position=2 gen=1 addr=b8812000 box=0b01010202060312 color=3 w=96 h=96 bytes=36864 expbox=0b01010202060312 expcolor=3 cyc=35936
+IMG batch=1 frame=00000011 index=3 count=8 camera=1 block=0 position=3 gen=1 addr=b881b000 box=0b01010302090313 color=4 w=96 h=96 bytes=36864 expbox=0b01010302090313 expcolor=4 cyc=48107
+IMG batch=1 frame=00000011 index=4 count=8 camera=1 block=0 position=4 gen=1 addr=b8824000 box=0b010104020c0314 color=5 w=96 h=96 bytes=36864 expbox=0b010104020c0314 expcolor=5 cyc=60053
+IMG batch=1 frame=00000011 index=5 count=8 camera=1 block=0 position=5 gen=1 addr=b882d000 box=0b010105020f0315 color=6 w=96 h=96 bytes=36864 expbox=0b010105020f0315 expcolor=6 cyc=72063
+IMG batch=1 frame=00000011 index=6 count=8 camera=1 block=0 position=6 gen=1 addr=b8836000 box=0b01010602120316 color=7 w=96 h=96 bytes=36864 expbox=0b01010602120316 expcolor=7 cyc=84102
+ROIREL batch=1 bank=0 frame=00000011 busy=1 cyc=96119
+IMG batch=1 frame=00000011 index=7 count=8 camera=1 block=0 position=7 gen=1 addr=b883f000 box=0b01010702150317 color=0 w=96 h=96 bytes=36864 expbox=0b01010702150317 expcolor=0 cyc=96120
+STATS images_done=8 used=8 peak=8 ddr_err=0 bad_release=0 failed=0 last_fail_frame=00000000 last_fail_index=0 last_fail_cause=0 error=0 busy=0 protocol_errors=0
+REL k=0 cam=1 block=0 position=0 gen=1 frame=00000011 ready=1
+REL k=1 cam=1 block=0 position=1 gen=1 frame=00000011 ready=1
+REL k=2 cam=1 block=0 position=2 gen=1 frame=00000011 ready=1
+REL k=4 cam=1 block=0 position=4 gen=1 frame=00000011 ready=1
+REL k=5 cam=1 block=0 position=5 gen=1 frame=00000011 ready=1
+REL k=6 cam=1 block=0 position=6 gen=1 frame=00000011 ready=1
+REL k=7 cam=1 block=0 position=7 gen=1 frame=00000011 ready=1
+REL k=0 cam=1 block=0 position=0 gen=1 frame=00000011 ready=1
+REL k=3 cam=1 block=0 position=3 gen=2 frame=00000011 ready=1
+REL k=3 cam=2 block=0 position=3 gen=1 frame=00000011 ready=1
+STATS images_done=8 used=1 peak=8 ddr_err=0 bad_release=3 failed=0 last_fail_frame=00000000 last_fail_index=0 last_fail_cause=0 error=0 busy=0 protocol_errors=0
+DESC batch=2 frame=00000022 bank=1 count=8 cyc=96196
+IMG batch=2 frame=00000022 index=0 count=8 camera=1 block=0 position=0 gen=2 addr=b8800000 box=0b02010002000320 color=2 w=96 h=96 bytes=36864 expbox=0b02010002000320 expcolor=2 cyc=108085
+IMG batch=2 frame=00000022 index=1 count=8 camera=1 block=0 position=1 gen=2 addr=b8809000 box=0b02010102030321 color=3 w=96 h=96 bytes=36864 expbox=0b02010102030321 expcolor=3 cyc=120115
+IMG batch=2 frame=00000022 index=2 count=8 camera=1 block=0 position=2 gen=2 addr=b8812000 box=0b02010202060322 color=4 w=96 h=96 bytes=36864 expbox=0b02010202060322 expcolor=4 cyc=132150
+IMG batch=2 frame=00000022 index=3 count=8 camera=1 block=0 position=4 gen=2 addr=b8824000 box=0b02010302090323 color=5 w=96 h=96 bytes=36864 expbox=0b02010302090323 expcolor=5 cyc=144018
+IMG batch=2 frame=00000022 index=4 count=8 camera=1 block=0 position=5 gen=2 addr=b882d000 box=0b020104020c0324 color=6 w=96 h=96 bytes=36864 expbox=0b020104020c0324 expcolor=6 cyc=156079
+IMG batch=2 frame=00000022 index=5 count=8 camera=1 block=0 position=6 gen=2 addr=b8836000 box=0b020105020f0325 color=7 w=96 h=96 bytes=36864 expbox=0b020105020f0325 expcolor=7 cyc=168065
+IMG batch=2 frame=00000022 index=6 count=8 camera=1 block=0 position=7 gen=2 addr=b883f000 box=0b02010602120326 color=0 w=96 h=96 bytes=36864 expbox=0b02010602120326 expcolor=0 cyc=180091
+ROIREL batch=2 bank=1 frame=00000022 busy=1 cyc=191781
+IMG batch=2 frame=00000022 index=7 count=8 camera=1 block=0 position=8 gen=1 addr=b8848000 box=0b02010702150327 color=1 w=96 h=96 bytes=36864 expbox=0b02010702150327 expcolor=1 cyc=191782
+STATS images_done=16 used=9 peak=9 ddr_err=0 bad_release=3 failed=0 last_fail_frame=00000000 last_fail_index=0 last_fail_cause=0 error=0 busy=0 protocol_errors=0
+DESC batch=3 frame=00000033 bank=0 count=0 cyc=191834
+ROIREL batch=3 bank=0 frame=00000033 busy=0 cyc=191835
+DESC batch=4 frame=00000044 bank=1 count=9 cyc=191855
+ROIREL batch=4 bank=1 frame=00000044 busy=0 cyc=191856
+STATS images_done=16 used=9 peak=9 ddr_err=0 bad_release=3 failed=1 last_fail_frame=00000044 last_fail_index=255 last_fail_cause=1 error=1 busy=0 protocol_errors=0
+DESC batch=5 frame=00000055 bank=0 count=3 cyc=191876
+IMG batch=5 frame=00000055 index=0 count=3 camera=1 block=0 position=9 gen=1 addr=b8851000 box=0b05010002000350 color=5 w=96 h=96 bytes=36864 expbox=0b05010002000350 expcolor=5 cyc=203969
+IMG batch=5 frame=00000055 index=1 count=3 camera=1 block=0 position=10 gen=1 addr=b885a000 box=0b05010102030351 color=6 w=96 h=96 bytes=36864 expbox=0b05010102030351 expcolor=6 cyc=215958
+IMG batch=5 frame=00000055 index=2 count=3 camera=1 block=0 position=11 gen=1 addr=b8863000 box=0b05010202060352 color=7 w=96 h=96 bytes=36864 expbox=0b05010202060352 expcolor=7 cyc=227922
+ROIREL batch=5 bank=0 frame=00000055 busy=1 cyc=227922
+STATS images_done=19 used=12 peak=12 ddr_err=0 bad_release=3 failed=1 last_fail_frame=00000044 last_fail_index=255 last_fail_cause=1 error=1 busy=0 protocol_errors=0
+DESC batch=6 frame=00000066 bank=1 count=2 cyc=227974
+IMG batch=6 frame=00000066 index=0 count=2 camera=1 block=0 position=12 gen=1 addr=b886c000 box=0b06010002000360 color=6 w=96 h=96 bytes=36864 expbox=0b06010002000360 expcolor=6 cyc=239966
+ROIREL batch=6 bank=1 frame=00000066 busy=0 cyc=242055
+STATS images_done=20 used=13 peak=14 ddr_err=1 bad_release=3 failed=2 last_fail_frame=00000066 last_fail_index=1 last_fail_cause=2 error=1 busy=0 protocol_errors=0
+END cyc=242075
