@@ -3,7 +3,7 @@
 `include "../soc/soc_timeout.vh"
 `include "../soc/camera_regs.vh"
 
-// CAM1 DVP、异步 FIFO、DMA 与 CPU MMIO 子系统。
+//组织摄像头采集、处理和传输的子系统，包括CAM1 DVP、异步 FIFO、DMA 与 CPU MMIO 子系统。
 module Hcamera_subsystem #(
     parameter [31:0] DDR_BASE = `SOC_DDR_BASE,
     parameter [31:0] DDR_BYTES = `SOC_DDR_BYTES,

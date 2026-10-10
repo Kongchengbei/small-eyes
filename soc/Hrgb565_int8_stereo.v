@@ -1,8 +1,7 @@
 `timescale 1ns / 1ps
 `include "soc_addr_map.vh"
 
-// Two independent converter lanes. Descriptor, handoff, release and AXI fields
-// use lane 0 in the least-significant slice and lane 1 in the next slice.
+//实例化两个独立的转换 lane，各自维护槽位和完成队列
 module Hrgb565_int8_stereo #(
     parameter [31:0] DDR_BASE=`SOC_DDR_BASE,
     parameter [31:0] DDR_BYTES=`SOC_DDR_BYTES

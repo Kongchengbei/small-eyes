@@ -13,11 +13,11 @@
 
 // Build and boot defaults. SOC_CPU_MEM_BRAM=0 selects the DDR application;
 // 1 selects the CoreMark BRAM memory preset.
-`define SOC_CPU_MEM_BRAM             1
-`define SOC_ENABLE_ICACHE            0
-`define SOC_ENABLE_DCACHE            0
-`define SOC_ENABLE_DDR               0
-`define SOC_ENABLE_CAMERA            0
+`define SOC_CPU_MEM_BRAM             0
+`define SOC_ENABLE_ICACHE            1
+`define SOC_ENABLE_DCACHE            1
+`define SOC_ENABLE_DDR               1
+`define SOC_ENABLE_CAMERA            1
 `define SOC_ENABLE_PREPROCESS        0
 `define SOC_CPU_HZ                   32'd70000000
 `define SOC_UART_BAUD                32'd115200
@@ -25,7 +25,7 @@
 
 `define SOC_FLASH_BASE               24'hA00000
 `define SOC_FLASH_ADDRESS_BYTES      32'd16777216
-`define SOC_BOOT_IMAGE_BYTES         32'd0
+`define SOC_BOOT_IMAGE_BYTES         32'd16384
 `define SOC_IRAM_BASE                32'h8000_0000
 `define SOC_IRAM_BYTES               32'd32768
 `define SOC_DRAM_BASE                32'h8000_8000

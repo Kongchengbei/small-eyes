@@ -1,8 +1,8 @@
 `timescale 1ns / 1ps
 `include "soc_addr_map.vh"
 
-// One camera lane of the fixed 96x96 RGB565 -> [R,G,B,0] INT8 converter.
-// Instantiate once per camera.  All state and AXI ports are in ddr_core_clk.
+// 固定96x96 RGB565的单个相机通道->[R,G,B,0]INT8转换器
+//两个摄像头分别例化一次，所有状态和AXI端口均在ddr_core_clk中
 module Hrgb565_int8_lane #(
     parameter [0:0] CAMERA = 1'b0,
     parameter [7:0] AXI_ID = CAMERA ? 8'h61 : 8'h60,

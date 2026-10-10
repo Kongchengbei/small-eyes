@@ -47,6 +47,10 @@ F:/SocFpga/soc/Huart_tx.v|F:/SocFpga/soc/soc_addr_map.vh|
 
 F:/SocFpga/soc/Hcamera_preprocess.v|F:/SocFpga/soc/soc_addr_map.vh|
 F:/SocFpga/soc/Hpreprocess_stereo.v|F:/SocFpga/soc/soc_addr_map.vh|
+F:/SocFpga/soc/Hrgb565_int8_lane.v|F:/SocFpga/soc/soc_addr_map.vh|
+F:/SocFpga/soc/Hrgb565_int8_stereo.v|F:/SocFpga/soc/soc_addr_map.vh|
+
+F:/SocFpga/soc/Hrgb565_int8_regs.v|F:/SocFpga/soc/soc_addr_map.vh|
 F:/SocFpga/soc/Hcamera_subsystem.v|F:/SocFpga/soc/camera_regs.vh|F:/SocFpga/soc/soc_addr_map.vh|F:/SocFpga/soc/soc_timeout.vh|
 F:/SocFpga/soc/camera_regs.vh|F:/SocFpga/soc/soc_addr_map.vh|
 

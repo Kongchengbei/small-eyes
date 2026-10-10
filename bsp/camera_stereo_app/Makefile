@@ -24,12 +24,24 @@ DIAG_stereo_local_NAME := camera_stereo_diag_local
 DIAG_stereo_remote_NAME := camera_stereo_diag_remote
 DIAG_cam2_local_NAME := camera_cam2_only_local
 DIAG_cam2_remote_NAME := camera_cam2_only_remote
+DUMP_local_PIN := 0u
+DUMP_remote_PIN := 31u
+DUMP_SRCS := main_frame_dump.c camera_stereo.c uart_async.c ../camera_app/ov5640_regs.c
 
-.PHONY: all local remote diagnostics clean
+.PHONY: all local remote diagnostics frame-dump frame-dump-local frame-dump-remote clean
 all: camera_stereo_local.bin camera_stereo_remote.bin camera_stereo.bin
 local: camera_stereo_local.bin
 remote: camera_stereo_remote.bin
 diagnostics: $(foreach v,$(DIAG_VARIANTS),$(DIAG_$(v)_NAME).bin)
+frame-dump: frame-dump-local frame-dump-remote
+frame-dump-local: camera_frame_uart_dump_local.bin
+frame-dump-remote: camera_frame_uart_dump_remote.bin
+
+DUMP_local_OBJS := $(patsubst %.c,$(BUILD)/dump/local/%.o,$(DUMP_SRCS)) \
+	$(BUILD)/dump/local/init.o $(BUILD)/dump/local/startup.o
+DUMP_remote_OBJS := $(patsubst %.c,$(BUILD)/dump/remote/%.o,$(DUMP_SRCS)) \
+	$(BUILD)/dump/remote/init.o $(BUILD)/dump/remote/startup.o
+$(DUMP_local_OBJS) $(DUMP_remote_OBJS): $(BSP_SOC_HEADER)
 
 camera_stereo_local.elf: $(LOCAL_OBJS) link.lds Makefile
 	$(CC) $(CFLAGS) $(LOCAL_OBJS) -o $@ $(LDFLAGS) -Wl,-Map=camera_stereo_local.map
@@ -56,6 +68,39 @@ $(BUILD)/local/startup.o: $(BSP)/lib/startup/startup.S Makefile
 $(BUILD)/remote/startup.o: $(BSP)/lib/startup/startup.S Makefile
 	mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c -o $@ $<
+
+$(BUILD)/dump/local/%.o: %.c $(wildcard *.h) Makefile
+	mkdir -p $(@D)
+	$(CC) $(CFLAGS) -DSTEREO_UART_TX_FPIOA=$(DUMP_local_PIN) -c -o $@ $<
+$(BUILD)/dump/remote/%.o: %.c $(wildcard *.h) Makefile
+	mkdir -p $(@D)
+	$(CC) $(CFLAGS) -DSTEREO_UART_TX_FPIOA=$(DUMP_remote_PIN) -c -o $@ $<
+$(BUILD)/dump/local/init.o: $(BSP)/lib/startup/init.c Makefile
+	mkdir -p $(@D)
+	$(CC) $(CFLAGS) -DSTEREO_UART_TX_FPIOA=$(DUMP_local_PIN) -c -o $@ $<
+$(BUILD)/dump/remote/init.o: $(BSP)/lib/startup/init.c Makefile
+	mkdir -p $(@D)
+	$(CC) $(CFLAGS) -DSTEREO_UART_TX_FPIOA=$(DUMP_remote_PIN) -c -o $@ $<
+$(BUILD)/dump/local/startup.o: $(BSP)/lib/startup/startup.S Makefile
+	mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c -o $@ $<
+$(BUILD)/dump/remote/startup.o: $(BSP)/lib/startup/startup.S Makefile
+	mkdir -p $(@D)
+	$(CC) $(CFLAGS) -c -o $@ $<
+
+camera_frame_uart_dump_local.elf: $(DUMP_local_OBJS) link.lds Makefile
+	$(CC) $(CFLAGS) $(DUMP_local_OBJS) -o $@ $(LDFLAGS) -Wl,-Map=camera_frame_uart_dump_local.map
+	$(SIZE) -A $@
+camera_frame_uart_dump_remote.elf: $(DUMP_remote_OBJS) link.lds Makefile
+	$(CC) $(CFLAGS) $(DUMP_remote_OBJS) -o $@ $(LDFLAGS) -Wl,-Map=camera_frame_uart_dump_remote.map
+	$(SIZE) -A $@
+
+define DUMP_BIN_RULE
+camera_frame_uart_dump_$(1).bin: camera_frame_uart_dump_$(1).elf
+	@set -eu; raw="$(BUILD)/camera_frame_uart_dump_$(1).raw.bin"; $(OBJCOPY) -O binary $$< "$$$$raw"; bytes=$$$$(wc -c < "$$$$raw"); if [ "$$$$bytes" -eq 0 ] || [ "$$$$bytes" -gt $(TARGET_BYTES) ] || [ $$$$((bytes % 4)) -ne 0 ]; then echo "ERROR: invalid complete frame-dump image size: $$$$bytes"; exit 1; fi; echo "CAMERA_FRAME_UART_DUMP_$(1)_RAW_BYTES=$$$$bytes"; $(OBJCOPY) -I binary -O binary --gap-fill=0 --pad-to=$(TARGET_BYTES) "$$$$raw" $$@; test $$$$(wc -c < $$@) -eq $(TARGET_BYTES)
+endef
+$(eval $(call DUMP_BIN_RULE,local))
+$(eval $(call DUMP_BIN_RULE,remote))
 
 define DIAG_VARIANT_RULES
 DIAG_$(1)_MODE := $(2)

@@ -1,9 +1,7 @@
 `timescale 1ns / 1ps
 `include "soc_addr_map.vh"
 
-// CPU control and diagnostics for the DDR-clocked converter. A CPU stats read
-// waits for one DDR-domain snapshot handshake, so every counter word is read
-// from a coherent captured vector rather than independently synchronized bits.
+//提供 CPU 控制、状态读取、跨时钟域同步和统计快照
 module Hrgb565_int8_regs (
     input cpu_clk, input ddr_clk, input rst_n,
     input mmio_valid, input mmio_wen, input [7:0] mmio_addr,
@@ -20,9 +18,8 @@ module Hrgb565_int8_regs (
     reg enable_meta_ddr, enable_sync_ddr;
     reg clear_meta_ddr, clear_sync_ddr;
     reg clear_seen_ddr, clear_pulse_ddr;
-
-    // Live status bits are individually synchronized; the multi-bit statistics
-    // vector uses the request/acknowledge snapshot below.
+//实时状态位是独立同步的;多比特统计信息使用下方的请求/确认快照
+//矢量使用下方的请求/确认快照
     reg [1:0] busy_meta_cpu, busy_sync_cpu;
     reg [1:0] slot_meta_cpu, slot_sync_cpu;
     reg [1:0] ddrwait_meta_cpu, ddrwait_sync_cpu;
@@ -83,12 +80,17 @@ module Hrgb565_int8_regs (
 
     always @(posedge ddr_clk or negedge rst_n) begin
         if (!rst_n) begin
+            // 初始化所有寄存器
             enable_meta_ddr<=0; enable_sync_ddr<=0;
             clear_meta_ddr<=0; clear_sync_ddr<=0; clear_seen_ddr<=0; clear_pulse_ddr<=0;
             snapshot_req_meta_ddr<=0; snapshot_req_sync_ddr<=0;
             snapshot_req_seen_ddr<=0; snapshot_ack_toggle_ddr<=0; snapshot_stats_ddr<=0;
         end else begin
-            enable_meta_ddr<=enable_cpu; enable_sync_ddr<=enable_meta_ddr;
+/*两级寄存器： enable_meta_ddr -> enable_sync_ddr 
+enable_meta_ddr <= enable_cpu;       // 第一级采样源信号
+enable_sync_ddr <= enable_meta_ddr;  // 第二级采样第一
+*/
+            enable_meta_ddr<=enable_cpu; enable_sync_ddr<=enable_meta_ddr;//enable_cpu 在 CPU 时钟域更新，而两级接收寄存器在 DDR 时钟域更新
             clear_meta_ddr<=clear_toggle_cpu; clear_sync_ddr<=clear_meta_ddr;
             clear_pulse_ddr<=0;
             if (clear_sync_ddr!=clear_seen_ddr) begin

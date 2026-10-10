@@ -1,8 +1,6 @@
 `timescale 1ns / 1ps
 
-// Fair two-stage fan-in: converter CAM1/CAM2 share first, then take turns with
-// the existing Camera+preprocess aggregate. Each arbiter locks ownership until
-// the corresponding RLAST/B response, preserving DDR response routing.
+//仲裁两路转换器与摄像头/前处理的 DDR 请求。它负责总线访问次序
 module Hrgb565_int8_ddr_merge (
     input clk, input rst_n,
     input [29:0] cap_araddr, input [7:0] cap_arid, input [7:0] cap_arlen,

@@ -1,6 +1,15 @@
 #include "camera_stereo.h"
 #include "../camera_app/ov5640_regs.h"
 #include "../include/soc_defs.h"
+#include "uart_async.h"
+
+#ifndef CAM1_SENSOR_COLORBAR
+#define CAM1_SENSOR_COLORBAR 0
+#endif
+
+#if (CAM1_SENSOR_COLORBAR != 0) && (CAM1_SENSOR_COLORBAR != 1)
+#error "CAM1_SENSOR_COLORBAR must be 0 or 1"
+#endif
 
 #define REG(cam, off) (*(volatile uint32_t *)((cam)->base + (off)))
 #define CTRL_RESET_N SOC_CAM_SCCB_RESET_N_MASK
@@ -14,6 +23,8 @@
 #define RELEASE_BUSY SOC_CAM_RELEASE_BUSY_MASK
 #define FRAME_BYTES 614400u
 
+//图像亮度偏移 0x5587、0x5588 在摄像头内部 ISP 中提亮或压暗图像
+//自动曝光目标 | 0x3A0F、0x3A10、0x3A1B、0x3A1E、0x3A11、0x3A1F | 让自动曝光调整曝光时间、增益，使画面达到目标亮度 |
 struct verify_reg { uint16_t address; uint8_t expected, mask; };
 static const struct verify_reg verify_regs[] = {
     {0x3008u,0x02u,0x42u},{0x300eu,0x58u,0xffu},
@@ -73,11 +84,18 @@ bool cam_read_reg(struct camera_ctx *cam,uint16_t reg,uint8_t *val)
     start(cam);ok=write_byte(cam,0x79u)&&ok;*val=read_byte(cam);stop(cam);return ok;
 }
 static bool write_retry(struct camera_ctx *cam,uint16_t reg,uint8_t val)
-{ uint32_t i;for(i=0u;i<3u;++i){if(cam_write_reg(cam,reg,val))return true;cam_delay_ms(1u);}return false; }
+{ uint32_t i;
+	for(i=0u;i<3u;++i){
+		if(cam_write_reg(cam,reg,val))
+			return true;
+		cam_delay_ms(1u);
+	}
+	return false;
+}
 
 bool cam_configure_vga(struct camera_ctx *cam,uint16_t *failed,uint32_t *writes)
 {
-    uint32_t i;uint8_t value;
+    uint32_t i;uint8_t value,orientation_v,orientation_h,colorbar;
     if(failed==0||writes==0)return false;
     *failed=0u;
     *writes=0u;
@@ -90,6 +108,41 @@ bool cam_configure_vga(struct camera_ctx *cam,uint16_t *failed,uint32_t *writes)
         if(!cam_read_reg(cam,verify_regs[i].address,&value)){*failed=verify_regs[i].address;return false;}
         if((value&verify_regs[i].mask)!=(verify_regs[i].expected&verify_regs[i].mask)){*failed=verify_regs[i].address;return false;}
     }
+	/*	|  位  | 0x3820 的意义      | 0x3821 的意义 |
+		|------|--------------------|--------------|
+		| bit7 | 调试模式位         | 调试模式位     |
+		| bit6 | 调试模式位         | 调试模式位     |
+		| bit5 | 调试模式位         | JPEG 使能 	|
+		| bit4 | 调试模式位         | 调试模式位 	|
+		| bit3 | 调试模式位         | 调试模式位 	|
+		| bit2 | 内置 ISP 垂直翻转  | 内置 ISP 水平镜像 
+		| bit1 | 传感器垂直翻转     | 传感器水平镜像 |
+		| bit0 | 该表没有公开说明   | 水平像素合并（binning）使能 |*/
+	//orientation_v，用于寄存器 0x3820
+	//orientation_h，用于寄存器 0x3821
+	orientation_v=(cam->id==1u)?0x47u:0x41u;
+    orientation_h=(cam->id==1u)?0x01u:0x07u;
+    if(cam->id==1u){
+        if(!write_retry(cam,0x3820u,orientation_v)){*failed=0x3820u;return false;}++*writes;
+        if(!write_retry(cam,0x3821u,orientation_h)){*failed=0x3821u;return false;}++*writes;
+    }
+    colorbar=0u;
+#if CAM1_SENSOR_COLORBAR
+    if(cam->id==1u)colorbar=0x84u;
+#endif
+    if(!write_retry(cam,0x503du,colorbar))
+		{*failed=0x503du;return false;}++*writes;
+
+    if(!cam_read_reg(cam,0x3820u,&value)){*failed=0x3820u;return false;}
+    if(value!=orientation_v){*failed=0x3820u;return false;}
+    if(!cam_read_reg(cam,0x3821u,&value)){*failed=0x3821u;return false;}
+    if(value!=orientation_h){*failed=0x3821u;return false;}
+    if(!cam_read_reg(cam,0x503du,&value)){*failed=0x503du;return false;}
+    if(value!=colorbar){*failed=0x503du;return false;}
+
+    log_puts(cam->id==1u?"CAM1_ORIENTATION=180 3820=":"CAM2_ORIENTATION=DEFAULT 3820=");
+    log_puthex(orientation_v);log_puts(" 3821=");log_puthex(orientation_h);
+    log_puts(" COLORBAR_503D=");log_puthex(colorbar);log_putc('\n');
     return true;
 }
 

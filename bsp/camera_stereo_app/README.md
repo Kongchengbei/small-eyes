@@ -88,3 +88,22 @@ CAM1，再延后排入 CAM2，为现有 2048 字节 UART 环形队列留出发�
 验证通过。保持CAM2 PCLK而停送帧内数据的故障测试中，超过2秒正确显示STALLED，
 CAM1继续完成/释放97帧，无自动复位。镜像SHA、测试证据与实板对照步骤见
 `manual/CAM2停滞_诊断与对照测试.md`。这不是已确定根因的CAM2修复，仍需实板对照日志。
+
+## CAM1 one-shot RGB565 串口导出
+
+`make frame-dump-local` 或 `make frame-dump-remote` 构建独立的一帧导出固件，输出
+`camera_frame_uart_dump_local.bin` / `camera_frame_uart_dump_remote.bin`（各 16 KiB）。
+local 使用 FPIOA[0]/C24，remote 使用 FPIOA[31]/AB26。普通 `all`、`local`、`remote`
+和 `diagnostics` 目标保持原用途，不会自动替换为导出固件。
+
+导出固件验证一个 CAM1 完成帧，停止采集并等待 DMA 禁用/空闲后，经 UART 发送协议头、
+完整 640×480 RGB565 payload 和 CRC32 footer；完整帧传输确认后才释放对应 DMA 槽。
+115200 baud 下约需 54 秒，采集在此期间暂停。它只会输出一帧并在固件重新启动后才再
+采集。构建后需操作者按既有流程烧录匹配镜像；构建 target 不会烧录或改变工程 Flash
+配置。
+
+电脑端接收和方向对照步骤见
+[`manual/真实RGB565帧导出与方向查看.md`](../../manual/真实RGB565帧导出与方向查看.md)，
+接收脚本为 `tools/capture_rgb565_uart.py`，它会检查 44 字节 `R565DMP1` header、固定
+payload 长度、`END565D1` footer 和 IEEE CRC32，验证完整后再输出 `.rgb565`、metadata
+JSON 和四种方向 PNG。超时/中断的 payload 保留为 `.incomplete`，不作为完整采集帧。

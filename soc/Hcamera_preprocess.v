@@ -28,7 +28,8 @@ module Hcamera_preprocess #(
     input [31:0] source_frame0, input [31:0] source_frame1,
     output reg source_release_valid, output reg [1:0] source_release_mask,
     // 配置只在领取一帧时锁存，帧内改变输入不会改变正在进行的任务。
-    input [15:0] cfg_width, input [15:0] cfg_height,
+    input [15:0] cfg_width, 
+	input [15:0] cfg_height,
     input [3:0] cfg_colors,
     input [7:0] cfg_bright_min, input [7:0] cfg_dominance, input [7:0] cfg_black_max,
     input [31:0] cfg_min_pixels, input [31:0] cfg_min_area, input [31:0] cfg_max_area,

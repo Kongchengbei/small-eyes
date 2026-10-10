@@ -1,0 +1,24 @@
+{
+  "status": "incomplete",
+  "serial_port": "COM8",
+  "baud": 115200,
+  "expected_payload_len": 614400,
+  "received_payload_len": 614400,
+  "payload_crc32_so_far": "29601F72",
+  "reason": "CRC32 mismatch: payload=0x29601F72, header=0x7322B401, footer=0x7322B401",
+  "header": {
+    "version": 1,
+    "header_len": 44,
+    "camera": 1,
+    "pixel_format": "RGB565_LE",
+    "flags": 1,
+    "frame_count": 1,
+    "frame_addr": 3087007744,
+    "width": 640,
+    "height": 480,
+    "stride": 1280,
+    "payload_len": 614400,
+    "crc32": 1931654145,
+    "reserved": 0
+  }
+}
