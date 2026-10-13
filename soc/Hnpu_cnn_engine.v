@@ -94,6 +94,9 @@ module Hnpu_cnn_engine #(
     localparam [7:0] FLAG_RELU_CLAMP = 8'h01;
     localparam [7:0] FLAG_DIRECT_SHIFT = 8'h02;
     localparam [7:0] FLAG_GAP_ROUND4 = 8'h04;
+    localparam [31:0] MAX_SCRATCH_BYTES = 2 * MAX_TENSOR_BYTES;
+    localparam [15:0] DRAIN_TIMEOUT_LIMIT = (R_DRAIN_TIMEOUT > 0) ?
+                                             (R_DRAIN_TIMEOUT - 1) : 0;
 
     localparam [5:0] ST_IDLE = 6'd0;
     localparam [5:0] ST_READ_AR = 6'd1;
@@ -110,17 +113,50 @@ module Hnpu_cnn_engine #(
     localparam [5:0] ST_FC_MAC = 6'd12;
     localparam [5:0] ST_ARGMAX = 6'd13;
     localparam [5:0] ST_LAYER_NEXT = 6'd14;
+    localparam [5:0] ST_READ_UNPACK = 6'd15;
+    localparam [5:0] ST_LEGACY_SCAN = 6'd16;
+    localparam [5:0] ST_LEGACY_DONE = 6'd17;
+    localparam [5:0] ST_BIAS_FETCH = 6'd18;
+    localparam [5:0] ST_CRC_PRIME = 6'd19;
+    localparam [5:0] ST_BIAS_PRIME = 6'd20;
+    localparam [5:0] ST_WEIGHT_PRIME = 6'd21;
+    localparam [5:0] ST_RELU_PRIME = 6'd22;
+    localparam [5:0] ST_POOL_PRIME = 6'd23;
+    localparam [5:0] ST_GAP_PRIME = 6'd24;
+    localparam [5:0] ST_ARGMAX_PRIME = 6'd25;
+    localparam [5:0] ST_WRITE_DRAIN = 6'd26;
+    localparam [5:0] ST_DESC_PRIME = 6'd27;
+    localparam [5:0] ST_DESC_READ = 6'd28;
 
     reg [5:0] state;
     (* ram_style = "block" *) reg signed [7:0] model_mem [0:MAX_MODEL_BYTES-1];
-    reg signed [7:0] tensor_a [0:MAX_TENSOR_BYTES-1];
-    reg signed [7:0] tensor_b [0:MAX_TENSOR_BYTES-1];
+    // Only the fixed-size header is read in parallel. Descriptors are read
+    // serially from model_mem into a 64-byte shift register. Parallel dynamic
+    // indexing of all descriptors made PDS replicate a 2 KiB metadata RAM
+    // dozens of times and created a large routing hotspot.
+    reg signed [7:0] model_header_mem [0:HEADER_BYTES-1];
+    reg [DESC_BYTES*8-1:0] descriptor_bits;
+    reg [5:0] descriptor_read_index;
+    reg descriptor_scan_legacy;
+    reg [15:0] model_read_addr;
+    reg signed [7:0] model_read_data;
+    (* ram_style = "block" *) reg signed [7:0] tensor_a [0:MAX_TENSOR_BYTES-1];
+    (* ram_style = "block" *) reg signed [7:0] tensor_b [0:MAX_TENSOR_BYTES-1];
+    reg [15:0] tensor_read_addr;
+    reg signed [7:0] tensor_a_read_data, tensor_b_read_data;
+    wire signed [7:0] tensor_read_data = tensor_active ? tensor_b_read_data : tensor_a_read_data;
+    reg tensor_write_enable, tensor_write_slot;
+    reg [15:0] tensor_write_addr;
+    reg signed [7:0] tensor_write_data;
 
     reg [31:0] read_addr_reg;
     reg [31:0] read_remaining_beats;
     reg [31:0] read_offset;
     reg [4:0] burst_beats;
     reg [4:0] read_beat_index;
+    reg [255:0] read_beat_data;
+    reg read_beat_last;
+    reg [4:0] unpack_lane;
     reg read_target_input;
     reg read_error_seen;
     reg [7:0] read_error_code;
@@ -137,6 +173,14 @@ module Hnpu_cnn_engine #(
     reg [31:0] crc_index;
     reg [31:0] crc_reg;
     reg tensor_active;
+    reg [1:0] bias_lane;
+    reg [23:0] bias_low_bytes;
+    reg [4:0] legacy_scan_index;
+    reg legacy_duplicate_flags_seen;
+    reg legacy_tail_valid;
+    reg legacy_flags_consistent;
+    reg [31:0] legacy_expected_scratch;
+    reg legacy_model_encoding_valid;
 
     reg [7:0] layer_count_reg, class_count_reg, layer_index;
     reg [7:0] model_layout_reg;
@@ -152,13 +196,14 @@ module Hnpu_cnn_engine #(
     reg [31:0] layer_weight_offset, layer_bias_offset;
     reg [31:0] layer_weight_bytes, layer_bias_bytes;
     reg signed [31:0] layer_multiplier;
-    reg [5:0] layer_shift;
+    reg [7:0] layer_shift;
     reg signed [7:0] layer_input_zp, layer_weight_zp, layer_output_zp;
 
     integer out_x, out_y, out_c;
     integer kernel_index;
     integer pool_index;
     integer tensor_index;
+    integer tensor_read_index;
     integer fc_index, fc_output;
     integer arg_index;
     reg signed [63:0] accumulator;
@@ -168,7 +213,6 @@ module Hnpu_cnn_engine #(
     reg signed [31:0] best_score, second_score;
     reg [7:0] best_class;
 
-    integer lane;
     integer conv_ic, conv_kx, conv_ky, conv_iy, conv_ix;
     integer conv_input_index, conv_weight_index;
     integer conv_kernel_size;
@@ -182,12 +226,15 @@ module Hnpu_cnn_engine #(
     integer conv_bias_required_int;
     integer fc_weight_required_int;
     integer fc_bias_required_int;
+    integer scratch_required_int;
     integer source_offset;
-    integer source_pixel;
-    integer source_y;
-    integer source_x;
-    integer source_channel;
+    reg [6:0] downsample_source_x;
+    reg [1:0] downsample_channel;
+    reg [1:0] downsample_phase_x;
+    reg [1:0] downsample_phase_y;
+    reg [12:0] downsample_dest_index;
     integer tensor_write_index;
+    reg input_store_valid;
     reg signed [63:0] next_accumulator;
     reg signed [31:0] candidate_score;
     reg signed [7:0] pool_next;
@@ -199,38 +246,70 @@ module Hnpu_cnn_engine #(
     function [15:0] model_u16;
         input integer offset;
         begin
-            model_u16 = {model_mem[offset+1], model_mem[offset]};
+            model_u16 = {model_header_mem[offset+1], model_header_mem[offset]};
         end
     endfunction
 
     function [31:0] model_u32;
         input integer offset;
         begin
-            model_u32 = {model_mem[offset+3], model_mem[offset+2],
-                        model_mem[offset+1], model_mem[offset]};
+            model_u32 = {model_header_mem[offset+3], model_header_mem[offset+2],
+                        model_header_mem[offset+1], model_header_mem[offset]};
         end
     endfunction
 
     function signed [31:0] model_i32;
         input integer offset;
         begin
-            model_i32 = {model_mem[offset+3], model_mem[offset+2],
-                         model_mem[offset+1], model_mem[offset]};
+            model_i32 = {model_header_mem[offset+3], model_header_mem[offset+2],
+                         model_header_mem[offset+1], model_header_mem[offset]};
         end
     endfunction
 
-    function signed [7:0] tensor_read;
-        input integer slot;
+    function [15:0] desc_u16;
         input integer offset;
         begin
-            tensor_read = (slot == 0) ? tensor_a[offset] : tensor_b[offset];
+            desc_u16 = descriptor_bits[offset*8 +: 16];
+        end
+    endfunction
+
+    function [31:0] desc_u32;
+        input integer offset;
+        begin
+            desc_u32 = descriptor_bits[offset*8 +: 32];
+        end
+    endfunction
+
+    function signed [31:0] desc_i32;
+        input integer offset;
+        begin
+            desc_i32 = descriptor_bits[offset*8 +: 32];
+        end
+    endfunction
+
+    function signed [63:0] sign_extend_i8;
+        input signed [7:0] value;
+        begin
+            sign_extend_i8 = {{56{value[7]}}, value};
+        end
+    endfunction
+
+    function signed [7:0] clamp_i8;
+        input signed [63:0] value;
+        begin
+            if (value > 64'sd127)
+                clamp_i8 = 8'sd127;
+            else if (value < -64'sd128)
+                clamp_i8 = -8'sd128;
+            else
+                clamp_i8 = value[7:0];
         end
     endfunction
 
     function signed [7:0] requantize;
         input signed [63:0] value;
         input signed [31:0] multiplier;
-        input [5:0] shift;
+        input [7:0] shift;
         input signed [7:0] zero_point;
         input relu_enable;
         input direct_shift;
@@ -250,15 +329,42 @@ module Hnpu_cnn_engine #(
                 scaled = (shift == 0) ? product :
                          ((product < 0) ? -(rounded >>> shift) :
                                           (rounded >>> shift));
-            result_value = scaled + zero_point;
-            if (relu_enable && result_value < zero_point)
-                result_value = zero_point;
+            result_value = scaled + sign_extend_i8(zero_point);
+            if (relu_enable && result_value < sign_extend_i8(zero_point))
+                result_value = sign_extend_i8(zero_point);
             if (result_value > 96'sd127)
                 requantize = 8'sd127;
             else if (result_value < -96'sd128)
                 requantize = -8'sd128;
             else
                 requantize = result_value[7:0];
+        end
+    endfunction
+
+    function header_reserved_zero;
+        // PDS parses this .v file as Verilog and requires a function input.
+        input unused;
+        integer reserved_index;
+        begin
+            header_reserved_zero = 1'b1;
+            for (reserved_index = 80; reserved_index < HEADER_BYTES; reserved_index = reserved_index + 1)
+                if (model_header_mem[reserved_index] != 0)
+                    header_reserved_zero = 1'b0;
+        end
+    endfunction
+
+    function descriptor_reserved_compatible;
+        input unused;
+        integer reserved_index;
+        begin
+            descriptor_reserved_compatible = 1'b1;
+            if (descriptor_bits[56*8 +: 8] != 0) begin
+                descriptor_reserved_compatible =
+                    (descriptor_bits[56*8 +: 8] == descriptor_bits[1*8 +: 8]);
+            end
+            for (reserved_index = 57; reserved_index < DESC_BYTES; reserved_index = reserved_index + 1)
+                if (descriptor_bits[reserved_index*8 +: 8] != 0)
+                    descriptor_reserved_compatible = 1'b0;
         end
     endfunction
 
@@ -284,7 +390,7 @@ module Hnpu_cnn_engine #(
         reg [31:0] c;
         integer bit_index;
         begin
-            c = crc ^ data;
+            c = crc ^ {24'b0, data};
             for (bit_index = 0; bit_index < 8; bit_index = bit_index + 1)
                 c = c[0] ? ((c >> 1) ^ 32'hedb8_8320) : (c >> 1);
             crc32_byte = c;
@@ -329,6 +435,116 @@ module Hnpu_cnn_engine #(
     assign axi_arvalid = (state == ST_READ_AR);
     assign axi_rready = (state == ST_READ_R) || (state == ST_READ_DRAIN);
 
+    // One synchronous read port allows PDS to infer block RAM for the large
+    // model cache.  The metadata copy is small and does not touch this port.
+    always @* begin
+        model_read_addr = 0;
+        case (state)
+            ST_CRC_PRIME: model_read_addr = HEADER_BYTES;
+            ST_CRC: model_read_addr = crc_index + 1'b1;
+            ST_DESC_PRIME: model_read_addr = HEADER_BYTES +
+                ((descriptor_scan_legacy ? legacy_scan_index : layer_index) * DESC_BYTES);
+            ST_DESC_READ: model_read_addr = HEADER_BYTES +
+                ((descriptor_scan_legacy ? legacy_scan_index : layer_index) * DESC_BYTES) +
+                descriptor_read_index + 1'b1;
+            ST_BIAS_PRIME: model_read_addr = layer_bias_offset +
+                ((layer_op == OP_FC) ? fc_output : out_c) * 4;
+            ST_BIAS_FETCH: model_read_addr = layer_bias_offset +
+                ((layer_op == OP_FC) ? fc_output : out_c) * 4 + bias_lane + 1'b1;
+            ST_WEIGHT_PRIME: begin
+                if (layer_op == OP_FC)
+                    model_read_addr = layer_weight_offset + fc_output * layer_in_c;
+                else
+                    model_read_addr = layer_weight_offset +
+                        out_c * (layer_kh * layer_kw * layer_in_c);
+            end
+            ST_CONV_MAC: model_read_addr = layer_weight_offset +
+                out_c * (layer_kh * layer_kw * layer_in_c) + kernel_index + 1;
+            ST_FC_MAC: model_read_addr = layer_weight_offset +
+                fc_output * layer_in_c + fc_index + 1;
+            default: model_read_addr = 0;
+        endcase
+    end
+
+    always @(posedge clk)
+        model_read_data <= model_mem[model_read_addr];
+
+    // Each tensor bank has one synchronous read port and one serialized write
+    // port.  In particular, all operators share this address mux; separate
+    // asynchronous tensor_read() calls made PDS replicate the banks into
+    // thousands of LUT RAMs and prevented placement.
+    integer tensor_addr_index;
+    integer tensor_addr_ky, tensor_addr_kx, tensor_addr_ic;
+    integer tensor_addr_y, tensor_addr_x;
+    always @* begin
+        tensor_read_addr = 0;
+        tensor_addr_index = 0;
+        tensor_addr_ky = 0;
+        tensor_addr_kx = 0;
+        tensor_addr_ic = 0;
+        tensor_addr_y = 0;
+        tensor_addr_x = 0;
+        case (state)
+            ST_WEIGHT_PRIME, ST_CONV_MAC: begin
+                if (layer_op == OP_FC) begin
+                    tensor_read_addr = (state == ST_WEIGHT_PRIME) ? fc_index : fc_index + 1;
+                end else begin
+                    tensor_addr_index = (state == ST_WEIGHT_PRIME) ? kernel_index : kernel_index + 1;
+                    tensor_addr_ky = tensor_addr_index / (layer_kw * layer_in_c);
+                    tensor_addr_kx = (tensor_addr_index / layer_in_c) % layer_kw;
+                    tensor_addr_ic = tensor_addr_index % layer_in_c;
+                    tensor_addr_y = out_y * layer_sh + tensor_addr_ky - layer_pad_top;
+                    tensor_addr_x = out_x * layer_sw + tensor_addr_kx - layer_pad_left;
+                    if (tensor_addr_y >= 0 && tensor_addr_y < layer_in_h &&
+                        tensor_addr_x >= 0 && tensor_addr_x < layer_in_w) begin
+                        if (model_layout_reg == LAYOUT_HWC4)
+                            tensor_read_addr = (tensor_addr_y * layer_in_w + tensor_addr_x) *
+                                               layer_in_c + tensor_addr_ic;
+                        else
+                            tensor_read_addr = tensor_addr_ic * layer_in_h * layer_in_w +
+                                               tensor_addr_y * layer_in_w + tensor_addr_x;
+                    end
+                end
+            end
+            ST_FC_MAC: tensor_read_addr = fc_index + 1;
+            ST_RELU_PRIME: tensor_read_addr = tensor_index;
+            ST_RELU: tensor_read_addr = tensor_index + 1;
+            ST_POOL_PRIME, ST_POOL: begin
+                tensor_addr_index = (state == ST_POOL_PRIME) ? pool_index : pool_index + 1;
+                tensor_addr_y = out_y * layer_sh + tensor_addr_index / layer_kw - layer_pad_top;
+                tensor_addr_x = out_x * layer_sw + tensor_addr_index % layer_kw - layer_pad_left;
+                if (tensor_addr_y >= 0 && tensor_addr_y < layer_in_h &&
+                    tensor_addr_x >= 0 && tensor_addr_x < layer_in_w) begin
+                    if (model_layout_reg == LAYOUT_HWC4)
+                        tensor_read_addr = (tensor_addr_y * layer_in_w + tensor_addr_x) *
+                                           layer_in_c + out_c;
+                    else
+                        tensor_read_addr = out_c * layer_in_h * layer_in_w +
+                                           tensor_addr_y * layer_in_w + tensor_addr_x;
+                end
+            end
+            ST_GAP_PRIME, ST_GAP: begin
+                tensor_addr_index = (state == ST_GAP_PRIME) ? gap_position : gap_position + 1;
+                if (model_layout_reg == LAYOUT_HWC4)
+                    tensor_read_addr = tensor_addr_index * layer_in_c + gap_channel;
+                else
+                    tensor_read_addr = gap_channel * layer_in_h * layer_in_w + tensor_addr_index;
+            end
+            ST_ARGMAX_PRIME: tensor_read_addr = arg_index;
+            ST_ARGMAX: tensor_read_addr = arg_index + 1;
+            default: tensor_read_addr = 0;
+        endcase
+    end
+
+    always @(posedge clk) begin
+        if (tensor_write_enable && !tensor_write_slot)
+            tensor_a[tensor_write_addr] <= tensor_write_data;
+        if (tensor_write_enable && tensor_write_slot)
+            tensor_b[tensor_write_addr] <= tensor_write_data;
+        tensor_a_read_data <= tensor_a[tensor_read_addr];
+        tensor_b_read_data <= tensor_b[tensor_read_addr];
+    end
+
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
             state <= ST_IDLE;
@@ -350,6 +566,9 @@ module Hnpu_cnn_engine #(
             model_cache_base_reg <= 0;
             model_cache_bytes_reg <= 0;
             model_cache_crc_reg <= 0;
+            descriptor_bits <= 0;
+            descriptor_read_index <= 0;
+            descriptor_scan_legacy <= 1'b0;
             input_addr_reg <= 0;
             input_bytes_reg <= 0;
             input_source_bytes_reg <= 0;
@@ -359,6 +578,9 @@ module Hnpu_cnn_engine #(
             read_offset <= 0;
             burst_beats <= 0;
             read_beat_index <= 0;
+            read_beat_data <= 0;
+            read_beat_last <= 0;
+            unpack_lane <= 0;
             read_target_input <= 0;
             read_error_seen <= 0;
             read_error_code <= 0;
@@ -366,6 +588,23 @@ module Hnpu_cnn_engine #(
             crc_index <= 0;
             crc_reg <= 0;
             tensor_active <= 0;
+            tensor_write_enable <= 1'b0;
+            tensor_write_slot <= 1'b0;
+            tensor_write_addr <= 0;
+            tensor_write_data <= 0;
+            downsample_source_x <= 0;
+            downsample_channel <= 0;
+            downsample_phase_x <= 0;
+            downsample_phase_y <= 0;
+            downsample_dest_index <= 0;
+            bias_lane <= 0;
+            bias_low_bytes <= 0;
+            legacy_scan_index <= 0;
+            legacy_duplicate_flags_seen <= 1'b0;
+            legacy_tail_valid <= 1'b1;
+            legacy_flags_consistent <= 1'b1;
+            legacy_expected_scratch <= 0;
+            legacy_model_encoding_valid <= 1'b0;
             layer_count_reg <= 0;
             class_count_reg <= 0;
             layer_index <= 0;
@@ -381,6 +620,7 @@ module Hnpu_cnn_engine #(
             best_score <= 0; second_score <= 0; best_class <= 0;
         end else begin
             done_pulse <= 1'b0;
+            tensor_write_enable <= 1'b0;
             model_cache_hit <= 1'b0;
             model_cache_valid <= model_cache_valid_reg;
             if (clear_error) error <= 1'b0;
@@ -389,6 +629,11 @@ module Hnpu_cnn_engine #(
                 ST_IDLE: begin
                     busy <= 1'b0;
                     if (start && !busy) begin
+                        downsample_source_x <= 0;
+                        downsample_channel <= 0;
+                        downsample_phase_x <= 0;
+                        downsample_phase_y <= 0;
+                        downsample_dest_index <= 0;
                         error <= 1'b0;
                         error_code <= 0;
                         result_class <= 0;
@@ -460,62 +705,83 @@ module Hnpu_cnn_engine #(
                     if (axi_rvalid) begin
                         if (!read_target_input)
                             model_load_beats <= model_load_beats + 1'b1;
-                        if (read_target_input) begin
-                            for (lane = 0; lane < 32; lane = lane + 1) begin
-                                source_offset = read_offset + read_beat_index * 32 + lane;
-                                if (input_downsample3_reg) begin
-                                    // Source and destination are both HWC4.
-                                    // Keep only pixels (0,3,6,...,93) in both
-                                    // dimensions; channel order R,G,B,0 is
-                                    // unchanged.
-                                    source_pixel = source_offset / 4;
-                                    source_channel = source_offset % 4;
-                                    source_y = source_pixel / 96;
-                                    source_x = source_pixel % 96;
-                                    if ((source_y % 3) == 0 &&
-                                        (source_x % 3) == 0) begin
-                                        tensor_write_index =
-                                            ((source_y / 3) * 32 +
-                                             (source_x / 3)) * 4 + source_channel;
-                                        if (tensor_write_index < input_bytes_reg)
-                                            tensor_a[tensor_write_index] <=
-                                                axi_rdata[lane*8 +: 8];
-                                    end
-                                end else if (source_offset < input_bytes_reg) begin
-                                    tensor_a[source_offset] <=
-                                        axi_rdata[lane*8 +: 8];
-                                end
-                            end
-                        end else begin
-                            for (lane = 0; lane < 32; lane = lane + 1)
-                                if ((read_offset + read_beat_index * 32 + lane) < MAX_MODEL_BYTES)
-                                    model_mem[read_offset + read_beat_index * 32 + lane] <=
-                                        axi_rdata[lane*8 +: 8];
-                        end
-
+                        // One 256-bit AXI beat is accepted here.  Serializing
+                        // its bytes gives each on-chip RAM only one write port
+                        // and naturally backpressures the next R beat.
+                        read_beat_data <= axi_rdata;
+                        read_beat_last <= axi_rlast;
+                        unpack_lane <= 0;
                         if (axi_rid != AXI_ID || axi_rresp != 2'b00) begin
                             read_error_seen <= 1'b1;
                             read_error_code <= (axi_rresp != 2'b00) ? ERR_AXI_RRESP : ERR_AXI_RID;
                         end
+                        state <= ST_READ_UNPACK;
+                    end
+                end
 
-                        if (axi_rready && axi_rlast) begin
+                ST_READ_UNPACK: begin
+                    source_offset = read_offset + read_beat_index * 32 + unpack_lane;
+                    if (read_target_input) begin
+                        input_store_valid = 1'b0;
+                        if (input_downsample3_reg) begin
+                            // Source and destination are both HWC4.  Track
+                            // byte, pixel and row phases instead of signed
+                            // divide/modulo, which PDS cannot map here.
+                            tensor_write_index = downsample_dest_index;
+                            if (downsample_phase_y == 0 && downsample_phase_x == 0) begin
+                                input_store_valid = downsample_dest_index < input_bytes_reg;
+                                downsample_dest_index <= downsample_dest_index + 1'b1;
+                            end
+                            if (downsample_channel == 2'd3) begin
+                                downsample_channel <= 0;
+                                if (downsample_source_x == 7'd95) begin
+                                    downsample_source_x <= 0;
+                                    downsample_phase_x <= 0;
+                                    downsample_phase_y <=
+                                        (downsample_phase_y == 2'd2) ? 0 :
+                                        downsample_phase_y + 1'b1;
+                                end else begin
+                                    downsample_source_x <= downsample_source_x + 1'b1;
+                                    downsample_phase_x <=
+                                        (downsample_phase_x == 2'd2) ? 0 :
+                                        downsample_phase_x + 1'b1;
+                                end
+                            end else begin
+                                downsample_channel <= downsample_channel + 1'b1;
+                            end
+                        end else begin
+                            tensor_write_index = source_offset;
+                            input_store_valid = source_offset < input_bytes_reg;
+                        end
+                        if (input_store_valid) begin
+                            tensor_write_enable <= 1'b1;
+                            tensor_write_slot <= 1'b0;
+                            tensor_write_addr <= tensor_write_index;
+                            tensor_write_data <= read_beat_data[unpack_lane*8 +: 8];
+                        end
+                    end else if (source_offset < MAX_MODEL_BYTES) begin
+                        model_mem[source_offset] <= read_beat_data[unpack_lane*8 +: 8];
+                        if (source_offset < HEADER_BYTES)
+                            model_header_mem[source_offset] <= read_beat_data[unpack_lane*8 +: 8];
+                    end
+
+                    if (unpack_lane == 5'd31) begin
+                        if (read_beat_last) begin
                             if (read_beat_index != burst_beats - 1'b1 ||
-                                read_error_seen || axi_rid != AXI_ID || axi_rresp != 2'b00) begin
+                                read_error_seen) begin
                                 busy <= 1'b0;
                                 error <= 1'b1;
-                                error_code <= read_error_seen ? read_error_code :
-                                              ((axi_rresp != 2'b00) ? ERR_AXI_RRESP :
-                                               ((axi_rid != AXI_ID) ? ERR_AXI_RID : ERR_AXI_RLAST));
+                                error_code <= read_error_seen ? read_error_code : ERR_AXI_RLAST;
                                 done_pulse <= 1'b1;
                                 state <= ST_IDLE;
                             end else if (read_remaining_beats == burst_beats) begin
-                            if (read_target_input) begin
-                                state <= ST_LAYER_FETCH;
-                            end else begin
-                                crc_index <= HEADER_BYTES;
-                                crc_reg <= 32'hffff_ffff;
-                                state <= ST_CRC;
-                            end
+                                if (read_target_input) begin
+                                    state <= ST_DESC_PRIME;
+                                end else begin
+                                    crc_index <= HEADER_BYTES;
+                                    crc_reg <= 32'hffff_ffff;
+                                    state <= ST_CRC_PRIME;
+                                end
                             end else begin
                                 read_addr_reg <= read_addr_reg + (burst_beats << 5);
                                 read_remaining_beats <= read_remaining_beats - burst_beats;
@@ -524,15 +790,16 @@ module Hnpu_cnn_engine #(
                                                           read_addr_reg + (burst_beats << 5));
                                 state <= ST_READ_AR;
                             end
-                        end else if (axi_rready && read_beat_index == burst_beats - 1'b1) begin
+                        end else if (read_beat_index == burst_beats - 1'b1) begin
                             read_error_seen <= 1'b1;
                             read_error_code <= ERR_AXI_RLAST;
                             drain_wait_count <= 0;
                             state <= ST_READ_DRAIN;
-                        end else if (axi_rready) begin
+                        end else begin
                             read_beat_index <= read_beat_index + 1'b1;
+                            state <= ST_READ_R;
                         end
-                    end
+                    end else unpack_lane <= unpack_lane + 1'b1;
                 end
 
                 ST_READ_DRAIN: begin
@@ -545,7 +812,7 @@ module Hnpu_cnn_engine #(
                             done_pulse <= 1'b1;
                             state <= ST_IDLE;
                         end
-                    end else if (drain_wait_count >= R_DRAIN_TIMEOUT - 1) begin
+                    end else if (drain_wait_count >= DRAIN_TIMEOUT_LIMIT) begin
                         busy <= 1'b0;
                         error <= 1'b1;
                         error_code <= read_error_code;
@@ -556,14 +823,16 @@ module Hnpu_cnn_engine #(
                     end
                 end
 
+                ST_CRC_PRIME: state <= ST_CRC;
+
                 ST_CRC: begin
                     if (crc_index < model_bytes_reg) begin
                         // model_mem stores signed INT8 for MAC operations;
                         // CRC consumes the raw byte and must not sign-extend
                         // weights/bias bytes above 0x7f.
-                        crc_reg <= crc32_byte(crc_reg, model_mem[crc_index][7:0]);
+                        crc_reg <= crc32_byte(crc_reg, model_read_data[7:0]);
                         if (crc_index == model_bytes_reg - 1) begin
-                            if (~crc32_byte(crc_reg, model_mem[crc_index][7:0]) != model_u32(64)) begin
+                            if (~crc32_byte(crc_reg, model_read_data[7:0]) != model_u32(64)) begin
                                 busy <= 1'b0;
                                 error <= 1'b1;
                                 error_code <= ERR_MODEL_CRC;
@@ -588,13 +857,14 @@ module Hnpu_cnn_engine #(
                         error <= 1'b1; error_code <= ERR_MODEL_VERSION;
                         busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                     end else if (model_u16(8) != HEADER_BYTES || model_u16(10) != DESC_BYTES ||
-                                 (model_mem[18] != LAYOUT_CHW && model_mem[18] != LAYOUT_HWC4) ||
-                                 (model_mem[18] == LAYOUT_HWC4 && model_u16(16) != 4) ||
-                                 model_mem[19] != 1 || model_mem[20] != 1 ||
-                                 model_mem[21] == 0 || model_mem[22] == 0 || model_mem[21] > MAX_LAYERS ||
-                                 model_mem[22] > MAX_CLASSES || model_u32(48) != model_bytes_reg ||
+                                 (model_header_mem[18] != LAYOUT_CHW && model_header_mem[18] != LAYOUT_HWC4) ||
+                                 (model_header_mem[18] == LAYOUT_HWC4 && model_u16(16) != 4) ||
+                                 model_header_mem[19] != 1 || model_header_mem[20] != 1 ||
+                                 model_header_mem[21] == 0 || model_header_mem[22] == 0 || model_header_mem[21] > MAX_LAYERS ||
+                                 model_header_mem[22] > MAX_CLASSES || model_u32(48) != model_bytes_reg ||
+                                 !header_reserved_zero(1'b0) ||
                                  model_u32(24) != HEADER_BYTES ||
-                                 model_u32(28) < model_mem[21] * DESC_BYTES ||
+                                 model_u32(28) < model_header_mem[21] * DESC_BYTES ||
                                  header_desc_end[32] || header_desc_end > {1'b0, model_bytes_reg} ||
                                  (model_u32(24) % 32) != 0 ||
                                  (model_u32(32) % 32) != 0 ||
@@ -603,6 +873,8 @@ module Hnpu_cnn_engine #(
                                  {1'b0, model_u32(40)} < header_weight_end ||
                                  header_weight_end[32] || header_weight_end > {1'b0, model_bytes_reg} ||
                                  header_bias_end[32] || header_bias_end > {1'b0, model_bytes_reg} ||
+                                 model_u32(52) == 0 || (model_u32(52) % 32) != 0 ||
+                                 model_u32(52) > MAX_SCRATCH_BYTES ||
                                  model_u32(56) != input_bytes_reg ||
                                  model_u32(56) == 0 || (model_u32(56) % 32) != 0 ||
                                  model_u32(60) < model_u32(56) || (model_u32(60) % 32) != 0) begin
@@ -612,9 +884,9 @@ module Hnpu_cnn_engine #(
                         error <= 1'b1; error_code <= ERR_MODEL_SHAPE;
                         busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                     end else begin
-                        layer_count_reg <= model_mem[21];
-                        class_count_reg <= model_mem[22];
-                        model_layout_reg <= model_mem[18];
+                        layer_count_reg <= model_header_mem[21];
+                        class_count_reg <= model_header_mem[22];
+                        model_layout_reg <= model_header_mem[18];
                         reject_threshold_reg <= model_u32(76);
                         expected_in_h <= model_u16(12);
                         expected_in_w <= model_u16(14);
@@ -624,13 +896,68 @@ module Hnpu_cnn_engine #(
                         model_cache_crc_reg <= model_u32(64);
                         layer_index <= 0;
                         tensor_active <= 0;
-                        read_target_input <= 1'b1;
-                        read_addr_reg <= input_addr_reg;
-                        read_remaining_beats <= input_source_bytes_reg >> 5;
-                        read_offset <= 0;
-                        burst_beats <= calc_burst(input_source_bytes_reg >> 5, input_addr_reg);
-                        state <= ST_READ_AR;
+                        legacy_scan_index <= 0;
+                        legacy_duplicate_flags_seen <= 1'b0;
+                        legacy_tail_valid <= 1'b1;
+                        legacy_flags_consistent <= 1'b1;
+                        legacy_expected_scratch <= 0;
+                        legacy_model_encoding_valid <= 1'b0;
+                        descriptor_scan_legacy <= 1'b1;
+                        state <= ST_DESC_PRIME;
                     end
+                end
+
+                ST_DESC_PRIME: begin
+                    descriptor_read_index <= 0;
+                    state <= ST_DESC_READ;
+                end
+
+                ST_DESC_READ: begin
+                    descriptor_bits <= {model_read_data[7:0], descriptor_bits[DESC_BYTES*8-1:8]};
+                    if (descriptor_read_index == DESC_BYTES - 1)
+                        state <= descriptor_scan_legacy ? ST_LEGACY_SCAN : ST_LAYER_FETCH;
+                    else
+                        descriptor_read_index <= descriptor_read_index + 1'b1;
+                end
+
+                ST_LEGACY_SCAN: begin
+                    if (legacy_scan_index >= layer_count_reg) begin
+                        state <= ST_LEGACY_DONE;
+                    end else begin
+                        if (descriptor_bits[56*8 +: 8] != descriptor_bits[1*8 +: 8])
+                            legacy_flags_consistent <= 1'b0;
+                        if (descriptor_bits[56*8 +: 8] != 0) begin
+                            legacy_duplicate_flags_seen <= 1'b1;
+                            if ((descriptor_bits[56*8 +: 8] != descriptor_bits[1*8 +: 8]) ||
+                                (descriptor_bits[0*8 +: 8] != OP_CONV2D &&
+                                 descriptor_bits[0*8 +: 8] != OP_GAP))
+                                legacy_tail_valid <= 1'b0;
+                        end
+                        if (!descriptor_reserved_compatible(1'b0))
+                            legacy_tail_valid <= 1'b0;
+                        if ((descriptor_bits[0*8 +: 8] == OP_GAP) &&
+                            (legacy_expected_scratch == 0)) begin
+                            legacy_expected_scratch <= 2 *
+                                (((desc_u16(2) * desc_u16(4) * desc_u16(6) + 31) / 32) * 32);
+                        end
+                        legacy_scan_index <= legacy_scan_index + 1'b1;
+                        state <= (legacy_scan_index + 1'b1 >= layer_count_reg) ?
+                                 ST_LEGACY_DONE : ST_DESC_PRIME;
+                    end
+                end
+
+                ST_LEGACY_DONE: begin
+                    legacy_model_encoding_valid <= legacy_duplicate_flags_seen &&
+                        legacy_tail_valid && legacy_flags_consistent &&
+                        (legacy_expected_scratch != 0) &&
+                        (model_u32(52) == legacy_expected_scratch);
+                    descriptor_scan_legacy <= 1'b0;
+                    read_target_input <= 1'b1;
+                    read_addr_reg <= input_addr_reg;
+                    read_remaining_beats <= input_source_bytes_reg >> 5;
+                    read_offset <= 0;
+                    burst_beats <= calc_burst(input_source_bytes_reg >> 5, input_addr_reg);
+                    state <= ST_READ_AR;
                 end
 
                 ST_LAYER_FETCH: begin
@@ -638,32 +965,34 @@ module Hnpu_cnn_engine #(
                         error <= 1'b1; error_code <= ERR_MODEL_LAYER;
                         busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                     end else begin
-                        tensor_index = HEADER_BYTES + layer_index * DESC_BYTES;
-                        layer_op <= model_mem[tensor_index];
-                        layer_flags <= model_mem[tensor_index+1];
-                        layer_in_h <= model_u16(tensor_index+2);
-                        layer_in_w <= model_u16(tensor_index+4);
-                        layer_in_c <= model_u16(tensor_index+6);
-                        layer_out_h <= model_u16(tensor_index+8);
-                        layer_out_w <= model_u16(tensor_index+10);
-                        layer_out_c <= model_u16(tensor_index+12);
-                        layer_kh <= model_mem[tensor_index+14];
-                        layer_kw <= model_mem[tensor_index+15];
-                        layer_sh <= model_mem[tensor_index+16];
-                        layer_sw <= model_mem[tensor_index+17];
-                        layer_pad_top <= model_mem[tensor_index+18];
-                        layer_pad_left <= model_mem[tensor_index+19];
-                        layer_pad_bottom <= model_mem[tensor_index+20];
-                        layer_pad_right <= model_mem[tensor_index+21];
-                        layer_weight_offset <= model_u32(tensor_index+32);
-                        layer_bias_offset <= model_u32(tensor_index+36);
-                        layer_weight_bytes <= model_u32(tensor_index+40);
-                        layer_bias_bytes <= model_u32(tensor_index+44);
-                        layer_multiplier <= model_i32(tensor_index+48);
-                        layer_shift <= model_mem[tensor_index+52];
-                        layer_input_zp <= model_mem[tensor_index+53];
-                        layer_weight_zp <= model_mem[tensor_index+54];
-                        layer_output_zp <= model_mem[tensor_index+55];
+                        // Keep the descriptor address separate from tensor
+                        // scan counters.  tensor_index is a sequential
+                        // counter used only by ST_RELU.
+                        layer_op <= descriptor_bits[0*8 +: 8];
+                        layer_flags <= descriptor_bits[1*8 +: 8];
+                        layer_in_h <= desc_u16(2);
+                        layer_in_w <= desc_u16(4);
+                        layer_in_c <= desc_u16(6);
+                        layer_out_h <= desc_u16(8);
+                        layer_out_w <= desc_u16(10);
+                        layer_out_c <= desc_u16(12);
+                        layer_kh <= descriptor_bits[14*8 +: 8];
+                        layer_kw <= descriptor_bits[15*8 +: 8];
+                        layer_sh <= descriptor_bits[16*8 +: 8];
+                        layer_sw <= descriptor_bits[17*8 +: 8];
+                        layer_pad_top <= descriptor_bits[18*8 +: 8];
+                        layer_pad_left <= descriptor_bits[19*8 +: 8];
+                        layer_pad_bottom <= descriptor_bits[20*8 +: 8];
+                        layer_pad_right <= descriptor_bits[21*8 +: 8];
+                        layer_weight_offset <= desc_u32(32);
+                        layer_bias_offset <= desc_u32(36);
+                        layer_weight_bytes <= desc_u32(40);
+                        layer_bias_bytes <= desc_u32(44);
+                        layer_multiplier <= desc_i32(48);
+                        layer_shift <= descriptor_bits[52*8 +: 8];
+                        layer_input_zp <= descriptor_bits[53*8 +: 8];
+                        layer_weight_zp <= descriptor_bits[54*8 +: 8];
+                        layer_output_zp <= descriptor_bits[55*8 +: 8];
                         state <= ST_DISPATCH;
                     end
                 end
@@ -686,6 +1015,10 @@ module Hnpu_cnn_engine #(
                     conv_bias_required_int = layer_out_c * 4;
                     fc_weight_required_int = layer_out_c * layer_in_c;
                     fc_bias_required_int = layer_out_c * 4;
+                    // scratch_bytes describes the two intermediate tensor
+                    // banks.  The initial input has its own input_bytes
+                    // contract and must not be counted a second time here.
+                    scratch_required_int = layer_output_elements_int * 2;
                     if (layer_op != OP_CONV2D && layer_op != OP_RELU &&
                         layer_op != OP_MAXPOOL && layer_op != OP_GAP &&
                         layer_op != OP_FC && layer_op != OP_ARGMAX) begin
@@ -697,7 +1030,12 @@ module Hnpu_cnn_engine #(
                                  layer_in_c != expected_in_c ||
                                  layer_input_elements_int > MAX_TENSOR_BYTES ||
                                  layer_output_elements_int > MAX_TENSOR_BYTES ||
-                                 model_mem[tensor_index+52] < 0 || model_mem[tensor_index+52] > 31 ||
+                                 ((!legacy_model_encoding_valid) &&
+                                  model_u32(52) < scratch_required_int) ||
+                                 desc_u32(24) != 0 ||
+                                 desc_u32(28) != 0 ||
+                                 !descriptor_reserved_compatible(1'b0) ||
+                                 layer_shift > 31 ||
                                  (layer_weight_bytes != 0 && (layer_weight_offset % 32) != 0) ||
                                  (layer_bias_bytes != 0 && (layer_bias_offset % 32) != 0) ||
                                  (layer_weight_bytes == 0 && layer_weight_offset != 0) ||
@@ -724,12 +1062,11 @@ module Hnpu_cnn_engine #(
                             busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                         end else begin
                             out_x <= 0; out_y <= 0; out_c <= 0; kernel_index <= 0;
-                            accumulator <= model_i32(layer_bias_offset);
-                            state <= ST_CONV_MAC;
+                            state <= ST_BIAS_PRIME;
                         end
                     end else if (layer_op == OP_RELU) begin
                         tensor_index <= 0;
-                        state <= ST_RELU;
+                        state <= ST_RELU_PRIME;
                     end else if (layer_op == OP_MAXPOOL) begin
                         if (layer_kh == 0 || layer_kw == 0 || layer_sh == 0 || layer_sw == 0 ||
                             layer_out_c != layer_in_c ||
@@ -740,7 +1077,7 @@ module Hnpu_cnn_engine #(
                         end else begin
                             out_x <= 0; out_y <= 0; out_c <= 0; pool_index <= 0;
                             pool_value <= -8'sd128;
-                            state <= ST_POOL;
+                            state <= ST_POOL_PRIME;
                         end
                     end else if (layer_op == OP_GAP) begin
                         if (((layer_flags & FLAG_GAP_ROUND4) != 0) &&
@@ -750,7 +1087,7 @@ module Hnpu_cnn_engine #(
                             busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                         end else begin
                             gap_channel <= 0; gap_position <= 0; gap_accumulator <= 0;
-                            state <= ST_GAP;
+                            state <= ST_GAP_PRIME;
                         end
                     end else if (layer_op == OP_FC) begin
                         if (layer_in_h != 1 || layer_in_w != 1 ||
@@ -760,17 +1097,43 @@ module Hnpu_cnn_engine #(
                             busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                         end else begin
                         fc_output <= 0; fc_index <= 0;
-                        accumulator <= model_i32(layer_bias_offset);
-                        state <= ST_FC_MAC;
+                        state <= ST_BIAS_PRIME;
                         end
                     end else begin
                         arg_index <= 0;
                         best_score <= -32'sh7fff_ffff;
                         second_score <= -32'sh7fff_ffff;
                         best_class <= 0;
-                        state <= ST_ARGMAX;
+                        state <= ST_ARGMAX_PRIME;
                     end
                 end
+
+                ST_BIAS_PRIME: begin
+                    bias_lane <= 0;
+                    state <= ST_BIAS_FETCH;
+                end
+
+                ST_BIAS_FETCH: begin
+                    if (bias_lane == 2'd3) begin
+                        accumulator <= {{32{model_read_data[7]}},
+                                        model_read_data[7:0], bias_low_bytes};
+                        state <= ST_WEIGHT_PRIME;
+                    end else begin
+                        bias_low_bytes[bias_lane*8 +: 8] <= model_read_data[7:0];
+                        bias_lane <= bias_lane + 1'b1;
+                    end
+                end
+
+                ST_WEIGHT_PRIME: begin
+                    if (layer_op == OP_FC) state <= ST_FC_MAC;
+                    else state <= ST_CONV_MAC;
+                end
+
+                ST_RELU_PRIME: state <= ST_RELU;
+                ST_POOL_PRIME: state <= ST_POOL;
+                ST_GAP_PRIME: state <= ST_GAP;
+                ST_ARGMAX_PRIME: state <= ST_ARGMAX;
+                ST_WRITE_DRAIN: state <= ST_LAYER_NEXT;
 
                 ST_CONV_MAC: begin
                     conv_kernel_size = layer_kh * layer_kw * layer_in_c;
@@ -787,36 +1150,40 @@ module Hnpu_cnn_engine #(
                             conv_input_index = conv_ic * layer_in_h * layer_in_w + conv_iy * layer_in_w + conv_ix;
                         conv_weight_index = out_c * conv_kernel_size + kernel_index;
                         next_accumulator = accumulator +
-                            (tensor_read(tensor_active, conv_input_index) - layer_input_zp) *
-                            (model_mem[layer_weight_offset + conv_weight_index] - layer_weight_zp);
+                            (sign_extend_i8(tensor_read_data) -
+                             sign_extend_i8(layer_input_zp)) *
+                            (sign_extend_i8(model_read_data) -
+                             sign_extend_i8(layer_weight_zp));
                     end
                     if (kernel_index == conv_kernel_size - 1) begin
                         if (model_layout_reg == LAYOUT_HWC4)
-                            tensor_index = (out_y * layer_out_w + out_x) * layer_out_c + out_c;
+                            tensor_write_index = (out_y * layer_out_w + out_x) * layer_out_c + out_c;
                         else
-                            tensor_index = out_c * layer_out_h * layer_out_w + out_y * layer_out_w + out_x;
-                        if (tensor_active == 0)
-                            tensor_b[tensor_index] <= requantize(next_accumulator, layer_multiplier, layer_shift, layer_output_zp, layer_flags[0], layer_flags[1]);
-                        else
-                            tensor_a[tensor_index] <= requantize(next_accumulator, layer_multiplier, layer_shift, layer_output_zp, layer_flags[0], layer_flags[1]);
+                            tensor_write_index = out_c * layer_out_h * layer_out_w + out_y * layer_out_w + out_x;
+                        tensor_write_enable <= 1'b1;
+                        tensor_write_slot <= ~tensor_active;
+                        tensor_write_addr <= tensor_write_index;
+                        tensor_write_data <= requantize(next_accumulator, layer_multiplier,
+                                                        layer_shift, layer_output_zp,
+                                                        layer_flags[0], layer_flags[1]);
                         kernel_index <= 0;
                         if (out_x == layer_out_w - 1) begin
                             out_x <= 0;
                             if (out_y == layer_out_h - 1) begin
                                 out_y <= 0;
                                 if (out_c == layer_out_c - 1)
-                                    state <= ST_LAYER_NEXT;
+                                    state <= ST_WRITE_DRAIN;
                                 else begin
                                     out_c <= out_c + 1;
-                                    accumulator <= model_i32(layer_bias_offset + (out_c + 1) * 4);
+                                    state <= ST_BIAS_PRIME;
                                 end
                             end else begin
                                 out_y <= out_y + 1;
-                                accumulator <= model_i32(layer_bias_offset + out_c * 4);
+                                state <= ST_BIAS_PRIME;
                             end
                         end else begin
                             out_x <= out_x + 1;
-                            accumulator <= model_i32(layer_bias_offset + out_c * 4);
+                            state <= ST_BIAS_PRIME;
                         end
                     end else begin
                         kernel_index <= kernel_index + 1;
@@ -826,10 +1193,11 @@ module Hnpu_cnn_engine #(
 
                 ST_RELU: begin
                     if (tensor_index < layer_in_h * layer_in_w * layer_in_c) begin
-                        if (tensor_active == 0)
-                            tensor_b[tensor_index] <= (tensor_a[tensor_index] < layer_output_zp) ? layer_output_zp : tensor_a[tensor_index];
-                        else
-                            tensor_a[tensor_index] <= (tensor_b[tensor_index] < layer_output_zp) ? layer_output_zp : tensor_b[tensor_index];
+                        tensor_write_enable <= 1'b1;
+                        tensor_write_slot <= ~tensor_active;
+                        tensor_write_addr <= tensor_index;
+                        tensor_write_data <= (tensor_read_data < layer_output_zp) ?
+                                             layer_output_zp : tensor_read_data;
                         tensor_index <= tensor_index + 1;
                     end else begin
                         state <= ST_LAYER_NEXT;
@@ -847,26 +1215,37 @@ module Hnpu_cnn_engine #(
                             pool_input_index = (pool_iy * layer_in_w + pool_ix) * layer_in_c + pool_c;
                         else
                             pool_input_index = pool_c * layer_in_h * layer_in_w + pool_iy * layer_in_w + pool_ix;
-                        if (tensor_read(tensor_active, pool_input_index) > pool_next)
-                            pool_next = tensor_read(tensor_active, pool_input_index);
+                        if (tensor_read_data > pool_next)
+                            pool_next = tensor_read_data;
                     end
                     if (pool_index == layer_kh * layer_kw - 1) begin
                         if (model_layout_reg == LAYOUT_HWC4)
-                            tensor_index = (out_y * layer_out_w + out_x) * layer_out_c + out_c;
+                            tensor_write_index = (out_y * layer_out_w + out_x) * layer_out_c + out_c;
                         else
-                            tensor_index = out_c * layer_out_h * layer_out_w + out_y * layer_out_w + out_x;
-                        if (tensor_active == 0) tensor_b[tensor_index] <= pool_next;
-                        else tensor_a[tensor_index] <= pool_next;
+                            tensor_write_index = out_c * layer_out_h * layer_out_w + out_y * layer_out_w + out_x;
+                        tensor_write_enable <= 1'b1;
+                        tensor_write_slot <= ~tensor_active;
+                        tensor_write_addr <= tensor_write_index;
+                        tensor_write_data <= pool_next;
                         pool_index <= 0;
                         pool_value <= -8'sd128;
                         if (out_x == layer_out_w - 1) begin
                             out_x <= 0;
                             if (out_y == layer_out_h - 1) begin
                                 out_y <= 0;
-                                if (out_c == layer_out_c - 1) state <= ST_LAYER_NEXT;
-                                else out_c <= out_c + 1;
-                            end else out_y <= out_y + 1;
-                        end else out_x <= out_x + 1;
+                                if (out_c == layer_out_c - 1) state <= ST_WRITE_DRAIN;
+                                else begin
+                                    out_c <= out_c + 1;
+                                    state <= ST_POOL_PRIME;
+                                end
+                            end else begin
+                                out_y <= out_y + 1;
+                                state <= ST_POOL_PRIME;
+                            end
+                        end else begin
+                            out_x <= out_x + 1;
+                            state <= ST_POOL_PRIME;
+                        end
                     end else begin
                         // Keep the running maximum across all elements of
                         // this pooling window.  Without this assignment the
@@ -880,28 +1259,28 @@ module Hnpu_cnn_engine #(
 
                 ST_GAP: begin
                     if (model_layout_reg == LAYOUT_HWC4)
-                        tensor_index = gap_position * layer_in_c + gap_channel;
+                        tensor_read_index = gap_position * layer_in_c + gap_channel;
                     else
-                        tensor_index = gap_channel * layer_in_h * layer_in_w + gap_position;
-                    next_gap_accumulator = gap_accumulator + tensor_read(tensor_active, tensor_index);
+                        tensor_read_index = gap_channel * layer_in_h * layer_in_w + gap_position;
+                    next_gap_accumulator = gap_accumulator +
+                        sign_extend_i8(tensor_read_data);
                     gap_accumulator <= next_gap_accumulator;
                     if (gap_position == layer_in_h * layer_in_w - 1) begin
-                        tensor_index = gap_channel;
-                        if (tensor_active == 0) begin
-                            if ((layer_flags & FLAG_GAP_ROUND4) != 0)
-                                tensor_b[gap_channel] <= (next_gap_accumulator + 8) >>> 4;
-                            else
-                                tensor_b[gap_channel] <= next_gap_accumulator / (layer_in_h * layer_in_w);
-                        end else begin
-                            if ((layer_flags & FLAG_GAP_ROUND4) != 0)
-                                tensor_a[gap_channel] <= (next_gap_accumulator + 8) >>> 4;
-                            else
-                                tensor_a[gap_channel] <= next_gap_accumulator / (layer_in_h * layer_in_w);
-                        end
+                        tensor_write_enable <= 1'b1;
+                        tensor_write_slot <= ~tensor_active;
+                        tensor_write_addr <= gap_channel;
+                        if ((layer_flags & FLAG_GAP_ROUND4) != 0)
+                            tensor_write_data <= clamp_i8((next_gap_accumulator + 64'sd8) >>> 4);
+                        else
+                            tensor_write_data <= clamp_i8(next_gap_accumulator /
+                                                          (layer_in_h * layer_in_w));
                         gap_position <= 0;
                         gap_accumulator <= 0;
-                        if (gap_channel == layer_out_c - 1) state <= ST_LAYER_NEXT;
-                        else gap_channel <= gap_channel + 1;
+                        if (gap_channel == layer_out_c - 1) state <= ST_WRITE_DRAIN;
+                        else begin
+                            gap_channel <= gap_channel + 1;
+                            state <= ST_GAP_PRIME;
+                        end
                     end else gap_position <= gap_position + 1;
                 end
 
@@ -909,15 +1288,17 @@ module Hnpu_cnn_engine #(
                     fc_input_index = fc_index;
                     fc_weight_index = fc_output * layer_in_c + fc_index;
                     next_accumulator = accumulator +
-                        (tensor_read(tensor_active, fc_input_index) - layer_input_zp) *
-                        (model_mem[layer_weight_offset + fc_weight_index] - layer_weight_zp);
+                        (sign_extend_i8(tensor_read_data) -
+                         sign_extend_i8(layer_input_zp)) *
+                        (sign_extend_i8(model_read_data) -
+                         sign_extend_i8(layer_weight_zp));
                     if (fc_index == layer_in_c - 1) begin
                         fc_output_mem[fc_output] <= next_accumulator[31:0];
                         fc_index <= 0;
                         if (fc_output == layer_out_c - 1) state <= ST_LAYER_NEXT;
                         else begin
                             fc_output <= fc_output + 1;
-                            accumulator <= model_i32(layer_bias_offset + (fc_output + 1) * 4);
+                            state <= ST_BIAS_PRIME;
                         end
                     end else begin
                         fc_index <= fc_index + 1;
@@ -926,18 +1307,18 @@ module Hnpu_cnn_engine #(
                 end
 
                 ST_ARGMAX: begin
-                    tensor_index = arg_index;
+                    tensor_read_index = arg_index;
                     if (argmax_from_fc)
                         candidate_score = fc_output_mem[arg_index];
                     else
-                        candidate_score = tensor_read(tensor_active, tensor_index);
+                        candidate_score = tensor_read_data;
                     new_best_score = best_score;
                     new_second_score = second_score;
                     new_best_class = best_class;
                     if (candidate_score > best_score) begin
                         new_second_score = best_score;
                         new_best_score = candidate_score;
-                        new_best_class = arg_index;
+                        new_best_class = arg_index[7:0];
                     end else if (candidate_score > second_score) begin
                         new_second_score = candidate_score;
                     end
@@ -980,7 +1361,7 @@ module Hnpu_cnn_engine #(
                     expected_in_c <= layer_out_c;
                     argmax_from_fc <= (layer_op == OP_FC);
                     layer_index <= layer_index + 1;
-                    state <= ST_LAYER_FETCH;
+                    state <= ST_DESC_PRIME;
                 end
 
                 default: state <= ST_IDLE;

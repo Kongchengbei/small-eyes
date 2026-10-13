@@ -14,6 +14,10 @@ module flash_ddr_boot #(
     parameter [31:0] DDR_BASE = 32'h8000_0000,
     parameter [32:0] DDR_LIMIT = 33'h0_C000_0000,//0xBFFFFFFF
     parameter [31:0] IMAGE_BYTES = 32'd56,
+    parameter [0:0] MODEL_ENABLE = 1'b0,
+    parameter [23:0] MODEL_FLASH_BASE = 24'h000000,
+    parameter [31:0] MODEL_DDR_BASE = 32'h0000_0000,
+    parameter [31:0] MODEL_BYTES = 32'd0,
     parameter integer SPI_CLK_DIV = 4,
     parameter integer TIMEOUT_CYCLES = 100000,
     parameter integer DDR_INIT_TIMEOUT_CYCLES = TIMEOUT_CYCLES
@@ -136,6 +140,10 @@ module flash_ddr_boot #(
         .DDR_BASE       (DDR_BASE),
         .DDR_LIMIT      (DDR_LIMIT),
         .IMAGE_BYTES    (IMAGE_BYTES),
+        .MODEL_ENABLE   (MODEL_ENABLE),
+        .MODEL_FLASH_BASE(MODEL_FLASH_BASE),
+        .MODEL_DDR_BASE (MODEL_DDR_BASE),
+        .MODEL_BYTES    (MODEL_BYTES),
         .TIMEOUT_CYCLES (TIMEOUT_CYCLES),
         .DDR_INIT_TIMEOUT_CYCLES (DDR_INIT_TIMEOUT_CYCLES)
     ) u_loader (

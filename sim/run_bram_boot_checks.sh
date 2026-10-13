@@ -24,8 +24,10 @@ soc_rtl=(
     soc/Hcamera_async_fifo.v soc/Hcamera_dma.v soc/Hcamera_subsystem.v
     soc/Haxi_2m1s_arbiter.v soc/Hpreprocess_color.v soc/Hpreprocess_regions.v
     soc/Hcamera_preprocess.v soc/Hpreprocess_stereo.v soc/ddr_axi_bridge.v
-    soc/Hnpu_fc_engine.v soc/Hnpu_cnn_engine.v soc/Hnpu_service.v
+    soc/Hnpu_fc_engine.v soc/Hnpu_cnn_engine.v soc/Hnpu_quant.v soc/Hnpu_service.v
     soc/Hnpu_image_service.v soc/Hnpu_result_mmio.v soc/Hnpu_result_bridge.v soc/Hnpu_system.v
+    soc/Hrgb565_int8_lane.v soc/Hrgb565_int8_stereo.v
+    soc/Hrgb565_int8_ddr_merge.v soc/Hrgb565_int8_regs.v
     soc/flash_boot/spi_flash_byte_reader.v soc/flash_boot/flash_ddr_loader.v
     soc/flash_boot/flash_ddr_boot.v soc/flash_boot/flash_bram_boot.v
     sim/board_ip_lint_stubs.v

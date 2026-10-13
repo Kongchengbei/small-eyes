@@ -28,7 +28,7 @@ module Hnpu_system #(
     parameter integer MAX_CLASSES = 11,
     parameter integer ENGINE_MODE = 0,
     parameter integer MAX_MODEL_BYTES = 65536,
-    parameter integer IMAGE_MODE = 0,
+    parameter [0:0] IMAGE_MODE = 1'b0,
     parameter [31:0] MODEL_BASE = 32'h0000_0000,
     parameter [31:0] MODEL_BYTES = 32'h0000_0000
 ) (

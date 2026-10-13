@@ -10,4 +10,7 @@ od -An -v -t x1 "$tmp_dir/model.npu" |
 SIMULATOR="${SIMULATOR:-verilator}" SIM_JOBS="${SIM_JOBS:-2}" \
 SIM_TIMEOUT="${SIM_TIMEOUT:-120}" SIM_ARGS="+MODEL_HEX=$tmp_dir/model.hex" \
 bash scripts/run_testbench.sh tb_npu_image_service
+SIMULATOR="${SIMULATOR:-verilator}" SIM_JOBS="${SIM_JOBS:-2}" \
+SIM_TIMEOUT="${SIM_TIMEOUT:-120}" SIM_ARGS="+MODEL_HEX=$tmp_dir/model.hex +BAD_MODEL" \
+bash scripts/run_testbench.sh tb_npu_image_service
 echo "NPU_IMAGE_SERVICE_TEST_PASS simulator=${SIMULATOR:-verilator}"

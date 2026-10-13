@@ -36,8 +36,7 @@ module Hfpga_soc #(
     // 本地主板 C24 对应 FPIOA0；远程板可覆盖为 31（AB26）。
     parameter integer UART_TX_DEFAULT_FPIOA = `SOC_UART_TX_FPIOA,
     parameter integer DDR_INIT_TIMEOUT_CYCLES = `SOC_DDR_INIT_TIMEOUT_CYCLES,
-    // NPU 消费者默认关闭，保持现有 Camera 调试 bin 的 release 语义。
-    // 1 时两路前处理输出进入共享 CNN NPU；无 NPU 归还会安全背压。
+    // 1 时两路前处理输出进入共享 CNN NPU；模型搬运完成前保持背压。
     parameter [0:0] PREPROCESS_ENABLE = `SOC_ENABLE_PREPROCESS,
     parameter [15:0] PREPROCESS_WIDTH = 16'd96,
     parameter [15:0] PREPROCESS_HEIGHT = 16'd96,
@@ -45,11 +44,12 @@ module Hfpga_soc #(
     parameter [31:0] CPU_CACHED_DDR_BYTES = `SOC_CPU_CACHED_DDR_BYTES,
     parameter [31:0] NPU_SHARED_BASE    = `SOC_NPU_SHARED_BASE,
     parameter [31:0] NPU_SHARED_BYTES   = `SOC_NPU_SHARED_BYTES,
-    parameter [0:0] NPU_IMAGE_ENABLE    = 1'b0,
+    parameter [0:0] NPU_IMAGE_ENABLE    = PREPROCESS_ENABLE,
     parameter [31:0] NPU_MODEL_BASE      = `SOC_NPU_WEIGHT_BASE,
     // Full-width v0.3 11-class package estimate: 62,720 bytes. Override
     // with the final package length emitted by the model conversion tool.
-    parameter [31:0] NPU_MODEL_BYTES     = 32'd62720,
+    parameter [31:0] NPU_MODEL_BYTES     = `SOC_NPU_MODEL_BYTES,
+    parameter [23:0] NPU_MODEL_FLASH_BASE = FLASH_BASE + BOOT_IMAGE_BYTES[23:0],
     parameter [31:0] MMIO_BASE          = `SOC_MMIO_BASE,
     parameter [31:0] MMIO_BYTES         = `SOC_MMIO_BYTES,
     parameter [31:0] NPU_MMIO_BASE      = `SOC_NPU_MMIO_BASE,
@@ -232,6 +232,24 @@ module Hfpga_soc #(
     wire        boot_ddr_ready_cpu;
     wire        flash_clk_enable;
     wire        flash_spi_sck;
+    wire        npu_model_ready = boot_done && !boot_error;
+    reg         npu_model_ready_meta_ddr;
+    reg         npu_model_ready_ddr;
+    wire        npu_image_runtime_enable = PREPROCESS_ENABLE &&
+                                            NPU_IMAGE_ENABLE &&
+                                            npu_model_ready_ddr;
+
+    // boot_done is produced by the CPU-clock Flash loader.  Synchronize it
+    // before enabling the DDR-clock camera/NPU path.
+    always @(posedge ddr_core_clk or negedge sys_rst_n) begin
+        if (!sys_rst_n) begin
+            npu_model_ready_meta_ddr <= 1'b0;
+            npu_model_ready_ddr <= 1'b0;
+        end else begin
+            npu_model_ready_meta_ddr <= npu_model_ready;
+            npu_model_ready_ddr <= npu_model_ready_meta_ddr;
+        end
+    end
 
     wire [29:0]  ddr_axi_awaddr;
     wire [7:0]   ddr_axi_awid;
@@ -907,6 +925,10 @@ module Hfpga_soc #(
         .DDR_BASE       (DDR_BASE),
         .DDR_LIMIT      ({1'b0, DDR_BASE} + {1'b0, DDR_BYTES}),
         .IMAGE_BYTES    (BOOT_IMAGE_BYTES),
+        .MODEL_ENABLE   (NPU_IMAGE_ENABLE),
+        .MODEL_FLASH_BASE(NPU_MODEL_FLASH_BASE),
+        .MODEL_DDR_BASE (NPU_MODEL_BASE),
+        .MODEL_BYTES    (NPU_MODEL_BYTES),
         .SPI_CLK_DIV    (SPI_DIV),
         .TIMEOUT_CYCLES (`SOC_BOOT_TIMEOUT_CYCLES),
         .DDR_INIT_TIMEOUT_CYCLES (DDR_INIT_TIMEOUT_CYCLES)
@@ -1040,14 +1062,16 @@ module Hfpga_soc #(
     wire [3:0] npu_release_block_int;
     wire [7:0] npu_release_position_int;
     wire [59:0] int8_lane_araddr, int8_lane_awaddr;
-    wire [15:0] int8_lane_arid, int8_lane_arlen, int8_lane_arsize;
+    wire [15:0] int8_lane_arid, int8_lane_arlen;
+    wire [5:0] int8_lane_arsize;
     wire [3:0] int8_lane_arburst;
     wire [1:0] int8_lane_arvalid, int8_lane_arready;
     wire [511:0] int8_lane_rdata, int8_lane_wdata;
     wire [15:0] int8_lane_rid, int8_lane_bid;
     wire [3:0] int8_lane_rresp, int8_lane_bresp;
     wire [1:0] int8_lane_rlast, int8_lane_rvalid, int8_lane_rready;
-    wire [15:0] int8_lane_awid, int8_lane_awlen, int8_lane_awsize;
+    wire [15:0] int8_lane_awid, int8_lane_awlen;
+    wire [5:0] int8_lane_awsize;
     wire [3:0] int8_lane_awburst;
     wire [1:0] int8_lane_awvalid, int8_lane_awready;
     wire [63:0] int8_lane_wstrb;
@@ -1125,7 +1149,7 @@ module Hfpga_soc #(
     wire capture_int8_bvalid, capture_int8_bready;
 
     Hpreprocess_stereo #(.DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES)) u_preprocess_stereo (
-        .clk(ddr_core_clk), .rst_n(sys_rst_n), .enable({2{PREPROCESS_ENABLE}}),
+        .clk(ddr_core_clk), .rst_n(sys_rst_n), .enable({2{npu_image_runtime_enable}}),
         .ddr_ready(ddr_init_done), .clear_errors(2'b0),
         .source_ready_mask(pre_source_ready), .source_frames(pre_source_frames),
         .source_release_valid(pre_source_release_valid), .source_release_mask(pre_source_release_mask),
@@ -1179,7 +1203,7 @@ module Hfpga_soc #(
         .axi_bready(pre_axi_bready)
     );
 
-    Hrgb565_int8_regs u_int8_regs (
+    Hrgb565_int8_regs #(.AUTO_ENABLE(PREPROCESS_ENABLE && NPU_IMAGE_ENABLE)) u_int8_regs (
         .cpu_clk(cpu_clk), .ddr_clk(ddr_core_clk), .rst_n(sys_rst_n),
         .mmio_valid(int8_sel), .mmio_wen(mmio_req_wen),
         .mmio_addr(mmio_req_addr[7:0]), .mmio_wdata(mmio_req_wdata),
@@ -1193,7 +1217,7 @@ module Hfpga_soc #(
 
     Hrgb565_int8_stereo #(.DDR_BASE(DDR_BASE),.DDR_BYTES(DDR_BYTES)) u_rgb565_int8 (
         .clk(ddr_core_clk), .rst_n(sys_rst_n),
-        .enable(PREPROCESS_ENABLE && ddr_init_done && int8_enable_ddr),
+        .enable(npu_image_runtime_enable && ddr_init_done && int8_enable_ddr),
         .clear_errors(int8_clear_errors_ddr),
         .desc_valid(pre_result_valid), .desc_ready(int8_desc_ready),
         .desc_camera(pre_result_camera), .desc_frame(pre_result_frame),
@@ -1245,7 +1269,7 @@ module Hfpga_soc #(
         .MODEL_BYTES(NPU_MODEL_BYTES)
     ) u_npu_system (
         .ddr_clk(ddr_core_clk), .cpu_clk(cpu_clk), .rst_n(sys_rst_n),
-        .enable(ddr_init_done && PREPROCESS_ENABLE && int8_enable_ddr),
+        .enable(ddr_init_done && npu_image_runtime_enable && int8_enable_ddr),
         .clear_errors(int8_clear_errors_ddr), .stop(1'b0),
         .batch_valid(1'b0), .batch_ready(), .batch_camera(8'b0),
         .batch_frame(32'b0), .batch_bank(1'b0), .batch_input_base(32'b0),

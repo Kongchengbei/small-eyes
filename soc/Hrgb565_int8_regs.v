@@ -2,7 +2,9 @@
 `include "soc_addr_map.vh"
 
 //提供 CPU 控制、状态读取、跨时钟域同步和统计快照
-module Hrgb565_int8_regs (
+module Hrgb565_int8_regs #(
+    parameter [0:0] AUTO_ENABLE = 1'b0
+) (
     input cpu_clk, input ddr_clk, input rst_n,
     input mmio_valid, input mmio_wen, input [7:0] mmio_addr,
     input [31:0] mmio_wdata, input [3:0] mmio_wstrb,
@@ -42,7 +44,7 @@ module Hrgb565_int8_regs (
 
     always @(posedge cpu_clk or negedge rst_n) begin
         if (!rst_n) begin
-            enable_cpu<=0; stop_cpu<=0; clear_toggle_cpu<=0;
+            enable_cpu<=(AUTO_ENABLE != 0); stop_cpu<=0; clear_toggle_cpu<=0;
             busy_meta_cpu<=0; busy_sync_cpu<=0; slot_meta_cpu<=0; slot_sync_cpu<=0;
             ddrwait_meta_cpu<=0; ddrwait_sync_cpu<=0;
             handoff_meta_cpu<=0; handoff_sync_cpu<=0;

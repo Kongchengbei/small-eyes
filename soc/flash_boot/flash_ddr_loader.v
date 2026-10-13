@@ -7,6 +7,11 @@ module flash_ddr_loader #(
     parameter [31:0] DDR_BASE   = 32'h8000_0000,
     parameter [32:0] DDR_LIMIT  = 33'h0_c000_0000,
     parameter [31:0] IMAGE_BYTES = 32'd4,
+    // Optional second segment used to preload the NPU model cache.
+    parameter [0:0] MODEL_ENABLE = 1'b0,
+    parameter [23:0] MODEL_FLASH_BASE = 24'h000000,
+    parameter [31:0] MODEL_DDR_BASE = 32'h0000_0000,
+    parameter [31:0] MODEL_BYTES = 32'd0,
     parameter integer TIMEOUT_CYCLES = 100000,
     // Keep legacy testbench behavior unless integration sets a longer DDR
     // training allowance explicitly.
@@ -63,11 +68,19 @@ module flash_ddr_loader #(
     reg [23:0] word_buffer;
     reg [31:0] expected_word;
     reg [31:0] timeout_count;
+    reg model_phase;
+    wire [23:0] active_flash_base = model_phase ? MODEL_FLASH_BASE : FLASH_BASE;
+    wire [31:0] active_ddr_base = model_phase ? MODEL_DDR_BASE : DDR_BASE;
+    wire [31:0] active_bytes = model_phase ? MODEL_BYTES : IMAGE_BYTES;
     wire [32:0] flash_end_exclusive = {9'd0, FLASH_BASE} + {1'b0, IMAGE_BYTES};
     wire [32:0] ddr_end_exclusive = {1'b0, DDR_BASE} + {1'b0, IMAGE_BYTES};
+    wire [32:0] model_flash_end_exclusive =
+        {9'd0, MODEL_FLASH_BASE} + {1'b0, MODEL_BYTES};
+    wire [32:0] model_ddr_end_exclusive =
+        {1'b0, MODEL_DDR_BASE} + {1'b0, MODEL_BYTES};
 
-    assign flash_req_addr = FLASH_BASE;
-    assign flash_req_length = IMAGE_BYTES;
+    assign flash_req_addr = active_flash_base;
+    assign flash_req_length = active_bytes;
     assign flash_rsp_ready = (state == ST_FLASH_RSP);
     assign ddr_req_wstrb = 4'b1111;
     assign ddr_rsp_ready = (state == ST_DDR_WRITE_RSP) ||
@@ -101,6 +114,7 @@ module flash_ddr_loader #(
             timeout_count <= 32'd0;
             ddr_req_addr <= DDR_BASE;
             ddr_req_wdata <= 32'd0;
+            model_phase <= 1'b0;
             boot_done <= 1'b0;
             boot_error <= 1'b0;
             error_code <= 4'd0;
@@ -117,6 +131,13 @@ module flash_ddr_loader #(
                         (flash_end_exclusive > 33'h1_000000) ||
                         (ddr_end_exclusive > 33'h1_00000000) ||
                         (ddr_end_exclusive > DDR_LIMIT) ||
+                        ((MODEL_ENABLE != 0) &&
+                         ((MODEL_BYTES == 0) || (MODEL_BYTES[1:0] != 0) ||
+                          (MODEL_FLASH_BASE[1:0] != 0) ||
+                          (MODEL_DDR_BASE[1:0] != 0) ||
+                          (model_flash_end_exclusive > 33'h1_000000) ||
+                          (model_ddr_end_exclusive > 33'h1_00000000) ||
+                          (model_ddr_end_exclusive > DDR_LIMIT))) ||
                         (TIMEOUT_CYCLES < 1) ||
                         (DDR_INIT_TIMEOUT_CYCLES < 1))
                         fail(ERR_BAD_CONFIG);
@@ -149,7 +170,7 @@ module flash_ddr_loader #(
                             2'd3: begin
                                 expected_word <= {flash_rsp_data,
                                                   word_buffer[23:0]};
-                                ddr_req_addr <= DDR_BASE + byte_index - 3;
+                                ddr_req_addr <= active_ddr_base + byte_index - 3;
                                 ddr_req_wdata <= {flash_rsp_data,
                                                   word_buffer[23:0]};
                             end
@@ -207,9 +228,18 @@ module flash_ddr_loader #(
                             fail(ERR_DDR_KIND);
                         else if (ddr_rsp_rdata != expected_word)
                             fail(ERR_READBACK);
-                        else if (byte_index == IMAGE_BYTES) begin
-                            boot_done <= 1'b1;
-                            state <= ST_DONE;
+                        else if (byte_index == active_bytes) begin
+                            if ((MODEL_ENABLE != 0) && !model_phase) begin
+                                // Begin the model transaction only after the
+                                // complete CPU segment passed readback.
+                                model_phase <= 1'b1;
+                                byte_index <= 32'd0;
+                                byte_lane <= 2'd0;
+                                state <= ST_FLASH_REQ;
+                            end else begin
+                                boot_done <= 1'b1;
+                                state <= ST_DONE;
+                            end
                         end else begin
                             byte_lane <= 2'd0;
                             state <= ST_FLASH_RSP;

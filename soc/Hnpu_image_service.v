@@ -188,7 +188,9 @@ module Hnpu_image_service #(
     wire [31:0] engine_score;
     Hnpu_cnn_engine #(
         .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES), .AXI_ID(AXI_ID),
-        .MAX_MODEL_BYTES(MAX_MODEL_BYTES), .MAX_TENSOR_BYTES(65536),
+        // v0.3's largest tensor is L1: 32x32x16 = 16 KiB. Two 16 KiB
+        // banks cover input/output ping-pong without reserving 128 KiB.
+        .MAX_MODEL_BYTES(MAX_MODEL_BYTES), .MAX_TENSOR_BYTES(16384),
         .MAX_LAYERS(16), .MAX_CLASSES(MAX_CLASSES)
     ) u_engine (
         .clk(clk), .rst_n(rst_n), .start(engine_start), .clear_error(clear_errors),

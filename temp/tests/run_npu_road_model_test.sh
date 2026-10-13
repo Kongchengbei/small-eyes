@@ -4,6 +4,11 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 cd "$repo_root"
 
+current_model_dir="${1:-temp/路标模型文件v0.3_10月10日}"
+if [[ -f "$current_model_dir/model.npu" ]]; then
+    exec bash temp/tests/run_npu_road_model_v03_test.sh "$current_model_dir"
+fi
+
 golden_dir="temp/路标模型包与前处理金样v0.1"
 tmp_dir="$(mktemp -d)"
 trap 'rm -rf "$tmp_dir"' EXIT

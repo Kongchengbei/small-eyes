@@ -18,7 +18,7 @@
 `define SOC_ENABLE_DCACHE            1
 `define SOC_ENABLE_DDR               1
 `define SOC_ENABLE_CAMERA            1
-`define SOC_ENABLE_PREPROCESS        0
+`define SOC_ENABLE_PREPROCESS        1
 `define SOC_CPU_HZ                   32'd70000000
 `define SOC_UART_BAUD                32'd115200
 `define SOC_UART_TX_FPIOA            0
@@ -70,6 +70,7 @@
 `define SOC_PRE2_BANK1_BASE          32'hb870_0000
 `define SOC_PRE_BANK_BYTES          32'h0010_0000
 `define SOC_PRE_ROI_STRIDE_BYTES    32'd32768
+`define SOC_NPU_INPUT_FREE_BASE      32'hb880_0000
 
 // 双路RGB565->INT8输出：每路4个独立512KiB块，每块14个36KiB图像位置。
 // 每块尾部8KiB保留，不可分配；位置布局以本组宏为唯一地址来源。
@@ -118,6 +119,7 @@
 `define SOC_NPU_WEIGHT_BASE          32'hb900_0000
 `define SOC_NPU_WEIGHT_BYTES         32'h0200_0000
 `define SOC_NPU_WEIGHT_END           32'hbb00_0000
+`define SOC_NPU_MODEL_BYTES          32'd62720
 
 `define SOC_NPU_OUTPUT_BASE          32'hbb00_0000
 `define SOC_NPU_OUTPUT_BYTES         32'h0100_0000
