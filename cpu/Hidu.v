@@ -1,6 +1,8 @@
 `timescale 1ns / 1ps
 
-module Hidu (
+module Hidu #(
+    parameter BRAM_MODE = 1'b0
+) (
     input             clk,
     input             rst,
 
@@ -32,6 +34,9 @@ module Hidu (
     output wire [4:0]  id_rd_addr,
     output wire [31:0] id_src1,
     output wire [31:0] id_src2,
+    output wire        id_src1_mem_pending,
+    output wire        id_src2_mem_pending,
+    output wire [4:0]  id_mem_pending_rd_addr,
     output wire [31:0] id_imm,
     output reg  [3:0]  id_alu_op,
     output wire        id_alu_en,
@@ -101,6 +106,14 @@ module Hidu (
     wire [31:0] id_actual_next_pc;
     wire        mispredict;
     reg [31:0]  id_predict_next_pc;
+    wire        actual_taken;
+    wire [31:0] sequential_pc = id_pc_reg + 32'd4;
+    wire [10:0] target_pc_group_equal;
+    wire [10:0] sequential_pc_group_equal;
+    wire        target_pc_match;
+    wire        sequential_pc_match;
+    reg         chosen_pc_match;
+    genvar      pc_group;
 	
     //译码识别指令
     wire [6:0] opcode = id_ins_reg[6:0];
@@ -260,6 +273,23 @@ module Hidu (
         (id_rs2_addr != 5'd0 && mem_forward_valid &&
          (mem_forward_rd_addr == id_rs2_addr)) ? mem_forward_data : id_rs2_data;
 
+    // Branches and JALR still consume operands in ID. Other EX consumers
+    // may carry an immediately preceding load dependency into EX in BRAM mode.
+    wire id_mem_forward_consumer = BRAM_MODE &&
+                                   (id_alu_en || (id_m_op != M_NONE) ||
+                                    (id_is_csr && !funct3[2])) &&
+                                   !id_is_branch && !id_is_jalr;
+    assign id_src1_mem_pending = id_mem_forward_consumer && id_uses_rs1 &&
+                                 ex_valid && ex_is_load &&
+                                 (ex_rd_addr != 5'd0) &&
+                                 (id_rs1_addr == ex_rd_addr);
+    assign id_src2_mem_pending = id_mem_forward_consumer && id_uses_rs2 &&
+                                 ex_valid && ex_is_load &&
+                                 (ex_rd_addr != 5'd0) &&
+                                 (id_rs2_addr == ex_rd_addr);
+    assign id_mem_pending_rd_addr = (id_src1_mem_pending || id_src2_mem_pending) ?
+                                    ex_rd_addr : 5'b0;
+
     wire branch_taken = id_is_beq ? (id_src1 == id_src2) :
                         id_is_bne ? (id_src1 != id_src2) :
                         (id_is_bge  && ($signed(id_src1) >= $signed(id_src2))) ||
@@ -267,16 +297,19 @@ module Hidu (
                         (id_is_blt  && ($signed(id_src1) < $signed(id_src2)))  ||
                         (id_is_bltu && (id_src1 < id_src2));
 	//阻塞
-    wire ex_load_stall = ex_valid && ex_is_load && (ex_rd_addr != 5'd0) &&
-                         ((id_uses_rs1 && (id_rs1_addr == ex_rd_addr)) ||
-                          (id_uses_rs2 && (id_rs2_addr == ex_rd_addr)));
+    wire id_ex_load_match_rs1 = ex_valid && ex_is_load && (ex_rd_addr != 5'd0) &&
+                                id_uses_rs1 && (id_rs1_addr == ex_rd_addr);
+    wire id_ex_load_match_rs2 = ex_valid && ex_is_load && (ex_rd_addr != 5'd0) &&
+                                id_uses_rs2 && (id_rs2_addr == ex_rd_addr);
+    wire ex_load_stall = (id_ex_load_match_rs1 || id_ex_load_match_rs2) &&
+                         !id_mem_forward_consumer;
 
     // load 进入 MEM 后可能还在等待 DCache/MMIO 响应。依赖它的指令必须留在Id
     // 待返回数据可前递时再锁存到 EX，包括 sw 的数据和地址源
     wire mem_load_stall = mem_load_wait && (mem_forward_rd_addr != 5'd0) &&
-                          ((id_uses_rs1 &&
+                          ((id_uses_rs1 && !id_ex_load_match_rs1 &&
                             (id_rs1_addr == mem_forward_rd_addr)) ||
-                           (id_uses_rs2 &&
+                           (id_uses_rs2 && !id_ex_load_match_rs2 &&
                             (id_rs2_addr == mem_forward_rd_addr)));
 
     wire id_stall = id_valid && (ex_load_stall || mem_load_stall);
@@ -306,9 +339,53 @@ module Hidu (
 	assign btb_update_target = id_redirect_pc;
 	assign btb_update_is_conditional = id_is_branch;
 	assign btb_update_taken  = id_is_branch ? branch_taken : 1'b1;
-    assign id_actual_next_pc = (id_is_jal || id_is_jalr ||(id_is_branch && branch_taken)) ? id_redirect_pc : id_pc_reg+4;
-    assign mispredict        = id_fire &&( actual_next_pc != id_predict_next_pc);
+    assign actual_taken = id_is_jal || id_is_jalr || (id_is_branch && branch_taken);
+    assign id_actual_next_pc = actual_taken ? id_redirect_pc : id_pc_reg+4;
     assign actual_next_pc    = id_actual_next_pc;
+	//实际 PC 候选与预测 PC
+    //并行比较两个PC候选:十个3位组和一个最终的2位组
+    generate
+        for (pc_group = 0; pc_group < 10; pc_group = pc_group + 1) begin: gen_pc_compare
+            assign target_pc_group_equal[pc_group] =
+                (id_redirect_pc[pc_group*3 +: 3] == id_predict_next_pc[pc_group*3 +: 3]);
+            assign sequential_pc_group_equal[pc_group] =
+                (sequential_pc[pc_group*3 +: 3] == id_predict_next_pc[pc_group*3 +: 3]);
+        end
+    endgenerate
+    assign target_pc_group_equal[10] =
+        (id_redirect_pc[31:30] == id_predict_next_pc[31:30]);
+    assign sequential_pc_group_equal[10] =
+        (sequential_pc[31:30] == id_predict_next_pc[31:30]);
+
+    wire target_pc_match_low =
+        ((target_pc_group_equal[0] && target_pc_group_equal[1]) &&
+         (target_pc_group_equal[2] && target_pc_group_equal[3])) &&
+        (target_pc_group_equal[4] && target_pc_group_equal[5]);
+    wire target_pc_match_high =
+        ((target_pc_group_equal[6] && target_pc_group_equal[7]) &&
+         (target_pc_group_equal[8] && target_pc_group_equal[9])) &&
+        target_pc_group_equal[10];
+    wire sequential_pc_match_low =
+        ((sequential_pc_group_equal[0] && sequential_pc_group_equal[1]) &&
+         (sequential_pc_group_equal[2] && sequential_pc_group_equal[3])) &&
+        (sequential_pc_group_equal[4] && sequential_pc_group_equal[5]);
+    wire sequential_pc_match_high =
+        ((sequential_pc_group_equal[6] && sequential_pc_group_equal[7]) &&
+         (sequential_pc_group_equal[8] && sequential_pc_group_equal[9])) &&
+        sequential_pc_group_equal[10];
+    assign target_pc_match = target_pc_match_low && target_pc_match_high;
+    assign sequential_pc_match = sequential_pc_match_low && sequential_pc_match_high;
+
+/*在硬件中，方向是二进制的，因此只有两个候选匹配项会进入选择器
+保留原始四状态模拟结果，喂入选择器。保留原始的四状态模拟结果*/
+    always @(*) begin
+        chosen_pc_match = actual_taken ? target_pc_match : sequential_pc_match;
+        // synthesis translate_off
+        if ((actual_taken !== 1'b0) && (actual_taken !== 1'b1))
+            chosen_pc_match = (actual_next_pc == id_predict_next_pc);
+        // synthesis translate_on
+    end
+    assign mispredict = id_fire && !chosen_pc_match;
     assign dbg_mispredict    = mispredict;
     //传递
     always @(posedge clk) begin

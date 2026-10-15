@@ -15,6 +15,12 @@ module Hexu (
     input      [31:0] id_imm,
     input      [31:0] id_src1,
     input      [31:0] id_src2,
+    input             id_src1_mem_pending,
+    input             id_src2_mem_pending,
+    input      [4:0]  id_mem_pending_rd_addr,
+    input             mem_forward_valid,
+    input      [4:0]  mem_forward_rd_addr,
+    input      [31:0] mem_forward_data,
     input      [4:0]  id_rd_addr,
     input      [3:0]  id_alu_op,
     input             id_alu_en,
@@ -95,6 +101,9 @@ module Hexu (
     reg [31:0] ex_imm;
     reg [31:0] ex_src1;
     reg [31:0] ex_src2;
+    reg        ex_src1_mem_pending;
+    reg        ex_src2_mem_pending;
+    reg [4:0]  ex_mem_pending_rd_addr;
     reg [3:0]  ex_alu_op;
     reg        ex_alu_en;
     reg        ex_src1_is_pc;
@@ -113,6 +122,14 @@ module Hexu (
 	wire       ex_ready_go;
 	// 访存请求：只看 ex_valid 和指令类型，不看 ready_go —— 这是打断组合环的关键
     wire ex_mem_req = ex_valid && (ex_is_load || ex_is_store);
+	wire ex_src1_mem_match = ex_src1_mem_pending && mem_forward_valid &&
+	                         (mem_forward_rd_addr == ex_mem_pending_rd_addr);
+	wire ex_src2_mem_match = ex_src2_mem_pending && mem_forward_valid &&
+	                         (mem_forward_rd_addr == ex_mem_pending_rd_addr);
+	wire ex_operands_ready = (!ex_src1_mem_pending || ex_src1_mem_match) &&
+	                         (!ex_src2_mem_pending || ex_src2_mem_match);
+	wire [31:0] ex_src1_value = ex_src1_mem_match ? mem_forward_data : ex_src1;
+	wire [31:0] ex_src2_value = ex_src2_mem_match ? mem_forward_data : ex_src2;
 	//M指令
 	wire ex_m_valid = ex_valid && (ex_m_op != M_NONE);
 	//mul
@@ -123,7 +140,8 @@ module Hexu (
 
 	wire mul_x_signed =(ex_m_op == M_MUL)||(ex_m_op == M_MULH)||(ex_m_op == M_MULHSU);
 	wire mul_y_signed =(ex_m_op == M_MUL)||(ex_m_op == M_MULH);
-	wire mul_start = ex_m_is_mul && !ex_mul_started && !ex_mul_done;
+	wire mul_start = ex_m_is_mul && ex_operands_ready &&
+	                 !ex_mul_started && !ex_mul_done;
 	wire mul_done;
 	wire mul_done_fire = ex_m_is_mul && ex_mul_started && mul_done;
 	// mul_done 是脉冲。若 MEM 可接收，直接放行；若 MEM 背压，则把
@@ -138,8 +156,8 @@ module Hexu (
 	    .start        (mul_start),
 	    .x_signed     (mul_x_signed),
 	    .y_signed     (mul_y_signed),
-	    .x            (ex_src1),
-	    .y            (ex_src2),
+	    .x            (ex_src1_value),
+	    .y            (ex_src2_value),
 	    .result       (mul_result),
 	    .done         (mul_done)
 	);
@@ -150,8 +168,10 @@ module Hexu (
 	                                  ex_m_op == M_REM ||
 	                                  ex_m_op == M_REMU);
 
-	wire div_start     = ex_m_is_div && !ex_div_started && !ex_div_done;
+	wire div_start     = ex_m_is_div && ex_operands_ready &&
+	                     !ex_div_started && !ex_div_done;
 	wire div_done_fire = ex_m_is_div && ex_div_started && div_done;
+	wire ex_div_ready = ex_div_done || div_done_fire;
 	wire div_signed    =(ex_m_op == M_DIV) || (ex_m_op == M_REM);
 	wire [31:0] div_result_selected =(ex_m_op == M_DIV || ex_m_op == M_DIVU)? div_quotient : div_remainder;
 
@@ -163,16 +183,17 @@ module Hexu (
 	    .reset      (rst),
 	    .start      (div_start),
 	    .div_signed (div_signed),
-	    .x          (ex_src1),
-	    .y          (ex_src2),
+	    .x          (ex_src1_value),
+	    .y          (ex_src2_value),
 	    .s          (div_quotient),
 	    .r          (div_remainder),
 	    .done       (div_done)
 	);
 
 	//控制信号。乘法、除法和访存均可让 EX 保持当前指令。
-	assign ex_ready_go     =(!ex_valid || !ex_m_is_mul || ex_mul_ready)
-						   && (!ex_valid || !ex_m_is_div || ex_div_done)
+	assign ex_ready_go     = ex_operands_ready
+						   && (!ex_valid || !ex_m_is_mul || ex_mul_ready)
+						   && (!ex_valid || !ex_m_is_div || ex_div_ready)
 						   && (!ex_mem_req || dmem_ready);
     assign dbg_ex_ready_go = ex_ready_go;
     assign ex_allowin      = !ex_valid || (ex_ready_go && mem_allowin);
@@ -181,8 +202,8 @@ module Hexu (
 	
 	//alu计算
     wire [31:0] alu_src1 = ex_src1_is_pc   ? ex_pc :
-                           ex_src1_is_zero ? 32'b0 : ex_src1;
-    wire [31:0] alu_src2 = ex_src2_is_imm ? ex_imm : ex_src2;
+	                       ex_src1_is_zero ? 32'b0 : ex_src1_value;
+    wire [31:0] alu_src2 = ex_src2_is_imm ? ex_imm : ex_src2_value;
 
     Halu u_alu (
         .src1   (alu_src1),
@@ -193,15 +214,15 @@ module Hexu (
     );
 
 	//csr
-    wire csr_valid    = ex_valid && ex_is_csr   && ex_allowin;
-    wire csr_is_ecall = ex_valid && ex_is_ecall && ex_allowin;
-    wire csr_is_ebreak= ex_valid && ex_is_ebreak&& ex_allowin;
-    wire csr_is_mret  = ex_valid && ex_is_mret  && ex_allowin;
+    wire csr_valid    = ex_valid && ex_is_csr   && ex_allowin && ex_operands_ready;
+    wire csr_is_ecall = ex_valid && ex_is_ecall && ex_allowin && ex_operands_ready;
+    wire csr_is_ebreak= ex_valid && ex_is_ebreak&& ex_allowin && ex_operands_ready;
+    wire csr_is_mret  = ex_valid && ex_is_mret  && ex_allowin && ex_operands_ready;
     // Taking an asynchronous interrupt after the current EX instruction
     // lets that instruction finish once; mepc will point at its successor.
     // CSR writes are left to complete first, then the following instruction
     // is the interrupt boundary, so an enable write is never lost.
-    wire csr_interrupt_boundary = ex_valid && ex_allowin &&
+    wire csr_interrupt_boundary = ex_valid && ex_allowin && ex_operands_ready &&
                                   !ex_is_csr && !ex_is_ecall &&
                                   !ex_is_ebreak && !ex_is_mret &&
                                   // A branch/jump's architectural successor
@@ -218,7 +239,7 @@ module Hexu (
         .csr_valid      (csr_valid),
         .csr_op         (ex_csr_op),
         .csr_addr       (ex_csr_addr),
-        .csr_rs1_data   (ex_src1),
+        .csr_rs1_data   (ex_src1_value),
         .csr_imm        (ex_csr_imm),
         .is_ecall       (csr_is_ecall),
         .is_ebreak      (csr_is_ebreak),
@@ -243,7 +264,8 @@ module Hexu (
     assign ex_forward_valid   = ex_valid && ex_reg_wen && !ex_is_load &&
                                 (ex_rd_addr != 5'd0) &&
 								(!ex_m_is_mul || ex_mul_ready) &&
-                                (!ex_m_is_div || ex_div_done);
+	                                (!ex_m_is_div || ex_div_ready) &&
+	                                ex_operands_ready;
 
     assign ex_forward_rd_addr = ex_rd_addr;
     assign ex_forward_data    = ex_wb_value;
@@ -252,7 +274,8 @@ module Hexu (
     // A memory side effect is accepted only when MEM can take this EX entry.
     // Otherwise an older stalled MEM load could cause the held EX operation
     // to be issued repeatedly while the pipeline is back-pressured.
-    assign dmem_valid = ex_to_mem_valid && mem_allowin && (ex_is_load || ex_is_store);
+    assign dmem_valid = ex_to_mem_valid && ex_operands_ready && mem_allowin &&
+                        (ex_is_load || ex_is_store);
     assign dmem_wen   = dmem_valid && ex_is_store;
     assign dmem_addr  = ex_result;
 
@@ -274,20 +297,20 @@ module Hexu (
         (ex_result[1:0] == 2'd2) ? 4'b1100 : 4'b1000;
 
     wire [31:0] store_byte_data =
-        (ex_result[1:0] == 2'd0) ? {24'b0, ex_src2[7:0]} :
-        (ex_result[1:0] == 2'd1) ? {16'b0, ex_src2[7:0], 8'b0} :
-        (ex_result[1:0] == 2'd2) ? {8'b0, ex_src2[7:0], 16'b0} :
-                                    {ex_src2[7:0], 24'b0};
+        (ex_result[1:0] == 2'd0) ? {24'b0, ex_src2_value[7:0]} :
+        (ex_result[1:0] == 2'd1) ? {16'b0, ex_src2_value[7:0], 8'b0} :
+        (ex_result[1:0] == 2'd2) ? {8'b0, ex_src2_value[7:0], 16'b0} :
+                                    {ex_src2_value[7:0], 24'b0};
     wire [31:0] store_half_data =
-        (ex_result[1:0] == 2'd0) ? {16'b0, ex_src2[15:0]} :
-        (ex_result[1:0] == 2'd1) ? {8'b0, ex_src2[15:0], 8'b0} :
-        (ex_result[1:0] == 2'd2) ? {ex_src2[15:0], 16'b0} :
-                                    {ex_src2[7:0], 24'b0};
+        (ex_result[1:0] == 2'd0) ? {16'b0, ex_src2_value[15:0]} :
+        (ex_result[1:0] == 2'd1) ? {8'b0, ex_src2_value[15:0], 8'b0} :
+        (ex_result[1:0] == 2'd2) ? {ex_src2_value[15:0], 16'b0} :
+                                    {ex_src2_value[7:0], 24'b0};
 
     assign dmem_wmask = store_word ? 4'b1111 :
                         store_half ? store_half_mask :
                         store_byte ? store_byte_mask : 4'b0000;
-    assign dmem_wdata = store_word ? ex_src2 :
+    assign dmem_wdata = store_word ? ex_src2_value :
                         store_half ? store_half_data :
                         store_byte ? store_byte_data : 32'b0;
 
@@ -298,6 +321,9 @@ module Hexu (
             ex_imm          <= 32'b0;
             ex_src1         <= 32'b0;
             ex_src2         <= 32'b0;
+            ex_src1_mem_pending <= 1'b0;
+            ex_src2_mem_pending <= 1'b0;
+            ex_mem_pending_rd_addr <= 5'b0;
             ex_rd_addr      <= 5'b0;
             ex_alu_op       <= 4'b1111;
             ex_alu_en       <= 1'b0;
@@ -325,6 +351,9 @@ module Hexu (
         end else begin
             if (flush) begin
 				ex_valid      <= 1'b0;
+				ex_src1_mem_pending <= 1'b0;
+				ex_src2_mem_pending <= 1'b0;
+				ex_mem_pending_rd_addr <= 5'b0;
             end else if (ex_allowin) begin
                 ex_valid <= id_to_ex_valid;
             end
@@ -335,6 +364,9 @@ module Hexu (
                 ex_imm         <= id_imm;
                 ex_src1        <= id_src1;
                 ex_src2        <= id_src2;
+                ex_src1_mem_pending <= id_src1_mem_pending;
+                ex_src2_mem_pending <= id_src2_mem_pending;
+                ex_mem_pending_rd_addr <= id_mem_pending_rd_addr;
                 ex_rd_addr     <= id_rd_addr;
                 ex_alu_op      <= id_alu_op;
                 ex_alu_en      <= id_alu_en;
@@ -355,6 +387,19 @@ module Hexu (
                 ex_is_ebreak   <= id_is_ebreak;
 				ex_m_op        <= id_m_op;
             end
+
+			// Preserve a returned load value if another pipeline condition keeps
+			// this EX entry in place after its MEM producer has advanced.
+			if (!flush && ex_valid && !ex_allowin) begin
+				if (ex_src1_mem_match) begin
+					ex_src1 <= mem_forward_data;
+					ex_src1_mem_pending <= 1'b0;
+				end
+				if (ex_src2_mem_match) begin
+					ex_src2 <= mem_forward_data;
+					ex_src2_mem_pending <= 1'b0;
+				end
+			end
 
 			//div的状态寄存器
 			if (flush || ex_allowin) begin

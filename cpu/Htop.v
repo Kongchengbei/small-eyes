@@ -31,7 +31,7 @@ module Htop #(
     output wire   bram_prog_ready,
     output wire [31:0] bram_prog_rdata,
 
-    // ---- AXI4 master (32-bit data) ----
+    //AXI4 master (32-bit data)
     output wire [3:0]  axi_awid,
     output wire [31:0] axi_awaddr,
     output wire [7:0]  axi_awlen,
@@ -115,6 +115,9 @@ module Htop #(
     wire [4:0]  id_rd_addr;
     wire [31:0] id_src1;
     wire [31:0] id_src2;
+    wire        id_src1_mem_pending;
+    wire        id_src2_mem_pending;
+    wire [4:0]  id_mem_pending_rd_addr;
     wire [31:0] id_imm;
     wire [3:0]  id_alu_op;
     wire        id_alu_en;
@@ -410,7 +413,7 @@ module Htop #(
     assign btb_update_valid = btb_update_valid_id && !ex_flush_req;
 
     // ID
-    Hidu u_idu (
+    Hidu #(.BRAM_MODE(BRAM_MODE)) u_idu (
         .clk                (clk),
         .rst                (rst),
         .if_to_id_valid     (if_to_id_valid),
@@ -438,6 +441,9 @@ module Htop #(
         .id_rd_addr         (id_rd_addr),
         .id_src1            (id_src1),
         .id_src2            (id_src2),
+        .id_src1_mem_pending(id_src1_mem_pending),
+        .id_src2_mem_pending(id_src2_mem_pending),
+        .id_mem_pending_rd_addr(id_mem_pending_rd_addr),
         .id_imm             (id_imm),
         .id_m_op            (id_m_op),
         .id_alu_op          (id_alu_op),
@@ -486,6 +492,12 @@ module Htop #(
         .id_imm              (id_imm),
         .id_src1             (id_src1),
         .id_src2             (id_src2),
+        .id_src1_mem_pending (id_src1_mem_pending),
+        .id_src2_mem_pending (id_src2_mem_pending),
+        .id_mem_pending_rd_addr(id_mem_pending_rd_addr),
+        .mem_forward_valid   (mem_forward_valid),
+        .mem_forward_rd_addr (mem_rd_addr),
+        .mem_forward_data    (mem_wb_data),
         .id_rd_addr          (id_rd_addr),
         .id_alu_op           (id_alu_op),
         .id_alu_en           (id_alu_en),

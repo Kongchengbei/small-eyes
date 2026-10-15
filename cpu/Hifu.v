@@ -66,7 +66,7 @@ module Hifu #(
 	assign imem_addr         = flush ? redirect_pc :
 	                             force_fetch ? forced_fetch_pc :
 	                             if_predict_next_pc;
-	assign imem_req_valid    = CONTINUOUS_FETCH ? (!flush && fetch_room) :
+	assign imem_req_valid    = CONTINUOUS_FETCH ? (flush || fetch_room) :
 	                             (!flush && !fetch_pending && if_allowin);
   
     always @(posedge clk) begin
@@ -85,12 +85,16 @@ module Hifu #(
             if_valid  <= 1'b0;
         end else if (flush) begin
             // Keep the next sequential calculation anchored at the
-            // redirect target while the cache discards any old miss.
+            // redirect target while the cache discards any old miss. The
+            // fixed-latency BRAM path can accept the redirect on this edge;
+            // any response already in flight belongs to the discarded path.
             if_pc_reg      <= redirect_pc - 32'd4;
 			if_ins_reg      <= 32'h0000_0013;
-			fetch_pending   <= 1'b0;
+			fetch_pending   <= CONTINUOUS_FETCH && imem_req_ready;
+			if (CONTINUOUS_FETCH && imem_req_ready)
+				fetch_pc_reg <= redirect_pc;
 			forced_fetch_pc <= redirect_pc;
-			force_fetch    <= 1'b1;
+			force_fetch    <= !(CONTINUOUS_FETCH && imem_req_ready);
 			skid_valid     <= 1'b0;
 			skid_pc        <= 32'b0;
 			skid_ins       <= 32'h0000_0013;

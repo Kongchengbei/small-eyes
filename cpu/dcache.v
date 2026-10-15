@@ -93,6 +93,9 @@ wire        way_tagv_wea   [1:0];
 wire wr_match_way_bank [1:0][3:0]; //前要写的是哪个 Way 的哪个 Bank
 
 wire [1:0]  way_hit;
+wire [6:0]  way_tag_group_equal [1:0];
+wire [1:0]  way_tag_match_first4;
+wire [1:0]  way_tag_match_last3;
 wire        cache_hit;
 
 wire [31:0] way_load_word [1:0];// 每路选出的 32-bit Word
@@ -120,7 +123,7 @@ wire        uncache_wr;
 reg         uncache_wr_buffer;
 
 
-genvar i, j;
+genvar i, j, tag_group;
 integer k;
 
 //寄存器
@@ -291,12 +294,25 @@ wire main_idle2lookup = !(write_state_is_full && ((proc_offset[3:2] == write_buf
 wire accept = dmem_req_valid && !hold && main_state_is_idle && main_idle2lookup;
 
 assign dmem_req_ready = main_state_is_idle && main_idle2lookup && !hold;
-
-// tag比较
+//请求tag与缓存tag
+// 将20位Tag等值拆成六组3位和一组2位，再平衡归约；valid最后门控。
 generate
     for (i = 0; i < 2; i = i + 1) begin: gen_way_hit
+        for (tag_group = 0; tag_group < 6; tag_group = tag_group + 1) begin: gen_tag_group
+            assign way_tag_group_equal[i][tag_group] =
+                (request_buffer_tag[tag_group*3 +: 3] ==
+                 way_tagv_douta[i][tag_group*3 + 1 +: 3]);
+        end
+        assign way_tag_group_equal[i][6] =
+            (request_buffer_tag[19:18] == way_tagv_douta[i][20:19]);
+        assign way_tag_match_first4[i] =
+            (way_tag_group_equal[i][0] && way_tag_group_equal[i][1]) &&
+            (way_tag_group_equal[i][2] && way_tag_group_equal[i][3]);
+        assign way_tag_match_last3[i] =
+            (way_tag_group_equal[i][4] && way_tag_group_equal[i][5]) &&
+             way_tag_group_equal[i][6];
         assign way_hit[i] = way_tagv_douta[i][0] &&
-                            (request_buffer_tag == way_tagv_douta[i][20:1]);
+                            way_tag_match_first4[i] && way_tag_match_last3[i];
     end
 endgenerate
 
@@ -310,7 +326,7 @@ generate
         assign way_load_word[i] = way_data[i][request_buffer_offset[3:2]*32 +: 32];
     end
 endgenerate
-
+//数据选择
 assign load_res = {32{way_hit[0]}} & way_load_word[0] |
                   {32{way_hit[1]}} & way_load_word[1];
 

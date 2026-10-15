@@ -35,13 +35,16 @@ module icache #(
 );
 
 //锁存pc
-reg        hold;    //1忙，禁止新请求；0空闲
+//1忙，禁止新请求,ICache 使用已经锁存的 hold_pc，实时请求地址不能影响 proc_tag；
+//而有效的 ICache 响应本身又受 hold 限制；0空闲
+reg        hold;
 reg [31:0] hold_pc; //快照pc
 
 wire [31:0] proc_pc = hold ? hold_pc : cpu_req_pc;
 
 wire [7:0]  proc_index = proc_pc[11:4];  //索引
 wire [19:0] proc_tag   = proc_pc[31:12]; //标签
+wire [19:0] lookup_tag = hold_pc[31:12]; //有效查询使用已接收请求的锁存Tag
 wire [3:0]  proc_offset= proc_pc[3:0];   //偏移
 
 //状态
@@ -187,7 +190,7 @@ end
 //20-1存储的Tag
 generate
     for (i = 0; i < 2; i = i + 1) begin: gen_way_hit
-        assign way_hit[i] = way_tagv_douta[i][0] && (proc_tag == way_tagv_douta[i][20:1]);
+        assign way_hit[i] = way_tagv_douta[i][0] && (lookup_tag == way_tagv_douta[i][20:1]);
     end
 endgenerate
 

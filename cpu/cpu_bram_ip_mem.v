@@ -1,9 +1,9 @@
 `timescale 1ns / 1ps
 
-// Production BRAM memory adapter. The two vendor dual-port RAMs are directly
-// initialized by their generated INIT parameter includes. Port A of imem is
-// instruction fetch; port B of each RAM is shared by the CPU LSU and the
-// optional reset-time programming interface.
+/*
+生产BRAM 内存适配器。两个供应商的双端口RAM直接由其生成的INIT参数包含进行初始化。
+imem的端口A用于指令获取;每个RAM的端口B由CPULSU和可选的重置时间编程接口共享
+ */
 module cpu_bram_ip_mem #(
     parameter [31:0] IRAM_BASE  = 32'h8000_0000,
     parameter [31:0] IRAM_BYTES = 32'h0000_8000,
