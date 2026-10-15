@@ -5,6 +5,9 @@ set -euo pipefail
 #   [fixed-size CPU image][model.npu]
 # The RTL loads the first segment to the CPU DDR base and the second segment
 # to SOC_NPU_WEIGHT_BASE before releasing the CPU/NPU image service.
+# The RTL reads model.npu at FLASH_BASE + SOC_BOOT_IMAGE_BYTES, so the CPU
+# segment size defaults to SOC_BOOT_IMAGE_BYTES in soc/soc_addr_map.vh and
+# must match it.
 
 usage() {
     echo "usage: $0 CPU_IMAGE MODEL_NPU OUTPUT [CPU_IMAGE_BYTES]" >&2
@@ -15,12 +18,22 @@ usage() {
 cpu_image=$1
 model_npu=$2
 output=$3
-cpu_bytes=${4:-16384}
+
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+addr_map="$repo_root/soc/soc_addr_map.vh"
+map_bytes=$(sed -n "s/^\`define SOC_BOOT_IMAGE_BYTES[[:space:]]*32'd\([0-9][0-9]*\).*/\1/p" "$addr_map")
+[[ -n "$map_bytes" ]] || { echo "SOC_BOOT_IMAGE_BYTES not found in $addr_map" >&2; exit 1; }
+cpu_bytes=${4:-$map_bytes}
 
 [[ -f "$cpu_image" ]] || { echo "CPU image not found: $cpu_image" >&2; exit 1; }
 [[ -f "$model_npu" ]] || { echo "model.npu not found: $model_npu" >&2; exit 1; }
 [[ "$cpu_bytes" =~ ^[1-9][0-9]*$ ]] || { echo "CPU_IMAGE_BYTES must be positive" >&2; exit 1; }
 (( cpu_bytes % 4 == 0 )) || { echo "CPU_IMAGE_BYTES must be 4-byte aligned" >&2; exit 1; }
+(( cpu_bytes == map_bytes )) || {
+    echo "CPU_IMAGE_BYTES=$cpu_bytes differs from SOC_BOOT_IMAGE_BYTES=$map_bytes;" \
+        "the RTL would read model.npu from the wrong Flash offset" >&2
+    exit 1
+}
 
 cpu_size=$(wc -c < "$cpu_image" | tr -d ' ')
 model_size=$(wc -c < "$model_npu" | tr -d ' ')
@@ -33,7 +46,6 @@ model_size=$(wc -c < "$model_npu" | tr -d ' ')
     exit 1
 }
 
-repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 python3 "$repo_root/scripts/npu_model.py" check "$model_npu" >/dev/null
 
 mkdir -p "$(dirname "$output")"
