@@ -1,0 +1,26 @@
+路标模型文件 v0.3（10 月 10 日发群，10 月 15 日进仓库）
+
+一、文件
+  model.npu    v0.3 路标模型（11 类，卷积 4→16→32→64→64，GAP，全连接 64→11），62,720 字节，
+               SHA-256 d94e3f16c393a7879d38d6672ed9434a534632e1643a1a722bdb6a685394540c。
+               用仓库 3b2ed16 的 scripts/npu_model.py build-road 从“路标模型包v0.3_10月9日”生成，脚本没改；
+               自己用 build-road 生成的应与它逐字节相同。
+               和 10 月 10 日群里发的那份只差 10 个字节：文件头 scratch_bytes 2,048→32,768、CRC，以及卷积和 GAP
+               descriptor 0x38 处重复的标志清零（3b2ed16 的 build-road 改了这几处）。两份在 3b2ed16 的电路上结果相同，
+               旧的那份要走引擎的旧版兼容才放行，上板用这份。
+  classes.csv  编号 0～10：0 背景、1 未知标志、2 禁止驶入、3 禁止停车、4 禁止鸣喇叭、5～8 限速 40/60/80/120、
+               9 靠右侧道路行驶、10 注意行人（zzx 10 月 9 日定的编号）。
+
+二、核对结果
+  1. npu_model.py check 通过；拒识门槛 1251 在文件头 0x4C，各卷积层右移 10、7、8、7。
+  2. 用 temp/tests/run_npu_road_model_v03_test.sh 在 3b2ed16 的 Hnpu_cnn_engine 上（Verilator 5.052）跑模型包里
+     全部 101 个金样框（覆盖 11 类，其中拒识 22 个）：类别、margin、拒识、最大 logit 全部与 golden_output.csv 相同，
+     32×32 直接输入、96×96 隔 3 取 1 两种都相同。每框最多约 379 万周期，70 MHz 下每秒约 18.5 框。
+
+三、用法
+  上板：bash scripts/make_npu_flash_image.sh CPU镜像 temp/路标模型文件v0.3_10月10日/model.npu 输出文件
+        （模型接在 CPU 镜像区后面，CPU 镜像区大小按 soc/soc_addr_map.vh 的 SOC_BOOT_IMAGE_BYTES，552df7c 起是 32768；
+        同一个文件里 SOC_NPU_MODEL_BYTES 是 62720，和这份一致，以后模型大小变了要一起改。）
+  测试：bash temp/tests/run_npu_tests.sh 会自动跑这份模型（目录里只有 model.npu，跑 16 个构造输入对 Python 参考）。
+        要跑 101 个金样框：把“路标模型包v0.3_10月9日.zip”里的 golden_output.csv 和 golden_input 放进本目录再跑
+        bash temp/tests/run_npu_road_model_v03_test.sh（金样不进仓库）。
