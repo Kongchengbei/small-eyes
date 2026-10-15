@@ -183,6 +183,7 @@ module Hcamera_preprocess #(
     Hpreprocess_regions #(.MAX_REGIONS(MAX_REGIONS)) u_regions (
         .clk(clk), .rst_n(rst_n), .clear(state==IDLE && start_allowed),
         .pixel_valid(state==SCAN && !frame_bad), .x(scan_x), .y(scan_y), .color(pixel_color),
+        .min_pixels(min_pixels),
         .query_index(region_query_index), .query_valid(region_valid), .query_color(region_color),
         .query_x0(rx0), .query_y0(ry0), .query_x1(rx1), .query_y1(ry1),
         .query_pixels(region_pixels), .overflow(region_overflow));
@@ -299,8 +300,8 @@ module Hcamera_preprocess #(
                     end
                 end
                 FILTER: begin
-                    if (region_overflow) begin report_error(ERR_REGIONS); state<=RELEASE; end
-                    else if (region_query_index==MAX_REGIONS) begin
+                    // region_overflow 只表示本帧有像素因槽满被丢，不再作废整帧；ERR_REGIONS 保留不用。
+                    if (region_query_index==MAX_REGIONS) begin
                         if (roi_count==0) state<=FINISH;
                         else begin roi_index<=0; state<=ROI_START; end
                     end else begin

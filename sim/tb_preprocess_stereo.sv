@@ -602,6 +602,31 @@ module tb_preprocess_stereo #(
             if(timeout>W*H*8+30000) $fatal(1,"source release timeout");
         end
     endtask
+    task automatic put_block(input integer x0,input integer y0,input integer w,input integer h,
+        input [15:0] value);
+        for(integer c=0;c<2;c++) for(integer y=y0;y<y0+h;y++) for(integer x=x0;x<x0+w;x++)
+            mem[c*65536+(y*W+x)/16][((y*W+x)%16)*16+:16]=value;
+    endtask
+    // 槽满用例的框、颜色和 7x5 小图逐点核对（小图取自 0 号源槽里的原图）。
+    task automatic check_box(input integer cam,input integer r,input integer x0,input integer y0,
+        input integer x1,input integer y1,input [2:0] color);
+        integer sx,sy,dst_base,idx;
+        reg [15:0] actual,expected;
+        reg [63:0] box;
+        box=result_boxes[(cam*N+r)*64+:64];
+        if(box!={16'(y1),16'(x1),16'(y0),16'(x0)} || result_colors[(cam*N+r)*3+:3]!=color)
+            $fatal(1,"slot-full case cam=%0d roi=%0d box=%h color=%0d",cam,r,box,
+                result_colors[(cam*N+r)*3+:3]);
+        dst_base=int'(result_addr[cam*32+:32]-32'hb8000000)+r*32768;
+        for(integer dy=0;dy<5;dy++) for(integer dx=0;dx<7;dx++) begin
+            sx=x0+dx*(x1-x0+1)/7;sy=y0+dy*(y1-y0+1)/5;
+            idx=(dst_base+(dy*7+dx)*2)/32;
+            actual=mem[idx][((dy*7+dx)%16)*16+:16];
+            expected=mem[cam*65536+(sy*W+sx)/16][((sy*W+sx)%16)*16+:16];
+            if(actual!==expected) $fatal(1,"slot-full case ROI mismatch cam=%0d roi=%0d (%0d,%0d)",
+                cam,r,dx,dy);
+        end
+    endtask
     integer saved_reads,saved_writes;
     generate if(SOURCE_FROM_CAMERA) begin : integration_watchdog
         initial begin
@@ -736,14 +761,44 @@ module tb_preprocess_stereo #(
         block_read=0;wait_sources_clear();
         if(failed_frames[31:0]+failed_frames[63:32]<1) $fatal(1,"timeout not drained");
         $display("PASS timeout keeps AXI and source ownership until drain");
+        // 槽满（2026-10-09 定）：复用已封口的小区域槽，再没有就只丢像素，不作废整帧。
+        // 原 9 个孤立红点：第 9 个复用 0 号槽，整帧按空帧结束，不报 ERR_REGIONS。
         reset_case();
         fill_frame(0,0,1);fill_frame(1,0,1);
         for(integer c=0;c<2;c++) for(integer j=0;j<9;j++)
             mem[c*65536+((j/7)*3*W+(j%7)*3)/16][(((j/7)*3*W+(j%7)*3)%16)*16+:16]=16'hf800;
         submit(0,36,46);wait_sources_clear();
-        if(error_code!={32'd5,32'd5} || result_valid!=0 || writes!=0)
-            $fatal(1,"candidate overflow not fail-closed");
-        $display("PASS region capacity overflow");
+        if(error!=0 || error_code!=0 || empty_frames!={32'd1,32'd1} || failed_frames!=0 ||
+           result_valid!=0 || writes!=0)
+            $fatal(1,"sealed small regions not reused");
+        // 第一行 8 个孤立红点占满槽；下方 4x4 蓝块复用 0 号槽，照常出框。
+        reset_case();
+        fill_frame(0,0,1);fill_frame(1,0,1);
+        for(integer j=0;j<8;j++) put_block(j*2,0,1,1,16'hf800);
+        put_block(4,4,4,4,16'h001f);
+        submit(0,37,47);wait_results();wait_sources_clear();
+        for(integer c=0;c<2;c++) begin
+            if(result_count[c*32+:32]!=1) $fatal(1,"reuse case count %0d",result_count[c*32+:32]);
+            check_box(c,0,4,4,7,7,3'd3);
+        end
+        if(error!=0 || dut.cameras[0].u_preprocess.u_regions.overflow ||
+           dut.cameras[1].u_preprocess.u_regions.overflow) $fatal(1,"reuse case dropped pixels");
+        $display("PASS slot reuse of sealed small regions");
+        // 8 个合格的 2x2 块占满槽且都不可复用：第 9 块的像素被丢，8 个框照常输出。
+        reset_case();
+        fill_frame(0,0,1);fill_frame(1,0,1);
+        for(integer j=0;j<7;j++) put_block(j*3,0,2,2,j%3==0?16'hf800:(j%3==1?16'hffe0:16'h001f));
+        put_block(0,3,2,2,16'h001f);
+        put_block(3,3,2,2,16'hf800);
+        submit(0,38,48);wait_results();wait_sources_clear();
+        for(integer c=0;c<2;c++) begin
+            if(result_count[c*32+:32]!=8) $fatal(1,"drop case count %0d",result_count[c*32+:32]);
+            for(integer j=0;j<7;j++) check_box(c,j,j*3,0,j*3+1,1,j%3==0?3'd1:(j%3==1?3'd2:3'd3));
+            check_box(c,7,0,3,1,4,3'd3);
+        end
+        if(error!=0 || !dut.cameras[0].u_preprocess.u_regions.overflow ||
+           !dut.cameras[1].u_preprocess.u_regions.overflow) $fatal(1,"drop case did not drop");
+        $display("PASS slot-full pixel drop keeps the frame");
         $display("PREPROCESS_STEREO ALL PASS");$finish;
     end
     initial begin #100000000;$fatal(1,"global timeout");end

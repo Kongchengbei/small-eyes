@@ -2,12 +2,16 @@
 
 // 有界的同色包围框增长/合并器，每拍接收一个像素。
 // 它是候选粗筛，并非精确连通域标记：与同色框的外扩一像素范围相交即合并。
-// 多框同时命中时合并全部命中框；容量不足置 overflow，调用方丢弃整次任务。
+// 多框同时命中时合并全部命中框，合到编号最小的槽。新像素并不进任何框时取编号最小的空槽；
+// 没有空槽时复用编号最小的“已封口小区域”槽（y > ye+1，已不可能再并进像素，且像素数
+// < min_pixels，过不了大小筛选），原区域丢掉；再没有就只丢这个像素并置 overflow，
+// 本帧照常往下做（2026-10-09 定，不再整帧作废）。
 module Hpreprocess_regions #(
     parameter integer MAX_REGIONS = 8
 ) (
     input clk, input rst_n, input clear,
     input pixel_valid, input [15:0] x, input [15:0] y, input [2:0] color,
+    input [31:0] min_pixels,
     input [31:0] query_index,
     output query_valid, output [2:0] query_color,
     output [15:0] query_x0, output [15:0] query_y0,
@@ -20,7 +24,7 @@ module Hpreprocess_regions #(
     reg [15:0] xs [0:MAX_REGIONS-1], xe [0:MAX_REGIONS-1];
     reg [15:0] ys [0:MAX_REGIONS-1], ye [0:MAX_REGIONS-1];
     reg [31:0] counts [0:MAX_REGIONS-1];
-    integer i, first_hit, free_index;
+    integer i, first_hit, free_index, reuse_index;
     reg [15:0] mx0, my0, mx1, my1;
     reg [31:0] matched_count;
     reg [MAX_REGIONS-1:0] hit;
@@ -34,11 +38,13 @@ module Hpreprocess_regions #(
     assign query_pixels = query_index < MAX_REGIONS ? counts[query_index] : 32'b0;
 
     always @* begin
-        first_hit = -1; free_index = -1;
+        first_hit = -1; free_index = -1; reuse_index = -1;
         mx0 = x; mx1 = x; my0 = y; my1 = y; matched_count = 1;
         hit = 0;
         for (i=0; i<MAX_REGIONS; i=i+1) begin
             if (!valid[i] && free_index == -1) free_index = i;
+            if (valid[i] && reuse_index == -1 && {1'b0,y} > {1'b0,ye[i]}+17'd1 &&
+                counts[i] < min_pixels) reuse_index = i;
             if (valid[i] && colors[i] == color && color != 0 &&
                 ({1'b0,x}+17'd1 >= {1'b0,xs[i]}) &&
                 ({1'b0,x} <= {1'b0,xe[i]}+17'd1) &&
@@ -53,6 +59,7 @@ module Hpreprocess_regions #(
                 matched_count = matched_count + counts[i];
             end
         end
+        if (free_index == -1) free_index = reuse_index;
     end
 
     integer j;
