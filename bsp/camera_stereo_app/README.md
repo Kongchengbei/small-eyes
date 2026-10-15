@@ -111,10 +111,10 @@ JSON 和四种方向 PNG。超时/中断的 payload 保留为 `.incomplete`，�
 ## 全流程上板测试固件（NPU）
 
 `make -C bsp/camera_stereo_app npu` 构建 `main_npu.c`：两颗 OV5640 → 前处理找框 →
-INT8 → NPU → UART 逐条输出识别结果。找框、INT8、NPU 都由硬件自动运行（参数在
-`soc/Hfpga_soc.v` 中写死，上电自动使能）；CPU 只探测并配置两颗摄像头、打开两路采集
-和 DMA，再从 NPU 结果队列（`SOC_NPU_MMIO_BASE` 偏移 `0x20/0x24/0x44`，见
-`soc/Hnpu_result_mmio.v`）逐条取出、解码、打印，并每秒输出一次统计。相机缓存由前处理
+INT8 → NPU → UART 输出识别结果，每个框一行，直接写路标名。找框、INT8、NPU 都由硬件自动
+运行（参数在 `soc/Hfpga_soc.v` 中写死，上电自动使能）；CPU 只探测并配置两颗摄像头、打开
+两路采集和 DMA，再从 NPU 结果队列（`SOC_NPU_MMIO_BASE` 偏移 `0x20/0x24/0x44`，见
+`soc/Hnpu_result_mmio.v`）逐条取出、解码、打印，并定时输出一行汇总。相机缓存由前处理
 硬件读取和归还，CPU 只读统计快照，不归还缓存。
 
 构建产物（也可用 `npu-local`、`npu-remote` 单独构建）：
@@ -125,25 +125,48 @@ INT8 → NPU → UART 逐条输出识别结果。找框、INT8、NPU 都由硬�
   整片 Flash 镜像，即 CPU 镜像补零到 `SOC_BOOT_IMAGE_BYTES`（当前 main 为 32768）后接
   `model.npu`（62720 字节），由 `scripts/make_npu_flash_image.sh` 生成并检查模型文件。
 
-可选变量：`NPU_MODEL` 指定模型（默认 `temp/路标模型文件v0.3_10月10日/model.npu`）；
-`NPU_PRINT_BACKGROUND=0` 时背景框只计数、不逐条打印（默认 1）；
-`NPU_CAM2_ORIENTATION_AS_CAM1=0` 时 CAM2 保持驱动默认方向（默认 1，见下文）。`.o`
-不跟踪命令行变量，改变量后先 `rm -rf build/npu camera_stereo_npu_*.bin` 再构建；不要用
+### 烧录：烧整片的 `_flash.bin`
+
+把 `_flash.bin` 整份从 Flash `0x00A00000` 写入（原始字节，不做端序交换）。上电后
+flash_ddr_boot 把前 32768 字节搬到 DDR `0x80000000` 执行，把 `0x00A08000` 起的 62720
+字节模型搬到 `SOC_NPU_WEIGHT_BASE`（`0xB9000000`）。
+
+16 KiB 的 `.bin` 只有 CPU 程序，没有模型。只烧它时 loader 照样把 Flash `0x00A08000` 处
+原有的内容当模型搬过去（loader 不校验），NPU 对每个框都报错（该处为擦除状态时是
+`NPU error 35 (model CRC)`），固件在启动时和每次汇总后提示：
+
+```text
+!!! NO MODEL in DDR (magic=0xFFFFFFFF): burn the whole camera_stereo_npu_local_flash.bin (CPU program + model) at Flash 0x00A00000; the 16 KB .bin has no model
+```
+
+启动时的 `MODEL` 行用于核对模型：v0.3 应为 `magic=0x3155504E`、`crc=0x207156DE`，
+magic 不对时显示 `MODEL=BAD_MAGIC`。位流须用同一份 `soc/soc_addr_map.vh`（DDR 版，
+`SOC_CPU_MEM_BRAM=0`）综合。
+
+### 可选变量
+
+- `NPU_VERBOSE=1`：改回逐项格式（见下文「逐项格式」），编出的四个镜像与改格式前入库的
+  版本逐字节相同。默认 0。
+- `NPU_PRINT_BACKGROUND=1`：背景框也逐条打印。默认格式下默认 0（只在汇总里计数），逐项
+  格式下默认 1。
+- `NPU_NAMES_GBK=1`：路标名改用中文，GBK 编码，串口终端要按 GBK 显示。默认 0，英文。
+- `NPU_STAT_SECONDS`：汇总间隔秒数，1～30，默认 5。
+- `NPU_CAM2_ORIENTATION_AS_CAM1=0`：CAM2 保持驱动默认方向（默认 1，见下文）。
+- `NPU_MODEL`：模型文件，默认 `temp/路标模型文件v0.3_10月10日/model.npu`。
+
+`.o` 不跟踪命令行变量，改变量后先
+`rm -rf build/npu camera_stereo_npu_*.bin camera_stereo_npu_*.elf` 再构建；不要用
 `make clean`，它会删掉本目录所有 `.bin`，包括其它固件已入库的镜像。
 
-烧录时把 `_flash.bin` 整份从 Flash `0x00A00000` 写入（原始字节，不做端序交换）。上电后
-flash_ddr_boot 把前 32768 字节搬到 DDR `0x80000000` 执行，把 `0x00A08000` 起的 62720
-字节模型搬到 `SOC_NPU_WEIGHT_BASE`（`0xB9000000`）。只烧 16 KiB 的 `.bin` 时，NPU 用的是
-Flash 里原有的内容。loader 不校验模型，固件启动时打印 `MODEL` 行供核对：v0.3 应为
-`magic=0x3155504E`、`crc=0x207156DE`，读不到模型时显示 `MODEL=BAD_MAGIC`。位流须用同一份
-`soc/soc_addr_map.vh`（DDR 版，`SOC_CPU_MEM_BRAM=0`）综合。
+### 串口输出
 
-UART 为 115200、8-N-1。上电约 0.5 秒（两颗摄像头配置完）后输出启动信息：
+UART 为 115200、8-N-1。上电约 0.5 秒（两颗摄像头配置完）后输出启动信息，最后一行
+`OUTPUT` 说明行首标记：
 
 ```text
 === Road Sign NPU Pipeline ===
 NPU_PIPELINE BOOT
-CPU CLOCK=70000000 UART=115200 TX_FPIOA=0 PRINT_BACKGROUND=1
+CPU CLOCK=70000000 UART=115200 TX_FPIOA=0 PRINT_BACKGROUND=0
 MODEL base=0xB9000000 magic=0x3155504E classes=11 bytes=62720 crc=0x207156DE reject_margin=1251
 CAM1 SCCB=OK PID=0x00005640
 CAM1_ORIENTATION=180 3820=0x00000047 3821=0x00000001 COLORBAR_503D=0x00000000
@@ -153,23 +176,107 @@ CAM2_ORIENTATION=180 3820=0x00000047 3821=0x00000001 COLORBAR_503D=0x00000000
 CAM2 CONFIG=OK VGA_RGB565 writes=255
 INT8 ctrl=0x00000001 status=0x00000020
 NPU_PIPELINE CAPTURE_STARTED
+OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead over 2nd class, unsure below 1251; summary every 5s
 ```
 
-之后每个框输出一行：
+之后每个框一行。下面是整片仿真里的原样输出（单帧和连续出帧两个场景）：
+
+```text
+??? CAM1 other sign           conf=1762 frame=1 red box=133,86,223,205
+??? CAM2 maybe other sign?    conf=405 frame=1 red box=558,287,586,312
+>>> CAM1 KEEP RIGHT           conf=2613 frame=1 blue box=346,170,430,266
+>>> CAM2 NO ENTRY             conf=2617 frame=1 red box=288,312,386,417
+??? CAM2 maybe SPEED LIMIT 40? conf=378 frame=1 red box=113,26,179,92
+>>> CAM1 SPEED LIMIT 40       conf=2964 frame=1 red box=397,176,538,342
+>>> CAM2 SPEED LIMIT 120      conf=2458 frame=1 red box=294,256,411,374
+```
+
+- 行首标记：`>>>` 认出的路标；`???` 有两种，`other sign` 是模型认为是路标、但不在下表
+  9 类里，`maybe 名称?` 是 `conf` 低于门槛、拿不准，名称为最像的一类；`...` 背景框，
+  默认不打印；`!!!` 错误或告警。
+- `CAM1`、`CAM2` 为哪一路摄像头，两路的行会交错。
+- 路标名见下表，补空格到 20 字节对齐。
+- `conf` 为最高分减第二名（16 位饱和），越大越确定。低于模型门槛 `reject_margin`（v0.3 为
+  1251，启动行和 `OUTPUT` 行里都有）算拿不准；最高分是背景的框不论 `conf` 高低都算背景。
+- `frame` 为该路 DMA 帧号；之后是前处理判定的颜色（red/yellow/blue/black）；`box` 为
+  x0,y0,x1,y1，640×480 画面坐标，含端点。每帧最多 8 个框。
+- NPU 报错的框没有路标名和 `conf`，写成
+  `!!! CAM1 NPU error 35 (model CRC) frame=1 blue box=346,170,430,266`。
+
+| 编号 | 类名 | 默认（英文） | `NPU_NAMES_GBK=1` |
+|---|---|---|---|
+| 0 | background | background | 背景 |
+| 1 | unknown | other sign | 未知标志 |
+| 2 | pne | NO ENTRY | 禁止驶入 |
+| 3 | pn | NO PARKING | 禁止停车 |
+| 4 | p11 | NO HONKING | 禁止鸣喇叭 |
+| 5 | pl40 | SPEED LIMIT 40 | 限速40 |
+| 6 | pl60 | SPEED LIMIT 60 | 限速60 |
+| 7 | pl80 | SPEED LIMIT 80 | 限速80 |
+| 8 | pl120 | SPEED LIMIT 120 | 限速120 |
+| 9 | i5 | KEEP RIGHT | 靠右侧道路行驶 |
+| 10 | w57 | WATCH PEDESTRIANS | 注意行人 |
+
+编号同 `classes.csv`。拿不准时英文写作 `maybe 名称?`，中文写作 `疑似名称`。
+
+### 汇总行
+
+每 `NPU_STAT_SECONDS` 秒（默认 5）一行，从开始采集算起。下面是整片仿真里用
+`NPU_STAT_SECONDS=1 NPU_PRINT_BACKGROUND=1` 编的镜像在连续出帧场景打出的两行（仿真里
+摄像头 0.8 秒后停发，所以第二行是 0 帧，后面跟着告警）：
+
+```text
+--- t=1s cam1 29.0fps cam2 25.0fps | last 1s: sign 12, other 0, unsure 4, bg 16, err 0 | seen SPEED LIMIT 40 x8, SPEED LIMIT 120 x4
+--- t=2s cam1 0.0fps cam2 0.0fps | last 1s: sign 11, other 0, unsure 5, bg 16, err 0 | seen SPEED LIMIT 40 x6, SPEED LIMIT 120 x5
+!!! CAM1 no frames from the sensor in 1s
+!!! CAM2 no frames from the sensor in 1s
+```
+
+- `cam1`、`cam2` 后面是这段时间摄像头送来的帧率（传感器出帧，不是处理了几帧）；摄像头
+  没起来写 `FAILED`，读不到状态写 `no-status`。
+- `last 5s:` 后面是这段时间各类结果的条数：`sign` 认出的路标（`>>>`），`other` 9 类以外
+  的路标，`unsure` 拿不准，`bg` 背景（不打印也计数），`err` 报错。串口来不及打印、只计数
+  的条数另写 `not printed N`，硬件结果队列照常弹出，不会卡住。
+- `seen` 后面是这段时间认出的各类路标及次数，只算 `>>>`。
+- 没有模型时行尾加 `| NO MODEL`。
+
+### 告警
+
+`!!!` 开头的告警跟在汇总行后面，正常时没有：
+
+- `!!! NO MODEL in DDR (magic=…)`：DDR 里没有模型，见上文「烧录」。
+- `!!! CAMn not running: OV5640 not found or config failed at boot, …`：启动时没找到
+  OV5640 或配置失败，查排线、电源后复位。
+- `!!! CAMn status snapshot timed out, count=N`：读不到摄像头状态快照。
+- `!!! CAMn no PCLK from the sensor`：传感器没有像素时钟。
+- `!!! CAMn no frames from the sensor in Ns`：有像素时钟，但这段时间一帧也没收到。
+- `!!! CAMn stuck: sensor sent N frames in Ns, none reached the buffers (…)`：摄像头在
+  出帧，但一帧也没写进缓存，即两块缓存一直被后级（前处理、INT8）占着。括号里是
+  `dma_frames`、`drop`、`ready`、`dma_code`，以及 INT8 的 `status` 和该路的 `images`
+  （已转小图数）、`usage`（缓存占用）、`failed`（失败批次）。
+- `!!! INT8 camN failed=… ddr_err=… bad_release=…`：INT8 失败批次、DDR 错误、错误释放
+  计数一变就打一次；有失败时带最后一次失败的帧号、框号和原因（1 bad descriptor、2 DDR
+  read error、3 DDR write error、4 timeout，见 `soc/Hrgb565_int8_lane.v`）。
+- `!!! NPU error register 0x…`：NPU 错误码寄存器变为非 0 时打一次。
+
+框级报错的名称按 `soc/Hnpu_cnn_engine.v` 的错误码：1 bad config，2、3、4 依次为 DDR read
+resp、DDR read id、DDR read last，5 range，0x20～0x28 依次为 model magic、model version、
+model format、model CRC、model layer、model shape、unsupported op、tensor range、model
+quant；类别号超出 0～10 时写 `bad class`。串口字符队列满时另输出
+`LOG_DROPPED=累计丢失字符数`。
+
+### 逐项格式（`NPU_VERBOSE=1`）
+
+改格式前的输出，字段更全，排查硬件时用。每个框一行：
 
 ```text
 NPU cam=1 frame=3 roi=1 result=pl40 class=5 reject=0 conf=2964 score=2076 err=0 color=red box=397,176,538,342
 ```
 
-- `cam` 为 1 或 2；`frame` 为该路 DMA 帧号；`roi` 为本帧第几个框（从 0 起，每帧最多 8 个）。
-- `class` 为 NPU 最高分类别，编号同 `classes.csv`：0 background、1 unknown、2 pne、3 pn、
-  4 p11、5 pl40、6 pl60、7 pl80、8 pl120、9 i5、10 w57。
-- `conf` 为最高分减第二名（16 位饱和）；`conf` 低于模型门槛 `reject_margin`（v0.3 为
-  1251）时 `reject=1`；`score` 为最高分原值（有符号）。
+- `roi` 为本帧第几个框（从 0 起）；`class` 为 NPU 最高分类别编号；`reject=1` 表示 `conf`
+  低于门槛；`score` 为最高分原值（有符号）；`err` 为 NPU 错误码，0 正常。
 - `result` 为最终判定：`err` 非 0 为 `error`，`reject=1` 或 `class=1` 为 `unknown`，
   `class=0` 为 `background`，其余为类别名。
-- `err` 为 NPU 错误码，0 正常；`color` 为前处理判定的颜色（red/yellow/blue/black）；
-  `box` 为 x0,y0,x1,y1，640×480 画面坐标，含端点。
 
 每秒输出四行：
 
@@ -183,11 +290,11 @@ NPU cam=1 frame=3 roi=1 result=pl40 class=5 reject=0 conf=2964 score=2076 err=0 
   `drop` 两块缓存都被占用时丢掉的帧，以及 FIFO、状态、错误标志和 ready mask；`state` 为
   `RUNNING`、`FAILED_NO_PCLK` 或 `FAILED_NO_FRAME`。
 
-字符队列满时另输出 `LOG_DROPPED=累计丢失字符数`。
+### 吞吐、帧序和 CAM2 方向
 
-NPU 每个框约 32 ms，两路合计每秒约 31～32 个框。框多时前处理占着缓存，DMA 会丢掉新帧：
-`drop` 增长，同时出现 `errors=0x00000400`、`dma_code=9`（`DMA_STICKY_NO_FREE_BUFFER`），
-这是正常丢帧，不是故障；被处理的帧结果完整，不会出现半帧。
+NPU 每个框约 32 ms，两路合计每秒约 31～32 个框。框多时前处理占着缓存，DMA 会丢掉新帧，
+这是正常丢帧，不是故障；被处理的帧结果完整，不会出现半帧。逐项格式的 `CAM1`、`CAM2` 行里
+表现为 `drop` 增长，同时出现 `errors=0x00000400`、`dma_code=9`（`DMA_STICKY_NO_FREE_BUFFER`）。
 
 已知现象：持续忙时，同一路结果的帧号偶尔倒序（仿真里出现过第 9 帧排在第 14 帧之后），每条
 结果仍对应自己那一帧。原因是 `soc/Hcamera_preprocess.v` 在两块原图都 READY 时固定先取 0 号
@@ -208,12 +315,19 @@ CAM2 方向：曝光等寄存器两颗共用 `../camera_app/ov5640_regs.c` 同�
 `CAM2_ORIENTATION=180`）；若 CAM2 实物装法和 CAM1 不同、画面反了，用 `=0` 重新构建，
 启动行显示 `CAM2_ORIENTATION=DEFAULT`。
 
-验证：整片 Verilator 仿真（`Hfpga_soc` 全芯片 + DDR3 行为模型 + SPI Flash 模型 + 两路
-OV5640 DVP 激励），从 local `_flash.bin` 上电启动，把 v0.3 金样图送进两路摄像头，串口每条
-结果与金样（`frontend_v03` 找框 + 参考模型分类）逐项比对：单帧 2 帧 5 条、每路 4 帧间隔发送
-8 帧 22 条、按真实帧率连续发送（含 DMA 丢帧）23 帧 64 条，全部一致，`failed`、`ddr_err`、
-`npu_err`、`unprinted` 均为 0。仿真不含实物曝光和布线，最终以上板为准。
+### 验证
 
-目录里的四个 `camera_stereo_npu_*` 镜像即上述仿真所用版本（仿真跑的是 local，remote 只差
-UART 引脚）。`bsp_app` 不在仓库内，构建时的 startup/init 按现有 `camera_stereo_local.bin`
-反汇编复原；用本机 `bsp_app` 重新 `make npu` 得到的镜像功能相同，字节不一定一致。
+整片 Verilator 仿真（`Hfpga_soc` 全芯片 + DDR3 行为模型 + SPI Flash 模型 + 两路
+OV5640 DVP 激励），从 local `_flash.bin` 上电启动，把 v0.3 金样图送进两路摄像头，串口每条
+结果与金样（`frontend_v03` 找框 + 参考模型分类）逐项比对行首标记、路标名、`conf`、帧号、
+颜色和框：单帧 2 帧 5 个框、每路 4 帧间隔发送 8 帧 22 个框、按真实帧率连续发送（含 DMA
+丢帧）23 帧 64 个框，全部一致；NPU 结果队列出的条数与金样框数相同，三个场景都没有告警、
+没有漏打。另外核对了：`NPU_PRINT_BACKGROUND=1 NPU_STAT_SECONDS=1` 时的背景行和两行汇总
+的计数；`NPU_NAMES_GBK=1` 的中文名；只烧 16 KiB `.bin` 时每个框报
+`NPU error 35 (model CRC)`、启动时给出 `NO MODEL` 提示。`NPU_VERBOSE=1` 编出的四个镜像
+与改格式前入库的版本逐字节相同。仿真不含实物曝光和布线，最终以上板为准。
+
+目录里的四个 `camera_stereo_npu_*` 镜像即上述仿真所用版本（默认格式；仿真跑的是 local，
+remote 只差 UART 引脚）。`bsp_app` 不在仓库内，构建时的 startup/init 按现有
+`camera_stereo_local.bin` 反汇编复原；用本机 `bsp_app` 重新 `make npu` 得到的镜像功能
+相同，字节不一定一致。

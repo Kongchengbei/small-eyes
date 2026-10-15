@@ -28,9 +28,14 @@ DUMP_local_PIN := 0u
 DUMP_remote_PIN := 31u
 DUMP_SRCS := main_frame_dump.c camera_stereo.c uart_async.c ../camera_app/ov5640_regs.c
 NPU_SRCS := main_npu.c camera_stereo.c uart_async.c
-NPU_PRINT_BACKGROUND ?= 1
+# NPU_VERBOSE=1 是逐项格式（10/15 第一版），默认 0 每框一行直接写路标名
+NPU_VERBOSE ?= 0
+NPU_PRINT_BACKGROUND ?= $(NPU_VERBOSE)
+NPU_NAMES_GBK ?= 0
+NPU_STAT_SECONDS ?= 5
 NPU_CAM2_ORIENTATION_AS_CAM1 ?= 1
-NPU_DEFS := -DCAM2_ORIENTATION_AS_CAM1=$(NPU_CAM2_ORIENTATION_AS_CAM1) -DNPU_PRINT_BACKGROUND=$(NPU_PRINT_BACKGROUND)
+NPU_DEFS := -DCAM2_ORIENTATION_AS_CAM1=$(NPU_CAM2_ORIENTATION_AS_CAM1) -DNPU_PRINT_BACKGROUND=$(NPU_PRINT_BACKGROUND) \
+    -DNPU_VERBOSE=$(NPU_VERBOSE) -DNPU_NAMES_GBK=$(NPU_NAMES_GBK) -DNPU_STAT_SECONDS=$(NPU_STAT_SECONDS)
 NPU_MODEL ?= ../../temp/路标模型文件v0.3_10月10日/model.npu
 
 .PHONY: all local remote diagnostics frame-dump frame-dump-local frame-dump-remote npu npu-local npu-remote clean
