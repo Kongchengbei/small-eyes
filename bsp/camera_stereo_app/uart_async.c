@@ -73,6 +73,10 @@ void uart_async_service(void)
 
 uint32_t uart_async_dropped(void) { return log_dropped; }
 
+/* 队列剩余可写字节数（log_putc 写换行时会多占一个 \r）。 */
+uint32_t uart_async_free(void)
+{ return (log_tail + LOG_CAPACITY - log_head - 1u) % LOG_CAPACITY; }
+
 void uart_async_flush_blocking(void)
 {
     while (log_tail != log_head) {

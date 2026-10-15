@@ -10,6 +10,7 @@ void log_puthex(uint32_t value);
 void log_putdec(uint32_t value);
 void uart_async_service(void);
 uint32_t uart_async_dropped(void);
+uint32_t uart_async_free(void);
 void uart_async_flush_blocking(void);
 
 #endif

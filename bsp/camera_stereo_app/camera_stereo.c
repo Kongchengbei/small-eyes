@@ -11,6 +11,21 @@
 #error "CAM1_SENSOR_COLORBAR must be 0 or 1"
 #endif
 
+/* 1：CAM2 也按 CAM1 的方向（旋转 180°）配置；默认 0 保持原来只翻 CAM1。 */
+#ifndef CAM2_ORIENTATION_AS_CAM1
+#define CAM2_ORIENTATION_AS_CAM1 0
+#endif
+
+#if (CAM2_ORIENTATION_AS_CAM1 != 0) && (CAM2_ORIENTATION_AS_CAM1 != 1)
+#error "CAM2_ORIENTATION_AS_CAM1 must be 0 or 1"
+#endif
+
+#if CAM2_ORIENTATION_AS_CAM1
+#define CAM_ROTATED(cam) 1
+#else
+#define CAM_ROTATED(cam) ((cam)->id==1u)
+#endif
+
 #define REG(cam, off) (*(volatile uint32_t *)((cam)->base + (off)))
 #define CTRL_RESET_N SOC_CAM_SCCB_RESET_N_MASK
 #define CTRL_SCL_RELEASE SOC_CAM_SCCB_SCL_RELEASE_MASK
@@ -120,9 +135,9 @@ bool cam_configure_vga(struct camera_ctx *cam,uint16_t *failed,uint32_t *writes)
 		| bit0 | 该表没有公开说明   | 水平像素合并（binning）使能 |*/
 	//orientation_v，用于寄存器 0x3820
 	//orientation_h，用于寄存器 0x3821
-	orientation_v=(cam->id==1u)?0x47u:0x41u;
-    orientation_h=(cam->id==1u)?0x01u:0x07u;
-    if(cam->id==1u){
+	orientation_v=CAM_ROTATED(cam)?0x47u:0x41u;
+    orientation_h=CAM_ROTATED(cam)?0x01u:0x07u;
+    if(CAM_ROTATED(cam)){
         if(!write_retry(cam,0x3820u,orientation_v)){*failed=0x3820u;return false;}++*writes;
         if(!write_retry(cam,0x3821u,orientation_h)){*failed=0x3821u;return false;}++*writes;
     }
@@ -140,7 +155,11 @@ bool cam_configure_vga(struct camera_ctx *cam,uint16_t *failed,uint32_t *writes)
     if(!cam_read_reg(cam,0x503du,&value)){*failed=0x503du;return false;}
     if(value!=colorbar){*failed=0x503du;return false;}
 
+#if CAM2_ORIENTATION_AS_CAM1
+    log_puts(cam->id==1u?"CAM1_ORIENTATION=180 3820=":"CAM2_ORIENTATION=180 3820=");
+#else
     log_puts(cam->id==1u?"CAM1_ORIENTATION=180 3820=":"CAM2_ORIENTATION=DEFAULT 3820=");
+#endif
     log_puthex(orientation_v);log_puts(" 3821=");log_puthex(orientation_h);
     log_puts(" COLORBAR_503D=");log_puthex(colorbar);log_putc('\n');
     return true;

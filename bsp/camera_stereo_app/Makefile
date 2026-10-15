@@ -27,8 +27,13 @@ DIAG_cam2_remote_NAME := camera_cam2_only_remote
 DUMP_local_PIN := 0u
 DUMP_remote_PIN := 31u
 DUMP_SRCS := main_frame_dump.c camera_stereo.c uart_async.c ../camera_app/ov5640_regs.c
+NPU_SRCS := main_npu.c camera_stereo.c uart_async.c
+NPU_PRINT_BACKGROUND ?= 1
+NPU_CAM2_ORIENTATION_AS_CAM1 ?= 1
+NPU_DEFS := -DCAM2_ORIENTATION_AS_CAM1=$(NPU_CAM2_ORIENTATION_AS_CAM1) -DNPU_PRINT_BACKGROUND=$(NPU_PRINT_BACKGROUND)
+NPU_MODEL ?= ../../temp/路标模型文件v0.3_10月10日/model.npu
 
-.PHONY: all local remote diagnostics frame-dump frame-dump-local frame-dump-remote clean
+.PHONY: all local remote diagnostics frame-dump frame-dump-local frame-dump-remote npu npu-local npu-remote clean
 all: camera_stereo_local.bin camera_stereo_remote.bin camera_stereo.bin
 local: camera_stereo_local.bin
 remote: camera_stereo_remote.bin
@@ -36,6 +41,9 @@ diagnostics: $(foreach v,$(DIAG_VARIANTS),$(DIAG_$(v)_NAME).bin)
 frame-dump: frame-dump-local frame-dump-remote
 frame-dump-local: camera_frame_uart_dump_local.bin
 frame-dump-remote: camera_frame_uart_dump_remote.bin
+npu: npu-local npu-remote
+npu-local: camera_stereo_npu_local.bin camera_stereo_npu_local_flash.bin
+npu-remote: camera_stereo_npu_remote.bin camera_stereo_npu_remote_flash.bin
 
 DUMP_local_OBJS := $(patsubst %.c,$(BUILD)/dump/local/%.o,$(DUMP_SRCS)) \
 	$(BUILD)/dump/local/init.o $(BUILD)/dump/local/startup.o
@@ -134,6 +142,40 @@ $(eval $(call DIAG_VARIANT_RULES,stereo_local,0,0u))
 $(eval $(call DIAG_VARIANT_RULES,stereo_remote,0,31u))
 $(eval $(call DIAG_VARIANT_RULES,cam2_local,1,0u))
 $(eval $(call DIAG_VARIANT_RULES,cam2_remote,1,31u))
+
+define NPU_VARIANT_RULES
+NPU_$(1)_PIN := $(2)
+NPU_$(1)_SRCS := $(patsubst %.c,$(BUILD)/npu/$(1)/%.o,$(NPU_SRCS))
+NPU_$(1)_OBJS := $$(NPU_$(1)_SRCS) $(BUILD)/npu/$(1)/ov5640_regs.o $(BUILD)/npu/$(1)/init.o $(BUILD)/npu/$(1)/startup.o
+$$(NPU_$(1)_OBJS): $(BSP_SOC_HEADER)
+
+$(BUILD)/npu/$(1)/%.o: %.c $(wildcard *.h) Makefile
+	mkdir -p $$(@D)
+	$$(CC) $$(CFLAGS) -DSTEREO_UART_TX_FPIOA=$$(NPU_$(1)_PIN) $$(NPU_DEFS) -c -o $$@ $$<
+$(BUILD)/npu/$(1)/ov5640_regs.o: ../camera_app/ov5640_regs.c ../camera_app/ov5640_regs.h Makefile
+	mkdir -p $$(@D)
+	$$(CC) $$(CFLAGS) -DSTEREO_UART_TX_FPIOA=$$(NPU_$(1)_PIN) $$(NPU_DEFS) -c -o $$@ $$<
+$(BUILD)/npu/$(1)/init.o: $(BSP)/lib/startup/init.c Makefile
+	mkdir -p $$(@D)
+	$$(CC) $$(CFLAGS) -DSTEREO_UART_TX_FPIOA=$$(NPU_$(1)_PIN) -c -o $$@ $$<
+$(BUILD)/npu/$(1)/startup.o: $(BSP)/lib/startup/startup.S Makefile
+	mkdir -p $$(@D)
+	$$(CC) $$(CFLAGS) -c -o $$@ $$<
+
+camera_stereo_npu_$(1).elf: $$(NPU_$(1)_OBJS) link.lds Makefile
+	$$(CC) $$(CFLAGS) $$(NPU_$(1)_OBJS) -o $$@ $$(LDFLAGS) -Wl,-Map=camera_stereo_npu_$(1).map
+	$$(SIZE) -A $$@
+
+camera_stereo_npu_$(1).bin: camera_stereo_npu_$(1).elf
+	@set -eu; raw="$(BUILD)/camera_stereo_npu_$(1).raw.bin"; $$(OBJCOPY) -O binary $$< "$$$$raw"; bytes=$$$$(wc -c < "$$$$raw"); if [ "$$$$bytes" -eq 0 ] || [ "$$$$bytes" -gt $$(TARGET_BYTES) ] || [ $$$$((bytes % 4)) -ne 0 ]; then echo "ERROR: invalid complete camera_stereo_npu_$(1) raw image size: $$$$bytes"; exit 1; fi; echo "CAMERA_STEREO_NPU_$(1)_RAW_BYTES=$$$$bytes"; $$(OBJCOPY) -I binary -O binary --gap-fill=0 --pad-to=$$(TARGET_BYTES) "$$$$raw" $$@; test $$$$(wc -c < $$@) -eq $$(TARGET_BYTES)
+
+# 整片 Flash 镜像：[CPU 程序补到 32 KiB][model.npu]，从 Flash 0x00A00000 起整份写入。
+camera_stereo_npu_$(1)_flash.bin: camera_stereo_npu_$(1).bin $$(NPU_MODEL)
+	bash ../../scripts/make_npu_flash_image.sh $$< "$$(NPU_MODEL)" $$@
+endef
+
+$(eval $(call NPU_VARIANT_RULES,local,0u))
+$(eval $(call NPU_VARIANT_RULES,remote,31u))
 
 camera_stereo_local.bin: camera_stereo_local.elf
 	@set -eu; raw="$(BUILD)/camera_stereo_local.raw.bin"; \
