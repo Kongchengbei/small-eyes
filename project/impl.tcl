@@ -186,3 +186,58 @@ dev_map
 pnr 
 report_timing 
 gen_bit_stream 
+set_arch -family Logos2 -device PG2L200H -speedgrade -6 -package FBB676
+compile -top_module Hfpga_soc
+add_design "F:/SocFpga/soc/Hnpu_system.v"
+set_arch -family Logos2 -device PG2L200H -speedgrade -6 -package FBB676
+compile -top_module Hfpga_soc
+add_design "F:/SocFpga/soc/Hnpu_image_service.v"
+add_design "F:/SocFpga/soc/Hnpu_result_bridge.v"
+set_arch -family Logos2 -device PG2L200H -speedgrade -6 -package FBB676
+compile -top_module Hfpga_soc
+add_design "F:/SocFpga/soc/Hnpu_cnn_engine.v"
+add_design "F:/SocFpga/soc/Hnpu_result_mmio.v"
+set_arch -family Logos2 -device PG2L200H -speedgrade -6 -package FBB676
+compile -top_module Hfpga_soc
+synthesize -ads -selected_syn_tool_opt 2 
+dev_map 
+pnr 
+report_timing 
+gen_bit_stream 
+set_arch -family Logos2 -device PG2L200H -speedgrade -6 -package FBB676
+compile -top_module Hfpga_soc
+add_design "F:/SocFpga/soc/Hnpu_system.v"
+add_design "F:/SocFpga/soc/Hnpu_image_service.v"
+add_design "F:/SocFpga/soc/Hnpu_result_bridge.v"
+set_arch -family Logos2 -device PG2L200H -speedgrade -6 -package FBB676
+compile -top_module Hfpga_soc
+add_design "F:/SocFpga/soc/Hnpu_cnn_engine.v"
+add_design "F:/SocFpga/soc/Hnpu_result_mmio.v"
+set_arch -family Logos2 -device PG2L200H -speedgrade -6 -package FBB676
+compile -top_module Hfpga_soc
+synthesize -ads -selected_syn_tool_opt 2 
+dev_map 
+pnr 
+report_timing 
+gen_bit_stream 
+set_arch -family Logos2 -device PG2L200H -speedgrade -6 -package FBB676
+compile -top_module Hfpga_soc
+synthesize -ads -selected_syn_tool_opt 2 
+dev_map 
+pnr 
+report_timing 
+gen_bit_stream 
+set_arch -family Logos2 -device PG2L200H -speedgrade -6 -package FBB676
+compile -top_module Hfpga_soc
+synthesize -ads -selected_syn_tool_opt 2 
+dev_map 
+pnr 
+report_timing 
+gen_bit_stream 
+set_arch -family Logos2 -device PG2L200H -speedgrade -6 -package FBB676
+compile -top_module Hfpga_soc
+synthesize -ads -selected_syn_tool_opt 2 
+dev_map 
+pnr 
+report_timing 
+gen_bit_stream 
