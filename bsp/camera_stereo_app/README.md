@@ -145,13 +145,14 @@ magic 不对时显示 `MODEL=BAD_MAGIC`。位流须用同一份 `soc/soc_addr_ma
 
 ### 可选变量
 
-- `NPU_VERBOSE=1`：改回逐项格式（见下文「逐项格式」），编出的四个镜像与改格式前入库的
-  版本逐字节相同。默认 0。
+- `NPU_VERBOSE=1`：改回逐项格式（见下文「逐项格式」），再加 `NPU_CAM_AE_TARGET_TUNED=0`
+  编出的四个镜像与改格式前入库的版本逐字节相同。默认 0。
 - `NPU_PRINT_BACKGROUND=1`：背景框也逐条打印。默认格式下默认 0（只在汇总里计数），逐项
   格式下默认 1。
 - `NPU_NAMES_GBK=1`：路标名改用中文，GBK 编码，串口终端要按 GBK 显示。默认 0，英文。
 - `NPU_STAT_SECONDS`：汇总间隔秒数，1～30，默认 5。
 - `NPU_CAM2_ORIENTATION_AS_CAM1=0`：CAM2 保持驱动默认方向（默认 1，见下文）。
+- `NPU_CAM_AE_TARGET_TUNED=0`：两路都用基础表的自动曝光目标（默认 1，见下文）。
 - `NPU_MODEL`：模型文件，默认 `temp/路标模型文件v0.3_10月10日/model.npu`。
 
 `.o` 不跟踪命令行变量，改变量后先
@@ -170,10 +171,12 @@ CPU CLOCK=70000000 UART=115200 TX_FPIOA=0 PRINT_BACKGROUND=0
 MODEL base=0xB9000000 magic=0x3155504E classes=11 bytes=62720 crc=0x207156DE reject_margin=1251
 CAM1 SCCB=OK PID=0x00005640
 CAM1_ORIENTATION=180 3820=0x00000047 3821=0x00000001 COLORBAR_503D=0x00000000
-CAM1 CONFIG=OK VGA_RGB565 writes=255
+CAM1_AE_TARGET 3A0F=40 3A10=38 3A11=71 3A1B=40 3A1E=38 3A1F=10
+CAM1 CONFIG=OK VGA_RGB565 writes=261
 CAM2 SCCB=OK PID=0x00005640
 CAM2_ORIENTATION=180 3820=0x00000047 3821=0x00000001 COLORBAR_503D=0x00000000
-CAM2 CONFIG=OK VGA_RGB565 writes=255
+CAM2_AE_TARGET 3A0F=40 3A10=38 3A11=71 3A1B=40 3A1E=38 3A1F=10
+CAM2 CONFIG=OK VGA_RGB565 writes=261
 INT8 ctrl=0x00000001 status=0x00000020
 NPU_PIPELINE CAPTURE_STARTED
 OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead over 2nd class, unsure below 1251; summary every 5s
@@ -315,6 +318,13 @@ CAM2 方向：曝光等寄存器两颗共用 `../camera_app/ov5640_regs.c` 同�
 `CAM2_ORIENTATION=180`）；若 CAM2 实物装法和 CAM1 不同、画面反了，用 `=0` 重新构建，
 启动行显示 `CAM2_ORIENTATION=DEFAULT`。
 
+自动曝光目标：基础表里 `0x3A0F/0x3A10/0x3A11/0x3A1B/0x3A1E/0x3A1F` 是
+30/28/60/30/26/14。全流程固件默认 `NPU_CAM_AE_TARGET_TUNED=1`，两路在基础表之后都改写成
+zzx 给 CAM1 调过的 40/38/71/40/38/10（`camera_stereo.c` 的 `ae_target_regs`），每个写完
+回读，读不出或不一致就报 `CONFIG=FAILED REG=` 加该寄存器地址；启动行 `CAMn_AE_TARGET`
+打出写入值，`writes` 比只写基础表多 6。用 `=0` 重新构建则两路都用基础表、不打这一行。
+其它固件（`all`、`diagnostics`、`frame-dump`）不受影响。
+
 ### 验证
 
 整片 Verilator 仿真（`Hfpga_soc` 全芯片 + DDR3 行为模型 + SPI Flash 模型 + 两路
@@ -324,8 +334,10 @@ OV5640 DVP 激励），从 local `_flash.bin` 上电启动，把 v0.3 金样图�
 丢帧）23 帧 64 个框，全部一致；NPU 结果队列出的条数与金样框数相同，三个场景都没有告警、
 没有漏打。另外核对了：`NPU_PRINT_BACKGROUND=1 NPU_STAT_SECONDS=1` 时的背景行和两行汇总
 的计数；`NPU_NAMES_GBK=1` 的中文名；只烧 16 KiB `.bin` 时每个框报
-`NPU error 35 (model CRC)`、启动时给出 `NO MODEL` 提示。`NPU_VERBOSE=1` 编出的四个镜像
-与改格式前入库的版本逐字节相同。仿真不含实物曝光和布线，最终以上板为准。
+`NPU error 35 (model CRC)`、启动时给出 `NO MODEL` 提示。`NPU_VERBOSE=1
+NPU_CAM_AE_TARGET_TUNED=0` 编出的四个镜像与改格式前入库的版本逐字节相同。加自动曝光目标后
+三个场景重跑，结果同上，两路启动行 `CAMn_AE_TARGET` 的值和 `CONFIG=OK writes=261` 都对。
+仿真不含实物曝光和布线，最终以上板为准。
 
 目录里的四个 `camera_stereo_npu_*` 镜像即上述仿真所用版本（默认格式；仿真跑的是 local，
 remote 只差 UART 引脚）。`bsp_app` 不在仓库内，构建时的 startup/init 按现有

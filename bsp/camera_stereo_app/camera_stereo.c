@@ -26,6 +26,15 @@
 #define CAM_ROTATED(cam) ((cam)->id==1u)
 #endif
 
+/* 1：两路都改写成 zzx 给 CAM1 调过的自动曝光目标（ae_target_regs）；默认 0 保持基础表。 */
+#ifndef CAM_AE_TARGET_TUNED
+#define CAM_AE_TARGET_TUNED 0
+#endif
+
+#if (CAM_AE_TARGET_TUNED != 0) && (CAM_AE_TARGET_TUNED != 1)
+#error "CAM_AE_TARGET_TUNED must be 0 or 1"
+#endif
+
 #define REG(cam, off) (*(volatile uint32_t *)((cam)->base + (off)))
 #define CTRL_RESET_N SOC_CAM_SCCB_RESET_N_MASK
 #define CTRL_SCL_RELEASE SOC_CAM_SCCB_SCL_RELEASE_MASK
@@ -49,8 +58,20 @@ static const struct verify_reg verify_regs[] = {
     {0x4740u,0x20u,0x23u},{0x4300u,0x61u,0xffu},
     {0x501fu,0x01u,0x07u}
 };
+#if CAM_AE_TARGET_TUNED
+/* 自动曝光目标：用 zzx 给 CAM1 调过的值（旧的 CAM1 单帧导出镜像），两路都写；
+   基础表 ov5640_regs.c 里是 30/28/60/30/26/14。 */
+static const struct ov5640_reg ae_target_regs[] = {
+    {0x3a0fu,0x40u},{0x3a10u,0x38u},{0x3a11u,0x71u},
+    {0x3a1bu,0x40u},{0x3a1eu,0x38u},{0x3a1fu,0x10u}
+};
+#endif
 
 static void write_ctrl(struct camera_ctx *cam) { REG(cam, SOC_CAM_SCCB_CONTROL_OFFSET) = cam->ctrl_shadow; }
+#if CAM_AE_TARGET_TUNED
+static void log_hex_digits(uint32_t value,uint32_t digits)
+{ static const char hex[]="0123456789ABCDEF"; while(digits--!=0u)log_putc(hex[(value>>(digits*4u))&15u]); }
+#endif
 static void delay_bus(void) { volatile uint32_t i; for (i=0u;i<16u;++i) __asm__ volatile("nop"); }
 void cam_delay_ms(uint32_t ms) { uint32_t i; for(i=0u;i<ms*900u;++i) delay_bus(); }
 
@@ -123,6 +144,13 @@ bool cam_configure_vga(struct camera_ctx *cam,uint16_t *failed,uint32_t *writes)
         if(!cam_read_reg(cam,verify_regs[i].address,&value)){*failed=verify_regs[i].address;return false;}
         if((value&verify_regs[i].mask)!=(verify_regs[i].expected&verify_regs[i].mask)){*failed=verify_regs[i].address;return false;}
     }
+#if CAM_AE_TARGET_TUNED
+    for(i=0u;i<sizeof(ae_target_regs)/sizeof(ae_target_regs[0]);++i){
+        if(!write_retry(cam,ae_target_regs[i].address,ae_target_regs[i].value)){*failed=ae_target_regs[i].address;return false;}++*writes;
+        if(!cam_read_reg(cam,ae_target_regs[i].address,&value)){*failed=ae_target_regs[i].address;return false;}
+        if(value!=ae_target_regs[i].value){*failed=ae_target_regs[i].address;return false;}
+    }
+#endif
 	/*	|  位  | 0x3820 的意义      | 0x3821 的意义 |
 		|------|--------------------|--------------|
 		| bit7 | 调试模式位         | 调试模式位     |
@@ -162,6 +190,14 @@ bool cam_configure_vga(struct camera_ctx *cam,uint16_t *failed,uint32_t *writes)
 #endif
     log_puthex(orientation_v);log_puts(" 3821=");log_puthex(orientation_h);
     log_puts(" COLORBAR_503D=");log_puthex(colorbar);log_putc('\n');
+#if CAM_AE_TARGET_TUNED
+    log_puts(cam->id==1u?"CAM1_AE_TARGET":"CAM2_AE_TARGET");
+    for(i=0u;i<sizeof(ae_target_regs)/sizeof(ae_target_regs[0]);++i){
+        log_putc(' ');log_hex_digits(ae_target_regs[i].address,4u);
+        log_putc('=');log_hex_digits(ae_target_regs[i].value,2u);
+    }
+    log_putc('\n');
+#endif
     return true;
 }
 
