@@ -28,6 +28,11 @@ module Hmemu (
     output wire [31:0] mem_wb_data,
     output wire        mem_forward_valid,
     output wire        mem_load_wait,
+    // 给 ID 级分支/JALR 用的纯寄存器前递：只有已锁存的非 load 结果，
+    // 不经过 DCache 返回的数据
+    output wire        mem_load_valid,
+    output wire        mem_alu_forward_valid,
+    output wire [31:0] mem_alu_forward_data,
     // 调试观测：MEM 级 valid/完成条件
     output wire        dbg_mem_valid,
     output wire        dbg_mem_ready_go,
@@ -87,6 +92,11 @@ module Hmemu (
 	// at every cache miss.  Non-load results remain immediately available.
     assign mem_forward_valid = mem_valid && mem_reg_wen &&
                                (mem_rd_addr != 5'd0) && mem_ready_go;
+
+    assign mem_load_valid        = mem_valid && mem_is_load;
+    assign mem_alu_forward_valid = mem_valid && mem_reg_wen &&
+                                   (mem_rd_addr != 5'd0) && !mem_is_load;
+    assign mem_alu_forward_data  = mem_ex_wb_value;
 
     always @(posedge clk) begin
         if (rst) begin

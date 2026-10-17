@@ -63,7 +63,10 @@ module Hifu #(
 	wire [1:0] fetch_occupancy = {1'b0, if_valid} + {1'b0, skid_valid} + {1'b0, fetch_pending};
 	wire fetch_pop = if_valid && id_allowin;
 	wire fetch_room = (fetch_occupancy - fetch_pop) < 2;
-	assign imem_addr         = flush ? redirect_pc :
+	// 非连续取指（DDR 版）冲刷当拍 imem_req_valid 为 0，跳转地址下一拍由
+	// forced_fetch_pc 发出，这一拍的取指地址没人用，所以只在连续取指时选
+	// redirect_pc，免得冲刷信号再拖到 ICache 的 RAM 地址上
+	assign imem_addr         = (CONTINUOUS_FETCH && flush) ? redirect_pc :
 	                             force_fetch ? forced_fetch_pc :
 	                             if_predict_next_pc;
 	assign imem_req_valid    = CONTINUOUS_FETCH ? (flush || fetch_room) :

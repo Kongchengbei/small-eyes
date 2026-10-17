@@ -13,6 +13,7 @@ module Hidu #(
     input             ex_valid,
     input             ex_is_load,
     input      [4:0]  ex_rd_addr,
+    input             ex_reg_wen,
     input             ex_forward_valid,
     input      [4:0]  ex_forward_rd_addr,
     input      [31:0] ex_forward_data,
@@ -20,6 +21,9 @@ module Hidu #(
     input             mem_load_wait,
     input      [4:0]  mem_forward_rd_addr,
     input      [31:0] mem_forward_data,
+    input             mem_load_valid,
+    input             mem_alu_forward_valid,
+    input      [31:0] mem_alu_forward_data,
     input             ex_allowin,
     input             flush,
 	//wb的写回
@@ -273,6 +277,21 @@ module Hidu #(
         (id_rs2_addr != 5'd0 && mem_forward_valid &&
          (mem_forward_rd_addr == id_rs2_addr)) ? mem_forward_data : id_rs2_data;
 
+    // DDR 版分支和 JALR 在 ID 级算跳转、决定冲刷取指。这里的操作数要是再接
+    // EX 的 ALU 结果或 DCache 刚返回的 load 数据，一路连到 ICache 地址，
+    // cpu_clk 70 MHz 收不住。所以只从寄存器取：MEM 级已锁存的非 load 结果，
+    // 或寄存器堆（含 WB 写穿）。依赖还在 EX 的指令或 MEM 里的 load 时多停，
+    // 等它往后走一级再取（见下面 br_operand_stall）。BRAM 版不变。
+    wire id_br_consumer = !BRAM_MODE && (id_is_branch || id_is_jalr);
+
+    wire [31:0] id_br_src1 = BRAM_MODE ? id_src1 :
+        (id_rs1_addr != 5'd0 && mem_alu_forward_valid &&
+         (mem_forward_rd_addr == id_rs1_addr)) ? mem_alu_forward_data : id_rs1_data;
+
+    wire [31:0] id_br_src2 = BRAM_MODE ? id_src2 :
+        (id_rs2_addr != 5'd0 && mem_alu_forward_valid &&
+         (mem_forward_rd_addr == id_rs2_addr)) ? mem_alu_forward_data : id_rs2_data;
+
     // Branches and JALR still consume operands in ID. Other EX consumers
     // may carry an immediately preceding load dependency into EX in BRAM mode.
     wire id_mem_forward_consumer = BRAM_MODE &&
@@ -290,12 +309,12 @@ module Hidu #(
     assign id_mem_pending_rd_addr = (id_src1_mem_pending || id_src2_mem_pending) ?
                                     ex_rd_addr : 5'b0;
 
-    wire branch_taken = id_is_beq ? (id_src1 == id_src2) :
-                        id_is_bne ? (id_src1 != id_src2) :
-                        (id_is_bge  && ($signed(id_src1) >= $signed(id_src2))) ||
-                        (id_is_bgeu && (        id_src1  >=         id_src2))  ||
-                        (id_is_blt  && ($signed(id_src1) < $signed(id_src2)))  ||
-                        (id_is_bltu && (id_src1 < id_src2));
+    wire branch_taken = id_is_beq ? (id_br_src1 == id_br_src2) :
+                        id_is_bne ? (id_br_src1 != id_br_src2) :
+                        (id_is_bge  && ($signed(id_br_src1) >= $signed(id_br_src2))) ||
+                        (id_is_bgeu && (        id_br_src1  >=         id_br_src2))  ||
+                        (id_is_blt  && ($signed(id_br_src1) < $signed(id_br_src2)))  ||
+                        (id_is_bltu && (id_br_src1 < id_br_src2));
 	//阻塞
     wire id_ex_load_match_rs1 = ex_valid && ex_is_load && (ex_rd_addr != 5'd0) &&
                                 id_uses_rs1 && (id_rs1_addr == ex_rd_addr);
@@ -312,7 +331,19 @@ module Hidu #(
                            (id_uses_rs2 && !id_ex_load_match_rs2 &&
                             (id_rs2_addr == mem_forward_rd_addr)));
 
-    wire id_stall = id_valid && (ex_load_stall || mem_load_stall);
+    // DDR 版分支/JALR：依赖还在 EX 的任何写寄存器指令，或 MEM 里的 load（不论
+    // 数据回没回来），都先停住
+    wire br_ex_match_rs1 = ex_valid && ex_reg_wen && (ex_rd_addr != 5'd0) &&
+                           id_uses_rs1 && (id_rs1_addr == ex_rd_addr);
+    wire br_ex_match_rs2 = ex_valid && ex_reg_wen && (ex_rd_addr != 5'd0) &&
+                           id_uses_rs2 && (id_rs2_addr == ex_rd_addr);
+    wire br_mem_load_match = mem_load_valid && (mem_forward_rd_addr != 5'd0) &&
+                             ((id_uses_rs1 && (id_rs1_addr == mem_forward_rd_addr)) ||
+                              (id_uses_rs2 && (id_rs2_addr == mem_forward_rd_addr)));
+    wire br_operand_stall = id_br_consumer &&
+                            (br_ex_match_rs1 || br_ex_match_rs2 || br_mem_load_match);
+
+    wire id_stall = id_valid && (ex_load_stall || mem_load_stall || br_operand_stall);
 
 	//控制信号
     wire   id_ready_go      = !id_stall;
@@ -325,7 +356,7 @@ module Hidu #(
 
     wire id_fire  = id_valid && id_ready_go && ex_allowin;//已经正确，ID具备向下执行的条件
     assign id_flush_req =  mispredict;//(id_fire &&(id_is_jal || id_is_jalr ||(id_is_branch && branch_taken))) || mispredict;
-    assign id_redirect_pc = id_is_jalr ? ((id_src1 + id_imm) & ~32'd1) :
+    assign id_redirect_pc = id_is_jalr ? ((id_br_src1 + id_imm) & ~32'd1) :
                                          (id_pc_reg + id_imm);
 
 	assign id_ins = id_ins_reg;

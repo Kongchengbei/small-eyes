@@ -168,6 +168,9 @@ module Htop #(
     wire [31:0] mem_wb_data;
     wire        mem_forward_valid;
     wire        mem_load_wait;
+    wire        mem_load_valid;
+    wire        mem_alu_forward_valid;
+    wire [31:0] mem_alu_forward_data;
 
     wire [31:0] wb_pc;
     wire [31:0] wb_ins;
@@ -422,6 +425,7 @@ module Htop #(
         .ex_valid           (ex_valid),
         .ex_is_load         (ex_is_load),
         .ex_rd_addr         (ex_rd_addr),
+        .ex_reg_wen         (ex_reg_wen),
         .ex_forward_valid   (ex_forward_valid),
         .ex_forward_rd_addr (ex_forward_rd_addr),
         .ex_forward_data    (ex_forward_data),
@@ -429,6 +433,9 @@ module Htop #(
         .mem_load_wait      (mem_load_wait),
         .mem_forward_rd_addr(mem_rd_addr),
         .mem_forward_data   (mem_wb_data),
+        .mem_load_valid     (mem_load_valid),
+        .mem_alu_forward_valid(mem_alu_forward_valid),
+        .mem_alu_forward_data (mem_alu_forward_data),
         .ex_allowin         (ex_allowin),
         .flush              (flush),
         .wb_reg_wen         (wb_reg_wen),
@@ -614,6 +621,9 @@ module Htop #(
         .mem_wb_data      (mem_wb_data),
         .mem_forward_valid(mem_forward_valid),
         .mem_load_wait     (mem_load_wait),
+        .mem_load_valid    (mem_load_valid),
+        .mem_alu_forward_valid(mem_alu_forward_valid),
+        .mem_alu_forward_data (mem_alu_forward_data),
         .dbg_mem_valid    (dbg_mem_valid),
         .dbg_mem_ready_go (dbg_mem_ready_go)
     );
