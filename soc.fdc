@@ -34,10 +34,14 @@ set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks 
 # GPLL 1:1 出 ddr_core_clk（125 MHz）。前处理、INT8 通道、NPU、相机 DMA 都跑在这个时钟上。
 # 原来没约束，工具按默认 1000 ns 分析；10/9 的时序报告估出这个时钟只能跑 113 MHz。
 # 写法照 IP 自带的 pnr/ddr_test.fdc。
-# PHY 里两组 DQ 的 1 GHz 高速时钟和它 8 分频出来的 125 MHz 时钟（相位晚 2 ns）仍由工具自己推。10/17 照厂家约束
-# 补过这几路（ddr_core_clk 到分频时钟按两拍查、两个方向加 0.4 ns 不确定度、异步声明），PDS 布线没过，先退回
-# 10/16 能布通的写法。所以报告里 ddr_core_clk 到分频时钟的 616 个端点按 2 ns 查会红、到 PHY 时钟的 recovery
-# 也红，跟 10/16 一样；照厂家约束这些路径本该按两拍查，不算这次要收的时序。
+# PHY 里两组 DQ 各有一路 1 GHz 高速时钟（phy_dq_clk_N）和它 8 分频出来的 125 MHz 时钟（phy_dq_sysclk_N，
+# 相位晚 2 ns）。PDS 读完这份约束才自己推这几路，约束里引用不到它推出来的名字，所以这里自己定义，
+# 四条照抄 10/16 PDS 自己推时钟时执行的命令，引脚、波形一模一样。
+# ddr_core_clk 到分频时钟的 616 个端点照厂家约束按两拍查：setup 放到 10 ns（按 10/16 的布局估余量约 +2.1、
+# +3.2 ns），hold 跟着挪到 +2 ns、不另放宽（10/16 的布局最紧一条在快角差 0.08 ns，靠布线器的 hold 修复补）。
+# 10/17 照厂家还加过 0.4 ns 不确定度和异步分组，PDS 布线没过，这次都不加，分组行跟 10/16 一样。所以到 PHY
+# 时钟的 recovery（从 ddr_core_clk、ddr_rst_clk 出发共 244 个端点）照旧会红，厂家是把 rst_clk 和 1 GHz 时钟
+# 各放一个异步组不查的。
 # clk_p 和板上 27 MHz 的 clk 是两颗晶振。跨域路径跟原来一样按异步处理（原来工具把推出来的时钟各放一个异步组），
 # ddr_core_clk 自己域内按 8 ns 查。
 # 下面这块由 menuconfig 按模式生成（模板在 scripts/soc_config.c）：DDR 模式写全，BRAM 模式没有 DDR 控制器，块里留空。
@@ -55,6 +59,32 @@ create_generated_clock -name ddr_rst_clk \
     -multiply_by 16 \
     -divide_by 16 \
     [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/rst_clk_gpll/u_gpll:CLKOUT0}]
+create_generated_clock -name phy_dq_clk_0 \
+    -source [get_ports {clk_p}] \
+    -master_clock ddr_ref_clk \
+    -edges {1 2 3} \
+    -edge_shift {0.000 -3.500 -7.000} \
+    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].ddrphy_ppll/u_ppll:CLKOUTPHY}]
+create_generated_clock -name phy_dq_sysclk_0 \
+    -source [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].ddrphy_ppll/u_ppll:CLKOUTPHY}] \
+    -master_clock phy_dq_clk_0 \
+    -edges {1 2 3} \
+    -edge_shift {2.000 5.500 9.000} \
+    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].u_ddrphy_ioclkdiv:CLKDIVOUT}]
+create_generated_clock -name phy_dq_clk_1 \
+    -source [get_ports {clk_p}] \
+    -master_clock ddr_ref_clk \
+    -edges {1 2 3} \
+    -edge_shift {0.000 -3.500 -7.000} \
+    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll:CLKOUTPHY}]
+create_generated_clock -name phy_dq_sysclk_1 \
+    -source [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll:CLKOUTPHY}] \
+    -master_clock phy_dq_clk_1 \
+    -edges {1 2 3} \
+    -edge_shift {2.000 5.500 9.000} \
+    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].u_ddrphy_ioclkdiv:CLKDIVOUT}]
+set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_0}]
+set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_1}]
 set_clock_groups -asynchronous -group [get_clocks {ddr_ref_clk ddr_core_clk}] -group [get_clocks {ddr_rst_clk}] -group [get_clocks {clk cpu_clk}] -group [get_clocks {JTAG_CLK}] -group [get_clocks {CAM1_PCLK}] -group [get_clocks {CAM2_PCLK}]
 # END SOC_DDR_CLOCK
 
