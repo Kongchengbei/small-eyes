@@ -917,8 +917,57 @@ static const char *ddr_profile_io_ports[] = {
     "mem_ck", "mem_ck_n"
 };
 
+/* DDR profile clocks, written as in the DDR IP's pnr/ddr_test.fdc. The BRAM
+ * profile has no DDR controller, so its SOC_DDR_CLOCK block is left empty. */
+static const char ddr_clock_block[] =
+    "create_clock -period {8.000} [get_ports {clk_p}] -name ddr_ref_clk\n"
+    "create_generated_clock -name ddr_core_clk \\\n"
+    "    -source [get_ports {clk_p}] \\\n"
+    "    -master_clock ddr_ref_clk \\\n"
+    "    -multiply_by 16 \\\n"
+    "    -divide_by 16 \\\n"
+    "    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_gpll/u_gpll:CLKOUT0}]\n"
+    "create_generated_clock -name ddr_rst_clk \\\n"
+    "    -source [get_ports {clk_p}] \\\n"
+    "    -master_clock ddr_ref_clk \\\n"
+    "    -multiply_by 16 \\\n"
+    "    -divide_by 16 \\\n"
+    "    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/rst_clk_gpll/u_gpll:CLKOUT0}]\n"
+    "create_generated_clock -name phy_dq_clk_0 \\\n"
+    "    -source [get_ports {clk_p}] \\\n"
+    "    -master_clock ddr_ref_clk \\\n"
+    "    -multiply_by 16 \\\n"
+    "    -divide_by 2 \\\n"
+    "    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].ddrphy_ppll/u_ppll:CLKOUTPHY}]\n"
+    "create_generated_clock -name phy_dq_sysclk_0 \\\n"
+    "    -source [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].ddrphy_ppll/u_ppll:CLKOUTPHY}] \\\n"
+    "    -master_clock phy_dq_clk_0 \\\n"
+    "    -edges {5 13 21} \\\n"
+    "    -edge_shift {0 0 0} \\\n"
+    "    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].u_ddrphy_ioclkdiv:CLKDIVOUT}]\n"
+    "create_generated_clock -name phy_dq_clk_1 \\\n"
+    "    -source [get_ports {clk_p}] \\\n"
+    "    -master_clock ddr_ref_clk \\\n"
+    "    -multiply_by 16 \\\n"
+    "    -divide_by 2 \\\n"
+    "    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll:CLKOUTPHY}]\n"
+    "create_generated_clock -name phy_dq_sysclk_1 \\\n"
+    "    -source [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll:CLKOUTPHY}] \\\n"
+    "    -master_clock phy_dq_clk_1 \\\n"
+    "    -edges {5 13 21} \\\n"
+    "    -edge_shift {0 0 0} \\\n"
+    "    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].u_ddrphy_ioclkdiv:CLKDIVOUT}]\n"
+    "set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_0}]\n"
+    "set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_1}]\n"
+    "set_clock_uncertainty {0.4} -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_0}] -setup -hold\n"
+    "set_clock_uncertainty {0.4} -from [get_clocks {phy_dq_sysclk_0}] -to [get_clocks {ddr_core_clk}] -setup -hold\n"
+    "set_clock_uncertainty {0.4} -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_1}] -setup -hold\n"
+    "set_clock_uncertainty {0.4} -from [get_clocks {phy_dq_sysclk_1}] -to [get_clocks {ddr_core_clk}] -setup -hold\n"
+    "set_clock_groups -asynchronous -group [get_clocks {ddr_ref_clk ddr_core_clk phy_dq_sysclk_0 phy_dq_sysclk_1}] -group [get_clocks {ddr_rst_clk}] -group [get_clocks {phy_dq_clk_0}] -group [get_clocks {phy_dq_clk_1}] -group [get_clocks {clk cpu_clk}] -group [get_clocks {JTAG_CLK}] -group [get_clocks {CAM1_PCLK}] -group [get_clocks {CAM2_PCLK}]\n";
+
 /* Generate scopes use '.', module instance scopes use '/' in PDS compile
- * names. Update owned CPU/JTAG blocks and only the ten listed DDR IO standards.
+ * names. Update owned CPU/JTAG/DDR clock blocks and only the ten listed DDR IO
+ * standards.
  * BRAM has ordinary static/tri-state buffers, not DDR PHY differential buffers.
  * Keep LOC, VCCIO (1.5 V), drive, slew, input clocks and other constraints intact. */
 static char *render_fdc(const char *text, uint64_t hz, bool bram) {
@@ -935,6 +984,14 @@ static char *render_fdc(const char *text, uint64_t hz, bool bram) {
         strstr(jend + 1, jend_mark) || !(jend < begin || end < jbegin)) {
         fprintf(stderr, "soc_config: FDC needs one separate BEGIN/END SOC_JTAG_ROUTE block\n"); return NULL;
     }
+    const char *dbegin_mark = "# BEGIN SOC_DDR_CLOCK";
+    const char *dend_mark = "# END SOC_DDR_CLOCK";
+    const char *dbegin = strstr(text, dbegin_mark), *dend = strstr(text, dend_mark);
+    if (!dbegin || !dend || dend <= dbegin || strstr(dbegin + 1, dbegin_mark) ||
+        strstr(dend + 1, dend_mark) || (dbegin > text && dbegin[-1] != '\n') || dend[-1] != '\n' ||
+        !(dend < begin || end < dbegin) || !(dend < jbegin || jend < dbegin)) {
+        fprintf(stderr, "soc_config: FDC needs one separate BEGIN/END SOC_DDR_CLOCK block\n"); return NULL;
+    }
     const char *pll_pin = bram ? "g_bram_profile.u_bram_profile/u_pll/u_gpll:CLKOUT0"
                                : "g_ddr_profile.u_pll/u_gpll:CLKOUT0";
     const char *jtag_net = bram ? "g_bram_profile.u_bram_profile/JTAG_TCK_in"
@@ -942,12 +999,17 @@ static char *render_fdc(const char *text, uint64_t hz, bool bram) {
     const char *ddr_io_standard = bram ? "HSTL15_I" : "HSTL15D_I";
     unsigned io_seen[sizeof(ddr_profile_io_ports) / sizeof(ddr_profile_io_ports[0])] = {0};
     uint64_t divisor = gcd_u64(hz, 27000000);
-    size_t cap = strlen(text) + 512, len = 0;
+    size_t cap = strlen(text) + 512 + sizeof(ddr_clock_block), len = 0;
     char *out = malloc(cap); if (!out) return NULL;
     unsigned multiply = 0, divide = 0, clock = 0, pin = 0, route = 0;
     const char *p = text;
     while (*p) {
         const char *e = strchr(p, '\n'); size_t n = e ? (size_t)(e - p) + 1 : strlen(p);
+        if (p > dbegin && p < dend) { p += n; continue; }
+        if (p == dend && !bram) {
+            memcpy(out + len, ddr_clock_block, sizeof(ddr_clock_block) - 1);
+            len += sizeof(ddr_clock_block) - 1;
+        }
         if (p > begin && p < end) {
             const char *t = p; while (*t == ' ' || *t == '\t') ++t;
             const char *key = NULL; uint64_t value = 0;

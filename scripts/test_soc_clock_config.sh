@@ -38,21 +38,23 @@ check_config() {
     cmp "$OUT/soc_defs.h" "$TEST_DIR/bsp/soc_defs.h" || return 1
     # All unrelated constraints, including every LOC/VCCIO/direction/drive/slew
     # line, must remain byte-identical across profiles.
-    sed '/# BEGIN SOC_CPU_CLOCK/,/# END SOC_CPU_CLOCK/d; /# BEGIN SOC_JTAG_ROUTE/,/# END SOC_JTAG_ROUTE/d' \
+    sed '/# BEGIN SOC_CPU_CLOCK/,/# END SOC_CPU_CLOCK/d; /# BEGIN SOC_JTAG_ROUTE/,/# END SOC_JTAG_ROUTE/d; /# BEGIN SOC_DDR_CLOCK/,/# END SOC_DDR_CLOCK/d' \
         "$ROOT/soc.fdc" | awk '/^define_attribute \{p:mem_(dqs(_n)?\[[0-3]\]|ck(_n)?)\} \{PAP_IO_STANDARD\}/ {next} {print}' > "$TEST_DIR/other.original"
-    sed '/# BEGIN SOC_CPU_CLOCK/,/# END SOC_CPU_CLOCK/d; /# BEGIN SOC_JTAG_ROUTE/,/# END SOC_JTAG_ROUTE/d' \
+    sed '/# BEGIN SOC_CPU_CLOCK/,/# END SOC_CPU_CLOCK/d; /# BEGIN SOC_JTAG_ROUTE/,/# END SOC_JTAG_ROUTE/d; /# BEGIN SOC_DDR_CLOCK/,/# END SOC_DDR_CLOCK/d' \
         "$FDC" | awk '/^define_attribute \{p:mem_(dqs(_n)?\[[0-3]\]|ck(_n)?)\} \{PAP_IO_STANDARD\}/ {next} {print}' > "$TEST_DIR/other.current"
     cmp "$TEST_DIR/other.original" "$TEST_DIR/other.current"
 }
 check_paths() {
     case "$1" in
-        full) pll='g_ddr_profile.u_pll/u_gpll:CLKOUT0'; net='g_ddr_profile.JTAG_TCK_in'; absent='g_bram_profile'; standard=HSTL15D_I ;;
-        bram) pll='g_bram_profile.u_bram_profile/u_pll/u_gpll:CLKOUT0'; net='g_bram_profile.u_bram_profile/JTAG_TCK_in'; absent='g_ddr_profile'; standard=HSTL15_I ;;
+        full) pll='g_ddr_profile.u_pll/u_gpll:CLKOUT0'; net='g_ddr_profile.JTAG_TCK_in'; absent='g_bram_profile'; standard=HSTL15D_I; ddr_clocks=7 ;;
+        bram) pll='g_bram_profile.u_bram_profile/u_pll/u_gpll:CLKOUT0'; net='g_bram_profile.u_bram_profile/JTAG_TCK_in'; absent='g_ddr_profile'; standard=HSTL15_I; ddr_clocks=0 ;;
     esac
     rg -Fqx "    [get_pins {$pll}]" "$FDC"
     rg -Fqx "define_attribute {n:$net} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}" "$FDC"
     if rg -Fq "$absent" "$FDC"; then echo 'FAIL constraints for inactive profile' >&2; exit 1; fi
     test "$(rg -c "^define_attribute \{p:mem_(dqs(_n)?\[[0-3]\]|ck(_n)?)\} \{PAP_IO_STANDARD\} \{$standard\}$" "$FDC")" -eq 10
+    # DDR reference/core/reset/PHY clocks exist only when the DDR controller does.
+    test "$(rg -c '^create_(generated_)?clock .*-name (ddr|phy_dq)_' "$FDC" || echo 0)" -eq "$ddr_clocks"
     # Disabled reference input constraints and the existing data/control IO
     # standards must not be changed by the narrowly scoped profile adaptation.
     rg -Fqx 'define_attribute {p:clk_p} {PAP_IO_STANDARD} {HSTL15D_I}' "$FDC"
@@ -118,12 +120,15 @@ cmp "$TEST_DIR/before.sha" "$TEST_DIR/after.sha"
 printf '%s\n' '# no managed clock block' > "$TEST_DIR/bad.fdc"
 if "$TOOL" apply --source "$SOURCE" --config "$CONFIG" --output-dir "$OUT" \
     --fdc "$TEST_DIR/bad.fdc" --bsp-output-dir "$TEST_DIR/bsp" > /dev/null 2>&1; then exit 1; fi
-# Missing/duplicated JTAG ownership markers, missing/duplicated endpoint or
+# Missing/duplicated JTAG/DDR ownership markers, missing/duplicated endpoint or
 # route commands and overlapping blocks must fail without any partial write.
-for bad in jtag_missing jtag_duplicate pin_missing pin_duplicate route_missing route_duplicate overlap io_missing io_duplicate io_invalid; do
+for bad in jtag_missing jtag_duplicate ddr_missing ddr_duplicate ddr_overlap pin_missing pin_duplicate route_missing route_duplicate overlap io_missing io_duplicate io_invalid; do
     case "$bad" in
         jtag_missing) sed '/# BEGIN SOC_JTAG_ROUTE/d' "$FDC" ;;
         jtag_duplicate) sed '/# BEGIN SOC_JTAG_ROUTE/p' "$FDC" ;;
+        ddr_missing) sed '/# END SOC_DDR_CLOCK/d' "$FDC" ;;
+        ddr_duplicate) sed '/# BEGIN SOC_DDR_CLOCK/p' "$FDC" ;;
+        ddr_overlap) awk '/# END SOC_CPU_CLOCK/ {next} {print} /# END SOC_DDR_CLOCK/ {print "# END SOC_CPU_CLOCK"}' "$FDC" ;;
         pin_missing) sed '/\[get_pins {/d' "$FDC" ;;
         pin_duplicate) sed '/\[get_pins {/p' "$FDC" ;;
         route_missing) sed '/^define_attribute {n:/d' "$FDC" ;;
