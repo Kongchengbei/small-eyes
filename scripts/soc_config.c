@@ -917,8 +917,11 @@ static const char *ddr_profile_io_ports[] = {
     "mem_ck", "mem_ck_n"
 };
 
-/* DDR profile clocks, written as in the DDR IP's pnr/ddr_test.fdc. The BRAM
- * profile has no DDR controller, so its SOC_DDR_CLOCK block is left empty. */
+/* DDR profile clocks, written as in the DDR IP's pnr/ddr_test.fdc. The DQ PHY
+ * clocks stay inferred by the tool: with the vendor's PHY clocks, two-cycle
+ * path and uncertainty added, PDS place & route did not complete (10/17).
+ * The BRAM profile has no DDR controller, so its SOC_DDR_CLOCK block is left
+ * empty. */
 static const char ddr_clock_block[] =
     "create_clock -period {8.000} [get_ports {clk_p}] -name ddr_ref_clk\n"
     "create_generated_clock -name ddr_core_clk \\\n"
@@ -933,37 +936,7 @@ static const char ddr_clock_block[] =
     "    -multiply_by 16 \\\n"
     "    -divide_by 16 \\\n"
     "    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/rst_clk_gpll/u_gpll:CLKOUT0}]\n"
-    "create_generated_clock -name phy_dq_clk_0 \\\n"
-    "    -source [get_ports {clk_p}] \\\n"
-    "    -master_clock ddr_ref_clk \\\n"
-    "    -multiply_by 16 \\\n"
-    "    -divide_by 2 \\\n"
-    "    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].ddrphy_ppll/u_ppll:CLKOUTPHY}]\n"
-    "create_generated_clock -name phy_dq_sysclk_0 \\\n"
-    "    -source [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].ddrphy_ppll/u_ppll:CLKOUTPHY}] \\\n"
-    "    -master_clock phy_dq_clk_0 \\\n"
-    "    -edges {5 13 21} \\\n"
-    "    -edge_shift {0 0 0} \\\n"
-    "    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].u_ddrphy_ioclkdiv:CLKDIVOUT}]\n"
-    "create_generated_clock -name phy_dq_clk_1 \\\n"
-    "    -source [get_ports {clk_p}] \\\n"
-    "    -master_clock ddr_ref_clk \\\n"
-    "    -multiply_by 16 \\\n"
-    "    -divide_by 2 \\\n"
-    "    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll:CLKOUTPHY}]\n"
-    "create_generated_clock -name phy_dq_sysclk_1 \\\n"
-    "    -source [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll:CLKOUTPHY}] \\\n"
-    "    -master_clock phy_dq_clk_1 \\\n"
-    "    -edges {5 13 21} \\\n"
-    "    -edge_shift {0 0 0} \\\n"
-    "    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].u_ddrphy_ioclkdiv:CLKDIVOUT}]\n"
-    "set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_0}]\n"
-    "set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_1}]\n"
-    "set_clock_uncertainty {0.4} -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_0}] -setup -hold\n"
-    "set_clock_uncertainty {0.4} -from [get_clocks {phy_dq_sysclk_0}] -to [get_clocks {ddr_core_clk}] -setup -hold\n"
-    "set_clock_uncertainty {0.4} -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_1}] -setup -hold\n"
-    "set_clock_uncertainty {0.4} -from [get_clocks {phy_dq_sysclk_1}] -to [get_clocks {ddr_core_clk}] -setup -hold\n"
-    "set_clock_groups -asynchronous -group [get_clocks {ddr_ref_clk ddr_core_clk phy_dq_sysclk_0 phy_dq_sysclk_1}] -group [get_clocks {ddr_rst_clk}] -group [get_clocks {phy_dq_clk_0}] -group [get_clocks {phy_dq_clk_1}] -group [get_clocks {clk cpu_clk}] -group [get_clocks {JTAG_CLK}] -group [get_clocks {CAM1_PCLK}] -group [get_clocks {CAM2_PCLK}]\n";
+    "set_clock_groups -asynchronous -group [get_clocks {ddr_ref_clk ddr_core_clk}] -group [get_clocks {ddr_rst_clk}] -group [get_clocks {clk cpu_clk}] -group [get_clocks {JTAG_CLK}] -group [get_clocks {CAM1_PCLK}] -group [get_clocks {CAM2_PCLK}]\n";
 
 /* Generate scopes use '.', module instance scopes use '/' in PDS compile
  * names. Update owned CPU/JTAG/DDR clock blocks and only the ten listed DDR IO

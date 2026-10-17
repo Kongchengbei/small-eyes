@@ -46,14 +46,14 @@ check_config() {
 }
 check_paths() {
     case "$1" in
-        full) pll='g_ddr_profile.u_pll/u_gpll:CLKOUT0'; net='g_ddr_profile.JTAG_TCK_in'; absent='g_bram_profile'; standard=HSTL15D_I; ddr_clocks=7 ;;
+        full) pll='g_ddr_profile.u_pll/u_gpll:CLKOUT0'; net='g_ddr_profile.JTAG_TCK_in'; absent='g_bram_profile'; standard=HSTL15D_I; ddr_clocks=3 ;;
         bram) pll='g_bram_profile.u_bram_profile/u_pll/u_gpll:CLKOUT0'; net='g_bram_profile.u_bram_profile/JTAG_TCK_in'; absent='g_ddr_profile'; standard=HSTL15_I; ddr_clocks=0 ;;
     esac
     rg -Fqx "    [get_pins {$pll}]" "$FDC"
     rg -Fqx "define_attribute {n:$net} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}" "$FDC"
     if rg -Fq "$absent" "$FDC"; then echo 'FAIL constraints for inactive profile' >&2; exit 1; fi
     test "$(rg -c "^define_attribute \{p:mem_(dqs(_n)?\[[0-3]\]|ck(_n)?)\} \{PAP_IO_STANDARD\} \{$standard\}$" "$FDC")" -eq 10
-    # DDR reference/core/reset/PHY clocks exist only when the DDR controller does.
+    # DDR reference/core/reset clocks exist only when the DDR controller does.
     test "$(rg -c '^create_(generated_)?clock .*-name (ddr|phy_dq)_' "$FDC" || echo 0)" -eq "$ddr_clocks"
     # Disabled reference input constraints and the existing data/control IO
     # standards must not be changed by the narrowly scoped profile adaptation.
