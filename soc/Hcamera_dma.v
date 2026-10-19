@@ -54,6 +54,24 @@ reg abort_after_axi;
 reg [3:0] eof_error_bits;
 reg [31:0] write_strobe_reg;
 reg fifo_request_pending;
+// 时序优化：两处 32 位比较改成提前一拍算好的寄存器，跟原计数器在同一 always 块里同拍更新。
+// pix_full == ({32'b0,current_pixel_count} == frame_pixels)；current_pixel_count 只在
+// “< frame_pixels”时加 1、其余只清 0，所以它永远 <= frame_pixels，>= 与 == 等价。
+// tmo_hit == (timeout_count >= TIMEOUT_CYCLES-1)；timeout_count 只在没到门限时加 1、其余只清 0。
+reg pix_full, tmo_hit;
+localparam [63:0] FRAME_PIXELS_C = {32'b0, FRAME_WIDTH} * {32'b0, FRAME_HEIGHT};
+localparam FULL_AT_ZERO = FRAME_PIXELS_C == 64'd0;
+// 加 1 后恰好等于 frame_pixels：只在 1 <= frame_pixels <= 2^32-1 时可能（更大时加 1 回绕也到不了）
+localparam FULL_REACHABLE = (FRAME_PIXELS_C >= 64'd1) && (FRAME_PIXELS_C <= 64'hFFFF_FFFF);
+localparam [31:0] FRAME_PIXELS_M1 = FRAME_PIXELS_C[31:0] - 32'd1;
+localparam [31:0] TIMEOUT_LAST = TIMEOUT_CYCLES - 32'd1;
+localparam TMO_AT_ZERO = TIMEOUT_LAST == 32'd0;
+wire pix_full_after_inc = FULL_REACHABLE && (current_pixel_count == FRAME_PIXELS_M1);
+wire tmo_hit_after_inc = timeout_count == TIMEOUT_LAST - 32'd1;
+integer pl;
+reg lpc_is_w, lpc_is_0, cl_is_h;
+localparam LPC_W_AT_ZERO = FRAME_WIDTH == 32'd0;
+localparam CL_H_AT_ZERO = FRAME_HEIGHT == 32'd0;
 
 wire [1:0] released_mask = release_valid ? release_mask : 2'b00;
 wire [1:0] available_mask = ~(ready_mask & ~released_mask);
@@ -115,10 +133,10 @@ task automatic start_frame;
         selected_buffer <= buffer_addr;
         selected_slot <= slot;
         current_write_buffer <= {31'b0, slot};
-        current_pixel_count <= 0;
+        current_pixel_count <= 0; pix_full <= FULL_AT_ZERO;
         current_byte_count <= 0;
-        current_line_count <= 0;
-        line_pixel_count <= 0;
+        current_line_count <= 0; cl_is_h <= CL_H_AT_ZERO;
+        line_pixel_count <= 0; lpc_is_w <= LPC_W_AT_ZERO; lpc_is_0 <= 1'b1;
         current_checksum <= 0;
         write_offset <= 0;
         pack_count <= 0;
@@ -137,14 +155,14 @@ endtask
 always @(posedge clk or negedge rst_n) begin
     if (!rst_n) begin
         state <= ST_IDLE; pack_data <= 0; write_data_reg <= 0; pack_count <= 0;
-        write_offset <= 0; line_pixel_count <= 0; timeout_count <= 0; current_checksum <= 0;
+        write_offset <= 0; line_pixel_count <= 0; lpc_is_w <= LPC_W_AT_ZERO; lpc_is_0 <= 1'b1; timeout_count <= 0; tmo_hit <= TMO_AT_ZERO; current_checksum <= 0;
         selected_buffer <= 32'hffff_ffff; selected_slot <= 0;
         frame_bad <= 0; dropped_current <= 0; discard_until_sof <= 0; pending_eof <= 0;
         eof_error_bits <= 0; write_strobe_reg <= 0; fifo_request_pending <= 0;
         abort_after_axi <= 0;
         done <= 0; error <= 0; error_code <= ERR_NONE; frame_active <= 0;
         frame_count <= 0; last_pixel_count <= 0; last_byte_count <= 0; last_line_count <= 0;
-        current_pixel_count <= 0; current_byte_count <= 0; current_line_count <= 0;
+        current_pixel_count <= 0; pix_full <= FULL_AT_ZERO; current_byte_count <= 0; current_line_count <= 0; cl_is_h <= CL_H_AT_ZERO;
         last_frame_addr <= 32'hffff_ffff; current_write_buffer <= 32'hffff_ffff;
         last_complete_buffer <= 32'hffff_ffff; frame_checksum <= 0;
         ready_mask <= 0; dropped_frames <= 0;
@@ -161,11 +179,11 @@ always @(posedge clk or negedge rst_n) begin
         end
 
         // 超时只使当前帧无效。AXI 事务保持原 VALID 并继续等待响应排空。
-        if (progress_event) timeout_count <= 0;
+        if (progress_event) begin timeout_count <= 0; tmo_hit <= TMO_AT_ZERO; end
         else if (frame_active || (state == ST_AW) || (state == ST_W) || (state == ST_B)) begin
-            if (timeout_count >= TIMEOUT_CYCLES-1) begin
+            if (tmo_hit) begin
                 report_error(ERR_DDR_TIMEOUT);
-                timeout_count <= 0;
+                timeout_count <= 0; tmo_hit <= TMO_AT_ZERO;
                 if (state == ST_FIFO_WAIT) begin
                     frame_active <= 1'b0;
                     frame_bad <= 1'b1;
@@ -176,8 +194,8 @@ always @(posedge clk or negedge rst_n) begin
                     pack_count <= 0;
                     dropped_frames <= dropped_frames + 1'b1;
                 end else frame_bad <= 1'b1;
-            end else timeout_count <= timeout_count + 1'b1;
-        end else timeout_count <= 0;
+            end else begin timeout_count <= timeout_count + 1'b1; tmo_hit <= tmo_hit_after_inc; end
+        end else begin timeout_count <= 0; tmo_hit <= TMO_AT_ZERO; end
 
         if (fifo_fault) begin
             report_error(ERR_FIFO_OVERFLOW);
@@ -200,11 +218,11 @@ always @(posedge clk or negedge rst_n) begin
                     discard_until_sof <= 1'b1;
                     selected_buffer <= 32'hffff_ffff;
                     current_write_buffer <= 32'hffff_ffff;
-                    current_pixel_count <= 0;
+                    current_pixel_count <= 0; pix_full <= FULL_AT_ZERO;
                     current_byte_count <= 0;
-                    current_line_count <= 0;
+                    current_line_count <= 0; cl_is_h <= CL_H_AT_ZERO;
                     current_checksum <= 0;
-                    line_pixel_count <= 0;
+                    line_pixel_count <= 0; lpc_is_w <= LPC_W_AT_ZERO; lpc_is_0 <= 1'b1;
                     pack_count <= 0;
                     pending_eof <= 0;
                     abort_after_axi <= 0;
@@ -218,7 +236,7 @@ always @(posedge clk or negedge rst_n) begin
                     if (fifo_rd_en) fifo_request_pending <= 1'b1;
                     if (fifo_request_pending && fifo_rd_valid) begin
                         fifo_request_pending <= 1'b0;
-                        timeout_count <= 0;
+                        timeout_count <= 0; tmo_hit <= TMO_AT_ZERO;
                         case (fifo_rd_data[17:16])
                             2'b00: begin
                                 if (discard_until_sof) begin
@@ -226,15 +244,17 @@ always @(posedge clk or negedge rst_n) begin
                                 end else if (!frame_active) begin
                                     report_error(ERR_UNEXPECTED_EOF);
                                 end else if (!frame_bad && !dropped_current) begin
-                                    if ({32'b0, current_pixel_count} >= frame_pixels) begin
+                                    if (pix_full) begin
                                         report_error(ERR_BAD_PIXEL_COUNT);
                                         frame_bad <= 1'b1;
                                         pack_count <= 0;
                                     end else begin
-                                        pack_data[pack_count*16 +: 16] <= fifo_rd_data[15:0];
-                                        current_pixel_count <= current_pixel_count + 1'b1;
+                                        for (pl = 0; pl < 16; pl = pl + 1)
+                                            if (pack_count == pl[4:0]) pack_data[pl*16 +: 16] <= fifo_rd_data[15:0];
+                                        current_pixel_count <= current_pixel_count + 1'b1; pix_full <= pix_full_after_inc;
                                         current_byte_count <= current_byte_count + 32'd2;
                                         line_pixel_count <= line_pixel_count + 1'b1;
+                                        lpc_is_w <= line_pixel_count == FRAME_WIDTH - 32'd1; lpc_is_0 <= &line_pixel_count;
                                         current_checksum <= current_checksum + {16'b0, fifo_rd_data[15:0]};
                                         pack_count <= pack_count + 1'b1;
                                         if (pack_count == 15) begin
@@ -270,10 +290,10 @@ always @(posedge clk or negedge rst_n) begin
                                         selected_buffer <= 32'hffff_ffff;
                                         current_write_buffer <= 32'hffff_ffff;
                                         selected_slot <= 0;
-                                        current_pixel_count <= 0;
+                                        current_pixel_count <= 0; pix_full <= FULL_AT_ZERO;
                                         current_byte_count <= 0;
-                                        current_line_count <= 0;
-                                        line_pixel_count <= 0;
+                                        current_line_count <= 0; cl_is_h <= CL_H_AT_ZERO;
+                                        line_pixel_count <= 0; lpc_is_w <= LPC_W_AT_ZERO; lpc_is_0 <= 1'b1;
                                         current_checksum <= 0;
                                         write_offset <= 0;
                                         pack_count <= 0;
@@ -298,9 +318,9 @@ always @(posedge clk or negedge rst_n) begin
                                     report_error(ERR_UNEXPECTED_EOF);
                                 end else begin
                                     eof_error_bits <= fifo_rd_data[3:0];
-                                    if ({32'b0, current_pixel_count} != frame_pixels) begin
+                                    if (!pix_full) begin
                                         report_error(ERR_BAD_PIXEL_COUNT); frame_bad <= 1'b1;
-                                    end else if ((current_line_count != FRAME_HEIGHT) || (line_pixel_count != 0)) begin
+                                    end else if (!cl_is_h || !lpc_is_0) begin
                                         report_error(ERR_BAD_LINE_COUNT); frame_bad <= 1'b1;
                                     end else if (fifo_rd_data[3:0] != 0) begin
                                         report_error(ERR_DVP); frame_bad <= 1'b1;
@@ -312,8 +332,8 @@ always @(posedge clk or negedge rst_n) begin
                                         write_strobe_reg <= low_lanes_strobe(pack_count);
                                         pack_count <= 0;
                                         state <= ST_AW;
-                                    end else if ((pack_count != 0) && ({32'b0, current_pixel_count} == frame_pixels) &&
-                                                 (current_line_count == FRAME_HEIGHT) && (line_pixel_count == 0) &&
+                                    end else if ((pack_count != 0) && pix_full &&
+                                                 cl_is_h && lpc_is_0 &&
                                                  (fifo_rd_data[3:0] == 0) && !dropped_current) begin
                                         // 同周期 EOF 检出的合法末尾 partial beat 仍需提交。
                                         write_data_reg <= pack_data;
@@ -329,11 +349,11 @@ always @(posedge clk or negedge rst_n) begin
 
                             2'b11: begin
                                 if (!discard_until_sof && frame_active) begin
-                                    if (line_pixel_count != FRAME_WIDTH) begin
+                                    if (!lpc_is_w) begin
                                         report_error(ERR_BAD_LINE_COUNT); frame_bad <= 1'b1;
                                     end
-                                    current_line_count <= current_line_count + 1'b1;
-                                    line_pixel_count <= 0;
+                                    current_line_count <= current_line_count + 1'b1; cl_is_h <= current_line_count == FRAME_HEIGHT - 32'd1;
+                                    line_pixel_count <= 0; lpc_is_w <= LPC_W_AT_ZERO; lpc_is_0 <= 1'b1;
                                     // 跨行连续打包，不为非 16 对齐行插入 DDR 空洞。
                                 end else if (!discard_until_sof) report_error(ERR_BAD_LINE_COUNT);
                             end
@@ -343,15 +363,15 @@ always @(posedge clk or negedge rst_n) begin
             end
 
             ST_AW: if (axi_awvalid && axi_awready) begin
-                timeout_count <= 0;
+                timeout_count <= 0; tmo_hit <= TMO_AT_ZERO;
                 state <= ST_W;
             end
             ST_W: if (axi_wvalid && axi_wready) begin
-                timeout_count <= 0;
+                timeout_count <= 0; tmo_hit <= TMO_AT_ZERO;
                 state <= ST_B;
             end
             ST_B: if (axi_bvalid && axi_bready) begin
-                timeout_count <= 0;
+                timeout_count <= 0; tmo_hit <= TMO_AT_ZERO;
                 if ((axi_bid != AXI_ID) || (axi_bresp != RESP_OKAY)) begin
                     report_error(ERR_DDR_WRITE); frame_bad <= 1'b1;
                 end
@@ -371,11 +391,11 @@ always @(posedge clk or negedge rst_n) begin
                     discard_until_sof <= 1;
                     selected_buffer <= 32'hffff_ffff;
                     current_write_buffer <= 32'hffff_ffff;
-                    current_pixel_count <= 0;
+                    current_pixel_count <= 0; pix_full <= FULL_AT_ZERO;
                     current_byte_count <= 0;
-                    current_line_count <= 0;
+                    current_line_count <= 0; cl_is_h <= CL_H_AT_ZERO;
                     current_checksum <= 0;
-                    line_pixel_count <= 0;
+                    line_pixel_count <= 0; lpc_is_w <= LPC_W_AT_ZERO; lpc_is_0 <= 1'b1;
                     pack_count <= 0;
                     state <= ST_IDLE;
                 end else begin
@@ -404,11 +424,11 @@ always @(posedge clk or negedge rst_n) begin
                 discard_until_sof <= 1;
                 selected_buffer <= 32'hffff_ffff;
                 current_write_buffer <= 32'hffff_ffff;
-                current_pixel_count <= 0;
+                current_pixel_count <= 0; pix_full <= FULL_AT_ZERO;
                 current_byte_count <= 0;
-                current_line_count <= 0;
+                current_line_count <= 0; cl_is_h <= CL_H_AT_ZERO;
                 current_checksum <= 0;
-                line_pixel_count <= 0;
+                line_pixel_count <= 0; lpc_is_w <= LPC_W_AT_ZERO; lpc_is_0 <= 1'b1;
                 pack_count <= 0;
                 pending_eof <= 0;
                 abort_after_axi <= 0;
