@@ -11,14 +11,8 @@ bash temp/tests/run_npu_soc_integration_lint.sh
 tests=(
     tb_soc_addr_map
     tb_npu_ctrl
-    tb_npu_dma
     tb_axi_2m1s_arbiter
-    tb_npu_fc_engine
-    tb_npu_quant
-    tb_npu_service
-    tb_npu_service_drop
     tb_npu_result_mmio
-    tb_npu_system
 )
 
 for testbench in "${tests[@]}"; do
@@ -29,8 +23,7 @@ for testbench in "${tests[@]}"; do
         bash scripts/run_testbench.sh "$testbench"
 done
 
-# Candidate model-driven CNN path.  These are kept in the same A-side
-# regression so FC compatibility and the new service path cannot drift apart.
+# Candidate model-driven CNN path and its service/system integration.
 SIM_TIMEOUT="${SIM_TIMEOUT:-120}" \
     SIM_JOBS="${SIM_JOBS:-2}" \
     SIMULATOR="${SIMULATOR:-verilator}" \

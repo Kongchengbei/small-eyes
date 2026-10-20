@@ -78,6 +78,8 @@ module Hcamera_preprocess #(
     endfunction
     localparam integer REGION_BITS=count_bits(MAX_REGIONS);
     localparam integer REGION_INDEX_BITS=count_bits(MAX_REGIONS-1);
+    localparam integer SCAN_X_BITS=count_bits(FRAME_WIDTH);
+    localparam integer SCAN_Y_BITS=count_bits(FRAME_HEIGHT);
     reg [4:0] state, read_return, write_return;
     reg source_slot, output_bank;
     reg [31:0] frame_token, source_addr, output_addr;
@@ -96,7 +98,8 @@ module Hcamera_preprocess #(
     reg cache_valid;
     reg [4:0] scan_lane, pack_count;
     reg [31:0] scan_offset, scan_pixels;
-    reg [15:0] scan_x, scan_y;
+    reg [SCAN_X_BITS-1:0] scan_x;
+    reg [SCAN_Y_BITS-1:0] scan_y;
     reg [REGION_BITS-1:0] region_index, roi_count, roi_index;
     reg [31:0] output_offset;
     wire [31:0] region_query_index={{(32-REGION_BITS){1'b0}},region_index};

@@ -1,0 +1,58 @@
+人员 A：模型文件格式与模型档位说明
+
+一、模型文件格式
+
+正式交付文件：
+1. model.npu
+2. classes.csv
+
+model.npu 约定：
+- 文件头：128 Byte。
+- 每层 descriptor：64 Byte。
+- 权重：signed INT8。
+- bias：little-endian signed INT32。
+- 所有整数均为小端格式。
+- 文件头、descriptor、权重和 bias 段均按 32 Byte 对齐。
+- 模型包包含 CRC32，用于加载时校验。
+- 输入数据为 32×32×4 HWC4 INT8，通道顺序为 R、G、B、0。
+- 模型输入有效数据长度为 4096 Byte。
+- descriptor +0x01 保存 flags/activation，+0x38～+0x3f 保留并必须为 0。
+- header +0x4c 保存拒识阈值 T；margin < T 拒识，margin >= T 接受；+0x50～+0x7f 保留并必须为 0。
+
+权重排布：
+- 卷积权重：[输出通道][卷积行][卷积列][输入通道]
+- FC 权重：[类别][特征]
+
+二、模型档位
+
+第一版候选模型明确包含 4 个卷积层
+
+- L1：Conv 3×3，4 -> 16，输出 32×32×16，后接 ReLU 和 2×2 池化。
+- L2：Conv 3×3，16 -> 32，输出 16×16×32，后接 ReLU 和 2×2 池化。
+- L3：Conv 3×3，32 -> 64，输出 8×8×64，后接 ReLU 和 2×2 池化。
+- L4：Conv 3×3，64 -> 64，输出 4×4×64，后接 ReLU。
+- GAP：4×4×64 -> 64。
+- FC：64 -> 11 类。
+
+估算资源：
+- 权重大小：61,184 Byte
+- bias 大小：748 Byte
+- descriptor：10 层 × 64 = 640 Byte
+- header：128 Byte
+- 按 32 Byte 对齐后的 model.npu 总大小：62,720 Byte
+- 计算量：约 3,539,648 MAC
+- 最大中间张量：16 KB
+- 双缓冲容量：32 KB
+
+64 KiB 模型缓存余量：65,536 - 62,720 = 2,816 Byte。
+
+三、片内存储要求
+
+当前模型总大小小于 64 KB 模型缓存上限，可以整体加载到 NPU 片内存储。
+模型加载成功并通过 CRC 校验后，后续 ROI 不重复从 DDR 读取权重，减少 DDR 访问和推理延迟。
+
+四、当前状态
+
+人员 A 已完成上述模型接口和档位的 RTL 支持及仿真测试。
+v0.3 的 model.npu 和 classes.csv 已收到，model.npu 已通过 62,720 Byte、CRC、descriptor 和类别表检查，并完成 32×32、96×96 隔 3 取 1 的 smoke 仿真。
+完整 101 框 logits、逐层金样和 zzx 最终审批仍待补齐；不能用 smoke 结果替代完整精度验收。

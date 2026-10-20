@@ -61,7 +61,8 @@ module Hrgb565_int8_lane #(
 );
     localparam integer SLOT_COUNT = 56;
     localparam [3:0] ST_IDLE=0, ST_AR=1, ST_R=2, ST_AW=3,
-        ST_W0=4, ST_W1=5, ST_B=6, ST_CLEAN=7, ST_DRAIN=8;
+        ST_W0=4, ST_W1=5, ST_B=6, ST_CLEAN=7, ST_DRAIN=8,
+        ST_ALLOC=9;
     localparam [31:0] RGB_BYTES = 32'd18432;
 
     reg [3:0] state;
@@ -71,7 +72,12 @@ module Hrgb565_int8_lane #(
     reg [31:0] batch_slot_addr [0:7];
     reg [5:0] batch_slot_index [0:7];
 
-    reg [31:0] batch_frame_reg, batch_rgb_base, batch_rgb_stride;
+    reg [31:0] batch_frame_reg, image_rgb_base, batch_rgb_stride;
+    // One occupancy tag per accepted batch, shared by every slot taken from it.
+    // (slot, generation) still identifies one occupancy uniquely, but the tag no
+    // longer needs a 32-bit incrementer per slot: all slots of a batch load the
+    // same value, so the whole array is just CE-controlled flops.
+    reg [31:0] gen_epoch;
     reg [7:0] batch_count_reg, image_index_reg;
     reg batch_bank_reg;
     reg [511:0] batch_boxes_reg;
@@ -93,14 +99,50 @@ module Hrgb565_int8_lane #(
     reg [2:0] fifo_color [0:7];
     reg [31:0] fifo_frame [0:7];
     reg [7:0] fifo_batch_count [0:7];
-    reg [31:0] free_count;
-    reg [6:0] used_count_next;
+    wire [5:0] free_count;
     integer i, j, candidate;
-    integer selector;
-    reg [SLOT_COUNT-1:0] reserve_mask;
-    reg [3:0] selected_count;
-    reg [31:0] selected_slot_addr [0:7];
-    reg [5:0] selected_slot_index [0:7];
+    reg [55:0] alloc_free_mask;
+    reg [2:0] alloc_position;
+    wire [55:0] allocatable_mask;
+    wire [6:0] alloc_group_valid;
+    wire [6:0] alloc_group_first;
+    wire [7:0] alloc_local_mask;
+    wire [7:0] alloc_local_first;
+    wire [2:0] alloc_group_index;
+    wire [2:0] alloc_local_index;
+    wire [5:0] alloc_selected_index;
+    wire [55:0] alloc_selected_mask;
+    wire [31:0] alloc_selected_addr;
+    wire [27:0] alloc_group_count;
+    wire [4:0] free_pair01 = {1'b0,alloc_group_count[3:0]} +
+        {1'b0,alloc_group_count[7:4]};
+    wire [4:0] free_pair23 = {1'b0,alloc_group_count[11:8]} +
+        {1'b0,alloc_group_count[15:12]};
+    wire [4:0] free_pair45 = {1'b0,alloc_group_count[19:16]} +
+        {1'b0,alloc_group_count[23:20]};
+    wire [5:0] free_pair0123 = {1'b0,free_pair01} + {1'b0,free_pair23};
+    wire [5:0] free_pair456 = {1'b0,free_pair45} +
+        {2'b0,alloc_group_count[27:24]};
+    // Occupancy is the complement of the allocatable count: the former
+    // 7x popcount8 + adder tree over slot_state is no longer built at all.
+    // Every state==0 slot is allocatable in normal operation, so this is
+    // bit-identical to counting slot_state!=0, with the same register lag.
+    wire [5:0] used_count_next = 6'd56 - free_count;
+
+    function [3:0] popcount8;
+        input [7:0] value;
+        reg [1:0] pair0, pair1, pair2, pair3;
+        reg [2:0] half0, half1;
+        begin
+            pair0={1'b0,value[0]}+{1'b0,value[1]};
+            pair1={1'b0,value[2]}+{1'b0,value[3]};
+            pair2={1'b0,value[4]}+{1'b0,value[5]};
+            pair3={1'b0,value[6]}+{1'b0,value[7]};
+            half0={1'b0,pair0}+{1'b0,pair1};
+            half1={1'b0,pair2}+{1'b0,pair3};
+            popcount8={1'b0,half0}+{1'b0,half1};
+        end
+    endfunction
 
     function [31:0] sat_inc;
         input [31:0] value;
@@ -121,28 +163,99 @@ module Hrgb565_int8_lane #(
         end
     endfunction
 
-    function [31:0] block_base;
+    // slot = 14*block + position, block in 0..3 and position in 0..13.
+    // The block stride is 0x80000 and the within-block stride is 9 KiB, so the
+    // address is a constant compare + shift + constant multiply.  Both the
+    // address decode and the reported block/position use these helpers, so no
+    // wide divider is inferred anywhere on the slot path.
+    function [1:0] slot_block_of;
         input [5:0] slot;
-        reg [31:0] base;
         begin
-            if (!CAMERA) begin
-                case (slot / 14)
-                    0: base=`SOC_INT8_CAM1_BLOCK0_BASE;
-                    1: base=`SOC_INT8_CAM1_BLOCK1_BASE;
-                    2: base=`SOC_INT8_CAM1_BLOCK2_BASE;
-                    default: base=`SOC_INT8_CAM1_BLOCK3_BASE;
-                endcase
-            end else begin
-                case (slot / 14)
-                    0: base=`SOC_INT8_CAM2_BLOCK0_BASE;
-                    1: base=`SOC_INT8_CAM2_BLOCK1_BASE;
-                    2: base=`SOC_INT8_CAM2_BLOCK2_BASE;
-                    default: base=`SOC_INT8_CAM2_BLOCK3_BASE;
-                endcase
-            end
-            block_base=base+(({26'b0,slot} % 32'd14)*`SOC_INT8_SLOT_BYTES);
+            slot_block_of = (slot >= 6'd42) ? 2'd3 :
+                            (slot >= 6'd28) ? 2'd2 :
+                            (slot >= 6'd14) ? 2'd1 : 2'd0;
         end
     endfunction
+
+    function [3:0] slot_position_of;
+        input [5:0] slot;
+        reg [1:0] block;
+        reg [5:0] block14;
+        begin
+            block = slot_block_of(slot);
+            // 14*block = (block<<3) + (block<<2) + (block<<1)
+            block14 = {1'b0,block,3'b0} + {2'b0,block,2'b0} + {3'b0,block,1'b0};
+            slot_position_of = slot - block14;
+        end
+    endfunction
+
+    function [31:0] block_base;
+        input [5:0] slot;
+        reg [1:0] block;
+        reg [5:0] position;
+        begin
+            block = slot_block_of(slot);
+            position = {2'b0, slot_position_of(slot)};
+            block_base = (CAMERA ? `SOC_INT8_CAM2_BLOCK0_BASE
+                                 : `SOC_INT8_CAM1_BLOCK0_BASE) +
+                         ({30'b0,block} << 19) +
+                         (position * `SOC_INT8_SLOT_BYTES);
+        end
+    endfunction
+
+    genvar alloc_gen;
+    generate
+        for (alloc_gen=0;alloc_gen<SLOT_COUNT;alloc_gen=alloc_gen+1) begin: gen_alloc_slot
+            assign allocatable_mask[alloc_gen] =
+                (slot_state[alloc_gen]==0) &&
+                (slot_generation[alloc_gen]!=32'hffff_ffff) &&
+                (gen_epoch!=32'hffff_ffff);
+            assign alloc_selected_mask[alloc_gen] =
+                alloc_group_first[alloc_gen/8] && alloc_local_first[alloc_gen%8];
+        end
+        for (alloc_gen=0;alloc_gen<7;alloc_gen=alloc_gen+1) begin: gen_alloc_group
+            assign alloc_group_valid[alloc_gen] =
+                |alloc_free_mask[alloc_gen*8 +: 8];
+            assign alloc_group_count[alloc_gen*4 +: 4] =
+                popcount8(allocatable_mask[alloc_gen*8 +: 8]);
+            if (alloc_gen==0) begin: gen_first_group
+                assign alloc_group_first[alloc_gen] = alloc_group_valid[alloc_gen];
+            end else begin: gen_later_group
+                assign alloc_group_first[alloc_gen] = alloc_group_valid[alloc_gen] &&
+                    !(|alloc_group_valid[alloc_gen-1:0]);
+            end
+        end
+        for (alloc_gen=0;alloc_gen<8;alloc_gen=alloc_gen+1) begin: gen_local_first
+            if (alloc_gen==0) begin: gen_first_bit
+                assign alloc_local_first[alloc_gen] = alloc_local_mask[alloc_gen];
+            end else begin: gen_later_bit
+                assign alloc_local_first[alloc_gen] = alloc_local_mask[alloc_gen] &&
+                    !(|alloc_local_mask[alloc_gen-1:0]);
+            end
+        end
+    endgenerate
+
+    assign alloc_local_mask =
+        (alloc_free_mask[ 0*8 +: 8] & {8{alloc_group_first[0]}}) |
+        (alloc_free_mask[ 1*8 +: 8] & {8{alloc_group_first[1]}}) |
+        (alloc_free_mask[ 2*8 +: 8] & {8{alloc_group_first[2]}}) |
+        (alloc_free_mask[ 3*8 +: 8] & {8{alloc_group_first[3]}}) |
+        (alloc_free_mask[ 4*8 +: 8] & {8{alloc_group_first[4]}}) |
+        (alloc_free_mask[ 5*8 +: 8] & {8{alloc_group_first[5]}}) |
+        (alloc_free_mask[ 6*8 +: 8] & {8{alloc_group_first[6]}});
+    assign alloc_group_index={
+        alloc_group_first[4] | alloc_group_first[5] | alloc_group_first[6],
+        alloc_group_first[2] | alloc_group_first[3] | alloc_group_first[6],
+        alloc_group_first[1] | alloc_group_first[3] | alloc_group_first[5]
+    };
+    assign alloc_local_index={
+        alloc_local_first[4] | alloc_local_first[5] | alloc_local_first[6] | alloc_local_first[7],
+        alloc_local_first[2] | alloc_local_first[3] | alloc_local_first[6] | alloc_local_first[7],
+        alloc_local_first[1] | alloc_local_first[3] | alloc_local_first[5] | alloc_local_first[7]
+    };
+    assign alloc_selected_index={alloc_group_index,alloc_local_index};
+    assign alloc_selected_addr=block_base(alloc_selected_index);
+    assign free_count=free_pair0123+free_pair456;
 
     wire [63:0] desc_last_end = {32'b0,desc_rgb_base} +
         (({32'b0,desc_count}-64'd1) * {32'b0,desc_rgb_stride}) + {32'b0,RGB_BYTES};
@@ -160,71 +273,13 @@ module Hrgb565_int8_lane #(
           desc_rgb_base[4:0]==0 && desc_rgb_base >= DDR_BASE &&
           desc_last_end <= ddr_limit && source_bank_valid));
 
-    // Combinational first-free selection mirrors the former blocking found_count
-    // scan. Descriptor acceptance later commits this snapshot into slot ownership.
-    always @* begin
-        reserve_mask = {SLOT_COUNT{1'b0}};
-        selected_count = 4'd0;
-        for (selector=0; selector<8; selector=selector+1) begin
-            selected_slot_addr[selector] = 32'b0;
-            selected_slot_index[selector] = 6'b0;
-        end
-        for (selector=0; selector<SLOT_COUNT; selector=selector+1) begin
-            if (slot_state[selector]==0 && slot_generation[selector]!=32'hffff_ffff &&
-                selected_count<desc_count && selected_count<4'd8) begin
-                reserve_mask[selector] = 1'b1;
-                case (selected_count)
-                    4'd0: begin
-                        selected_slot_addr[0] = block_base(selector[5:0]);
-                        selected_slot_index[0] = selector[5:0];
-                    end
-                    4'd1: begin
-                        selected_slot_addr[1] = block_base(selector[5:0]);
-                        selected_slot_index[1] = selector[5:0];
-                    end
-                    4'd2: begin
-                        selected_slot_addr[2] = block_base(selector[5:0]);
-                        selected_slot_index[2] = selector[5:0];
-                    end
-                    4'd3: begin
-                        selected_slot_addr[3] = block_base(selector[5:0]);
-                        selected_slot_index[3] = selector[5:0];
-                    end
-                    4'd4: begin
-                        selected_slot_addr[4] = block_base(selector[5:0]);
-                        selected_slot_index[4] = selector[5:0];
-                    end
-                    4'd5: begin
-                        selected_slot_addr[5] = block_base(selector[5:0]);
-                        selected_slot_index[5] = selector[5:0];
-                    end
-                    4'd6: begin
-                        selected_slot_addr[6] = block_base(selector[5:0]);
-                        selected_slot_index[6] = selector[5:0];
-                    end
-                    4'd7: begin
-                        selected_slot_addr[7] = block_base(selector[5:0]);
-                        selected_slot_index[7] = selector[5:0];
-                    end
-                    default: begin end
-                endcase
-                selected_count = selected_count + 1'b1;
-            end
-        end
-    end
-
-    always @* begin
-        free_count=0;
-        for (i=0;i<SLOT_COUNT;i=i+1)
-            if (slot_state[i]==0 && slot_generation[i]!=32'hffff_ffff)
-                free_count=free_count+1'b1;
-    end
     assign desc_ready = rst_n && enable && state==ST_IDLE && fifo_count==0 &&
-        (desc_count>8 || !desc_geometry_ok || desc_count==0 || free_count>=desc_count);
+        (desc_count>8 || !desc_geometry_ok || desc_count==0 ||
+         {26'b0,free_count}>=desc_count);
     assign release_ready = rst_n;
     assign busy = state!=ST_IDLE || fifo_count!=0;
     assign wait_slot = enable && desc_valid && desc_geometry_ok && desc_count!=0 &&
-        desc_count<=8 && state==ST_IDLE && free_count<desc_count;
+        desc_count<=8 && state==ST_IDLE && {26'b0,free_count}<desc_count;
     assign wait_ddr = (state==ST_AR && !axi_arready) ||
         (state==ST_R && !axi_rvalid) || (state==ST_AW && !axi_awready) ||
         ((state==ST_W0 || state==ST_W1) && !axi_wready) ||
@@ -237,18 +292,19 @@ module Hrgb565_int8_lane #(
     assign image_index = fifo_index[fifo_rd_ptr];
     assign image_box = fifo_box[fifo_rd_ptr];
     assign image_color = fifo_color[fifo_rd_ptr];
-    assign image_block = fifo_slot[fifo_rd_ptr]/14;
-    assign image_position = fifo_slot[fifo_rd_ptr]%14;
+    assign image_block = slot_block_of(fifo_slot[fifo_rd_ptr]);
+    assign image_position = slot_position_of(fifo_slot[fifo_rd_ptr]);
     assign image_generation = fifo_generation[fifo_rd_ptr];
     assign image_data_addr = fifo_address[fifo_rd_ptr];
     assign image_width = 16'd96;
     assign image_height = 16'd96;
     assign image_data_bytes = `SOC_INT8_IMAGE_BYTES;
 
+    // The read base advances by one ROI stride per image, so the read address
+    // never needs the previous 8x32 variable multiplier.
     reg [29:0] read_local_addr, write_local_addr;
     always @* begin
-        read_local_addr = (batch_rgb_base + image_index_reg*batch_rgb_stride +
-                           input_beat*32) - DDR_BASE;
+        read_local_addr = (image_rgb_base + input_beat*32) - DDR_BASE;
         write_local_addr = (batch_slot_addr[image_index_reg] + input_beat*64) - DDR_BASE;
     end
     assign axi_araddr = read_local_addr;
@@ -280,15 +336,9 @@ module Hrgb565_int8_lane #(
             converted_word[i*32 +: 32]=rgb565_to_int8x4(read_word[i*16 +: 16]);
     end
 
-    always @* begin
-        used_count_next=0;
-        for (i=0;i<SLOT_COUNT;i=i+1)
-            if (slot_state[i]!=0) used_count_next=used_count_next+1'b1;
-    end
-
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
-            state<=ST_IDLE; batch_frame_reg<=0; batch_rgb_base<=0; batch_rgb_stride<=0;
+            state<=ST_IDLE; batch_frame_reg<=0; image_rgb_base<=0; batch_rgb_stride<=0;
             batch_count_reg<=0; image_index_reg<=0; batch_bank_reg<=0;
             batch_boxes_reg<=0; batch_colors_reg<=0; input_beat<=0; read_word<=0;
             image_cycles<=0; watchdog<=0; batch_failed<=0;
@@ -302,6 +352,7 @@ module Hrgb565_int8_lane #(
             used_slots<=0; peak_slots<=0; ddr_error_count<=0; bad_release_count<=0;
             failed_batches<=0; last_failure_frame<=0; last_failure_index<=0;
             last_failure_cause<=0;
+            alloc_free_mask<=0; alloc_position<=0; gen_epoch<=32'd1;
             for (i=0;i<SLOT_COUNT;i=i+1) begin
                 slot_state[i]<=0; slot_generation[i]<=0; slot_frame[i]<=0;
             end
@@ -336,8 +387,8 @@ module Hrgb565_int8_lane #(
                 fifo_batch_count[fifo_wr_ptr]<=batch_count_reg;
             end
 
-            used_slots<={25'b0,used_count_next};
-            if ({25'b0,used_count_next}>peak_slots) peak_slots<={25'b0,used_count_next};
+            used_slots<={26'b0,used_count_next};
+            if ({26'b0,used_count_next}>peak_slots) peak_slots<={26'b0,used_count_next};
 
             // A release is acknowledged every cycle. Only the exact live generation/frame
             // for a published slot changes occupancy; duplicates and stale messages stick.
@@ -365,51 +416,14 @@ module Hrgb565_int8_lane #(
                     roi_release_valid<=1'b1; roi_release_bank<=desc_rgb_bank;
                     roi_release_frame<=desc_frame;
                 end else begin
-                    for (j=0;j<SLOT_COUNT;j=j+1) begin
-                        if (reserve_mask[j]) begin
-                            slot_state[j]<=1;
-                            slot_generation[j]<=slot_generation[j]+1'b1;
-                            slot_frame[j]<=desc_frame;
-                        end
-                    end
-                    if (selected_count>0) begin
-                        batch_slot_addr[0]<=selected_slot_addr[0];
-                        batch_slot_index[0]<=selected_slot_index[0];
-                    end
-                    if (selected_count>1) begin
-                        batch_slot_addr[1]<=selected_slot_addr[1];
-                        batch_slot_index[1]<=selected_slot_index[1];
-                    end
-                    if (selected_count>2) begin
-                        batch_slot_addr[2]<=selected_slot_addr[2];
-                        batch_slot_index[2]<=selected_slot_index[2];
-                    end
-                    if (selected_count>3) begin
-                        batch_slot_addr[3]<=selected_slot_addr[3];
-                        batch_slot_index[3]<=selected_slot_index[3];
-                    end
-                    if (selected_count>4) begin
-                        batch_slot_addr[4]<=selected_slot_addr[4];
-                        batch_slot_index[4]<=selected_slot_index[4];
-                    end
-                    if (selected_count>5) begin
-                        batch_slot_addr[5]<=selected_slot_addr[5];
-                        batch_slot_index[5]<=selected_slot_index[5];
-                    end
-                    if (selected_count>6) begin
-                        batch_slot_addr[6]<=selected_slot_addr[6];
-                        batch_slot_index[6]<=selected_slot_index[6];
-                    end
-                    if (selected_count>7) begin
-                        batch_slot_addr[7]<=selected_slot_addr[7];
-                        batch_slot_index[7]<=selected_slot_index[7];
-                    end
+                    alloc_free_mask<=allocatable_mask;
+                    alloc_position<=0;
                     batch_frame_reg<=desc_frame; batch_bank_reg<=desc_rgb_bank;
-                    batch_rgb_base<=desc_rgb_base; batch_rgb_stride<=desc_rgb_stride;
-                    batch_count_reg<=desc_count; image_index_reg<=0;
+                    image_rgb_base<=desc_rgb_base; batch_rgb_stride<=desc_rgb_stride;
+                    batch_count_reg<=desc_count[7:0]; image_index_reg<=0;
                     batch_boxes_reg<=desc_boxes; batch_colors_reg<=desc_colors;
                     input_beat<=0; image_cycles<=0; batch_timer<=0; batch_failed<=0; watchdog<=0;
-                    state<=ST_AR;
+                    state<=ST_ALLOC;
                 end
             end else if (state!=ST_IDLE) begin
                 image_cycles<=sat_inc(image_cycles);
@@ -423,6 +437,66 @@ module Hrgb565_int8_lane #(
                 end
 
                 case (state)
+                    ST_ALLOC: begin
+                        if (|alloc_group_valid) begin
+                            for (j=0;j<SLOT_COUNT;j=j+1) begin
+                                if (alloc_selected_mask[j]) begin
+                                    slot_state[j]<=1;
+                                    slot_generation[j]<=gen_epoch;
+                                    slot_frame[j]<=batch_frame_reg;
+                                end
+                            end
+                            alloc_free_mask<=alloc_free_mask & ~alloc_selected_mask;
+                            case (alloc_position)
+                                3'd0: begin
+                                    batch_slot_index[0]<=alloc_selected_index;
+                                    batch_slot_addr[0]<=alloc_selected_addr;
+                                end
+                                3'd1: begin
+                                    batch_slot_index[1]<=alloc_selected_index;
+                                    batch_slot_addr[1]<=alloc_selected_addr;
+                                end
+                                3'd2: begin
+                                    batch_slot_index[2]<=alloc_selected_index;
+                                    batch_slot_addr[2]<=alloc_selected_addr;
+                                end
+                                3'd3: begin
+                                    batch_slot_index[3]<=alloc_selected_index;
+                                    batch_slot_addr[3]<=alloc_selected_addr;
+                                end
+                                3'd4: begin
+                                    batch_slot_index[4]<=alloc_selected_index;
+                                    batch_slot_addr[4]<=alloc_selected_addr;
+                                end
+                                3'd5: begin
+                                    batch_slot_index[5]<=alloc_selected_index;
+                                    batch_slot_addr[5]<=alloc_selected_addr;
+                                end
+                                3'd6: begin
+                                    batch_slot_index[6]<=alloc_selected_index;
+                                    batch_slot_addr[6]<=alloc_selected_addr;
+                                end
+                                default: begin
+                                    batch_slot_index[7]<=alloc_selected_index;
+                                    batch_slot_addr[7]<=alloc_selected_addr;
+                                end
+                            endcase
+                            if ({1'b0,alloc_position}+4'd1 >= batch_count_reg[3:0]) begin
+                                gen_epoch<=gen_epoch+1'b1;
+                                state<=ST_AR;
+                            end else begin
+                                alloc_position<=alloc_position+1'b1;
+                            end
+                        end else begin
+                            error<=1'b1; batch_failed<=1'b1;
+                            last_failure_frame<=batch_frame_reg;
+                            last_failure_index<={5'b0,alloc_position};
+                            last_failure_cause<=8'd5;
+                            batch_count_reg<={5'b0,alloc_position};
+                            gen_epoch<=gen_epoch+1'b1;
+                            state<=ST_CLEAN;
+                        end
+                    end
                     ST_AR: begin
                         if (axi_arvalid && axi_arready) begin state<=ST_R; watchdog<=0; end
                         else read_addr_wait_cycles<=sat_inc(read_addr_wait_cycles);
@@ -481,6 +555,7 @@ module Hrgb565_int8_lane #(
                                         state<=ST_IDLE;
                                     end else begin
                                         image_index_reg<=image_index_reg+1'b1;
+                                        image_rgb_base<=image_rgb_base+batch_rgb_stride;
                                         input_beat<=0; image_cycles<=0; state<=ST_AR;
                                     end
                                 end else begin
@@ -513,7 +588,7 @@ module Hrgb565_int8_lane #(
             // Count normal waiting for space without treating it as an error.
             if (enable && desc_valid && desc_geometry_ok && desc_count!=0 && desc_count<=8 &&
                 state==ST_IDLE &&
-                free_count<desc_count) slot_wait_cycles<=sat_inc(slot_wait_cycles);
+                {26'b0,free_count}<desc_count) slot_wait_cycles<=sat_inc(slot_wait_cycles);
         end
     end
 endmodule

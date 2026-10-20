@@ -24,9 +24,7 @@ module Hnpu_system #(
     parameter integer RESULT_DEPTH = 16,
     parameter integer RESULT_FIFO_DEPTH = 8,
     parameter integer MAX_ROIS = 8,
-    parameter integer MAX_FEATURES = 1024,
     parameter integer MAX_CLASSES = 11,
-    parameter integer ENGINE_MODE = 0,
     parameter integer MAX_MODEL_BYTES = 65536,
     parameter [0:0] IMAGE_MODE = 1'b0,
     parameter [31:0] MODEL_BASE = 32'h0000_0000,
@@ -169,8 +167,8 @@ module Hnpu_system #(
             Hnpu_service #(
                 .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES), .AXI_ID(AXI_ID),
                 .QUEUE_DEPTH(QUEUE_DEPTH), .RESULT_DEPTH(RESULT_DEPTH),
-                .MAX_ROIS(MAX_ROIS), .MAX_FEATURES(MAX_FEATURES), .MAX_CLASSES(MAX_CLASSES),
-                .ENGINE_MODE(ENGINE_MODE), .MAX_MODEL_BYTES(MAX_MODEL_BYTES)
+                .MAX_ROIS(MAX_ROIS), .MAX_CLASSES(MAX_CLASSES),
+                .MAX_MODEL_BYTES(MAX_MODEL_BYTES)
             ) u_service (
                 .clk(ddr_clk), .rst_n(rst_n), .enable(enable),
                 .clear_errors(clear_errors), .stop(stop),
