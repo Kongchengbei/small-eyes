@@ -180,3 +180,11 @@ dev_map
 pnr 
 report_timing 
 gen_bit_stream 
+remove_design -verilog "F:/SocFpga/soc/Hnpu_dma.v"
+set_arch -family Logos2 -device PG2L200H -speedgrade -6 -package FBB676
+compile -top_module Hfpga_soc
+synthesize -ads -selected_syn_tool_opt 2 
+dev_map 
+pnr 
+report_timing 
+gen_bit_stream 

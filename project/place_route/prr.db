@@ -7090,9 +7090,9 @@
         </row>
         <row>
             <data>Use of APM</data>
-            <data>4</data>
+            <data>15</data>
             <data>740</data>
-            <data>1</data>
+            <data>3</data>
         </row>
         <row>
             <data>Use of BKCL</data>
@@ -7108,56 +7108,56 @@
         </row>
         <row>
             <data>Use of CLMA</data>
-            <data>5329</data>
+            <data>12781</data>
             <data>30075</data>
-            <data>18</data>
+            <data>43</data>
             <row>
                 <data>  FF</data>
-                <data>16799</data>
+                <data>34694</data>
                 <data>240600</data>
-                <data>7</data>
+                <data>15</data>
             </row>
             <row>
                 <data>  LUT</data>
-                <data>14691</data>
+                <data>35566</data>
                 <data>120300</data>
-                <data>13</data>
+                <data>30</data>
             </row>
             <row>
                 <data>  LUT-FF pairs</data>
-                <data>6785</data>
+                <data>11363</data>
                 <data>120300</data>
-                <data>6</data>
+                <data>10</data>
             </row>
         </row>
         <row>
             <data>Use of CLMS</data>
-            <data>1777</data>
+            <data>4018</data>
             <data>9875</data>
-            <data>18</data>
+            <data>41</data>
             <row>
                 <data>  FF</data>
-                <data>6063</data>
+                <data>11067</data>
                 <data>79000</data>
-                <data>8</data>
+                <data>15</data>
             </row>
             <row>
                 <data>  LUT</data>
-                <data>5087</data>
+                <data>11198</data>
                 <data>39500</data>
-                <data>13</data>
+                <data>29</data>
             </row>
             <row>
                 <data>  LUT-FF pairs</data>
-                <data>2783</data>
+                <data>3826</data>
                 <data>39500</data>
-                <data>8</data>
+                <data>10</data>
             </row>
             <row>
                 <data>  Distributed RAM</data>
-                <data>786</data>
+                <data>1150</data>
                 <data>39500</data>
-                <data>2</data>
+                <data>3</data>
             </row>
         </row>
         <row>
@@ -7180,9 +7180,9 @@
         </row>
         <row>
             <data>Use of DRM</data>
-            <data>11</data>
+            <data>35</data>
             <data>415</data>
-            <data>3</data>
+            <data>9</data>
         </row>
         <row>
             <data>Use of GCLK_INBUF_SYN</data>
@@ -7204,15 +7204,15 @@
         </row>
         <row>
             <data>Use of HARD0</data>
-            <data>1834</data>
+            <data>3827</data>
             <data>25050</data>
-            <data>8</data>
+            <data>16</data>
         </row>
         <row>
             <data>Use of HCKB</data>
-            <data>16</data>
+            <data>21</data>
             <data>120</data>
-            <data>14</data>
+            <data>18</data>
             <row>
                 <data> HCKB dataused</data>
                 <data>0</data>
@@ -7449,11 +7449,11 @@
         </column_headers>
         <row>
             <data>Hfpga_soc</data>
-            <data>18016</data>
-            <data>22862</data>
-            <data>786</data>
-            <data>4</data>
-            <data>11</data>
+            <data>43119</data>
+            <data>45761</data>
+            <data>1150</data>
+            <data>15</data>
+            <data>35</data>
             <data>0</data>
             <data>0</data>
             <data>1</data>
@@ -7474,9 +7474,36 @@
             <data>14</data>
             <data>6</data>
             <row>
+                <data>g_ddr_profile.pre_merge_enabled.u_preprocess_ddr_merge</data>
+                <data>34</data>
+                <data>65</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+            </row>
+            <row>
                 <data>g_ddr_profile.u_cam1</data>
-                <data>1460</data>
-                <data>2188</data>
+                <data>1065</data>
+                <data>2274</data>
                 <data>0</data>
                 <data>0</data>
                 <data>0.5</data>
@@ -7501,142 +7528,7 @@
                 <data>0</data>
                 <row>
                     <data>u_dma</data>
-                    <data>697</data>
-                    <data>941</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                </row>
-                <row>
-                    <data>u_dvp_rx</data>
-                    <data>161</data>
-                    <data>249</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                </row>
-                <row>
-                    <data>u_fifo</data>
-                    <data>84</data>
-                    <data>112</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0.5</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                    <data>0</data>
-                </row>
-            </row>
-            <row>
-                <data>g_ddr_profile.u_cam1_sccb_gpio</data>
-                <data>2</data>
-                <data>8</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-            </row>
-            <row>
-                <data>g_ddr_profile.u_cam2</data>
-                <data>1069</data>
-                <data>2184</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0.5</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <data>0</data>
-                <row>
-                    <data>u_dma</data>
-                    <data>725</data>
+                    <data>701</data>
                     <data>941</data>
                     <data>0</data>
                     <data>0</data>
@@ -7717,7 +7609,7 @@
                 </row>
             </row>
             <row>
-                <data>g_ddr_profile.u_cam2_sccb_gpio</data>
+                <data>g_ddr_profile.u_cam1_sccb_gpio</data>
                 <data>2</data>
                 <data>8</data>
                 <data>0</data>
@@ -7744,9 +7636,144 @@
                 <data>0</data>
             </row>
             <row>
+                <data>g_ddr_profile.u_cam2</data>
+                <data>1502</data>
+                <data>2270</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0.5</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <row>
+                    <data>u_dma</data>
+                    <data>722</data>
+                    <data>941</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                </row>
+                <row>
+                    <data>u_dvp_rx</data>
+                    <data>160</data>
+                    <data>249</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                </row>
+                <row>
+                    <data>u_fifo</data>
+                    <data>84</data>
+                    <data>112</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0.5</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                </row>
+            </row>
+            <row>
+                <data>g_ddr_profile.u_cam2_sccb_gpio</data>
+                <data>1</data>
+                <data>8</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+            </row>
+            <row>
                 <data>g_ddr_profile.u_camera_ddr_arbiter</data>
-                <data>364</data>
-                <data>68</data>
+                <data>436</data>
+                <data>78</data>
                 <data>0</data>
                 <data>0</data>
                 <data>0</data>
@@ -7772,7 +7799,7 @@
             </row>
             <row>
                 <data>g_ddr_profile.u_cpu</data>
-                <data>5035</data>
+                <data>5058</data>
                 <data>3995</data>
                 <data>0</data>
                 <data>4</data>
@@ -7798,7 +7825,7 @@
                 <data>0</data>
                 <row>
                     <data>gen_dcache.u_dcache</data>
-                    <data>1589</data>
+                    <data>1596</data>
                     <data>650</data>
                     <data>0</data>
                     <data>0</data>
@@ -8662,7 +8689,7 @@
                 </row>
                 <row>
                     <data>gen_icache.u_icache</data>
-                    <data>193</data>
+                    <data>196</data>
                     <data>63</data>
                     <data>0</data>
                     <data>0</data>
@@ -9499,7 +9526,7 @@
                 </row>
                 <row>
                     <data>u_axi_bridge</data>
-                    <data>142</data>
+                    <data>146</data>
                     <data>209</data>
                     <data>0</data>
                     <data>0</data>
@@ -9526,7 +9553,7 @@
                 </row>
                 <row>
                     <data>u_btb</data>
-                    <data>376</data>
+                    <data>375</data>
                     <data>992</data>
                     <data>0</data>
                     <data>0</data>
@@ -9553,7 +9580,7 @@
                 </row>
                 <row>
                     <data>u_exu</data>
-                    <data>1487</data>
+                    <data>1489</data>
                     <data>807</data>
                     <data>0</data>
                     <data>4</data>
@@ -9579,7 +9606,7 @@
                     <data>0</data>
                     <row>
                         <data>u_alu</data>
-                        <data>323</data>
+                        <data>320</data>
                         <data>0</data>
                         <data>0</data>
                         <data>0</data>
@@ -9606,7 +9633,7 @@
                     </row>
                     <row>
                         <data>u_csr</data>
-                        <data>536</data>
+                        <data>545</data>
                         <data>357</data>
                         <data>0</data>
                         <data>0</data>
@@ -9688,7 +9715,7 @@
                 </row>
                 <row>
                     <data>u_idu</data>
-                    <data>902</data>
+                    <data>907</data>
                     <data>1089</data>
                     <data>0</data>
                     <data>0</data>
@@ -9742,7 +9769,7 @@
                 </row>
                 <row>
                     <data>u_ifu</data>
-                    <data>233</data>
+                    <data>230</data>
                     <data>99</data>
                     <data>0</data>
                     <data>0</data>
@@ -9769,8 +9796,8 @@
                 </row>
                 <row>
                     <data>u_memu</data>
-                    <data>85</data>
-                    <data>46</data>
+                    <data>84</data>
+                    <data>47</data>
                     <data>0</data>
                     <data>0</data>
                     <data>0</data>
@@ -9796,8 +9823,8 @@
                 </row>
                 <row>
                     <data>u_wbu</data>
-                    <data>26</data>
-                    <data>40</data>
+                    <data>33</data>
+                    <data>39</data>
                     <data>0</data>
                     <data>0</data>
                     <data>0</data>
@@ -9824,9 +9851,9 @@
             </row>
             <row>
                 <data>g_ddr_profile.u_ddr3_ctrl</data>
-                <data>7254</data>
-                <data>9977</data>
-                <data>786</data>
+                <data>7309</data>
+                <data>10066</data>
+                <data>802</data>
                 <data>0</data>
                 <data>0</data>
                 <data>0</data>
@@ -9850,8 +9877,8 @@
                 <data>2</data>
                 <row>
                     <data>u_ddrphy_top</data>
-                    <data>3164</data>
-                    <data>4112</data>
+                    <data>3172</data>
+                    <data>4111</data>
                     <data>0</data>
                     <data>0</data>
                     <data>0</data>
@@ -9876,7 +9903,7 @@
                     <data>2</data>
                     <row>
                         <data>ddrphy_calib_top</data>
-                        <data>392</data>
+                        <data>396</data>
                         <data>381</data>
                         <data>0</data>
                         <data>0</data>
@@ -9929,7 +9956,7 @@
                         </row>
                         <row>
                             <data>ddrphy_eyecal</data>
-                            <data>35</data>
+                            <data>36</data>
                             <data>34</data>
                             <data>0</data>
                             <data>0</data>
@@ -9983,7 +10010,7 @@
                         </row>
                         <row>
                             <data>ddrphy_main_ctrl</data>
-                            <data>11</data>
+                            <data>12</data>
                             <data>12</data>
                             <data>0</data>
                             <data>0</data>
@@ -10010,8 +10037,8 @@
                         </row>
                         <row>
                             <data>ddrphy_rdcal</data>
-                            <data>76</data>
-                            <data>68</data>
+                            <data>73</data>
+                            <data>67</data>
                             <data>0</data>
                             <data>0</data>
                             <data>0</data>
@@ -10037,8 +10064,8 @@
                         </row>
                         <row>
                             <data>ddrphy_wrcal</data>
-                            <data>90</data>
-                            <data>105</data>
+                            <data>92</data>
+                            <data>106</data>
                             <data>0</data>
                             <data>0</data>
                             <data>0</data>
@@ -10064,7 +10091,7 @@
                         </row>
                         <row>
                             <data>ddrphy_wrlvl</data>
-                            <data>31</data>
+                            <data>33</data>
                             <data>38</data>
                             <data>0</data>
                             <data>0</data>
@@ -10227,7 +10254,7 @@
                     </row>
                     <row>
                         <data>ddrphy_reset_ctrl</data>
-                        <data>68</data>
+                        <data>70</data>
                         <data>79</data>
                         <data>0</data>
                         <data>0</data>
@@ -10253,7 +10280,7 @@
                         <data>0</data>
                         <row>
                             <data>ddrphy_pll_lock_debounce</data>
-                            <data>35</data>
+                            <data>34</data>
                             <data>22</data>
                             <data>0</data>
                             <data>0</data>
@@ -10335,7 +10362,7 @@
                     </row>
                     <row>
                         <data>ddrphy_slice_top</data>
-                        <data>2473</data>
+                        <data>2476</data>
                         <data>3338</data>
                         <data>0</data>
                         <data>0</data>
@@ -10388,7 +10415,7 @@
                         </row>
                         <row>
                             <data>ddrphy_data_slice_dqs_gate_cal</data>
-                            <data>241</data>
+                            <data>239</data>
                             <data>111</data>
                             <data>0</data>
                             <data>0</data>
@@ -10414,8 +10441,8 @@
                             <data>0</data>
                             <row>
                                 <data>ddrphy_dqs_gate_coarse_cal</data>
-                                <data>110</data>
-                                <data>48</data>
+                                <data>109</data>
+                                <data>47</data>
                                 <data>0</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -10441,8 +10468,8 @@
                             </row>
                             <row>
                                 <data>ddrphy_gatecal</data>
-                                <data>131</data>
-                                <data>63</data>
+                                <data>130</data>
+                                <data>64</data>
                                 <data>0</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -10469,8 +10496,8 @@
                         </row>
                         <row>
                             <data>ddrphy_data_slice_wrcal</data>
-                            <data>544</data>
-                            <data>889</data>
+                            <data>542</data>
+                            <data>888</data>
                             <data>0</data>
                             <data>0</data>
                             <data>0</data>
@@ -10496,8 +10523,8 @@
                         </row>
                         <row>
                             <data>ddrphy_dqsi_rdel_cal</data>
-                            <data>414</data>
-                            <data>781</data>
+                            <data>412</data>
+                            <data>779</data>
                             <data>0</data>
                             <data>0</data>
                             <data>0</data>
@@ -10604,8 +10631,8 @@
                         </row>
                         <row>
                             <data>i_dqs_group[0].ddrphy_data_slice</data>
-                            <data>314</data>
-                            <data>390</data>
+                            <data>315</data>
+                            <data>391</data>
                             <data>0</data>
                             <data>0</data>
                             <data>0</data>
@@ -10630,7 +10657,7 @@
                             <data>0</data>
                             <row>
                                 <data>ddrphy_data_slice_wrlvl</data>
-                                <data>50</data>
+                                <data>49</data>
                                 <data>52</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -10657,8 +10684,8 @@
                             </row>
                             <row>
                                 <data>ddrphy_dqs_rddata_align</data>
-                                <data>118</data>
-                                <data>211</data>
+                                <data>121</data>
+                                <data>212</data>
                                 <data>0</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -10712,8 +10739,8 @@
                         </row>
                         <row>
                             <data>i_dqs_group[1].ddrphy_data_slice</data>
-                            <data>292</data>
-                            <data>382</data>
+                            <data>300</data>
+                            <data>383</data>
                             <data>0</data>
                             <data>0</data>
                             <data>0</data>
@@ -10738,7 +10765,7 @@
                             <data>0</data>
                             <row>
                                 <data>ddrphy_data_slice_wrlvl</data>
-                                <data>46</data>
+                                <data>49</data>
                                 <data>54</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -10765,8 +10792,8 @@
                             </row>
                             <row>
                                 <data>ddrphy_dqs_rddata_align</data>
-                                <data>108</data>
-                                <data>209</data>
+                                <data>113</data>
+                                <data>210</data>
                                 <data>0</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -10820,8 +10847,8 @@
                         </row>
                         <row>
                             <data>i_dqs_group[2].ddrphy_data_slice</data>
-                            <data>296</data>
-                            <data>378</data>
+                            <data>299</data>
+                            <data>379</data>
                             <data>0</data>
                             <data>0</data>
                             <data>0</data>
@@ -10846,8 +10873,8 @@
                             <data>0</data>
                             <row>
                                 <data>ddrphy_data_slice_wrlvl</data>
-                                <data>46</data>
-                                <data>51</data>
+                                <data>44</data>
+                                <data>52</data>
                                 <data>0</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -10873,7 +10900,7 @@
                             </row>
                             <row>
                                 <data>ddrphy_dqs_rddata_align</data>
-                                <data>113</data>
+                                <data>117</data>
                                 <data>208</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -10928,7 +10955,7 @@
                         </row>
                         <row>
                             <data>i_dqs_group[3].ddrphy_data_slice</data>
-                            <data>307</data>
+                            <data>305</data>
                             <data>381</data>
                             <data>0</data>
                             <data>0</data>
@@ -10954,7 +10981,7 @@
                             <data>0</data>
                             <row>
                                 <data>ddrphy_data_slice_wrlvl</data>
-                                <data>54</data>
+                                <data>50</data>
                                 <data>54</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -10981,7 +11008,7 @@
                             </row>
                             <row>
                                 <data>ddrphy_dqs_rddata_align</data>
-                                <data>115</data>
+                                <data>118</data>
                                 <data>208</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -11037,8 +11064,8 @@
                     </row>
                     <row>
                         <data>ddrphy_training_ctrl</data>
-                        <data>3</data>
-                        <data>7</data>
+                        <data>2</data>
+                        <data>6</data>
                         <data>0</data>
                         <data>0</data>
                         <data>0</data>
@@ -11281,9 +11308,9 @@
                 </row>
                 <row>
                     <data>u_ips_ddrc_top</data>
-                    <data>4090</data>
-                    <data>5865</data>
-                    <data>786</data>
+                    <data>4137</data>
+                    <data>5955</data>
+                    <data>802</data>
                     <data>0</data>
                     <data>0</data>
                     <data>0</data>
@@ -11307,9 +11334,9 @@
                     <data>0</data>
                     <row>
                         <data>mcdq_axi_mc</data>
-                        <data>2903</data>
-                        <data>4002</data>
-                        <data>745</data>
+                        <data>2946</data>
+                        <data>4093</data>
+                        <data>761</data>
                         <data>0</data>
                         <data>0</data>
                         <data>0</data>
@@ -11333,9 +11360,9 @@
                         <data>0</data>
                         <row>
                             <data>mcdq_axi_channel0</data>
-                            <data>2507</data>
-                            <data>3416</data>
-                            <data>745</data>
+                            <data>2558</data>
+                            <data>3495</data>
+                            <data>761</data>
                             <data>0</data>
                             <data>0</data>
                             <data>0</data>
@@ -11359,9 +11386,9 @@
                             <data>0</data>
                             <row>
                                 <data>mcdq_axi_bresp_buf</data>
-                                <data>49</data>
-                                <data>22</data>
-                                <data>2</data>
+                                <data>46</data>
+                                <data>24</data>
+                                <data>3</data>
                                 <data>0</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -11385,9 +11412,9 @@
                                 <data>0</data>
                                 <row>
                                     <data>u_axi_bresp_fifo</data>
-                                    <data>49</data>
-                                    <data>22</data>
-                                    <data>2</data>
+                                    <data>46</data>
+                                    <data>24</data>
+                                    <data>3</data>
                                     <data>0</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -11411,7 +11438,7 @@
                                     <data>0</data>
                                     <row>
                                         <data>ips2l_distributed_fifo</data>
-                                        <data>44</data>
+                                        <data>41</data>
                                         <data>17</data>
                                         <data>0</data>
                                         <data>0</data>
@@ -11437,7 +11464,7 @@
                                         <data>0</data>
                                         <row>
                                             <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                            <data>44</data>
+                                            <data>41</data>
                                             <data>17</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -11463,7 +11490,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_ctr</data>
-                                                <data>44</data>
+                                                <data>40</data>
                                                 <data>17</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -11494,9 +11521,9 @@
                             </row>
                             <row>
                                 <data>mcdq_axi_buf</data>
-                                <data>683</data>
-                                <data>863</data>
-                                <data>176</data>
+                                <data>687</data>
+                                <data>884</data>
+                                <data>181</data>
                                 <data>0</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -11520,9 +11547,9 @@
                                 <data>0</data>
                                 <row>
                                     <data>u_axi_rdcmd_fifo</data>
-                                    <data>46</data>
-                                    <data>45</data>
-                                    <data>14</data>
+                                    <data>51</data>
+                                    <data>55</data>
+                                    <data>19</data>
                                     <data>0</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -11628,8 +11655,8 @@
                                 </row>
                                 <row>
                                     <data>u_axi_wrcmd_fifo</data>
-                                    <data>51</data>
                                     <data>50</data>
+                                    <data>51</data>
                                     <data>17</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -12219,7 +12246,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_ctr</data>
-                                                <data>15</data>
+                                                <data>16</data>
                                                 <data>14</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -12462,7 +12489,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_ctr</data>
-                                                <data>16</data>
+                                                <data>15</data>
                                                 <data>14</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -12493,9 +12520,9 @@
                             </row>
                             <row>
                                 <data>mcdq_axi_rdata_align</data>
-                                <data>1042</data>
-                                <data>1691</data>
-                                <data>406</data>
+                                <data>1096</data>
+                                <data>1743</data>
+                                <data>415</data>
                                 <data>0</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -12519,9 +12546,9 @@
                                 <data>0</data>
                                 <row>
                                     <data>u_axi_rdcmd_align_fifo</data>
-                                    <data>48</data>
-                                    <data>47</data>
-                                    <data>16</data>
+                                    <data>51</data>
+                                    <data>53</data>
+                                    <data>18</data>
                                     <data>0</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -12627,9 +12654,9 @@
                                 </row>
                                 <row>
                                     <data>u_axi_rdcmd_back_fifo</data>
-                                    <data>35</data>
-                                    <data>22</data>
-                                    <data>4</data>
+                                    <data>42</data>
+                                    <data>36</data>
+                                    <data>10</data>
                                     <data>0</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -12735,9 +12762,9 @@
                                 </row>
                                 <row>
                                     <data>u_mcdq_axi_rdata_arrange</data>
-                                    <data>913</data>
-                                    <data>1575</data>
-                                    <data>386</data>
+                                    <data>925</data>
+                                    <data>1589</data>
+                                    <data>387</data>
                                     <data>0</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -12761,9 +12788,9 @@
                                     <data>0</data>
                                     <row>
                                         <data>u_axi_rdata_fifo</data>
-                                        <data>286</data>
-                                        <data>389</data>
-                                        <data>130</data>
+                                        <data>285</data>
+                                        <data>391</data>
+                                        <data>131</data>
                                         <data>0</data>
                                         <data>0</data>
                                         <data>0</data>
@@ -12787,7 +12814,7 @@
                                         <data>0</data>
                                         <row>
                                             <data>fifo_loop[0].ips2l_distributed_fifo_data</data>
-                                            <data>33</data>
+                                            <data>32</data>
                                             <data>15</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -12813,7 +12840,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                                <data>33</data>
+                                                <data>32</data>
                                                 <data>15</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -12839,7 +12866,7 @@
                                                 <data>0</data>
                                                 <row>
                                                     <data>u_ips2l_distributed_fifo_ctr</data>
-                                                    <data>33</data>
+                                                    <data>31</data>
                                                     <data>15</data>
                                                     <data>0</data>
                                                     <data>0</data>
@@ -12920,7 +12947,7 @@
                                                 <data>0</data>
                                                 <row>
                                                     <data>u_ips2l_distributed_fifo_ctr</data>
-                                                    <data>15</data>
+                                                    <data>14</data>
                                                     <data>14</data>
                                                     <data>0</data>
                                                     <data>0</data>
@@ -13001,7 +13028,7 @@
                                                 <data>0</data>
                                                 <row>
                                                     <data>u_ips2l_distributed_fifo_ctr</data>
-                                                    <data>15</data>
+                                                    <data>14</data>
                                                     <data>14</data>
                                                     <data>0</data>
                                                     <data>0</data>
@@ -13082,7 +13109,7 @@
                                                 <data>0</data>
                                                 <row>
                                                     <data>u_ips2l_distributed_fifo_ctr</data>
-                                                    <data>15</data>
+                                                    <data>14</data>
                                                     <data>14</data>
                                                     <data>0</data>
                                                     <data>0</data>
@@ -13244,7 +13271,7 @@
                                                 <data>0</data>
                                                 <row>
                                                     <data>u_ips2l_distributed_fifo_ctr</data>
-                                                    <data>15</data>
+                                                    <data>14</data>
                                                     <data>14</data>
                                                     <data>0</data>
                                                     <data>0</data>
@@ -13325,7 +13352,7 @@
                                                 <data>0</data>
                                                 <row>
                                                     <data>u_ips2l_distributed_fifo_ctr</data>
-                                                    <data>15</data>
+                                                    <data>14</data>
                                                     <data>14</data>
                                                     <data>0</data>
                                                     <data>0</data>
@@ -13354,7 +13381,7 @@
                                         </row>
                                         <row>
                                             <data>fifo_loop[7].ips2l_distributed_fifo_data</data>
-                                            <data>14</data>
+                                            <data>15</data>
                                             <data>14</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -13380,7 +13407,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                                <data>14</data>
+                                                <data>15</data>
                                                 <data>14</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -13487,7 +13514,7 @@
                                                 <data>0</data>
                                                 <row>
                                                     <data>u_ips2l_distributed_fifo_ctr</data>
-                                                    <data>15</data>
+                                                    <data>14</data>
                                                     <data>14</data>
                                                     <data>0</data>
                                                     <data>0</data>
@@ -13517,7 +13544,7 @@
                                     </row>
                                     <row>
                                         <data>u_axi_rdata_mac_fifo0</data>
-                                        <data>487</data>
+                                        <data>480</data>
                                         <data>401</data>
                                         <data>256</data>
                                         <data>0</data>
@@ -13543,7 +13570,7 @@
                                         <data>0</data>
                                         <row>
                                             <data>fifo_loop[0].ips2l_distributed_fifo</data>
-                                            <data>28</data>
+                                            <data>27</data>
                                             <data>18</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -13569,7 +13596,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                                <data>28</data>
+                                                <data>27</data>
                                                 <data>18</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -13624,7 +13651,7 @@
                                         </row>
                                         <row>
                                             <data>fifo_loop[1].ips2l_distributed_fifo</data>
-                                            <data>29</data>
+                                            <data>28</data>
                                             <data>18</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -13650,7 +13677,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                                <data>29</data>
+                                                <data>28</data>
                                                 <data>18</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -13705,7 +13732,7 @@
                                         </row>
                                         <row>
                                             <data>fifo_loop[2].ips2l_distributed_fifo</data>
-                                            <data>29</data>
+                                            <data>28</data>
                                             <data>18</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -13731,7 +13758,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                                <data>29</data>
+                                                <data>28</data>
                                                 <data>18</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -13786,7 +13813,7 @@
                                         </row>
                                         <row>
                                             <data>fifo_loop[3].ips2l_distributed_fifo</data>
-                                            <data>29</data>
+                                            <data>28</data>
                                             <data>18</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -13812,7 +13839,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                                <data>29</data>
+                                                <data>28</data>
                                                 <data>18</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -13867,7 +13894,7 @@
                                         </row>
                                         <row>
                                             <data>fifo_loop[4].ips2l_distributed_fifo</data>
-                                            <data>29</data>
+                                            <data>28</data>
                                             <data>18</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -13893,7 +13920,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                                <data>29</data>
+                                                <data>28</data>
                                                 <data>18</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -13948,7 +13975,7 @@
                                         </row>
                                         <row>
                                             <data>fifo_loop[5].ips2l_distributed_fifo</data>
-                                            <data>29</data>
+                                            <data>28</data>
                                             <data>18</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -13974,7 +14001,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                                <data>29</data>
+                                                <data>28</data>
                                                 <data>18</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -14029,7 +14056,7 @@
                                         </row>
                                         <row>
                                             <data>fifo_loop[6].ips2l_distributed_fifo</data>
-                                            <data>29</data>
+                                            <data>28</data>
                                             <data>18</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -14055,7 +14082,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                                <data>29</data>
+                                                <data>28</data>
                                                 <data>18</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -14162,7 +14189,7 @@
                                                 <data>0</data>
                                                 <row>
                                                     <data>u_ips2l_distributed_fifo_ctr</data>
-                                                    <data>27</data>
+                                                    <data>28</data>
                                                     <data>18</data>
                                                     <data>0</data>
                                                     <data>0</data>
@@ -14192,8 +14219,8 @@
                                     </row>
                                     <row>
                                         <data>u_axi_rdata_mac_fifo1</data>
-                                        <data>5</data>
-                                        <data>519</data>
+                                        <data>4</data>
+                                        <data>517</data>
                                         <data>0</data>
                                         <data>0</data>
                                         <data>0</data>
@@ -14221,9 +14248,9 @@
                             </row>
                             <row>
                                 <data>mcdq_axi_wdata_align</data>
-                                <data>733</data>
-                                <data>840</data>
-                                <data>161</data>
+                                <data>729</data>
+                                <data>844</data>
+                                <data>162</data>
                                 <data>0</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -14247,8 +14274,8 @@
                                 <data>0</data>
                                 <row>
                                     <data>u_axi_wdata_align_fifo</data>
-                                    <data>363</data>
-                                    <data>434</data>
+                                    <data>357</data>
+                                    <data>435</data>
                                     <data>144</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -14354,7 +14381,7 @@
                                     </row>
                                     <row>
                                         <data>fifo_loop[1].ips2l_distributed_fifo_data</data>
-                                        <data>22</data>
+                                        <data>21</data>
                                         <data>16</data>
                                         <data>0</data>
                                         <data>0</data>
@@ -14380,7 +14407,7 @@
                                         <data>0</data>
                                         <row>
                                             <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                            <data>22</data>
+                                            <data>21</data>
                                             <data>16</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -14516,7 +14543,7 @@
                                     </row>
                                     <row>
                                         <data>fifo_loop[3].ips2l_distributed_fifo_data</data>
-                                        <data>22</data>
+                                        <data>21</data>
                                         <data>16</data>
                                         <data>0</data>
                                         <data>0</data>
@@ -14542,7 +14569,7 @@
                                         <data>0</data>
                                         <row>
                                             <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                            <data>22</data>
+                                            <data>21</data>
                                             <data>16</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -14678,7 +14705,7 @@
                                     </row>
                                     <row>
                                         <data>fifo_loop[5].ips2l_distributed_fifo_data</data>
-                                        <data>22</data>
+                                        <data>21</data>
                                         <data>16</data>
                                         <data>0</data>
                                         <data>0</data>
@@ -14704,7 +14731,7 @@
                                         <data>0</data>
                                         <row>
                                             <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                            <data>22</data>
+                                            <data>21</data>
                                             <data>16</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -14840,7 +14867,7 @@
                                     </row>
                                     <row>
                                         <data>fifo_loop[7].ips2l_distributed_fifo_data</data>
-                                        <data>22</data>
+                                        <data>21</data>
                                         <data>16</data>
                                         <data>0</data>
                                         <data>0</data>
@@ -14866,7 +14893,7 @@
                                         <data>0</data>
                                         <row>
                                             <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                            <data>22</data>
+                                            <data>21</data>
                                             <data>16</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -14921,7 +14948,7 @@
                                     </row>
                                     <row>
                                         <data>ips2l_distributed_fifo_wstrb0</data>
-                                        <data>22</data>
+                                        <data>21</data>
                                         <data>16</data>
                                         <data>0</data>
                                         <data>0</data>
@@ -14947,7 +14974,7 @@
                                         <data>0</data>
                                         <row>
                                             <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                            <data>22</data>
+                                            <data>21</data>
                                             <data>16</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -15003,9 +15030,9 @@
                                 </row>
                                 <row>
                                     <data>u_axi_wrcmd_align_fifo</data>
-                                    <data>48</data>
+                                    <data>50</data>
                                     <data>52</data>
-                                    <data>17</data>
+                                    <data>18</data>
                                     <data>0</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -15029,7 +15056,7 @@
                                     <data>0</data>
                                     <row>
                                         <data>ips2l_distributed_fifo</data>
-                                        <data>28</data>
+                                        <data>29</data>
                                         <data>15</data>
                                         <data>0</data>
                                         <data>0</data>
@@ -15055,7 +15082,7 @@
                                         <data>0</data>
                                         <row>
                                             <data>u_ips2l_distributed_fifo_distributed_fifo_v1_0</data>
-                                            <data>28</data>
+                                            <data>29</data>
                                             <data>15</data>
                                             <data>0</data>
                                             <data>0</data>
@@ -15081,7 +15108,7 @@
                                             <data>0</data>
                                             <row>
                                                 <data>u_ips2l_distributed_fifo_ctr</data>
-                                                <data>28</data>
+                                                <data>29</data>
                                                 <data>15</data>
                                                 <data>0</data>
                                                 <data>0</data>
@@ -15113,8 +15140,8 @@
                         </row>
                         <row>
                             <data>mcdq_axi_cmd_arb</data>
-                            <data>139</data>
-                            <data>324</data>
+                            <data>131</data>
+                            <data>334</data>
                             <data>0</data>
                             <data>0</data>
                             <data>0</data>
@@ -15139,8 +15166,8 @@
                             <data>0</data>
                             <row>
                                 <data>mcdq_axi_dec</data>
-                                <data>105</data>
-                                <data>273</data>
+                                <data>96</data>
+                                <data>279</data>
                                 <data>0</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -15166,7 +15193,7 @@
                                 <row>
                                     <data>u_user_cmd_fifo</data>
                                     <data>34</data>
-                                    <data>111</data>
+                                    <data>115</data>
                                     <data>0</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -15195,8 +15222,8 @@
                     </row>
                     <row>
                         <data>mcdq_mac_top</data>
-                        <data>1187</data>
-                        <data>1863</data>
+                        <data>1191</data>
+                        <data>1862</data>
                         <data>41</data>
                         <data>0</data>
                         <data>0</data>
@@ -15301,7 +15328,7 @@
                             <data>0</data>
                             <row>
                                 <data>mcdq_dcd_bm</data>
-                                <data>101</data>
+                                <data>102</data>
                                 <data>76</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -15355,7 +15382,7 @@
                             </row>
                             <row>
                                 <data>mcdq_dcd_sm</data>
-                                <data>36</data>
+                                <data>35</data>
                                 <data>72</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -15383,7 +15410,7 @@
                         </row>
                         <row>
                             <data>mcdq_dcp_top</data>
-                            <data>620</data>
+                            <data>625</data>
                             <data>614</data>
                             <data>40</data>
                             <data>0</data>
@@ -15409,7 +15436,7 @@
                             <data>0</data>
                             <row>
                                 <data>mcdq_dcp_back_ctrl</data>
-                                <data>430</data>
+                                <data>436</data>
                                 <data>419</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -15867,7 +15894,7 @@
                                 </row>
                                 <row>
                                     <data>TRDA2ACT_LOOP[0].trda2act_timing</data>
-                                    <data>4</data>
+                                    <data>5</data>
                                     <data>5</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -15894,7 +15921,7 @@
                                 </row>
                                 <row>
                                     <data>TRDA2ACT_LOOP[1].trda2act_timing</data>
-                                    <data>4</data>
+                                    <data>5</data>
                                     <data>5</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -15948,7 +15975,7 @@
                                 </row>
                                 <row>
                                     <data>TRDA2ACT_LOOP[3].trda2act_timing</data>
-                                    <data>4</data>
+                                    <data>5</data>
                                     <data>5</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -16002,7 +16029,7 @@
                                 </row>
                                 <row>
                                     <data>TRDA2ACT_LOOP[5].trda2act_timing</data>
-                                    <data>4</data>
+                                    <data>5</data>
                                     <data>5</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -16083,7 +16110,7 @@
                                 </row>
                                 <row>
                                     <data>TWRA2ACT_LOOP[0].twra2act_timing</data>
-                                    <data>6</data>
+                                    <data>7</data>
                                     <data>6</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -16299,7 +16326,7 @@
                                 </row>
                                 <row>
                                     <data>mcdq_timing_rd_pass</data>
-                                    <data>6</data>
+                                    <data>7</data>
                                     <data>6</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -16434,8 +16461,8 @@
                                 </row>
                                 <row>
                                     <data>timing_act2wr_pass</data>
-                                    <data>3</data>
-                                    <data>3</data>
+                                    <data>2</data>
+                                    <data>1</data>
                                     <data>0</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -16542,7 +16569,7 @@
                                 </row>
                                 <row>
                                     <data>timing_wr_pass</data>
-                                    <data>15</data>
+                                    <data>14</data>
                                     <data>9</data>
                                     <data>0</data>
                                     <data>0</data>
@@ -16570,7 +16597,7 @@
                             </row>
                             <row>
                                 <data>mcdq_dcp_buf</data>
-                                <data>163</data>
+                                <data>162</data>
                                 <data>147</data>
                                 <data>40</data>
                                 <data>0</data>
@@ -16787,7 +16814,7 @@
                         </row>
                         <row>
                             <data>mcdq_dfi</data>
-                            <data>47</data>
+                            <data>46</data>
                             <data>88</data>
                             <data>0</data>
                             <data>0</data>
@@ -16815,7 +16842,7 @@
                         <row>
                             <data>mcdq_wdatapath</data>
                             <data>383</data>
-                            <data>964</data>
+                            <data>963</data>
                             <data>1</data>
                             <data>0</data>
                             <data>0</data>
@@ -16922,7 +16949,7 @@
                             <row>
                                 <data>mc3q_wdp_dcp</data>
                                 <data>2</data>
-                                <data>3</data>
+                                <data>2</data>
                                 <data>0</data>
                                 <data>0</data>
                                 <data>0</data>
@@ -17006,8 +17033,8 @@
             </row>
             <row>
                 <data>g_ddr_profile.u_flash_ddr_boot</data>
-                <data>273</data>
-                <data>263</data>
+                <data>299</data>
+                <data>271</data>
                 <data>0</data>
                 <data>0</data>
                 <data>0</data>
@@ -17032,8 +17059,8 @@
                 <data>0</data>
                 <row>
                     <data>u_flash_reader</data>
-                    <data>110</data>
-                    <data>104</data>
+                    <data>114</data>
+                    <data>111</data>
                     <data>0</data>
                     <data>0</data>
                     <data>0</data>
@@ -17059,8 +17086,8 @@
                 </row>
                 <row>
                     <data>u_loader</data>
-                    <data>160</data>
-                    <data>156</data>
+                    <data>181</data>
+                    <data>157</data>
                     <data>0</data>
                     <data>0</data>
                     <data>0</data>
@@ -17087,7 +17114,7 @@
             </row>
             <row>
                 <data>g_ddr_profile.u_fpioa</data>
-                <data>180</data>
+                <data>171</data>
                 <data>256</data>
                 <data>0</data>
                 <data>0</data>
@@ -17114,8 +17141,8 @@
             </row>
             <row>
                 <data>g_ddr_profile.u_int8_ddr_merge</data>
-                <data>96</data>
-                <data>126</data>
+                <data>346</data>
+                <data>130</data>
                 <data>0</data>
                 <data>0</data>
                 <data>0</data>
@@ -17140,8 +17167,8 @@
                 <data>0</data>
                 <row>
                     <data>u_capture_int8_merge</data>
-                    <data>42</data>
-                    <data>65</data>
+                    <data>92</data>
+                    <data>69</data>
                     <data>0</data>
                     <data>0</data>
                     <data>0</data>
@@ -17167,7 +17194,7 @@
                 </row>
                 <row>
                     <data>u_lane_merge</data>
-                    <data>54</data>
+                    <data>254</data>
                     <data>61</data>
                     <data>0</data>
                     <data>0</data>
@@ -17195,8 +17222,8 @@
             </row>
             <row>
                 <data>g_ddr_profile.u_int8_regs</data>
-                <data>15</data>
-                <data>1235</data>
+                <data>17</data>
+                <data>1793</data>
                 <data>0</data>
                 <data>0</data>
                 <data>0</data>
@@ -17222,7 +17249,7 @@
             </row>
             <row>
                 <data>g_ddr_profile.u_jtag</data>
-                <data>289</data>
+                <data>292</data>
                 <data>574</data>
                 <data>0</data>
                 <data>0</data>
@@ -17248,7 +17275,7 @@
                 <data>0</data>
                 <row>
                     <data>u_jtag_dm</data>
-                    <data>173</data>
+                    <data>175</data>
                     <data>341</data>
                     <data>0</data>
                     <data>0</data>
@@ -17329,7 +17356,7 @@
                 </row>
                 <row>
                     <data>u_jtag_driver</data>
-                    <data>116</data>
+                    <data>117</data>
                     <data>233</data>
                     <data>0</data>
                     <data>0</data>
@@ -17411,7 +17438,7 @@
             </row>
             <row>
                 <data>g_ddr_profile.u_led</data>
-                <data>2</data>
+                <data>1</data>
                 <data>4</data>
                 <data>0</data>
                 <data>0</data>
@@ -17438,7 +17465,7 @@
             </row>
             <row>
                 <data>g_ddr_profile.u_mem</data>
-                <data>224</data>
+                <data>211</data>
                 <data>254</data>
                 <data>0</data>
                 <data>0</data>
@@ -17464,9 +17491,9 @@
                 <data>0</data>
             </row>
             <row>
-                <data>g_ddr_profile.u_npu_ctrl</data>
-                <data>72</data>
-                <data>130</data>
+                <data>g_ddr_profile.u_npu_int8_merge</data>
+                <data>33</data>
+                <data>74</data>
                 <data>0</data>
                 <data>0</data>
                 <data>0</data>
@@ -17489,6 +17516,168 @@
                 <data>0</data>
                 <data>0</data>
                 <data>0</data>
+            </row>
+            <row>
+                <data>g_ddr_profile.u_npu_system</data>
+                <data>10917</data>
+                <data>4219</data>
+                <data>348</data>
+                <data>1</data>
+                <data>24</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <row>
+                    <data>g_image_service.u_service</data>
+                    <data>10728</data>
+                    <data>4057</data>
+                    <data>262</data>
+                    <data>1</data>
+                    <data>24</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <row>
+                        <data>u_engine</data>
+                        <data>9718</data>
+                        <data>3782</data>
+                        <data>16</data>
+                        <data>1</data>
+                        <data>24</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                    </row>
+                </row>
+                <row>
+                    <data>u_ctrl</data>
+                    <data>71</data>
+                    <data>130</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                </row>
+                <row>
+                    <data>u_result_bridge</data>
+                    <data>115</data>
+                    <data>32</data>
+                    <data>86</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <row>
+                        <data>u_result_fifo</data>
+                        <data>115</data>
+                        <data>32</data>
+                        <data>86</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                    </row>
+                </row>
             </row>
             <row>
                 <data>g_ddr_profile.u_pll</data>
@@ -17518,9 +17707,225 @@
                 <data>0</data>
             </row>
             <row>
+                <data>g_ddr_profile.u_preprocess_stereo</data>
+                <data>7892</data>
+                <data>5813</data>
+                <data>0</data>
+                <data>10</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <data>0</data>
+                <row>
+                    <data>cameras[0].u_preprocess</data>
+                    <data>3968</data>
+                    <data>2874</data>
+                    <data>0</data>
+                    <data>5</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <row>
+                        <data>u_color</data>
+                        <data>41</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                    </row>
+                    <row>
+                        <data>u_regions</data>
+                        <data>2343</data>
+                        <data>689</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                    </row>
+                </row>
+                <row>
+                    <data>cameras[1].u_preprocess</data>
+                    <data>3880</data>
+                    <data>2877</data>
+                    <data>0</data>
+                    <data>5</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <row>
+                        <data>u_color</data>
+                        <data>33</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                    </row>
+                    <row>
+                        <data>u_regions</data>
+                        <data>2276</data>
+                        <data>689</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                        <data>0</data>
+                    </row>
+                </row>
+                <row>
+                    <data>u_merge</data>
+                    <data>44</data>
+                    <data>62</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                    <data>0</data>
+                </row>
+            </row>
+            <row>
                 <data>g_ddr_profile.u_rgb565_int8</data>
-                <data>932</data>
-                <data>1290</data>
+                <data>6664</data>
+                <data>13305</data>
                 <data>0</data>
                 <data>0</data>
                 <data>0</data>
@@ -17545,8 +17950,8 @@
                 <data>0</data>
                 <row>
                     <data>lane[0].u_lane</data>
-                    <data>464</data>
-                    <data>645</data>
+                    <data>3308</data>
+                    <data>6644</data>
                     <data>0</data>
                     <data>0</data>
                     <data>0</data>
@@ -17572,8 +17977,8 @@
                 </row>
                 <row>
                     <data>lane[1].u_lane</data>
-                    <data>468</data>
-                    <data>645</data>
+                    <data>3356</data>
+                    <data>6661</data>
                     <data>0</data>
                     <data>0</data>
                     <data>0</data>
@@ -17600,7 +18005,7 @@
             </row>
             <row>
                 <data>g_ddr_profile.u_stereo_merge</data>
-                <data>34</data>
+                <data>33</data>
                 <data>33</data>
                 <data>0</data>
                 <data>0</data>
@@ -17665,10 +18070,10 @@
             <data>RAM(GB)</data>
         </column_headers>
         <row>
-            <data>0h:1m:5s</data>
-            <data>0h:1m:39s</data>
-            <data>0h:5m:2s</data>
-            <data>3,694</data>
+            <data>0h:14m:29s</data>
+            <data>0h:20m:20s</data>
+            <data>0h:30m:23s</data>
+            <data>4,900</data>
             <data>WINDOWS 10 x86_64</data>
             <data>13th Gen Intel(R) Core(TM) i7-13650HX</data>
             <data>24</data>
@@ -18031,16 +18436,190 @@
             <data message="4">The IO driver of g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/rst_clk_gpll/u_gpll/gpll_inst(CLKIN1) is not constraint at pllpad, its clock path will pass through SRB.</data>
         </row>
         <row>
-            <data message="4">GP end with result: density(0.001969)</data>
+            <data message="4">GP end with result: density(0.003654)</data>
         </row>
         <row>
             <data message="4">Process macros using &quot;Global&quot;.</data>
         </row>
         <row>
-            <data message="4">GP end with result: density(0.007775)</data>
+            <data message="4">GP end with result: density(0.002809)</data>
         </row>
         <row>
-            <data message="4">LUT6D pack result: There are 8541 LUT6 in collection, pack success:220</data>
+            <data message="4">LUT6D pack result: There are 14702 LUT6 in collection, pack success:275</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_375_798(/devBL6) replicated by the LUT instance CLMA_327_793(/devDL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_327_756(/devDL6) CLMA_369_751(/devBL6) replicated by the LUT instance CLMA_351_769(/devDL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_453_787(/devCL6) replicated by the LUT instance CLMA_447_786(/devCL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_615_817(/devDL6L5Q) CLMA_609_822(/devDL6L5Q) replicated by the LUT instance CLMA_609_810(/devDL6L5Q).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_609_816(/devBL6) replicated by the LUT instance CLMA_591_816(/devAL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_579_798(/devCL6) replicated by the LUT instance CLMA_603_817(/devCL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMS_507_871(/devDL6_S) CLMS_513_859(/devCL6_S) CLMA_519_865(/devDL6) replicated by the LUT instance CLMS_513_865(/devCL6_S).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_345_846(/devCL6) CLMA_369_846(/devCL6) replicated by the LUT instance CLMS_345_883(/devCL6_S).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_321_774(/devCL6) CLMS_321_775(/devAL6_S) replicated by the LUT instance CLMA_327_781(/devDL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_465_870(/devDL6) replicated by the LUT instance CLMA_471_889(/devAL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_507_474(/FF2/FF) replicated by the FF instance CLMA_507_480(/FF0/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_405_714(/FFAPP0/FF) replicated by the FF instance CLMA_369_709(/FF1/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_366(/FF0/FF) CLMA_477_396(/FF1/FF) CLMS_513_379(/FF0/FF) replicated by the FF instance CLMS_561_391(/FF3/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_366(/FFAPP1/FF) CLMS_531_403(/FF2/FF) replicated by the FF instance CLMA_555_361(/FF2/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_477_366(/FF1/FF) CLMA_537_396(/FF1/FF) replicated by the FF instance CLMA_555_361(/FF3/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_339_882(/devBL6) replicated by the LUT instance CLMA_339_882(/devDL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_372(/FF1/FF) replicated by the FF instance CLMA_555_379(/FF3/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_366(/FF3/FF) replicated by the FF instance CLMS_561_391(/FF1/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_366(/FF2/FF) replicated by the FF instance CLMS_561_391(/FF0/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_543_822(/devDL6) CLMA_573_798(/devDL6) CLMA_567_835(/devCL6) replicated by the LUT instance CLMA_555_823(/devDL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_687_883(/FF2/FF) replicated by the FF instance CLMA_687_859(/FF1/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_447_894(/devDL6) replicated by the LUT instance CLMA_453_906(/devCL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_372(/FF3/FF) CLMS_543_397(/FFAPP1/FF) replicated by the FF instance CLMA_555_373(/FF0/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_372(/FF0/FF) replicated by the FF instance CLMA_555_361(/FF1/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_669_804(/FF1/FF) replicated by the FF instance CLMA_669_804(/FFAPP1/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_537_654(/devAL6) replicated by the LUT instance CLMS_507_643(/devBL6_S).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_519_360(/FF0/FF) CLMS_531_397(/FFAPP2/FF) CLMA_567_367(/FF0/FF) replicated by the FF instance CLMA_615_379(/FF2/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_519_654(/devDL6L5Q) replicated by the LUT instance CLMA_501_643(/devCL6L5Q).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMS_561_385(/FF1/FF) replicated by the FF instance CLMA_465_372(/FF2/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_378(/FF1/FF) replicated by the FF instance CLMA_555_379(/FF0/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_447_900(/devAL6) replicated by the LUT instance CLMA_453_871(/devBL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_378(/FF3/FF) replicated by the FF instance CLMA_555_379(/FF1/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_378(/FF0/FF) replicated by the FF instance CLMA_531_390(/FF1/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_378(/FF2/FF) replicated by the FF instance CLMA_543_402(/FF1/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_471_792(/FF0/FF) CLMA_441_864(/FFAPP0/FF) CLMA_495_768(/FF1/FF) replicated by the FF instance CLMA_471_751(/FF0/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMS_669_847(/FF0/FF) replicated by the FF instance CLMA_717_864(/FF0/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_519_360(/FFAPP1/FF) replicated by the FF instance CLMA_579_390(/FF2/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_519_360(/FF3/FF) CLMA_597_390(/FF0/FF) replicated by the FF instance CLMA_633_366(/FF0/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMS_363_793(/FF1/FF) CLMA_405_882(/FFAPP2/FF) CLMA_429_895(/FF0/FF) replicated by the FF instance CLMA_417_798(/FF3/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_465_828(/devAL6) CLMA_483_900(/devDL6) replicated by the LUT instance CLMA_453_1026(/devAL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMS_579_559(/devCL6_S) replicated by the LUT instance CLMA_519_606(/devDL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_471_492(/devCL6L5Q) CLMA_501_445(/devCL6L5Q) CLMA_465_486(/devCL6L5Q) CLMA_477_438(/devBL6L5Q) replicated by the LUT instance CLMA_483_426(/devCL6L5Q).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_501_415(/devCL6L5Q) CLMA_483_426(/devDL6L5Q) CLMA_519_421(/devDL6L5Q) replicated by the LUT instance CLMA_531_432(/devCL6L5Q).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_384(/FF0/FF) replicated by the FF instance CLMA_543_402(/FF0/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMS_345_799(/FFAPP3/FF) CLMA_345_834(/FFAPP2/FF) CLMA_363_822(/FFAPP0/FF) replicated by the FF instance CLMA_399_829(/FFAPP3/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_555_559(/devBL6) replicated by the LUT instance CLMA_519_595(/devCL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_633_816(/devBL6) replicated by the LUT instance CLMA_639_780(/devCL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_507_756(/devBL6) replicated by the LUT instance CLMA_531_750(/devCL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMS_561_607(/devCL6_S) replicated by the LUT instance CLMA_519_606(/devCL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_900(/FFAPP0/FF) replicated by the FF instance CLMA_441_895(/FFAPP1/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_555_648(/FF0/FF) replicated by the FF instance CLMS_573_661(/FF2/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_579_606(/devDL6) replicated by the LUT instance CLMA_555_600(/devCL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_519_372(/FF1/FF) replicated by the FF instance CLMA_483_385(/FF0/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMA_615_817(/devCL6) replicated by the LUT instance CLMA_639_780(/devBL6).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_465_384(/FF1/FF) replicated by the FF instance CLMA_531_390(/FF2/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_555_385(/FF1/FF) replicated by the FF instance CLMA_519_366(/FF0/FF) .</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new LUT instances CLMS_543_415(/devCL6_S) replicated by the LUT instance CLMS_531_415(/devCL6_S).</data>
+        </row>
+        <row>
+            <data message="4">Place-6001: Add the new FF instances CLMA_579_648(/FF0/FF) replicated by the FF instance CLMS_573_649(/FF3/FF) .</data>
         </row>
         <row>
             <data message="4">Design net g_ddr_profile.JTAG_TCK_in is routed by general path.</data>
@@ -18053,6 +18632,12 @@
         </row>
         <row>
             <data message="6">Route-2036: The clock path from g_ddr_profile.u_flash_ddr_boot/u_flash_reader/spi_sck/opit_0_inv_L6QL5Q:L5Q to GRS_INST/grs_ccs:UMCLK is routed by SRB.</data>
+        </row>
+        <row>
+            <data message="4">Design net ntclkbufg_3 is routed by general path.</data>
+        </row>
+        <row>
+            <data message="6">Route-2036: The clock path from clkbufg_3/gopclkbufg:CLKOUT to g_ddr_profile.u_jtag/u_jtag_driver/dm_resp_data[18]/opit_0_inv:CLK is routed by SRB.</data>
         </row>
     </table>
     <general_container id="pnr_settings">
@@ -18326,7 +18911,7 @@
                     <data>clkbufg_0/gopclkbufg</data>
                     <data>USCM_383_930</data>
                     <data>ntclkbufg_0</data>
-                    <data>6617</data>
+                    <data>6880</data>
                     <data>0</data>
                     <data>g_ddr_profile.u_pll/u_gpll/gpll_inst</data>
                     <data>CLKOUT0</data>
@@ -18346,7 +18931,7 @@
                     <data>clkbufg_2/gopclkbufg</data>
                     <data>USCM_383_888</data>
                     <data>ntclkbufg_2</data>
-                    <data>301</data>
+                    <data>299</data>
                     <data>0</data>
                     <data>cam2_pclk_ibuf/opit_1</data>
                     <data>DI_TO_CLK</data>
@@ -18366,7 +18951,7 @@
                     <data>g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/u_rst_clk_bufg/gopclkbufg</data>
                     <data>USCM_383_891</data>
                     <data>g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/rst_clk</data>
-                    <data>124</data>
+                    <data>123</data>
                     <data>0</data>
                     <data>g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/rst_clk_gpll/u_gpll/gpll_inst</data>
                     <data>CLKOUT0</data>
@@ -18376,7 +18961,7 @@
                     <data>g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/u_sysclk_bufg/gopclkbufg</data>
                     <data>USCM_383_882</data>
                     <data>g_ddr_profile.ddr_core_clk</data>
-                    <data>12253</data>
+                    <data>34253</data>
                     <data>1</data>
                     <data>g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_gpll/u_gpll/gpll_inst</data>
                     <data>CLKOUT0</data>
@@ -18448,10 +19033,10 @@
                     <data>g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_gpll/u_gpll/gpll_inst</data>
                     <data>GPLL_727_769</data>
                     <data>CLKIN2</data>
-                    <data>_GND1735</data>
+                    <data>_GND3834</data>
                     <data> - </data>
                     <data> - </data>
-                    <data>GND_1735</data>
+                    <data>GND_3834</data>
                     <data>Z</data>
                     <data>CLMA_717_792</data>
                 </row>
@@ -18470,10 +19055,10 @@
                     <data>g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].ddrphy_ppll/u_ppll/ppll_inst</data>
                     <data>PPLL_727_613</data>
                     <data>CLKIN2</data>
-                    <data>_GND1838</data>
+                    <data>_GND3913</data>
                     <data> - </data>
                     <data> - </data>
-                    <data>GND_1838</data>
+                    <data>GND_3913</data>
                     <data>Z</data>
                     <data>CLMA_717_648</data>
                 </row>
@@ -18492,12 +19077,12 @@
                     <data>g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll/ppll_inst</data>
                     <data>PPLL_727_919</data>
                     <data>CLKIN2</data>
-                    <data>_GND1770</data>
+                    <data>_GND3877</data>
                     <data> - </data>
                     <data> - </data>
-                    <data>GND_1770</data>
+                    <data>GND_3877</data>
                     <data>Z</data>
-                    <data>CLMA_717_954</data>
+                    <data>CLMA_717_991</data>
                 </row>
                 <row>
                     <data>g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/rst_clk_gpll/u_gpll/gpll_inst</data>
@@ -18514,10 +19099,10 @@
                     <data>g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/rst_clk_gpll/u_gpll/gpll_inst</data>
                     <data>GPLL_7_769</data>
                     <data>CLKIN2</data>
-                    <data>_GND1715</data>
+                    <data>_GND3812</data>
                     <data> - </data>
                     <data> - </data>
-                    <data>GND_1715</data>
+                    <data>GND_3812</data>
                     <data>Z</data>
                     <data>CLMA_21_792</data>
                 </row>
@@ -18536,10 +19121,10 @@
                     <data>g_ddr_profile.u_pll/u_gpll/gpll_inst</data>
                     <data>GPLL_7_1381</data>
                     <data>CLKIN2</data>
-                    <data>_GND1724</data>
+                    <data>_GND3821</data>
                     <data> - </data>
                     <data> - </data>
-                    <data>GND_1724</data>
+                    <data>GND_3821</data>
                     <data>Z</data>
                     <data>CLMA_21_1404</data>
                 </row>
@@ -18548,7 +19133,7 @@
                     <data>GPLL_727_769</data>
                     <data>CLKOUT0</data>
                     <data>g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/gpll_clkout0</data>
-                    <data>12253</data>
+                    <data>34253</data>
                     <data>1</data>
                     <data> ... </data>
                     <data> ... </data>
@@ -18581,7 +19166,7 @@
                     <data>GPLL_7_769</data>
                     <data>CLKOUT0</data>
                     <data>g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/rst_gpll_clkout0</data>
-                    <data>124</data>
+                    <data>123</data>
                     <data>0</data>
                     <data> ... </data>
                     <data> ... </data>
@@ -18592,7 +19177,7 @@
                     <data>GPLL_7_1381</data>
                     <data>CLKOUT0</data>
                     <data>g_ddr_profile.cpu_clk</data>
-                    <data>6617</data>
+                    <data>6880</data>
                     <data>0</data>
                     <data> ... </data>
                     <data> ... </data>

@@ -6314,3 +6314,13 @@ Cable index 0:USB Cable II/fffffffffffffffe
 [Debug] [2026-10-9 21:58:14] end to send jtag flash verify cmd
 [Debug] [2026-10-9 21:58:14] Log::Print : COMMAND[Verify Outer Flash] execute successfully, takes 11.0 secs.
 [Info] [2026-10-10 10:05:40] /***************************End Configration***************************/
+[Info] [2026-10-22 18:13:51] /***************************Start Configuration***************************/
+[Info] [2026-10-22 18:13:51] Path: F:/PDS_2022.2-SP6.4/bin
+[Info] [2026-10-22 18:13:51] Version: 146967
+[Info] [2026-10-22 18:13:52] Current Path: F:/SocFpga/project
+[Info] [2026-10-22 18:13:52] PDS Dir Path: F:/SocFpga/project
+[Debug] [2026-10-22 18:13:56] Begin to Converte file.
+[Debug] [2026-10-22 18:14:17] End to Converte file.
+[Debug] [2026-10-22 18:14:19] Begin to Converte file.
+[Debug] [2026-10-22 18:14:19] End to Converte file.
+[Info] [2026-10-22 18:16:15] /***************************End Configration***************************/
