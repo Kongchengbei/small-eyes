@@ -1,410 +1,2787 @@
 
-[13:14:16.126]收←◆=== Road Sign NPU Pipeline ===
+[22:58:06.707]收←◆=== Road Sign NPU Pipeline ===
 NPU_PIPELINE BOOT
 CPU CLOCK=70000000 UART=115200 TX_FPIOA=0 PRINT_BACKGROUND=0
 MODEL base=0xB9000000 magic=0x3155504E classes=11 bytes=62720 crc=0x207156DE reject_margin=1251
 CAM1 SCCB=OK PID=0x00005640
 CAM1_ORIENTATION=180 3820=0x00000047 3821=0x00000001 COLORBAR_503D=0x00000000
-CAM1 CONFIG=OK VGA_RGB565 writes=255
+CAM1_AE_TARGET 3A0F=40 3A10=38 3A11=71 3A1B=40 3A1E=38 3A1F=10
+CAM1 CONFIG=OK VGA_RGB565 writes=261
 CAM2 SCCB=OK PID=0x00005640
 CAM2_ORIENTATION=180 3820=0x00000047 3821=0x00000001 COLORBAR_503D=0x00000000
-CAM2 CONFIG=OK VGA_RGB565 writes=255
-INT8 ctrl=0x00000001 status=0x00000020
+CAM2_AE_TARGET 3A0F=40 3A10=38 3A11=71 3A1B=40 3A1E=38 3A1F=10
+CAM2 CONFIG=OK VGA_RGB565 writes=261
+
+[22:58:06.737]收←◆INT8 ctrl=0x00000001 status=0x00000020
 NPU_PIPELINE CAPTURE_STARTED
 OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead over 2nd class, unsure below 1251; summary every 5s
 
-[13:14:16.344]收←◆!!! CAM1 NPU error 37 (model shape) frame=2 yellow box=99,39,108,53
-!!! CAM1 NPU error 37 (model shape) frame=2 red box=150,158,186,208
-!!! CAM2 NPU error 37 (model shape) frame=3 yellow box=0,0,159,187
-!!! CAM2 NPU error 37 (model shape) frame=3 blue box=120,97,222,217
-!!! CAM2 NPU error 37 (model shape) frame=3 blue box=227,104,247,117
+[22:58:06.871]收←◆??? CAM1 maybe other sign?    conf=1151 frame=1 red box=292,53,312,75
 
-[13:14:16.423]收←◆!!! CAM2 NPU error 37 (model shape) frame=4 yellow box=0,0,159,187
-!!! CAM2 NPU error 37 (model shape) frame=4 yellow box=192,49,202,59
+[22:58:06.964]收←◆??? CAM2 maybe other sign?    conf=1186 frame=1 yellow box=186,47,201,62
 
-[13:14:16.490]收←◆!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-!!! CAM2 NPU error 37 (model shape) frame=5 blue box=116,90,319,294
+[22:58:06.994]收←◆??? CAM1 maybe KEEP RIGHT?    conf=244 frame=1 blue box=220,168,363,404
 
-[13:14:16.556]收←◆!!! CAM2 NPU error 37 (model shape) frame=6 blue box=116,90,320,294
-!!! CAM2 NPU error 37 (model shape) frame=6 red box=98,133,122,153
+[22:58:07.025]收←◆??? CAM2 maybe other sign?    conf=464 frame=1 red box=182,48,190,62
 
-[13:14:16.623]收←◆!!! CAM2 NPU error 37 (model shape) frame=7 red box=92,87,104,109
-!!! CAM2 NPU error 37 (model shape) frame=7 blue box=116,90,319,294
+[22:58:07.273]收←◆??? CAM2 other sign           conf=1512 frame=2 yellow box=188,48,203,64
 
-[13:14:16.702]收←◆!!! CAM2 NPU error 37 (model shape) frame=8 胙?box=92,86,104,109
-!!! CAM2 NPU error 37 (model shape) frame=8 red box=138,32,159,47
+[22:58:07.364]收←◆??? CAM1 maybe other sign?    conf=1150 frame=2 red box=296,56,315,77
 
-[13:15:07.629]收←◆=== Road Sign NPU Pipeline ===
-NPU_PIPELINE BOOT
-CPU CLOCK=70000000 UART=115200 TX_FPIOA=0 PRINT_BACKGROUND=0
-MODEL base=0xB9000000 magic=0x3155504E classes=11 bytes=62720 crc=0x207156DE reject_margin=1251
-CAM1 SCCB=OK PID=0x00005640
-CAM1_ORIENTATION=180 3820=0x00000047 3821=0x00000001 COLORBAR_503D=0x00000000
-CAM1 CONFIG=OK VGA_RGB565 writes=255
-CAM2 SCCB=OK PID=0x00005640
-CAM2_ORIENTATION=180 3820=0x00000047 3821=0x00000001 COLORBAR_503D=0x00000000
-CAM2 CONFIG=OK VGA_RGB565 writes=255
+[22:58:07.519]收←◆??? CAM2 other sign           conf=1768 frame=3 yellow box=190,47,206,63
 
-[13:15:07.649]收←◆INT8 ctrl=0x00000001 status=0x00000029
-NPU_PIPELINE CAPTURE_STARTED
-OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead over 2nd class, unsure below 1251; summary every 5s
+[22:58:07.642]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=35 frame=3 yellow box=66,285,85,314
 
-[13:15:12.628]收←◆!!! CAM2 NPU e
-[13:15:12.681]收←◆rror 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5
-[13:15:12.733]收←◆ yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!!
-[13:15:14.885]收←◆ CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0!!! CAM2 NPU error 37 (model shape) frame=5 yellow box=23,22,35,37
-\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I
-[13:15:17.040]收←◆`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I
-[13:15:17.121]收←◆`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹呈狲&=Tk倷扒搋#:Qh柇嫩? 7Ne|摢霖?4Kby惂菊?1H_v崵灰閈0.E\s姟赶纨+BYp嚍堤泮(?Vm剾采圜%<Sj仒蒴
-"9Pg~暚泌?6Md{挬雷?3Jax彟皆?0G^u專貉?-D[r墵肺妩*AXo啙此怡'>Ul儦比喏$;Ri€棶跑?
-!8Of}敨沦?5Lcz懆恐?2I`w帴加?/F]t嫝剐琬,CZq垷锻潲)@Wn厹
+[22:58:07.828]收←◆??? CAM2 maybe other sign?    conf=435 frame=3 red box=186,47,192,62
+
+[22:58:07.920]收←◆??? CAM1 other sign           conf=1395 frame=3 red box=298,57,318,78
+
+[22:58:08.105]收←◆??? CAM1 maybe other sign?    conf=1202 frame=5 red box=302,53,317,68
+
+[22:58:08.321]收←◆??? CAM2 maybe other sign?    conf=149 frame=4 yellow box=194,49,205,61
+
+[22:58:08.382]收←◆??? CAM2 maybe other sign?    conf=1207 frame=5 red box=182,39,203,60
+
+[22:58:08.475]收←◆??? CAM1 maybe other sign?    conf=77 frame=6 yellow box=302,59,313,70
+
+[22:58:08.722]收←◆??? CAM1 maybe other sign?    conf=456 frame=6 red box=296,50,313,64
+
+[22:58:08.754]收←◆??? CAM2 maybe other sign?    conf=774 frame=7 red box=180,41,201,62
+
+[22:58:08.815]收←◆??? CAM2 maybe other sign?    conf=245 frame=7 yellow box=188,48,199,61
+
+[22:58:08.876]收←◆??? CAM2 maybe KEEP RIGHT?    conf=186 frame=7 blue box=106,159,223,407
+
+[22:58:08.969]收←◆??? CAM1 maybe other sign?    conf=1159 frame=7 red box=302,51,318,67
+
+[22:58:09.124]收←◆??? CAM2 maybe other sign?    conf=1150 frame=8 red box=180,39,201,61
+
+[22:58:09.216]收←◆??? CAM1 maybe other sign?    conf=66 frame=8 yellow box=300,60,311,72
+
+[22:58:09.339]收←◆??? CAM1 maybe other sign?    conf=1024 frame=8 red box=296,52,313,69
+
+[22:58:09.370]收←◆??? CAM2 maybe NO PARKING?    conf=680 frame=8 red box=56,284,97,379
+
+[22:58:09.494]收←◆??? CAM2 maybe other sign?    conf=1226 frame=9 red box=170,42,193,64
+
+[22:58:09.586]收←◆??? CAM1 maybe other sign?    conf=639 frame=9 red box=286,54,308,78
+
+[22:58:09.618]收←◆??? CAM2 maybe other sign?    conf=99 frame=9 blue box=462,207,475,213
+
+[22:58:09.741]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=10 frame=9 red box=46,291,87,397
+
+[22:58:09.833]收←◆??? CAM1 maybe NO PARKING?    conf=394 frame=9 red box=165,296,203,386
+
+[22:58:09.864]收←◆??? CAM2 maybe other sign?    conf=1136 frame=10 red box=166,38,189,61
+
+[22:58:09.957]收←◆??? CAM1 other sign           conf=1409 frame=10 red box=285,51,306,74
+
+[22:58:10.265]收←◆??? CAM1 maybe other sign?    conf=1022 frame=11 red box=283,52,305,75
+??? CAM2 maybe other sign?    conf=1062 frame=11 red box=166,39,189,62
+
+[22:58:10.605]收←◆??? CAM2 maybe other sign?    conf=1126 frame=12 red box=160,39,183,62
+
+[22:58:10.636]收←◆??? CAM1 maybe other sign?    conf=374 frame=12 yellow box=288,59,299,73
+
+[22:58:10.697]收←◆??? CAM1 other sign           conf=1375 frame=12 red box=280,52,301,75
+
+[22:58:10.975]收←◆??? CAM2 maybe other sign?    conf=1041 frame=13 red box=158,38,181,61
+
+[22:58:11.006]收←◆??? CAM1 maybe NO HONKING?    conf=43 frame=13 red box=278,50,299,62
+
+[22:58:11.067]收←◆??? CAM1 maybe other sign?    conf=7 frame=13 red box=278,60,299,74
+
+[22:58:11.284]收←◆??? CAM2 maybe other sign?    conf=680 frame=13 red box=594,228,603,241
+
+[22:58:11.407]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=152 frame=14 red box=582,225,597,235
+
+[22:58:11.500]收←◆??? CAM1 maybe other sign?    conf=743 frame=14 red box=287,51,310,66
+??? CAM2 other sign           conf=1679 frame=14 red box=163,38,187,61
+
+[22:58:11.716]收←◆??? CAM2 other sign           conf=1405 frame=15 red box=182,44,203,68
+--- t=5s cam1 14.8fps cam2 14.8fps | last 5s: sign 0, other 7, unsure 36, bg 115, err 0
+
+[22:58:11.778]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=143 frame=15 yellow box=190,52,202,66
+
+[22:58:11.809]收←◆??? CAM1 maybe other sign?    conf=217 frame=15 yellow box=308,63,319,77
+
+[22:58:11.901]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=109 frame=15 red box=582,225,596,236
+
+[22:58:11.931]收←◆??? CAM1 maybe other sign?    conf=1014 frame=15 red box=304,55,321,74
+
+[22:58:12.086]收←◆??? CAM2 maybe other sign?    conf=1180 frame=16 red box=174,34,197,57
+
+[22:58:12.116]收←◆??? CAM1 maybe other sign?    conf=549 frame=16 red box=294,47,315,65
+
+[22:58:12.178]收←◆??? CAM1 maybe other sign?    conf=385 frame=16 yellow box=302,54,313,68
+
+[22:58:12.270]收←◆??? CAM2 maybe NO PARKING?    conf=7 frame=16 red box=50,289,93,383
+
+[22:58:12.456]收←◆??? CAM2 other sign           conf=1308 frame=17 red box=175,29,197,52
+
+[22:58:12.610]收←◆??? CAM1 other sign           conf=1526 frame=17 red box=296,44,313,67
+
+[22:58:12.641]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=69 frame=17 red box=52,284,93,388
+
+[22:58:12.827]收←◆??? CAM2 maybe other sign?    conf=1056 frame=18 red box=172,30,194,53
+
+[22:58:13.166]收←◆??? CAM1 maybe other sign?    conf=849 frame=18 red box=292,43,313,67
+
+[22:58:13.197]收←◆??? CAM2 maybe other sign?    conf=1009 frame=19 red box=172,34,194,57
+
+[22:58:13.289]收←◆??? CAM1 maybe other sign?    conf=173 frame=18 yellow box=300,51,311,64
+
+[22:58:13.474]收←◆??? CAM1 other sign           conf=1391 frame=19 red box=292,48,312,72
+
+[22:58:13.505]收←◆??? CAM2 other sign           conf=1322 frame=20 red box=168,32,189,55
+
+[22:58:13.567]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=294 frame=20 yellow box=176,39,188,53
+
+[22:58:13.629]收←◆??? CAM2 maybe other sign?    conf=70 frame=20 red box=596,230,603,240
+
+[22:58:13.876]收←◆??? CAM2 maybe other sign?    conf=1193 frame=21 red box=166,29,189,52
+
+[22:58:13.906]收←◆??? CAM1 maybe other sign?    conf=205 frame=20 red box=288,43,307,57
+
+[22:58:13.999]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=257 frame=21 red box=582,225,597,235
+
+[22:58:14.184]收←◆??? CAM2 maybe other sign?    conf=1154 frame=22 red box=166,26,188,49
+
+[22:58:14.276]收←◆??? CAM1 maybe other sign?    conf=912 frame=21 red box=288,39,307,56
+
+[22:58:14.307]收←◆??? CAM2 maybe NO PARKING?    conf=255 frame=22 red box=43,282,84,391
+
+[22:58:14.338]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=138 frame=21 red box=595,236,609,246
+
+[22:58:14.462]收←◆??? CAM1 other sign           conf=1495 frame=22 red box=290,42,308,65
+
+[22:58:14.554]收←◆??? CAM2 maybe other sign?    conf=1212 frame=23 red box=168,29,190,52
+
+[22:58:14.616]收←◆??? CAM2 maybe other sign?    conf=176 frame=23 yellow box=176,36,189,50
+
+[22:58:14.709]收←◆??? CAM1 other sign           conf=1349 frame=23 red box=288,42,309,65
+
+[22:58:14.801]收←◆??? CAM2 maybe NO PARKING?    conf=369 frame=23 red box=44,286,87,390
+
+[22:58:14.894]收←◆??? CAM1 maybe other sign?    conf=526 frame=23 yellow box=296,49,307,63
+
+[22:58:14.925]收←◆??? CAM2 maybe other sign?    conf=1146 frame=24 red box=168,30,191,54
+
+[22:58:15.017]收←◆??? CAM1 other sign           conf=1288 frame=24 red box=290,46,311,69
+
+[22:58:15.080]收←◆??? CAM1 maybe other sign?    conf=334 frame=24 yellow box=298,53,309,67
+
+[22:58:15.233]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=126 frame=24 red box=46,290,87,386
+
+[22:58:15.296]收←◆??? CAM2 maybe other sign?    conf=1055 frame=25 red box=174,34,197,59
+
+[22:58:15.388]收←◆??? CAM1 maybe other sign?    conf=866 frame=25 red box=292,52,315,76
+
+[22:58:15.665]收←◆??? CAM2 other sign           conf=1291 frame=26 red box=172,38,195,61
+
+[22:58:15.727]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=50 frame=26 yellow box=180,45,194,59
+
+[22:58:15.758]收←◆??? CAM1 maybe other sign?    conf=444 frame=26 yellow box=300,60,311,72
+
+[22:58:15.881]收←◆??? CAM1 maybe other sign?    conf=1021 frame=26 red box=294,51,313,68
+
+[22:58:15.911]收←◆??? CAM2 maybe NO PARKING?    conf=78 frame=26 red box=47,295,90,393
+
+[22:58:16.035]收←◆??? CAM2 maybe other sign?    conf=1098 frame=27 red box=170,37,192,60
+
+[22:58:16.097]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=292 frame=27 yellow box=178,44,190,58
+
+[22:58:16.190]收←◆??? CAM1 maybe other sign?    conf=2 frame=27 yellow box=298,58,309,71
+
+[22:58:16.221]收←◆??? CAM2 maybe other sign?    conf=432 frame=27 red box=595,228,603,241
+
+[22:58:16.252]收←◆??? CAM1 other sign           conf=1585 frame=27 red box=292,50,311,73
+
+[22:58:16.282]收←◆??? CAM2 maybe NO PARKING?    conf=248 frame=27 red box=44,290,85,387
+
+[22:58:16.313]收←◆??? CAM1 maybe NO PARKING?    conf=215 frame=27 red box=168,295,205,385
+
+[22:58:16.468]收←◆??? CAM2 other sign           conf=1266 frame=28 red box=170,37,193,60
+??? CAM1 maybe other sign?    conf=139 frame=28 yellow box=298,57,309,71
+
+[22:58:16.592]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=18 frame=28 red box=582,225,597,236
+
+[22:58:16.653]收←◆??? CAM2 maybe NO PARKING?    conf=93 frame=28 red box=45,290,87,392
+
+[22:58:16.727]收←◆--- t=10s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 10, unsure 44, bg 108, err 0
+??? CAM1 maybe other sign?    conf=1045 frame=28 red box=290,49,311,73
+
+[22:58:16.776]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=254 frame=29 yellow box=178,41,190,55
+
+[22:58:16.837]收←◆??? CAM2 maybe other sign?    conf=1184 frame=29 red box=170,34,192,57
+
+[22:58:16.868]收←◆??? CAM1 maybe other sign?    conf=9 frame=29 yellow box=298,53,309,66
+
+[22:58:16.961]收←◆??? CAM2 maybe NO PARKING?    conf=437 frame=29 red box=45,290,87,388
+
+[22:58:17.023]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=88 frame=29 red box=582,225,595,236
+
+[22:58:17.116]收←◆??? CAM1 maybe other sign?    conf=1164 frame=29 red box=290,45,311,68
+
+[22:58:17.146]收←◆??? CAM2 maybe other sign?    conf=1148 frame=30 red box=170,30,193,53
+
+[22:58:17.331]收←◆??? CAM2 maybe NO PARKING?    conf=177 frame=30 red box=46,286,87,382
+
+[22:58:17.363]收←◆??? CAM1 maybe other sign?    conf=1195 frame=30 red box=290,43,311,66
+
+[22:58:17.455]收←◆??? CAM2 maybe other sign?    conf=1244 frame=31 red box=168,25,191,49
+
+[22:58:17.486]收←◆??? CAM1 maybe other sign?    conf=161 frame=30 yellow box=298,50,310,64
+
+[22:58:17.547]收←◆??? CAM1 maybe other sign?    conf=1216 frame=31 red box=288,38,309,61
+
+[22:58:17.826]收←◆??? CAM2 maybe other sign?    conf=1159 frame=32 red box=164,24,187,48
+
+[22:58:18.041]收←◆??? CAM1 other sign           conf=1314 frame=32 red box=287,38,308,61
+
+[22:58:18.134]收←◆??? CAM2 maybe other sign?    conf=1196 frame=33 red box=166,26,189,50
+
+[22:58:18.505]收←◆??? CAM2 maybe other sign?    conf=1207 frame=34 red box=170,27,193,51
+
+[22:58:18.628]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=73 frame=34 blue box=581,225,597,236
+
+[22:58:18.658]收←◆??? CAM1 maybe other sign?    conf=297 frame=33 red box=290,41,308,54
+
+[22:58:18.781]收←◆??? CAM1 maybe other sign?    conf=49 frame=34 red box=292,41,312,53
+
+[22:58:18.813]收←◆??? CAM2 maybe other sign?    conf=1013 frame=35 red box=173,29,195,52
+??? CAM1 maybe other sign?    conf=23 frame=34 yellow box=300,50,311,62
+
+[22:58:19.060]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=693 frame=35 red box=582,225,597,235
+
+[22:58:19.184]收←◆??? CAM2 maybe other sign?    conf=1134 frame=36 red box=176,30,198,53
+
+[22:58:19.275]收←◆??? CAM1 other sign           conf=1275 frame=35 red box=292,43,313,66
+
+[22:58:19.306]收←◆??? CAM2 maybe NO PARKING?    conf=460 frame=36 red box=51,284,93,384
+
+[22:58:19.368]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=437 frame=36 red box=582,225,597,236
+
+[22:58:19.554]收←◆??? CAM2 maybe other sign?    conf=870 frame=37 red box=174,30,197,54
+
+[22:58:19.830]收←◆??? CAM1 maybe other sign?    conf=820 frame=36 red box=296,44,315,58
+
+[22:58:19.892]收←◆??? CAM1 maybe NO PARKING?    conf=100 frame=36 red box=171,289,209,380
+
+[22:58:19.924]收←◆??? CAM2 other sign           conf=1325 frame=38 red box=173,33,195,57
+
+[22:58:19.985]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=47 frame=38 yellow box=182,41,193,55
+
+[22:58:20.016]收←◆??? CAM1 other sign           conf=1543 frame=37 red box=296,48,314,65
+
+[22:58:20.108]收←◆??? CAM2 maybe NO PARKING?    conf=153 frame=38 red box=49,290,91,389
+
+[22:58:20.294]收←◆??? CAM2 maybe NO PARKING?    conf=430 frame=39 blue box=593,226,601,241
+
+[22:58:20.386]收←◆??? CAM1 other sign           conf=1260 frame=38 red box=294,44,315,67
+
+[22:58:20.417]收←◆??? CAM2 maybe other sign?    conf=1177 frame=39 red box=175,31,197,54
+
+[22:58:20.602]收←◆??? CAM2 other sign           conf=1299 frame=40 red box=176,27,199,50
+
+[22:58:20.633]收←◆??? CAM1 maybe other sign?    conf=322 frame=39 red box=296,41,316,54
+
+[22:58:20.727]收←◆??? CAM2 maybe other sign?    conf=654 frame=40 blue box=460,207,473,213
+
+[22:58:20.818]收←◆??? CAM1 maybe NO PARKING?    conf=139 frame=39 red box=172,284,211,421
+
+[22:58:20.849]收←◆??? CAM2 maybe NO PARKING?    conf=428 frame=40 red box=52,281,93,375
+
+[22:58:20.973]收←◆??? CAM2 maybe other sign?    conf=1128 frame=41 red box=176,22,197,45
+
+[22:58:21.034]收←◆??? CAM2 maybe other sign?    conf=147 frame=41 yellow box=184,29,195,43
+
+[22:58:21.127]收←◆??? CAM1 other sign           conf=1389 frame=40 red box=294,36,315,59
+
+[22:58:21.281]收←◆??? CAM2 maybe other sign?    conf=1122 frame=42 red box=174,17,195,41
+
+[22:58:21.497]收←◆??? CAM1 other sign           conf=1346 frame=41 red box=292,32,313,54
+
+[22:58:21.621]收←◆??? CAM1 other sign           conf=1357 frame=42 red box=294,33,315,55
+
+[22:58:21.651]收←◆??? CAM2 maybe other sign?    conf=998 frame=43 red box=176,19,198,42
+
+[22:58:21.727]收←◆--- t=15s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 9, unsure 40, bg 113, err 0
+
+[22:58:21.775]收←◆??? CAM2 maybe NO PARKING?    conf=6 frame=43 red box=52,272,93,367
+
+[22:58:21.837]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=483 frame=43 red box=582,225,597,236
+
+[22:58:21.929]收←◆??? CAM1 maybe other sign?    conf=1171 frame=43 red box=302,35,319,54
+
+[22:58:22.021]收←◆??? CAM2 maybe other sign?    conf=1120 frame=44 red box=181,21,203,44
+
+[22:58:22.084]收←◆??? CAM2 maybe other sign?    conf=412 frame=44 blue box=460,207,475,213
+
+[22:58:22.145]收←◆??? CAM2 maybe NO PARKING?    conf=693 frame=44 red box=58,273,99,370
+
+[22:58:22.269]收←◆??? CAM2 maybe other sign?    conf=1208 frame=45 red box=178,24,201,47
+
+[22:58:22.423]收←◆??? CAM1 maybe other sign?    conf=575 frame=44 red box=300,38,317,51
+
+[22:58:22.577]收←◆??? CAM2 maybe other sign?    conf=1144 frame=46 red box=180,24,201,47
+
+[22:58:22.670]收←◆??? CAM1 maybe other sign?    conf=93 frame=45 yellow box=306,46,317,58
+
+[22:58:22.824]收←◆??? CAM2 maybe NO PARKING?    conf=544 frame=46 red box=56,276,98,374
+
+[22:58:22.948]收←◆??? CAM2 maybe other sign?    conf=57 frame=47 yellow box=188,33,199,47
+
+[22:58:23.009]收←◆??? CAM2 maybe other sign?    conf=1058 frame=47 red box=180,25,201,48
+
+[22:58:23.071]收←◆??? CAM2 maybe other sign?    conf=8 frame=47 blue box=460,207,475,213
+
+[22:58:23.102]收←◆??? CAM1 other sign           conf=1371 frame=46 red box=298,38,318,61
+
+[22:58:23.194]收←◆??? CAM2 maybe NO PARKING?    conf=473 frame=47 red box=56,278,97,372
+
+[22:58:23.380]收←◆??? CAM2 maybe other sign?    conf=855 frame=48 red box=178,25,200,48
+
+[22:58:23.534]收←◆??? CAM1 maybe other sign?    conf=48 frame=47 yellow box=306,47,317,59
+
+[22:58:23.596]收←◆??? CAM1 maybe other sign?    conf=259 frame=47 red box=298,49,317,61
+
+[22:58:23.627]收←◆??? CAM2 maybe other sign?    conf=1247 frame=49 red box=178,21,199,44
+
+[22:58:23.812]收←◆??? CAM2 maybe other sign?    conf=464 frame=49 blue box=458,207,473,213
+
+[22:58:24.059]收←◆??? CAM2 maybe other sign?    conf=1174 frame=50 red box=176,15,197,39
+
+[22:58:24.121]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=300 frame=50 red box=582,225,597,236
+
+[22:58:24.213]收←◆??? CAM1 maybe other sign?    conf=1212 frame=48 red box=296,32,317,54
+
+[22:58:24.306]收←◆??? CAM2 maybe other sign?    conf=1118 frame=51 red box=172,12,195,36
+
+[22:58:24.336]收←◆??? CAM1 maybe other sign?    conf=148 frame=48 yellow box=304,40,315,52
+
+[22:58:24.430]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=128 frame=51 red box=582,225,595,235
+
+[22:58:24.552]收←◆??? CAM2 maybe NO PARKING?    conf=83 frame=51 red box=50,268,92,369
+
+[22:58:24.614]收←◆??? CAM2 maybe other sign?    conf=1150 frame=52 red box=172,18,195,41
+
+[22:58:24.645]收←◆??? CAM1 maybe other sign?    conf=409 frame=49 blue box=472,215,487,231
+
+[22:58:24.737]收←◆??? CAM2 maybe NO PARKING?    conf=287 frame=52 red box=51,273,93,375
+
+[22:58:24.984]收←◆??? CAM2 maybe other sign?    conf=1127 frame=53 red box=174,18,193,38
+
+[22:58:25.262]收←◆??? CAM1 maybe other sign?    conf=1001 frame=51 red box=300,26,320,42
+
+[22:58:25.571]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=45 frame=52 red box=184,216,227,364
+
+[22:58:25.601]收←◆??? CAM2 maybe KEEP RIGHT?    conf=27 frame=54 blue box=594,227,601,241
+
+[22:58:25.663]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=158 frame=54 red box=377,308,407,374
+
+[22:58:25.880]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=176 frame=53 red box=168,225,210,369
+
+[22:58:25.941]收←◆??? CAM1 maybe NO PARKING?    conf=271 frame=54 red box=158,225,199,337
+
+[22:58:26.095]收←◆??? CAM2 maybe NO PARKING?    conf=544 frame=56 red box=25,219,69,325
+
+[22:58:26.188]收←◆??? CAM1 maybe NO ENTRY?      conf=514 frame=54 red box=155,355,181,383
+
+[22:58:26.341]收←◆??? CAM2 maybe NO PARKING?    conf=492 frame=57 red box=29,221,71,326
+
+[22:58:26.466]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=710 frame=57 red box=582,225,595,234
+
+[22:58:26.727]收←◆--- t=20s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 1, unsure 41, bg 120, err 0
+
+[22:58:26.773]收←◆??? CAM2 maybe NO PARKING?    conf=598 frame=58 red box=30,221,71,324
+
+[22:58:26.929]收←◆??? CAM1 maybe NO PARKING?    conf=433 frame=57 red box=164,223,205,350
+
+[22:58:27.083]收←◆??? CAM2 maybe NO PARKING?    conf=205 frame=59 red box=34,217,75,313
+
+[22:58:27.176]收←◆??? CAM1 maybe NO ENTRY?      conf=140 frame=57 blue box=596,246,613,255
+
+[22:58:27.453]收←◆??? CAM2 maybe NO PARKING?    conf=355 frame=60 red box=35,219,77,327
+
+[22:58:27.823]收←◆??? CAM2 maybe NO PARKING?    conf=201 frame=61 red box=34,218,78,320
+
+[22:58:27.977]收←◆??? CAM1 maybe NO ENTRY?      conf=344 frame=59 red box=161,348,191,393
+
+[22:58:28.039]收←◆??? CAM1 maybe NO ENTRY?      conf=194 frame=60 red box=158,224,207,399
+
+[22:58:28.070]收←◆??? CAM2 maybe KEEP RIGHT?    conf=25 frame=61 blue box=594,228,603,241
+
+[22:58:28.255]收←◆??? CAM2 maybe NO PARKING?    conf=153 frame=62 red box=34,219,77,327
+
+[22:58:28.626]收←◆??? CAM2 maybe NO PARKING?    conf=636 frame=63 red box=36,220,78,323
+
+[22:58:29.088]收←◆??? CAM1 maybe NO ENTRY?      conf=148 frame=63 red box=160,238,207,408
+
+[22:58:29.303]收←◆??? CAM2 maybe NO PARKING?    conf=362 frame=65 red box=36,234,80,352
+
+[22:58:29.736]收←◆??? CAM2 maybe NO PARKING?    conf=142 frame=66 red box=39,232,81,345
+
+[22:58:29.829]收←◆??? CAM1 maybe NO ENTRY?      conf=205 frame=65 red box=163,364,185,391
+
+[22:58:30.106]收←◆??? CAM2 maybe NO PARKING?    conf=96 frame=67 red box=37,234,80,340
+
+[22:58:30.415]收←◆??? CAM2 maybe KEEP RIGHT?    conf=102 frame=68 blue box=592,226,603,241
+
+[22:58:30.539]收←◆??? CAM2 maybe NO PARKING?    conf=237 frame=68 red box=42,239,85,347
+
+[22:58:30.755]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=336 frame=68 red box=162,241,214,411
+
+[22:58:30.785]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=41 frame=69 red box=44,235,87,354
+
+[22:58:31.186]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=211 frame=69 red box=164,242,213,411
+
+[22:58:31.341]收←◆??? CAM2 maybe NO PARKING?    conf=441 frame=70 red box=44,239,85,343
+
+[22:58:31.496]收←◆??? CAM1 maybe NO PARKING?    conf=161 frame=70 red box=172,243,213,366
+
+[22:58:31.727]收←◆--- t=25s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 0, unsure 23, bg 139, err 0
+
+[22:58:32.174]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=136 frame=72 red box=162,246,211,415
+
+[22:58:32.266]收←◆??? CAM2 maybe NO PARKING?    conf=663 frame=73 red box=44,242,84,347
+
+[22:58:32.483]收←◆??? CAM1 maybe other sign?    conf=771 frame=73 red box=381,0,401,16
+
+[22:58:32.668]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=146 frame=73 red box=165,248,211,401
+
+[22:58:32.760]收←◆??? CAM2 maybe NO PARKING?    conf=716 frame=74 red box=44,244,87,347
+
+[22:58:32.853]收←◆??? CAM1 maybe other sign?    conf=678 frame=74 red box=382,1,401,16
+
+[22:58:32.884]收←◆??? CAM2 maybe NO PARKING?    conf=42 frame=75 blue box=592,226,603,241
+
+[22:58:32.914]收←◆??? CAM1 maybe NO ENTRY?      conf=59 frame=74 red box=163,247,213,417
+
+[22:58:32.945]收←◆??? CAM2 maybe other sign?    conf=259 frame=75 blue box=458,242,469,252
+
+[22:58:33.007]收←◆??? CAM2 maybe NO PARKING?    conf=612 frame=75 red box=44,244,87,342
+
+[22:58:33.038]收←◆??? CAM1 maybe KEEP RIGHT?    conf=62 frame=74 blue box=608,238,615,253
+
+[22:58:33.284]收←◆??? CAM1 maybe NO ENTRY?      conf=2 frame=75 red box=385,1,405,16
+
+[22:58:33.347]收←◆??? CAM1 maybe NO ENTRY?      conf=166 frame=75 red box=166,245,215,416
+
+[22:58:33.563]收←◆??? CAM2 maybe other sign?    conf=226 frame=77 blue box=474,208,483,216
+
+[22:58:33.655]收←◆??? CAM1 maybe other sign?    conf=641 frame=76 red box=385,3,404,15
+
+[22:58:33.779]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=75 frame=76 red box=163,245,215,420
+
+[22:58:33.810]收←◆??? CAM2 maybe other sign?    conf=185 frame=78 blue box=474,208,483,216
+
+[22:58:33.871]收←◆??? CAM2 maybe NO PARKING?    conf=476 frame=78 red box=48,240,91,399
+
+[22:58:33.932]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=325 frame=79 red box=582,225,595,235
+
+[22:58:33.963]收←◆??? CAM1 maybe other sign?    conf=940 frame=77 red box=384,1,404,18
+
+[22:58:34.057]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=230 frame=79 blue box=474,208,483,217
+
+[22:58:34.117]收←◆??? CAM2 maybe NO PARKING?    conf=230 frame=79 red box=46,241,89,344
+
+[22:58:34.303]收←◆??? CAM2 maybe other sign?    conf=737 frame=80 blue box=464,207,485,216
+
+[22:58:34.334]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=147 frame=78 red box=596,236,607,246
+
+[22:58:34.395]收←◆??? CAM1 maybe other sign?    conf=537 frame=78 red box=384,4,403,16
+
+[22:58:34.550]收←◆??? CAM2 maybe NO PARKING?    conf=623 frame=80 red box=48,241,90,346
+
+[22:58:34.705]收←◆??? CAM1 maybe other sign?    conf=1066 frame=79 red box=385,1,405,18
+
+[22:58:34.735]收←◆??? CAM2 maybe other sign?    conf=697 frame=81 blue box=471,207,485,217
+
+[22:58:34.982]收←◆??? CAM2 maybe NO PARKING?    conf=407 frame=82 red box=48,240,90,346
+
+[22:58:35.075]收←◆??? CAM1 maybe NO PARKING?    conf=436 frame=80 red box=174,246,215,370
+
+[22:58:35.106]收←◆??? CAM2 maybe other sign?    conf=405 frame=82 blue box=474,208,485,217
+
+[22:58:35.136]收←◆??? CAM1 maybe other sign?    conf=187 frame=80 red box=386,2,405,17
+
+[22:58:35.291]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=8 frame=83 blue box=474,208,485,216
+
+[22:58:35.322]收←◆??? CAM1 maybe NO ENTRY?      conf=53 frame=80 red box=166,373,193,400
+
+[22:58:35.352]收←◆??? CAM2 maybe KEEP RIGHT?    conf=401 frame=83 blue box=595,227,603,241
+
+[22:58:35.661]收←◆??? CAM2 maybe other sign?    conf=373 frame=84 blue box=474,208,485,220
+
+[22:58:35.784]收←◆??? CAM2 maybe NO PARKING?    conf=112 frame=84 red box=48,241,90,349
+
+[22:58:35.877]收←◆??? CAM1 maybe other sign?    conf=522 frame=82 red box=383,4,403,17
+
+[22:58:35.908]收←◆??? CAM2 maybe other sign?    conf=676 frame=85 blue box=464,207,485,216
+
+[22:58:36.094]收←◆??? CAM2 maybe NO PARKING?    conf=434 frame=85 red box=50,239,91,345
+
+[22:58:36.248]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=339 frame=83 red box=165,245,215,414
+
+[22:58:36.340]收←◆??? CAM2 other sign           conf=1268 frame=86 blue box=471,207,484,217
+
+[22:58:36.525]收←◆??? CAM2 other sign           conf=1263 frame=86 blue box=457,237,465,249
+
+[22:58:36.586]收←◆??? CAM2 maybe NO PARKING?    conf=313 frame=86 red box=50,240,91,345
+
+[22:58:36.617]收←◆??? CAM1 maybe other sign?    conf=587 frame=84 red box=386,3,406,19
+
+[22:58:36.710]收←◆??? CAM2 maybe other sign?    conf=510 frame=87 blue box=464,207,485,216
+--- t=30s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 2, unsure 44, bg 116, err 0
+
+[22:58:36.958]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=20 frame=88 red box=583,225,595,234
+
+[22:58:36.988]收←◆??? CAM1 maybe other sign?    conf=341 frame=85 red box=385,3,405,20
+
+[22:58:37.266]收←◆??? CAM2 other sign           conf=1616 frame=88 blue box=457,238,466,250
+
+[22:58:37.358]收←◆??? CAM1 maybe other sign?    conf=357 frame=86 red box=387,4,407,19
+
+[22:58:37.389]收←◆??? CAM2 maybe NO PARKING?    conf=600 frame=89 red box=50,241,91,344
+
+[22:58:37.604]收←◆??? CAM1 maybe other sign?    conf=720 frame=87 red box=386,4,406,18
+
+[22:58:37.790]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=376 frame=87 red box=166,245,216,414
+
+[22:58:38.006]收←◆??? CAM2 maybe NO PARKING?    conf=716 frame=91 red box=53,242,93,347
+
+[22:58:38.069]收←◆??? CAM2 maybe other sign?    conf=260 frame=91 blue box=474,208,487,225
+
+[22:58:38.099]收←◆??? CAM1 maybe other sign?    conf=439 frame=88 red box=386,5,407,21
+
+[22:58:38.253]收←◆??? CAM2 other sign           conf=1357 frame=92 blue box=471,207,487,226
+
+[22:58:38.377]收←◆??? CAM2 maybe NO PARKING?    conf=426 frame=92 red box=52,243,93,347
+
+[22:58:38.407]收←◆??? CAM1 maybe other sign?    conf=744 frame=89 red box=382,8,403,25
+
+[22:58:38.623]收←◆??? CAM2 maybe other sign?    conf=307 frame=93 blue box=471,207,485,217
+
+[22:58:38.870]收←◆??? CAM2 maybe other sign?    conf=78 frame=94 red box=262,51,281,74
+
+[22:58:38.933]收←◆??? CAM2 maybe other sign?    conf=605 frame=94 blue box=474,208,485,218
+
+[22:58:39.024]收←◆??? CAM1 maybe other sign?    conf=101 frame=91 blue box=488,217,501,236
+
+[22:58:39.088]收←◆??? CAM1 maybe other sign?    conf=447 frame=91 red box=372,72,391,93
+
+[22:58:39.241]收←◆??? CAM2 maybe other sign?    conf=894 frame=95 blue box=464,207,485,218
+
+[22:58:39.302]收←◆??? CAM2 maybe other sign?    conf=613 frame=95 red box=244,73,264,85
+
+[22:58:39.457]收←◆??? CAM1 maybe other sign?    conf=744 frame=92 red box=354,87,375,100
+
+[22:58:39.610]收←◆??? CAM2 maybe other sign?    conf=283 frame=96 blue box=473,207,485,216
+
+[22:58:39.672]收←◆??? CAM2 maybe other sign?    conf=1188 frame=96 red box=222,69,242,85
+
+[22:58:39.888]收←◆??? CAM1 maybe other sign?    conf=964 frame=93 red box=332,77,351,95
+
+[22:58:39.981]收←◆??? CAM2 maybe other sign?    conf=277 frame=97 red box=212,60,233,76
+
+[22:58:40.104]收←◆??? CAM2 maybe other sign?    conf=642 frame=97 blue box=473,207,488,221
+
+[22:58:40.135]收←◆??? CAM1 maybe other sign?    conf=424 frame=94 red box=325,75,343,90
+
+[22:58:40.166]收←◆??? CAM2 maybe SPEED LIMIT 80? conf=57 frame=97 red box=582,234,599,245
+
+[22:58:40.227]收←◆??? CAM2 maybe NO PARKING?    conf=629 frame=97 red box=0,293,41,401
+
+[22:58:40.351]收←◆??? CAM2 maybe other sign?    conf=702 frame=98 red box=208,65,227,81
+
+[22:58:40.382]收←◆??? CAM1 maybe other sign?    conf=704 frame=95 red box=318,90,337,103
+
+[22:58:40.598]收←◆??? CAM2 maybe NO PARKING?    conf=936 frame=98 red box=0,302,35,418
+
+[22:58:40.722]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=72 frame=99 red box=594,228,603,242
+
+[22:58:40.783]收←◆??? CAM2 maybe other sign?    conf=521 frame=99 red box=199,75,221,89
+
+[22:58:40.938]收←◆??? CAM1 maybe other sign?    conf=791 frame=96 red box=316,87,336,103
+
+[22:58:41.000]收←◆??? CAM1 maybe NO PARKING?    conf=300 frame=96 red box=111,323,145,388
+
+[22:58:41.093]收←◆??? CAM2 maybe NO ENTRY?      conf=378 frame=100 red box=190,74,211,85
+
+[22:58:41.123]收←◆??? CAM1 maybe other sign?    conf=1051 frame=97 red box=312,87,331,99
+
+[22:58:41.431]收←◆??? CAM1 maybe other sign?    conf=900 frame=98 red box=314,81,333,99
+
+[22:58:41.462]收←◆??? CAM2 maybe other sign?    conf=924 frame=101 red box=192,70,213,87
+
+[22:58:41.555]收←◆??? CAM1 maybe NO PARKING?    conf=609 frame=98 red box=104,329,143,422
+
+[22:58:41.727]收←◆--- t=35s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 2, unsure 39, bg 121, err 0
+
+[22:58:41.802]收←◆??? CAM1 maybe other sign?    conf=300 frame=99 red box=312,78,333,96
+
+[22:58:41.895]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=485 frame=102 red box=582,225,597,236
+
+[22:58:41.925]收←◆??? CAM1 maybe NO PARKING?    conf=522 frame=99 red box=102,329,141,411
+
+[22:58:42.018]收←◆??? CAM2 maybe other sign?    conf=671 frame=102 red box=189,66,210,83
+
+[22:58:42.049]收←◆??? CAM1 maybe other sign?    conf=390 frame=100 red box=314,79,334,94
+
+[22:58:42.172]收←◆??? CAM1 maybe NO PARKING?    conf=410 frame=100 red box=98,328,141,425
+
+[22:58:42.264]收←◆??? CAM2 maybe other sign?    conf=838 frame=103 red box=190,66,211,81
+
+[22:58:42.419]收←◆??? CAM1 maybe other sign?    conf=771 frame=101 red box=312,77,333,95
+
+[22:58:42.511]收←◆??? CAM2 maybe other sign?    conf=790 frame=104 red box=188,65,209,80
+
+[22:58:42.542]收←◆??? CAM1 maybe NO PARKING?    conf=492 frame=101 red box=102,329,141,412
+
+[22:58:42.666]收←◆??? CAM1 maybe other sign?    conf=769 frame=102 red box=318,78,339,91
+
+[22:58:42.728]收←◆??? CAM1 maybe NO PARKING?    conf=184 frame=102 red box=106,327,145,421
+
+[22:58:42.944]收←◆??? CAM2 maybe other sign?    conf=893 frame=105 red box=194,63,215,81
+
+[22:58:42.974]收←◆??? CAM1 maybe other sign?    conf=673 frame=103 red box=320,76,340,94
+
+[22:58:43.036]收←◆??? CAM1 maybe NO PARKING?    conf=72 frame=103 red box=106,328,145,414
+
+[22:58:43.221]收←◆??? CAM1 maybe other sign?    conf=720 frame=104 red box=320,76,339,95
+
+[22:58:43.252]收←◆??? CAM2 maybe other sign?    conf=346 frame=106 red box=594,228,603,242
+
+[22:58:43.283]收←◆??? CAM1 maybe NO PARKING?    conf=668 frame=104 red box=106,330,147,426
+
+[22:58:43.437]收←◆??? CAM2 maybe other sign?    conf=782 frame=106 red box=194,64,215,82
+
+[22:58:43.653]收←◆??? CAM1 maybe other sign?    conf=467 frame=105 red box=324,81,343,93
+
+[22:58:43.684]收←◆??? CAM2 maybe NO ENTRY?      conf=45 frame=107 red box=200,68,221,80
+
+[22:58:43.715]收←◆??? CAM1 maybe NO PARKING?    conf=403 frame=105 red box=104,327,149,425
+
+[22:58:43.900]收←◆??? CAM1 maybe other sign?    conf=776 frame=106 red box=320,78,340,96
+
+[22:58:43.931]收←◆??? CAM2 maybe other sign?    conf=1175 frame=108 red box=196,66,217,83
+
+[22:58:44.024]收←◆??? CAM1 maybe NO PARKING?    conf=632 frame=106 red box=108,329,147,429
+
+[22:58:44.148]收←◆??? CAM1 maybe other sign?    conf=929 frame=107 red box=320,81,339,95
+
+[22:58:44.301]收←◆??? CAM2 maybe other sign?    conf=748 frame=109 red box=195,68,216,81
+
+[22:58:44.364]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=613 frame=109 red box=582,225,597,236
+
+[22:58:44.455]收←◆??? CAM1 maybe NO PARKING?    conf=298 frame=107 red box=108,333,145,419
+
+[22:58:44.702]收←◆??? CAM1 maybe other sign?    conf=1155 frame=108 red box=322,79,341,97
+
+[22:58:44.826]收←◆??? CAM1 maybe NO PARKING?    conf=586 frame=108 red box=108,331,147,424
+
+[22:58:44.856]收←◆??? CAM2 maybe NO ENTRY?      conf=238 frame=110 red box=311,341,347,393
+
+[22:58:44.919]收←◆??? CAM2 maybe other sign?    conf=1243 frame=110 red box=198,67,219,84
+
+[22:58:45.011]收←◆??? CAM1 maybe other sign?    conf=733 frame=109 red box=323,79,343,97
+
+[22:58:45.072]收←◆??? CAM1 maybe NO PARKING?    conf=224 frame=109 red box=110,330,147,402
+
+[22:58:45.165]收←◆??? CAM2 maybe other sign?    conf=614 frame=111 red box=200,68,221,84
+
+[22:58:45.258]收←◆??? CAM1 maybe other sign?    conf=568 frame=110 red box=322,80,343,97
+
+[22:58:45.288]收←◆??? CAM2 maybe other sign?    conf=468 frame=112 red box=196,69,217,83
+
+[22:58:45.535]收←◆??? CAM2 maybe other sign?    conf=129 frame=112 red box=310,343,347,394
+
+[22:58:45.597]收←◆??? CAM2 maybe other sign?    conf=323 frame=113 red box=197,69,219,83
+
+[22:58:45.690]收←◆??? CAM1 maybe NO PARKING?    conf=244 frame=111 red box=110,331,147,423
+
+[22:58:45.751]收←◆??? CAM1 maybe other sign?    conf=771 frame=111 red box=322,82,343,96
+
+[22:58:45.875]收←◆??? CAM1 maybe other sign?    conf=693 frame=112 red box=322,80,343,97
+
+[22:58:45.906]收←◆??? CAM2 maybe other sign?    conf=614 frame=114 red box=197,70,217,83
+
+[22:58:46.122]收←◆??? CAM1 maybe NO PARKING?    conf=465 frame=112 red box=105,331,149,426
+
+[22:58:46.245]收←◆??? CAM1 maybe NO ENTRY?      conf=101 frame=113 red box=322,81,341,96
+
+[22:58:46.276]收←◆??? CAM2 maybe other sign?    conf=299 frame=115 red box=196,68,217,84
+
+[22:58:46.400]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=263 frame=115 blue box=581,225,597,236
+
+[22:58:46.431]收←◆??? CAM1 maybe other sign?    conf=385 frame=113 red box=607,238,616,252
+
+[22:58:46.492]收←◆??? CAM1 maybe NO PARKING?    conf=393 frame=113 red box=108,330,147,430
+
+[22:58:46.585]收←◆??? CAM2 maybe other sign?    conf=959 frame=116 red box=196,67,218,84
+
+[22:58:46.616]收←◆??? CAM1 maybe other sign?    conf=1246 frame=114 red box=322,79,342,98
+
+[22:58:46.678]收←◆??? CAM1 maybe NO ENTRY?      conf=69 frame=114 red box=489,228,499,242
+
+[22:58:46.728]收←◆--- t=40s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 0, unsure 53, bg 109, err 0
+
+[22:58:46.801]收←◆??? CAM1 maybe NO PARKING?    conf=119 frame=114 red box=106,331,147,431
+
+[22:58:46.893]收←◆??? CAM2 maybe NO ENTRY?      conf=82 frame=117 red box=471,218,483,232
+
+[22:58:46.924]收←◆??? CAM1 maybe NO PARKING?    conf=554 frame=115 red box=488,227,499,238
+
+[22:58:46.986]收←◆??? CAM1 maybe other sign?    conf=320 frame=115 red box=320,79,341,97
+??? CAM2 maybe other sign?    conf=53 frame=117 red box=196,68,217,83
+
+[22:58:47.048]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=93 frame=115 red box=595,236,609,246
+
+[22:58:47.170]收←◆??? CAM1 maybe NO ENTRY?      conf=394 frame=115 red box=484,242,493,258
+
+[22:58:47.295]收←◆??? CAM1 maybe NO HONKING?    conf=181 frame=116 red box=487,227,501,242
+
+[22:58:47.325]收←◆??? CAM2 maybe other sign?    conf=424 frame=118 red box=194,67,215,85
+
+[22:58:47.356]收←◆??? CAM1 other sign           conf=1279 frame=116 red box=320,79,340,98
+
+[22:58:47.480]收←◆??? CAM1 maybe NO PARKING?    conf=486 frame=116 red box=108,334,147,425
+
+[22:58:47.603]收←◆??? CAM1 maybe other sign?    conf=659 frame=117 red box=320,82,341,97
+
+[22:58:47.635]收←◆??? CAM2 maybe other sign?    conf=574 frame=119 red box=194,70,215,83
+
+[22:58:47.911]收←◆??? CAM1 maybe other sign?    conf=417 frame=118 red box=319,80,339,99
+
+[22:58:47.974]收←◆??? CAM1 maybe NO ENTRY?      conf=86 frame=118 red box=488,228,499,240
+
+[22:58:48.004]收←◆??? CAM2 maybe other sign?    conf=663 frame=120 red box=194,68,215,86
+
+[22:58:48.035]收←◆??? CAM1 maybe NO PARKING?    conf=691 frame=118 red box=108,335,147,421
+
+[22:58:48.220]收←◆??? CAM1 maybe other sign?    conf=995 frame=119 red box=312,82,333,101
+
+[22:58:48.309]收←◆??? CAM1 maybe NO ENTRY?      conf=150 frame=119 red box=489,228,501,243
+
+[22:58:48.374]收←◆??? CAM2 maybe other sign?    conf=371 frame=121 red box=188,71,209,88
+
+[22:58:48.405]收←◆??? CAM1 maybe NO PARKING?    conf=255 frame=119 red box=106,340,147,430
+
+[22:58:48.622]收←◆??? CAM2 maybe other sign?    conf=256 frame=121 red box=594,227,603,242
+
+[22:58:48.652]收←◆??? CAM1 maybe other sign?    conf=317 frame=120 red box=315,87,335,100
+
+[22:58:48.745]收←◆??? CAM2 maybe other sign?    conf=801 frame=122 red box=190,75,211,88
+
+[22:58:48.838]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=56 frame=120 red box=110,339,147,432
+
+[22:58:48.900]收←◆??? CAM1 maybe other sign?    conf=1169 frame=121 red box=314,86,335,104
+
+[22:58:48.991]收←◆??? CAM2 maybe other sign?    conf=911 frame=123 red box=192,75,213,90
+
+[22:58:49.053]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=339 frame=123 red box=584,225,597,235
+
+[22:58:49.239]收←◆??? CAM2 maybe other sign?    conf=1178 frame=124 red box=188,75,209,91
+
+[22:58:49.302]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=673 frame=124 red box=581,225,597,236
+
+[22:58:49.394]收←◆??? CAM1 maybe other sign?    conf=1002 frame=122 red box=314,89,334,103
+
+[22:58:49.455]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=161 frame=122 red box=110,341,149,430
+
+[22:58:49.547]收←◆??? CAM2 maybe other sign?    conf=1000 frame=125 red box=192,73,213,91
+
+[22:58:49.578]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=145 frame=123 red box=596,236,609,247
+
+[22:58:49.639]收←◆??? CAM1 other sign           conf=1377 frame=123 red box=314,86,335,105
+
+[22:58:49.670]收←◆??? CAM2 maybe NO ENTRY?      conf=187 frame=125 red box=586,405,593,414
+
+[22:58:49.732]收←◆??? CAM2 maybe other sign?    conf=7 frame=125 red box=592,420,609,432
+
+[22:58:49.763]收←◆??? CAM1 maybe NO PARKING?    conf=231 frame=123 red box=110,339,151,434
+
+[22:58:49.794]收←◆??? CAM2 maybe other sign?    conf=468 frame=126 red box=192,74,213,91
+
+[22:58:49.886]收←◆??? CAM1 maybe other sign?    conf=867 frame=124 red box=315,86,335,103
+
+[22:58:50.009]收←◆??? CAM1 maybe NO PARKING?    conf=607 frame=124 red box=112,340,151,431
+
+[22:58:50.226]收←◆??? CAM2 maybe other sign?    conf=445 frame=127 red box=191,74,211,91
+
+[22:58:50.380]收←◆??? CAM1 maybe other sign?    conf=590 frame=125 red box=314,86,335,104
+
+[22:58:50.410]收←◆??? CAM2 maybe other sign?    conf=601 frame=128 red box=188,77,209,89
+
+[22:58:50.627]收←◆??? CAM1 maybe other sign?    conf=684 frame=126 red box=314,89,334,103
+
+[22:58:50.719]收←◆??? CAM2 maybe other sign?    conf=499 frame=129 red box=190,75,211,92
+
+[22:58:50.750]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=74 frame=126 red box=110,341,149,433
+
+[22:58:50.966]收←◆??? CAM2 maybe NO ENTRY?      conf=216 frame=130 red box=188,78,209,89
+
+[22:58:50.997]收←◆??? CAM1 maybe other sign?    conf=410 frame=127 red box=312,89,333,103
+
+[22:58:51.182]收←◆??? CAM1 maybe NO PARKING?    conf=758 frame=127 red box=110,342,149,432
+
+[22:58:51.213]收←◆??? CAM2 maybe other sign?    conf=1212 frame=131 red box=188,74,209,92
+
+[22:58:51.306]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=180 frame=128 red box=110,342,150,421
+
+[22:58:51.337]收←◆??? CAM2 maybe other sign?    conf=389 frame=131 yellow box=596,229,602,240
+
+[22:58:51.367]收←◆??? CAM1 maybe other sign?    conf=385 frame=128 red box=312,87,332,104
+
+[22:58:51.522]收←◆??? CAM2 maybe other sign?    conf=933 frame=132 red box=187,74,208,92
+
+[22:58:51.584]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=991 frame=132 red box=584,225,596,236
+
+[22:58:51.614]收←◆??? CAM1 maybe other sign?    conf=1121 frame=129 red box=311,86,331,105
+
+[22:58:51.727]收←◆--- t=45s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 2, unsure 55, bg 105, err 0
+
+[22:58:51.769]收←◆??? CAM2 maybe other sign?    conf=274 frame=133 red box=186,75,207,91
+
+[22:58:51.800]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=112 frame=129 red box=110,342,149,430
+
+[22:58:51.893]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=444 frame=133 red box=581,225,597,236
+
+[22:58:51.923]收←◆??? CAM1 maybe other sign?    conf=472 frame=130 red box=311,87,331,104
+
+[22:58:52.139]收←◆??? CAM2 other sign           conf=1284 frame=134 red box=184,75,205,92
+
+[22:58:52.293]收←◆??? CAM1 maybe other sign?    conf=763 frame=131 red box=309,87,329,105
+
+[22:58:52.355]收←◆??? CAM1 maybe NO PARKING?    conf=80 frame=131 red box=106,344,149,437
+
+[22:58:52.386]收←◆??? CAM2 maybe other sign?    conf=950 frame=135 red box=184,76,205,92
+
+[22:58:52.540]收←◆??? CAM1 maybe other sign?    conf=966 frame=132 red box=310,89,331,104
+
+[22:58:52.632]收←◆??? CAM2 maybe other sign?    conf=813 frame=136 red box=185,78,205,90
+
+[22:58:52.850]收←◆??? CAM1 maybe NO PARKING?    conf=615 frame=132 red box=110,345,149,440
+
+[22:58:52.879]收←◆??? CAM2 maybe NO HONKING?    conf=69 frame=137 red box=182,77,203,93
+
+[22:58:52.911]收←◆??? CAM1 maybe other sign?    conf=213 frame=133 red box=308,88,329,106
+
+[22:58:53.003]收←◆??? CAM2 maybe NO ENTRY?      conf=191 frame=137 red box=304,350,344,402
+
+[22:58:53.096]收←◆??? CAM1 maybe NO PARKING?    conf=126 frame=133 red box=108,345,147,438
+
+[22:58:53.188]收←◆??? CAM2 maybe other sign?    conf=417 frame=138 red box=182,76,203,94
+
+[22:58:53.281]收←◆??? CAM1 maybe other sign?    conf=712 frame=134 red box=308,88,329,107
+
+[22:58:53.404]收←◆??? CAM1 maybe NO PARKING?    conf=41 frame=134 red box=108,346,147,438
+
+[22:58:53.497]收←◆??? CAM2 maybe NO ENTRY?      conf=311 frame=139 red box=182,80,203,91
+
+[22:58:53.589]收←◆??? CAM1 maybe NO ENTRY?      conf=50 frame=135 red box=308,92,327,104
+
+[22:58:53.682]收←◆??? CAM2 maybe other sign?    conf=1060 frame=140 red box=180,78,201,95
+
+[22:58:53.713]收←◆??? CAM1 maybe NO PARKING?    conf=261 frame=135 red box=108,347,147,436
+
+[22:58:53.806]收←◆??? CAM2 other sign           conf=1258 frame=140 red box=591,418,610,438
+
+[22:58:53.836]收←◆??? CAM1 maybe other sign?    conf=741 frame=136 red box=306,90,327,108
+
+[22:58:53.867]收←◆??? CAM2 maybe NO ENTRY?      conf=92 frame=140 red box=586,405,593,417
+
+[22:58:53.929]收←◆??? CAM2 maybe other sign?    conf=547 frame=141 red box=182,80,202,93
+
+[22:58:53.991]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=626 frame=141 red box=582,225,596,236
+
+[22:58:54.145]收←◆??? CAM1 other sign           conf=1400 frame=137 red box=307,92,327,106
+
+[22:58:54.177]收←◆??? CAM2 maybe other sign?    conf=1228 frame=142 red box=180,80,201,94
+
+[22:58:54.207]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=274 frame=137 red box=595,235,609,246
+
+[22:58:54.238]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=659 frame=142 red box=581,224,597,236
+
+[22:58:54.423]收←◆??? CAM2 other sign           conf=1290 frame=143 red box=180,78,201,96
+
+[22:58:54.515]收←◆??? CAM1 maybe other sign?    conf=1121 frame=138 red box=306,90,327,109
+
+[22:58:54.546]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=381 frame=143 red box=582,225,596,236
+
+[22:58:54.640]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=203 frame=138 red box=595,235,609,247
+
+[22:58:54.762]收←◆??? CAM1 maybe NO PARKING?    conf=79 frame=138 red box=107,350,147,443
+
+[22:58:54.854]收←◆??? CAM2 maybe other sign?    conf=439 frame=144 red box=180,79,201,96
+
+[22:58:54.885]收←◆??? CAM1 maybe other sign?    conf=721 frame=139 red box=306,90,327,109
+
+[22:58:54.947]收←◆??? CAM1 maybe NO PARKING?    conf=334 frame=139 red box=106,348,147,446
+
+[22:58:54.978]收←◆??? CAM2 maybe other sign?    conf=639 frame=145 red box=180,80,199,94
+
+[22:58:55.133]收←◆??? CAM1 maybe other sign?    conf=582 frame=140 red box=306,91,327,109
+
+[22:58:55.194]收←◆??? CAM1 maybe other sign?    conf=45 frame=140 red box=596,245,611,255
+
+[22:58:55.286]收←◆??? CAM2 maybe other sign?    conf=152 frame=146 red box=180,81,201,94
+
+[22:58:55.564]收←◆??? CAM1 maybe other sign?    conf=1067 frame=141 red box=305,93,326,108
+
+[22:58:55.626]收←◆??? CAM1 maybe NO PARKING?    conf=279 frame=141 red box=108,352,145,444
+
+[22:58:55.656]收←◆??? CAM2 maybe other sign?    conf=166 frame=147 red box=178,80,200,96
+
+[22:58:55.873]收←◆??? CAM1 maybe other sign?    conf=692 frame=142 red box=306,92,325,109
+
+[22:58:55.965]收←◆??? CAM2 maybe other sign?    conf=422 frame=148 red box=181,81,201,94
+
+[22:58:55.997]收←◆??? CAM1 maybe NO PARKING?    conf=250 frame=142 red box=110,353,145,443
+
+[22:58:56.182]收←◆??? CAM1 maybe NO ENTRY?      conf=134 frame=143 red box=306,93,327,108
+
+[22:58:56.213]收←◆??? CAM2 maybe other sign?    conf=931 frame=149 red box=180,79,201,97
+
+[22:58:56.275]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=148 frame=149 blue box=581,225,595,236
+
+[22:58:56.336]收←◆??? CAM2 maybe other sign?    conf=714 frame=149 red box=594,227,603,240
+
+[22:58:56.398]收←◆??? CAM2 maybe other sign?    conf=374 frame=150 red box=180,79,202,97
+
+[22:58:56.429]收←◆??? CAM1 maybe SPEED LIMIT 60? conf=41 frame=143 red box=108,353,143,428
+
+[22:58:56.490]收←◆??? CAM1 maybe other sign?    conf=1121 frame=144 red box=306,91,327,110
+
+[22:58:56.551]收←◆??? CAM1 maybe NO PARKING?    conf=10 frame=144 red box=108,352,146,419
+
+[22:58:56.645]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=172 frame=151 red box=581,224,597,236
+
+[22:58:56.706]收←◆??? CAM2 maybe other sign?    conf=265 frame=151 red box=180,80,201,96
+--- t=50s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 4, unsure 55, bg 103, err 0
+
+[22:58:56.799]收←◆??? CAM1 maybe other sign?    conf=137 frame=145 red box=594,235,609,246
+
+[22:58:56.860]收←◆??? CAM1 maybe SPEED LIMIT 60? conf=18 frame=145 red box=107,351,145,436
+
+[22:58:56.891]收←◆??? CAM2 maybe other sign?    conf=516 frame=152 red box=180,81,201,95
+
+[22:58:56.953]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=188 frame=152 red box=582,225,596,236
+
+[22:58:56.983]收←◆??? CAM1 maybe other sign?    conf=786 frame=145 red box=306,91,327,110
+
+[22:58:57.138]收←◆??? CAM2 maybe NO ENTRY?      conf=50 frame=152 red box=304,356,341,407
+
+[22:58:57.169]收←◆??? CAM1 maybe other sign?    conf=899 frame=146 red box=306,92,327,110
+
+[22:58:57.200]收←◆??? CAM2 maybe other sign?    conf=537 frame=153 red box=180,79,201,98
+
+[22:58:57.415]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=114 frame=146 red box=106,351,143,443
+
+[22:58:57.446]收←◆??? CAM2 maybe other sign?    conf=955 frame=154 red box=180,81,201,95
+
+[22:58:57.477]收←◆??? CAM1 other sign           conf=1294 frame=147 red box=306,92,327,109
+
+[22:58:57.725]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=48 frame=147 red box=112,351,145,432
+
+[22:58:57.756]收←◆??? CAM2 maybe other sign?    conf=581 frame=155 red box=178,79,200,98
+
+[22:58:57.848]收←◆??? CAM1 maybe other sign?    conf=736 frame=148 red box=306,92,327,110
+
+[22:58:58.034]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=111 frame=148 red box=112,353,145,429
+??? CAM2 maybe other sign?    conf=945 frame=156 red box=180,80,201,97
+
+[22:58:58.218]收←◆??? CAM1 maybe other sign?    conf=1044 frame=149 red box=305,91,327,111
+
+[22:58:58.311]收←◆??? CAM2 maybe other sign?    conf=283 frame=157 red box=178,81,199,96
+
+[22:58:58.341]收←◆??? CAM1 maybe SPEED LIMIT 60? conf=135 frame=149 red box=108,353,145,437
+
+[22:58:58.558]收←◆??? CAM2 maybe other sign?    conf=1019 frame=158 red box=178,81,201,97
+
+[22:58:58.589]收←◆??? CAM1 maybe other sign?    conf=644 frame=150 red box=306,95,325,108
+
+[22:58:58.774]收←◆??? CAM1 maybe SPEED LIMIT 60? conf=89 frame=150 red box=108,353,141,442
+
+[22:58:58.866]收←◆??? CAM2 maybe other sign?    conf=869 frame=159 red box=180,81,201,97
+
+[22:58:59.020]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=137 frame=151 blue box=594,236,609,247
+
+[22:58:59.144]收←◆??? CAM1 maybe NO PARKING?    conf=173 frame=151 red box=114,356,139,418
+
+[22:58:59.175]收←◆??? CAM2 maybe other sign?    conf=966 frame=160 red box=180,82,201,95
+
+[22:58:59.237]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=179 frame=160 red box=582,225,597,235
+??? CAM1 maybe other sign?    conf=1138 frame=151 red box=306,92,327,110
+
+[22:58:59.329]收←◆??? CAM1 other sign           conf=1487 frame=152 red box=307,94,327,108
+
+[22:58:59.391]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=286 frame=152 red box=595,235,609,246
+
+[22:58:59.453]收←◆??? CAM1 maybe NO PARKING?    conf=319 frame=152 red box=112,352,145,437
+
+[22:58:59.483]收←◆??? CAM2 maybe other sign?    conf=1017 frame=161 red box=181,80,203,98
+
+[22:58:59.545]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=276 frame=161 red box=582,225,597,235
+
+[22:58:59.638]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=475 frame=153 red box=595,236,609,246
+
+[22:58:59.792]收←◆??? CAM2 maybe other sign?    conf=172 frame=162 red box=180,80,202,97
+
+[22:58:59.822]收←◆??? CAM1 other sign           conf=1281 frame=153 red box=306,91,327,110
+
+[22:58:59.946]收←◆??? CAM1 maybe NO PARKING?    conf=89 frame=153 red box=114,353,145,417
+
+[22:59:00.008]收←◆??? CAM1 maybe other sign?    conf=689 frame=154 red box=307,92,327,109
+
+[22:59:00.039]收←◆??? CAM2 maybe other sign?    conf=594 frame=163 red box=180,80,201,96
+
+[22:59:00.132]收←◆??? CAM1 maybe NO PARKING?    conf=432 frame=154 red box=113,354,144,415
+
+[22:59:00.347]收←◆??? CAM2 maybe other sign?    conf=327 frame=164 red box=180,82,201,94
+
+[22:59:00.502]收←◆??? CAM1 maybe other sign?    conf=497 frame=155 red box=307,92,327,109
+??? CAM2 maybe other sign?    conf=25 frame=164 red box=303,358,340,409
+
+[22:59:00.594]收←◆??? CAM2 maybe other sign?    conf=55 frame=165 red box=180,80,202,97
+
+[22:59:00.625]收←◆??? CAM1 maybe SPEED LIMIT 60? conf=5 frame=155 red box=108,351,145,437
+
+[22:59:00.687]收←◆??? CAM1 maybe other sign?    conf=1014 frame=156 red box=306,93,327,109
+
+[22:59:00.810]收←◆??? CAM1 maybe SPEED LIMIT 60? conf=44 frame=156 red box=108,352,145,430
+
+[22:59:00.903]收←◆??? CAM2 maybe NO ENTRY?      conf=350 frame=166 red box=180,82,201,94
+
+[22:59:01.088]收←◆??? CAM2 maybe other sign?    conf=1137 frame=166 red box=462,234,473,248
+
+[22:59:01.119]收←◆??? CAM1 maybe other sign?    conf=274 frame=157 red box=307,94,327,107
+
+[22:59:01.150]收←◆??? CAM2 maybe other sign?    conf=462 frame=167 red box=180,80,201,97
+
+[22:59:01.242]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=47 frame=157 red box=110,352,145,431
+
+[22:59:01.273]收←◆??? CAM2 maybe other sign?    conf=78 frame=167 red box=594,227,603,241
+
+[22:59:01.335]收←◆??? CAM2 maybe other sign?    conf=323 frame=167 red box=466,235,473,248
+
+[22:59:01.427]收←◆??? CAM1 maybe other sign?    conf=529 frame=158 red box=308,91,329,110
+
+[22:59:01.458]收←◆??? CAM2 maybe other sign?    conf=955 frame=168 red box=184,79,205,97
+
+[22:59:01.613]收←◆??? CAM1 maybe NO PARKING?    conf=371 frame=158 red box=110,350,147,431
+
+[22:59:01.705]收←◆??? CAM2 maybe other sign?    conf=711 frame=169 red box=188,79,209,96
+--- t=55s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 3, unsure 55, bg 104, err 0
+??? CAM1 maybe other sign?    conf=661 frame=159 red box=311,91,333,110
+
+[22:59:01.767]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=302 frame=169 red box=581,225,597,236
+??? CAM1 maybe SPEED LIMIT 40? conf=689 frame=159 red box=595,235,609,246
+
+[22:59:01.921]收←◆??? CAM1 maybe other sign?    conf=664 frame=159 red box=483,244,489,257
+
+[22:59:02.014]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=60 frame=170 red box=582,225,596,236
+
+[22:59:02.106]收←◆??? CAM1 maybe other sign?    conf=398 frame=160 red box=314,92,335,107
+
+[22:59:02.137]收←◆??? CAM2 maybe other sign?    conf=477 frame=170 red box=187,80,209,95
+
+[22:59:02.230]收←◆??? CAM1 maybe NO PARKING?    conf=308 frame=160 red box=114,347,149,419
+
+[22:59:02.322]收←◆??? CAM2 other sign           conf=1267 frame=171 red box=186,78,207,95
+
+[22:59:02.415]收←◆??? CAM1 other sign           conf=1361 frame=161 red box=312,90,333,108
+
+[22:59:02.476]收←◆??? CAM1 maybe NO PARKING?    conf=168 frame=161 red box=114,347,148,426
+
+[22:59:02.569]收←◆??? CAM2 maybe other sign?    conf=177 frame=172 red box=182,80,203,94
+
+[22:59:02.816]收←◆??? CAM2 maybe other sign?    conf=404 frame=173 red box=182,78,203,96
+
+[22:59:02.847]收←◆??? CAM1 maybe other sign?    conf=664 frame=162 red box=306,90,327,109
+
+[22:59:03.032]收←◆??? CAM1 maybe NO PARKING?    conf=310 frame=162 red box=110,351,147,438
+
+[22:59:03.156]收←◆??? CAM1 maybe other sign?    conf=767 frame=163 red box=310,90,331,108
+
+[22:59:03.248]收←◆??? CAM2 maybe other sign?    conf=802 frame=174 red box=182,77,205,96
+
+[22:59:03.279]收←◆??? CAM1 maybe NO PARKING?    conf=522 frame=163 red box=113,349,145,409
+
+[22:59:03.433]收←◆??? CAM2 maybe NO ENTRY?      conf=175 frame=175 red box=184,80,205,94
+
+[22:59:03.526]收←◆??? CAM1 maybe other sign?    conf=734 frame=164 red box=310,92,331,107
+
+[22:59:03.649]收←◆??? CAM1 maybe NO PARKING?    conf=508 frame=164 red box=112,350,147,422
+
+[22:59:03.711]收←◆??? CAM1 maybe other sign?    conf=116 frame=164 red box=607,237,616,252
+
+[22:59:03.741]收←◆??? CAM2 maybe other sign?    conf=577 frame=176 red box=184,78,206,96
+
+[22:59:03.834]收←◆??? CAM1 maybe NO PARKING?    conf=479 frame=165 red box=112,349,147,435
+
+[22:59:03.896]收←◆??? CAM1 maybe other sign?    conf=1199 frame=165 red box=310,90,331,109
+
+[22:59:04.050]收←◆??? CAM2 maybe other sign?    conf=1051 frame=177 red box=182,81,203,95
+
+[22:59:04.151]收←◆??? CAM1 other sign           conf=1462 frame=166 red box=309,93,329,107
+
+[22:59:04.204]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=132 frame=166 red box=108,350,147,430
+
+[22:59:04.235]收←◆??? CAM2 maybe NO ENTRY?      conf=35 frame=177 red box=304,355,343,408
+
+[22:59:04.358]收←◆??? CAM2 maybe other sign?    conf=700 frame=178 red box=182,79,203,97
+
+[22:59:04.421]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=604 frame=178 red box=581,225,597,236
+
+[22:59:04.575]收←◆??? CAM1 maybe NO PARKING?    conf=395 frame=167 red box=110,351,147,437
+
+[22:59:04.636]收←◆??? CAM1 maybe other sign?    conf=959 frame=167 red box=307,91,327,110
+
+[22:59:04.668]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=293 frame=179 red box=582,225,596,236
+
+[22:59:04.729]收←◆??? CAM2 maybe other sign?    conf=1144 frame=179 red box=180,79,201,97
+
+[22:59:04.760]收←◆??? CAM1 maybe other sign?    conf=399 frame=168 red box=306,91,327,110
+
+[22:59:04.883]收←◆??? CAM1 maybe NO PARKING?    conf=356 frame=168 red box=110,353,145,433
+
+[22:59:04.976]收←◆??? CAM2 maybe other sign?    conf=906 frame=180 red box=180,80,201,96
+
+[22:59:05.131]收←◆??? CAM1 maybe other sign?    conf=314 frame=169 red box=306,93,327,108
+
+[22:59:05.192]收←◆??? CAM1 maybe NO PARKING?    conf=217 frame=169 red box=112,352,144,422
+
+[22:59:05.284]收←◆??? CAM2 maybe other sign?    conf=770 frame=181 red box=180,81,201,96
+
+[22:59:05.500]收←◆??? CAM1 maybe other sign?    conf=469 frame=170 red box=306,94,327,107
+
+[22:59:05.593]收←◆??? CAM2 maybe other sign?    conf=864 frame=182 red box=179,81,201,96
+
+[22:59:05.624]收←◆??? CAM1 maybe NO PARKING?    conf=588 frame=170 red box=110,355,145,441
+
+[22:59:05.810]收←◆??? CAM1 maybe other sign?    conf=657 frame=171 red box=305,92,327,110
+
+[22:59:05.902]收←◆??? CAM2 maybe NO ENTRY?      conf=266 frame=183 red box=178,82,199,96
+
+[22:59:05.933]收←◆??? CAM1 maybe SPEED LIMIT 60? conf=116 frame=171 red box=108,355,143,437
+
+[22:59:06.117]收←◆??? CAM1 maybe NO ENTRY?      conf=236 frame=171 red box=598,410,607,420
+
+[22:59:06.179]收←◆??? CAM1 maybe NO ENTRY?      conf=165 frame=172 red box=304,94,325,109
+
+[22:59:06.210]收←◆??? CAM2 maybe other sign?    conf=315 frame=184 red box=174,81,197,99
+
+[22:59:06.365]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=57 frame=172 red box=105,357,140,422
+
+[22:59:06.519]收←◆??? CAM2 maybe other sign?    conf=989 frame=185 red box=174,81,197,99
+
+[22:59:06.550]收←◆??? CAM1 other sign           conf=1395 frame=173 red box=298,93,319,112
+
+[22:59:06.728]收←◆--- t=60s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 4, unsure 49, bg 109, err 0
+
+[22:59:06.828]收←◆??? CAM2 maybe other sign?    conf=460 frame=186 red box=172,82,193,100
+
+[22:59:06.890]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=436 frame=186 red box=581,225,597,236
+
+[22:59:06.920]收←◆??? CAM1 maybe other sign?    conf=590 frame=174 red box=298,94,319,112
+
+[22:59:07.105]收←◆??? CAM1 maybe NO PARKING?    conf=131 frame=174 red box=109,359,143,439
+
+[22:59:07.259]收←◆??? CAM2 maybe other sign?    conf=924 frame=187 red box=172,82,193,100
+
+[22:59:07.290]收←◆??? CAM1 maybe other sign?    conf=950 frame=175 red box=300,93,323,112
+
+[22:59:07.383]收←◆??? CAM2 maybe other sign?    conf=1136 frame=188 red box=180,81,202,97
+
+[22:59:07.414]收←◆??? CAM1 maybe NO PARKING?    conf=287 frame=175 red box=110,356,144,430
+
+[22:59:07.537]收←◆??? CAM1 maybe NO ENTRY?      conf=659 frame=175 red box=605,425,623,435
+
+[22:59:07.630]收←◆??? CAM2 maybe other sign?    conf=596 frame=189 red box=180,82,201,98
+
+[22:59:07.660]收←◆??? CAM1 maybe other sign?    conf=807 frame=176 red box=306,94,328,109
+
+[22:59:07.846]收←◆??? CAM1 maybe NO PARKING?    conf=198 frame=176 red box=108,354,145,433
+
+[22:59:07.939]收←◆??? CAM2 maybe other sign?    conf=519 frame=190 red box=174,84,195,101
+
+[22:59:07.969]收←◆??? CAM1 maybe other sign?    conf=467 frame=177 red box=304,94,325,113
+
+[22:59:08.247]收←◆??? CAM2 maybe other sign?    conf=132 frame=191 red box=170,85,193,103
+
+[22:59:08.278]收←◆??? CAM1 maybe NO PARKING?    conf=81 frame=177 red box=110,359,141,428
+
+[22:59:08.463]收←◆??? CAM1 maybe other sign?    conf=910 frame=178 red box=299,96,321,115
+
+[22:59:08.525]收←◆??? CAM1 maybe NO PARKING?    conf=160 frame=178 red box=106,364,141,448
+
+[22:59:08.555]收←◆??? CAM2 maybe other sign?    conf=644 frame=192 red box=172,90,193,102
+
+[22:59:08.771]收←◆??? CAM1 maybe other sign?    conf=982 frame=179 red box=299,101,319,115
+
+[22:59:08.864]收←◆??? CAM2 maybe other sign?    conf=1020 frame=193 red box=170,89,193,106
+
+[22:59:08.926]收←◆??? CAM2 maybe other sign?    conf=713 frame=193 red box=594,227,603,240
+
+[22:59:09.018]收←◆??? CAM1 other sign           conf=1662 frame=179 red box=604,427,619,442
+
+[22:59:09.080]收←◆??? CAM1 maybe other sign?    conf=929 frame=180 red box=300,101,321,118
+
+[22:59:09.111]收←◆??? CAM2 maybe NO ENTRY?      conf=13 frame=193 red box=300,368,339,421
+
+[22:59:09.172]收←◆??? CAM2 maybe other sign?    conf=674 frame=194 red box=172,92,193,106
+
+[22:59:09.203]收←◆??? CAM1 maybe NO PARKING?    conf=297 frame=180 red box=100,366,141,443
+
+[22:59:09.235]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=383 frame=194 red box=584,226,597,235
+
+[22:59:09.327]收←◆??? CAM1 maybe other sign?    conf=704 frame=180 red box=604,425,623,438
+
+[22:59:09.358]收←◆??? CAM2 maybe NO ENTRY?      conf=105 frame=194 red box=299,369,339,423
+
+[22:59:09.481]收←◆??? CAM2 other sign           conf=1412 frame=195 red box=172,90,193,109
+
+[22:59:09.512]收←◆??? CAM1 maybe other sign?    conf=1133 frame=181 red box=299,103,321,120
+
+[22:59:09.574]收←◆??? CAM1 maybe other sign?    conf=18 frame=181 red box=594,235,609,246
+
+[22:59:09.697]收←◆??? CAM1 maybe NO PARKING?    conf=288 frame=181 red box=106,368,139,445
+
+[22:59:09.790]收←◆??? CAM2 other sign           conf=1606 frame=195 red box=588,412,614,438
+
+[22:59:09.852]收←◆??? CAM2 maybe other sign?    conf=690 frame=196 red box=172,91,195,109
+
+[22:59:09.883]收←◆??? CAM1 maybe other sign?    conf=374 frame=182 red box=300,102,321,121
+
+[22:59:10.006]收←◆??? CAM1 maybe NO PARKING?    conf=307 frame=182 red box=108,368,141,433
+
+[22:59:10.036]收←◆??? CAM2 other sign           conf=1710 frame=196 red box=588,411,614,438
+
+[22:59:10.098]收←◆??? CAM2 maybe other sign?    conf=160 frame=197 red box=174,91,196,109
+
+[22:59:10.191]收←◆??? CAM1 maybe other sign?    conf=248 frame=183 red box=302,103,323,120
+
+[22:59:10.222]收←◆??? CAM2 maybe SPEED LIMIT 60? conf=51 frame=197 red box=582,234,599,244
+
+[22:59:10.314]收←◆??? CAM1 maybe NO ENTRY?      conf=84 frame=183 red box=596,246,611,255
+
+[22:59:10.345]收←◆??? CAM2 maybe other sign?    conf=367 frame=198 red box=172,93,195,107
+
+[22:59:10.438]收←◆??? CAM1 maybe NO PARKING?    conf=377 frame=183 red box=106,367,138,452
+
+[22:59:10.623]收←◆??? CAM1 other sign           conf=1300 frame=184 red box=301,105,322,119
+
+[22:59:10.777]收←◆??? CAM2 maybe other sign?    conf=663 frame=199 red box=172,92,193,109
+
+[22:59:10.808]收←◆??? CAM1 maybe NO PARKING?    conf=404 frame=184 red box=108,367,141,442
+
+[22:59:10.931]收←◆??? CAM1 maybe other sign?    conf=731 frame=185 red box=300,104,321,121
+
+[22:59:10.962]收←◆??? CAM2 maybe NO ENTRY?      conf=477 frame=200 red box=170,95,191,107
+
+[22:59:11.178]收←◆??? CAM1 maybe NO PARKING?    conf=18 frame=185 red box=106,370,139,438
+
+[22:59:11.271]收←◆??? CAM2 maybe other sign?    conf=762 frame=201 red box=172,91,195,110
+
+[22:59:11.302]收←◆??? CAM1 maybe other sign?    conf=798 frame=186 red box=301,104,323,122
+
+[22:59:11.333]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=67 frame=201 blue box=580,225,597,236
+
+[22:59:11.518]收←◆??? CAM2 maybe other sign?    conf=26 frame=201 red box=299,375,337,427
+
+[22:59:11.611]收←◆??? CAM1 maybe NO PARKING?    conf=187 frame=186 red box=108,368,139,431
+
+[22:59:11.703]收←◆??? CAM2 maybe other sign?    conf=881 frame=202 red box=172,91,193,110
+
+[22:59:11.736]收←◆--- t=65s cam1 15.2fps cam2 15.0fps | last 5s: sign 0, other 5, unsure 52, bg 105, err 0
+??? CAM1 maybe other sign?    conf=675 frame=187 yellow box=608,239,615,250
+
+[22:59:11.796]收←◆??? CAM1 maybe other sign?    conf=987 frame=187 red box=300,103,323,122
+
+[22:59:11.888]收←◆??? CAM2 maybe other sign?    conf=153 frame=203 red box=172,93,195,109
+
+[22:59:11.919]收←◆??? CAM1 maybe NO PARKING?    conf=133 frame=187 red box=106,372,135,444
+
+[22:59:12.042]收←◆??? CAM1 maybe other sign?    conf=94 frame=188 red box=594,235,609,246
+
+[22:59:12.105]收←◆??? CAM1 maybe other sign?    conf=318 frame=188 red box=302,105,323,120
+
+[22:59:12.196]收←◆??? CAM2 maybe NO ENTRY?      conf=308 frame=203 red box=599,414,612,424
+
+[22:59:12.258]收←◆??? CAM2 other sign           conf=1352 frame=204 red box=174,91,195,110
+
+[22:59:12.289]收←◆??? CAM1 maybe NO PARKING?    conf=443 frame=188 red box=104,367,139,448
+
+[22:59:12.382]收←◆??? CAM2 maybe NO PARKING?    conf=252 frame=204 blue box=463,233,471,242
+
+[22:59:12.413]收←◆??? CAM1 maybe other sign?    conf=923 frame=189 red box=302,103,325,122
+
+[22:59:12.537]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=277 frame=189 red box=102,367,139,448
+
+[22:59:12.567]收←◆??? CAM2 maybe NO ENTRY?      conf=136 frame=204 red box=299,372,338,428
+
+[22:59:12.629]收←◆??? CAM2 maybe other sign?    conf=1217 frame=205 red box=172,94,195,108
+
+[22:59:12.660]收←◆??? CAM1 maybe NO ENTRY?      conf=757 frame=189 red box=604,425,624,434
+
+[22:59:12.844]收←◆??? CAM1 maybe other sign?    conf=860 frame=190 red box=302,105,323,121
+
+[22:59:12.875]收←◆??? CAM2 other sign           conf=1668 frame=205 red box=590,416,614,438
+
+[22:59:12.937]收←◆??? CAM2 maybe other sign?    conf=386 frame=206 red box=172,92,195,110
+
+[22:59:13.030]收←◆??? CAM1 maybe NO PARKING?    conf=93 frame=190 red box=107,368,140,433
+
+[22:59:13.153]收←◆??? CAM1 maybe other sign?    conf=684 frame=191 red box=302,104,323,122
+
+[22:59:13.308]收←◆??? CAM2 maybe other sign?    conf=230 frame=207 red box=172,93,195,110
+
+[22:59:13.401]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=29 frame=191 red box=102,368,139,444
+
+[22:59:13.586]收←◆??? CAM1 maybe other sign?    conf=737 frame=192 red box=302,106,323,121
+
+[22:59:13.617]收←◆??? CAM2 maybe other sign?    conf=552 frame=208 red box=174,95,195,108
+
+[22:59:13.709]收←◆??? CAM1 maybe NO PARKING?    conf=761 frame=192 red box=106,372,139,457
+
+[22:59:13.894]收←◆??? CAM1 maybe other sign?    conf=1202 frame=193 red box=302,103,323,123
+
+[22:59:13.986]收←◆??? CAM2 maybe other sign?    conf=711 frame=209 red box=172,93,195,110
+
+[22:59:14.141]收←◆??? CAM1 maybe other sign?    conf=937 frame=193 red box=604,422,624,445
+
+[22:59:14.172]收←◆??? CAM2 maybe other sign?    conf=36 frame=209 red box=298,374,339,430
+
+[22:59:14.203]收←◆??? CAM1 maybe other sign?    conf=151 frame=194 yellow box=608,239,615,250
+
+[22:59:14.233]收←◆??? CAM2 maybe NO ENTRY?      conf=405 frame=209 red box=599,414,614,424
+
+[22:59:14.264]收←◆??? CAM1 other sign           conf=1424 frame=194 red box=302,106,323,121
+
+[22:59:14.295]收←◆??? CAM2 maybe other sign?    conf=710 frame=210 red box=172,94,195,108
+
+[22:59:14.326]收←◆??? CAM1 maybe NO PARKING?    conf=542 frame=194 red box=106,368,141,450
+
+[22:59:14.357]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=965 frame=210 red box=584,226,595,235
+
+[22:59:14.511]收←◆??? CAM1 other sign           conf=1470 frame=195 red box=303,103,324,123
+
+[22:59:14.603]收←◆??? CAM2 maybe other sign?    conf=997 frame=211 red box=172,92,195,111
+
+[22:59:14.665]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=338 frame=211 red box=581,224,597,236
+
+[22:59:14.850]收←◆??? CAM2 maybe NO ENTRY?      conf=100 frame=211 red box=299,374,339,430
+
+[22:59:14.912]收←◆??? CAM2 maybe other sign?    conf=1104 frame=211 red box=590,419,618,438
+
+[22:59:14.942]收←◆??? CAM1 maybe other sign?    conf=506 frame=196 red box=302,104,323,122
+
+[22:59:14.973]收←◆??? CAM2 maybe other sign?    conf=843 frame=212 red box=172,93,195,110
+
+[22:59:15.066]收←◆??? CAM1 maybe NO PARKING?    conf=211 frame=196 red box=102,370,139,452
+
+[22:59:15.097]收←◆??? CAM2 maybe other sign?    conf=87 frame=212 red box=298,374,339,430
+
+[22:59:15.189]收←◆??? CAM1 maybe NO ENTRY?      conf=17 frame=196 red box=604,426,625,435
+
+[22:59:15.220]收←◆??? CAM2 maybe other sign?    conf=520 frame=212 red box=582,397,613,439
+
+[22:59:15.251]收←◆??? CAM1 maybe other sign?    conf=888 frame=197 red box=302,104,323,123
+
+[22:59:15.344]收←◆??? CAM2 maybe other sign?    conf=531 frame=213 red box=172,93,195,110
+
+[22:59:15.375]收←◆??? CAM1 maybe KEEP RIGHT?    conf=15 frame=197 red box=596,246,611,255
+
+[22:59:15.561]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=3 frame=197 red box=103,367,137,457
+
+[22:59:15.715]收←◆??? CAM2 maybe other sign?    conf=1111 frame=214 red box=170,94,193,110
+
+[22:59:15.746]收←◆??? CAM1 maybe other sign?    conf=621 frame=198 red box=300,106,321,122
+
+[22:59:15.993]收←◆??? CAM1 maybe other sign?    conf=930 frame=199 red box=301,105,322,120
+
+[22:59:16.023]收←◆??? CAM2 maybe NO ENTRY?      conf=218 frame=215 red box=168,95,191,108
+
+[22:59:16.147]收←◆??? CAM2 maybe other sign?    conf=1 frame=215 red box=593,228,603,242
+
+[22:59:16.240]收←◆??? CAM1 other sign           conf=1349 frame=199 red box=604,426,624,442
+
+[22:59:16.332]收←◆??? CAM2 maybe other sign?    conf=1098 frame=215 red box=588,415,619,439
+
+[22:59:16.363]收←◆??? CAM1 maybe other sign?    conf=621 frame=200 red box=302,107,323,126
+
+[22:59:16.455]收←◆??? CAM2 maybe other sign?    conf=1047 frame=216 red box=176,95,199,114
+
+[22:59:16.547]收←◆??? CAM1 maybe NO PARKING?    conf=580 frame=200 red box=107,372,141,436
+
+[22:59:16.703]收←◆??? CAM2 other sign           conf=1321 frame=216 red box=590,417,614,438
+
+[22:59:16.728]收←◆--- t=70s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 6, unsure 55, bg 101, err 0
+
+[22:59:16.763]收←◆??? CAM2 maybe other sign?    conf=797 frame=217 red box=182,93,205,112
+
+[22:59:16.794]收←◆??? CAM1 maybe other sign?    conf=628 frame=201 red box=310,105,333,124
+
+[22:59:16.918]收←◆??? CAM1 maybe other sign?    conf=584 frame=201 yellow box=608,239,615,250
+
+[22:59:16.948]收←◆??? CAM2 maybe NO ENTRY?      conf=840 frame=217 red box=614,370,629,383
+
+[22:59:16.979]收←◆??? CAM1 maybe NO PARKING?    conf=279 frame=201 red box=112,368,139,427
+
+[22:59:17.010]收←◆??? CAM2 maybe other sign?    conf=144 frame=217 red box=302,375,341,431
+
+[22:59:17.072]收←◆??? CAM2 maybe other sign?    conf=549 frame=218 red box=179,97,201,112
+
+[22:59:17.103]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=454 frame=202 red box=594,235,610,246
+
+[22:59:17.226]收←◆??? CAM1 maybe other sign?    conf=553 frame=202 red box=307,109,327,124
+
+[22:59:17.288]收←◆??? CAM1 maybe NO PARKING?    conf=857 frame=202 red box=107,369,143,459
+
+[22:59:17.319]收←◆??? CAM2 other sign           conf=1580 frame=219 red box=177,99,199,114
+
+[22:59:17.474]收←◆??? CAM1 maybe other sign?    conf=912 frame=203 red box=304,110,326,126
+
+[22:59:17.627]收←◆??? CAM2 maybe other sign?    conf=806 frame=220 red box=172,101,193,118
+
+[22:59:17.659]收←◆??? CAM1 maybe NO ENTRY?      conf=19 frame=203 red box=598,410,608,424
+
+[22:59:17.721]收←◆??? CAM1 maybe other sign?    conf=227 frame=203 red box=610,432,621,445
+
+[22:59:17.752]收←◆??? CAM2 maybe KEEP RIGHT?    conf=93 frame=220 red box=582,233,598,245
+
+[22:59:17.813]收←◆??? CAM2 maybe NO ENTRY?      conf=462 frame=220 red box=614,370,629,382
+
+[22:59:17.905]收←◆??? CAM1 maybe other sign?    conf=614 frame=204 red box=298,112,320,131
+
+[22:59:17.936]收←◆??? CAM2 maybe other sign?    conf=824 frame=221 red box=172,101,195,118
+
+[22:59:17.967]收←◆??? CAM1 maybe NO PARKING?    conf=15 frame=204 red box=106,384,133,457
+
+[22:59:17.998]收←◆??? CAM2 maybe other sign?    conf=509 frame=221 red box=582,233,599,244
+
+[22:59:18.059]收←◆??? CAM2 maybe NO ENTRY?      conf=579 frame=221 red box=614,371,629,383
+
+[22:59:18.090]收←◆??? CAM1 maybe other sign?    conf=1206 frame=204 red box=604,426,624,445
+
+[22:59:18.152]收←◆??? CAM1 maybe other sign?    conf=5 frame=205 blue box=608,239,616,251
+
+[22:59:18.214]收←◆??? CAM1 maybe other sign?    conf=1052 frame=205 red box=302,112,323,131
+
+[22:59:18.244]收←◆??? CAM2 maybe other sign?    conf=359 frame=222 red box=176,101,197,118
+
+[22:59:18.368]收←◆??? CAM2 maybe NO ENTRY?      conf=759 frame=222 red box=613,370,627,382
+
+[22:59:18.522]收←◆??? CAM1 maybe other sign?    conf=462 frame=206 red box=306,114,327,128
+
+[22:59:18.553]收←◆??? CAM2 other sign           conf=1357 frame=222 red box=594,422,608,438
+
+[22:59:18.615]收←◆??? CAM2 maybe other sign?    conf=643 frame=223 red box=178,103,199,116
+
+[22:59:18.646]收←◆??? CAM1 maybe NO PARKING?    conf=415 frame=206 red box=108,374,139,445
+
+[22:59:18.800]收←◆??? CAM2 maybe NO ENTRY?      conf=341 frame=223 red box=613,370,626,380
+
+[22:59:18.831]收←◆??? CAM1 maybe NO PARKING?    conf=46 frame=206 red box=598,410,607,425
+
+[22:59:18.893]收←◆??? CAM1 maybe other sign?    conf=906 frame=207 red box=304,112,327,130
+
+[22:59:18.924]收←◆??? CAM2 maybe NO ENTRY?      conf=177 frame=223 red box=300,383,337,435
+
+[22:59:18.985]收←◆??? CAM2 maybe other sign?    conf=975 frame=224 red box=179,101,201,118
+
+[22:59:19.078]收←◆??? CAM1 maybe NO PARKING?    conf=730 frame=207 red box=108,374,139,449
+
+[22:59:19.294]收←◆??? CAM2 maybe other sign?    conf=688 frame=225 red box=178,103,201,117
+
+[22:59:19.325]收←◆??? CAM1 other sign           conf=1256 frame=208 red box=306,114,325,129
+
+[22:59:19.479]收←◆??? CAM2 maybe NO ENTRY?      conf=529 frame=225 red box=612,370,627,382
+
+[22:59:19.510]收←◆??? CAM1 maybe other sign?    conf=542 frame=208 yellow box=608,239,615,250
+
+[22:59:19.571]收←◆??? CAM1 maybe NO PARKING?    conf=49 frame=208 red box=106,381,131,449
+
+[22:59:19.602]收←◆??? CAM2 maybe other sign?    conf=263 frame=225 red box=300,381,341,437
+
+[22:59:19.664]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=304 frame=226 red box=581,224,597,236
+
+[22:59:19.726]收←◆??? CAM2 other sign           conf=1327 frame=226 red box=182,101,204,119
+
+[22:59:19.818]收←◆??? CAM1 other sign           conf=1730 frame=209 red box=308,112,329,131
+
+[22:59:19.849]收←◆??? CAM2 maybe NO ENTRY?      conf=27 frame=226 red box=614,370,627,380
+
+[22:59:19.881]收←◆??? CAM1 maybe NO PARKING?    conf=300 frame=209 red box=108,374,139,444
+
+[22:59:19.973]收←◆??? CAM2 maybe other sign?    conf=853 frame=227 red box=184,101,205,117
+
+[22:59:20.004]收←◆??? CAM1 maybe other sign?    conf=185 frame=210 red box=310,113,331,130
+
+[22:59:20.035]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=41 frame=227 yellow box=582,225,593,234
+
+[22:59:20.158]收←◆??? CAM2 maybe NO ENTRY?      conf=214 frame=227 red box=302,380,341,436
+
+[22:59:20.219]收←◆??? CAM2 other sign           conf=1454 frame=227 red box=592,421,607,439
+
+[22:59:20.282]收←◆??? CAM2 maybe other sign?    conf=310 frame=228 red box=188,100,211,115
+
+[22:59:20.374]收←◆??? CAM1 maybe other sign?    conf=1161 frame=211 red box=314,111,337,127
+
+[22:59:20.590]收←◆??? CAM2 maybe other sign?    conf=480 frame=229 red box=198,100,219,116
+
+[22:59:20.621]收←◆??? CAM1 maybe NO PARKING?    conf=147 frame=211 red box=110,369,139,426
+
+[22:59:20.744]收←◆??? CAM1 maybe other sign?    conf=849 frame=212 red box=324,111,345,129
+
+[22:59:20.868]收←◆??? CAM1 maybe NO PARKING?    conf=304 frame=212 red box=115,359,148,424
+
+[22:59:20.960]收←◆??? CAM2 maybe other sign?    conf=134 frame=230 red box=204,100,225,113
+
+[22:59:21.115]收←◆??? CAM1 maybe other sign?    conf=635 frame=213 red box=606,239,615,252
+
+[22:59:21.177]收←◆??? CAM1 maybe other sign?    conf=318 frame=213 red box=328,112,349,125
+
+[22:59:21.207]收←◆??? CAM2 maybe NO HONKING?    conf=16 frame=230 red box=304,383,343,444
+
+[22:59:21.238]收←◆??? CAM1 maybe NO PARKING?    conf=686 frame=213 red box=116,355,151,420
+
+[22:59:21.330]收←◆??? CAM2 maybe other sign?    conf=866 frame=231 red box=204,98,225,116
+
+[22:59:21.392]收←◆??? CAM2 maybe other sign?    conf=236 frame=231 blue box=474,206,487,212
+
+[22:59:21.485]收←◆??? CAM1 maybe other sign?    conf=1200 frame=214 red box=330,109,351,127
+
+[22:59:21.578]收←◆??? CAM2 maybe NO PARKING?    conf=463 frame=231 red box=0,355,27,461
+
+[22:59:21.609]收←◆??? CAM1 maybe other sign?    conf=5 frame=214 red box=606,238,616,252
+
+[22:59:21.671]收←◆??? CAM1 maybe NO PARKING?    conf=295 frame=214 red box=116,355,149,416
+
+[22:59:21.701]收←◆??? CAM2 maybe other sign?    conf=213 frame=232 red box=204,97,227,116
+
+[22:59:21.725]收←◆--- t=75s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 6, unsure 65, bg 91, err 0
+??? CAM1 maybe other sign?    conf=790 frame=215 yellow box=608,239,615,250
+
+[22:59:21.763]收←◆??? CAM2 maybe other sign?    conf=84 frame=232 yellow box=596,228,603,240
+
+[22:59:21.794]收←◆??? CAM1 maybe other sign?    conf=668 frame=215 red box=330,109,351,128
+
+[22:59:21.825]收←◆??? CAM2 maybe other sign?    conf=10 frame=233 red box=206,99,227,114
+
+[22:59:21.886]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=353 frame=233 red box=580,224,597,236
+
+[22:59:21.917]收←◆??? CAM1 maybe NO PARKING?    conf=278 frame=215 red box=117,355,151,433
+
+[22:59:22.040]收←◆??? CAM1 maybe other sign?    conf=553 frame=216 red box=330,110,351,126
+
+[22:59:22.071]收←◆??? CAM2 maybe other sign?    conf=11 frame=233 red box=303,383,343,443
+
+[22:59:22.256]收←◆??? CAM2 maybe other sign?    conf=697 frame=6 red box=180,47,195,59
+
+[22:59:22.287]收←◆??? CAM1 maybe NO PARKING?    conf=488 frame=216 red box=116,354,149,416
+
+[22:59:22.410]收←◆??? CAM1 other sign           conf=1292 frame=217 red box=330,110,351,126
+
+[22:59:22.504]收←◆??? CAM2 maybe other sign?    conf=948 frame=234 red box=204,98,227,115
+
+[22:59:22.565]收←◆??? CAM2 maybe SPEED LIMIT 60? conf=9 frame=234 red box=582,224,595,237
+
+[22:59:22.689]收←◆??? CAM2 maybe other sign?    conf=757 frame=236 red box=202,97,225,116
+
+[22:59:22.781]收←◆??? CAM1 maybe other sign?    conf=623 frame=218 red box=329,111,349,126
+
+[22:59:22.874]收←◆??? CAM2 maybe other sign?    conf=870 frame=237 red box=196,100,219,119
+
+[22:59:22.967]收←◆??? CAM1 maybe NO PARKING?    conf=596 frame=218 red box=119,356,148,417
+
+[22:59:23.090]收←◆??? CAM1 maybe other sign?    conf=901 frame=219 red box=322,111,343,129
+
+[22:59:23.120]收←◆??? CAM2 maybe other sign?    conf=446 frame=238 red box=194,101,215,118
+
+[22:59:23.338]收←◆??? CAM1 maybe NO PARKING?    conf=172 frame=219 red box=117,365,143,421
+
+[22:59:23.367]收←◆??? CAM2 maybe NO ENTRY?      conf=105 frame=239 red box=194,103,215,115
+
+[22:59:23.398]收←◆??? CAM1 maybe other sign?    conf=910 frame=220 red box=320,113,340,129
+
+[22:59:23.491]收←◆??? CAM2 maybe other sign?    conf=300 frame=239 red box=594,229,603,242
+
+[22:59:23.521]收←◆??? CAM1 maybe NO PARKING?    conf=594 frame=220 red box=116,363,145,424
+
+[22:59:23.614]收←◆??? CAM2 maybe NO ENTRY?      conf=810 frame=239 red box=614,370,628,383
+
+[22:59:23.675]收←◆??? CAM2 maybe other sign?    conf=998 frame=240 red box=193,100,215,118
+
+[22:59:23.830]收←◆??? CAM1 other sign           conf=1404 frame=221 red box=318,113,339,129
+
+[22:59:23.892]收←◆??? CAM1 maybe NO PARKING?    conf=580 frame=221 red box=111,364,145,427
+
+[22:59:23.985]收←◆??? CAM2 maybe other sign?    conf=93 frame=240 red box=298,384,342,446
+
+[22:59:24.046]收←◆??? CAM2 maybe other sign?    conf=403 frame=241 red box=192,102,215,116
+
+[22:59:24.077]收←◆??? CAM1 maybe other sign?    conf=1244 frame=222 red box=318,114,339,128
+
+[22:59:24.139]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=260 frame=222 blue box=594,235,609,246
+
+[22:59:24.169]收←◆??? CAM2 maybe other sign?    conf=398 frame=241 red box=594,226,603,240
+
+[22:59:24.262]收←◆??? CAM1 maybe NO PARKING?    conf=340 frame=222 red box=112,364,145,429
+
+[22:59:24.324]收←◆??? CAM1 other sign           conf=1311 frame=223 red box=320,111,341,130
+
+[22:59:24.355]收←◆??? CAM2 maybe other sign?    conf=1114 frame=242 red box=195,101,217,117
+
+[22:59:24.386]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=310 frame=223 red box=594,235,610,246
+
+[22:59:24.478]收←◆??? CAM2 maybe NO ENTRY?      conf=868 frame=242 red box=612,370,629,382
+
+[22:59:24.509]收←◆??? CAM1 maybe NO PARKING?    conf=841 frame=223 red box=112,363,145,435
+
+[22:59:24.540]收←◆??? CAM2 maybe other sign?    conf=175 frame=242 red box=298,382,341,447
+
+[22:59:24.571]收←◆??? CAM1 maybe other sign?    conf=792 frame=224 red box=320,111,341,130
+
+[22:59:24.602]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=456 frame=243 red box=581,224,597,235
+
+[22:59:24.663]收←◆??? CAM2 maybe other sign?    conf=820 frame=243 red box=194,100,216,118
+
+[22:59:24.848]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=100 frame=243 red box=300,387,341,444
+
+[22:59:24.941]收←◆??? CAM1 maybe other sign?    conf=785 frame=225 red box=320,113,341,129
+
+[22:59:24.972]收←◆??? CAM2 maybe other sign?    conf=584 frame=244 red box=192,101,215,117
+
+[22:59:25.003]收←◆??? CAM1 maybe NO PARKING?    conf=188 frame=225 red box=111,365,143,430
+
+[22:59:25.095]收←◆??? CAM2 maybe NO ENTRY?      conf=705 frame=244 red box=612,370,629,382
+
+[22:59:25.157]收←◆??? CAM2 maybe NO ENTRY?      conf=58 frame=244 red box=298,386,341,447
+
+[22:59:25.187]收←◆??? CAM1 maybe NO ENTRY?      conf=790 frame=225 red box=611,418,625,430
+
+[22:59:25.218]收←◆??? CAM2 maybe other sign?    conf=58 frame=245 red box=194,101,216,117
+
+[22:59:25.249]收←◆??? CAM1 maybe other sign?    conf=812 frame=226 red box=320,112,341,130
+
+[22:59:25.342]收←◆??? CAM2 maybe SPEED LIMIT 80? conf=106 frame=245 red box=582,233,599,244
+
+[22:59:25.466]收←◆??? CAM2 maybe NO ENTRY?      conf=219 frame=245 red box=613,371,628,382
+
+[22:59:25.496]收←◆??? CAM1 maybe NO PARKING?    conf=226 frame=226 red box=113,366,143,429
+
+[22:59:25.527]收←◆??? CAM2 maybe other sign?    conf=624 frame=246 red box=193,101,215,117
+
+[22:59:25.558]收←◆??? CAM1 maybe other sign?    conf=905 frame=227 red box=319,113,341,129
+
+[22:59:25.774]收←◆??? CAM2 maybe other sign?    conf=775 frame=247 red box=194,103,215,116
+
+[22:59:25.929]收←◆??? CAM1 maybe other sign?    conf=622 frame=228 red box=320,113,341,128
+
+[22:59:25.959]收←◆??? CAM2 maybe other sign?    conf=352 frame=248 red box=192,101,214,117
+
+[22:59:26.114]收←◆??? CAM1 maybe NO PARKING?    conf=194 frame=228 red box=111,364,145,427
+
+[22:59:26.206]收←◆??? CAM2 maybe NO ENTRY?      conf=126 frame=248 red box=616,373,630,383
+
+[22:59:26.237]收←◆??? CAM1 maybe other sign?    conf=884 frame=229 red box=318,112,339,130
+??? CAM2 other sign           conf=1402 frame=249 red box=190,100,212,118
+
+[22:59:26.422]收←◆??? CAM1 maybe NO PARKING?    conf=470 frame=229 red box=110,365,143,429
+
+[22:59:26.546]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=331 frame=230 blue box=594,236,609,246
+
+[22:59:26.575]收←◆??? CAM2 maybe other sign?    conf=836 frame=250 red box=190,100,212,119
+
+[22:59:26.607]收←◆??? CAM1 maybe other sign?    conf=776 frame=230 red box=316,112,337,131
+
+[22:59:26.638]收←◆??? CAM2 maybe other sign?    conf=138 frame=250 yellow box=596,228,602,240
+
+[22:59:26.700]收←◆??? CAM2 maybe NO HONKING?    conf=178 frame=250 red box=300,384,341,444
+
+[22:59:26.728]收←◆--- t=80s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 4, unsure 66, bg 92, err 0
+
+[22:59:26.885]收←◆??? CAM2 maybe other sign?    conf=280 frame=251 red box=190,102,213,117
+
+[22:59:26.915]收←◆??? CAM1 maybe other sign?    conf=248 frame=231 red box=317,113,338,129
+
+[22:59:26.947]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=429 frame=251 red box=581,224,597,236
+
+[22:59:27.071]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=11 frame=252 red box=581,224,597,236
+
+[22:59:27.132]收←◆??? CAM2 maybe other sign?    conf=1005 frame=252 red box=189,100,211,119
+
+[22:59:27.286]收←◆??? CAM1 other sign           conf=1449 frame=232 red box=316,111,337,131
+
+[22:59:27.317]收←◆??? CAM2 maybe NO ENTRY?      conf=697 frame=252 red box=614,371,630,383
+
+[22:59:27.348]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=446 frame=232 red box=594,235,610,246
+
+[22:59:27.440]收←◆??? CAM2 maybe other sign?    conf=1165 frame=253 red box=190,103,212,116
+
+[22:59:27.656]收←◆??? CAM1 maybe other sign?    conf=799 frame=233 red box=316,114,337,128
+
+[22:59:27.687]收←◆??? CAM2 maybe NO ENTRY?      conf=409 frame=253 red box=614,370,627,381
+
+[22:59:27.748]收←◆??? CAM2 maybe other sign?    conf=575 frame=254 red box=190,101,213,118
+
+[22:59:27.780]收←◆??? CAM1 maybe NO PARKING?    conf=181 frame=233 red box=111,367,143,431
+
+[22:59:27.996]收←◆??? CAM2 maybe other sign?    conf=1189 frame=255 red box=189,100,211,119
+
+[22:59:28.088]收←◆??? CAM1 maybe other sign?    conf=786 frame=234 red box=318,112,339,130
+
+[22:59:28.120]收←◆??? CAM2 maybe other sign?    conf=383 frame=255 red box=582,233,599,244
+
+[22:59:28.305]收←◆??? CAM2 maybe other sign?    conf=463 frame=256 red box=190,103,213,117
+
+[22:59:28.459]收←◆??? CAM1 maybe other sign?    conf=622 frame=235 red box=316,113,337,130
+
+[22:59:28.490]收←◆??? CAM2 maybe NO ENTRY?      conf=500 frame=256 red box=614,370,629,383
+
+[22:59:28.551]收←◆??? CAM2 maybe NO HONKING?    conf=179 frame=256 red box=298,387,341,446
+
+[22:59:28.644]收←◆??? CAM1 maybe NO PARKING?    conf=195 frame=235 red box=113,370,137,428
+
+[22:59:28.737]收←◆??? CAM2 maybe other sign?    conf=931 frame=257 red box=190,102,212,117
+
+[22:59:28.891]收←◆??? CAM1 other sign           conf=1353 frame=236 red box=316,113,337,130
+
+[22:59:28.922]收←◆??? CAM2 maybe NO ENTRY?      conf=6 frame=257 red box=302,386,341,443
+
+[22:59:28.983]收←◆??? CAM2 maybe other sign?    conf=391 frame=257 red box=596,425,607,438
+
+[22:59:29.014]收←◆??? CAM1 maybe NO PARKING?    conf=858 frame=236 red box=112,368,144,442
+
+[22:59:29.044]收←◆??? CAM2 maybe other sign?    conf=388 frame=258 red box=189,103,211,118
+
+[22:59:29.107]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=153 frame=258 blue box=580,225,597,236
+
+[22:59:29.199]收←◆??? CAM1 maybe other sign?    conf=1077 frame=237 red box=318,114,339,129
+
+[22:59:29.415]收←◆??? CAM2 maybe other sign?    conf=887 frame=259 red box=206,104,231,120
+
+[22:59:29.446]收←◆??? CAM1 maybe other sign?    conf=1151 frame=238 red box=332,116,353,134
+
+[22:59:29.600]收←◆??? CAM2 maybe NO PARKING?    conf=688 frame=259 red box=0,369,35,470
+
+[22:59:29.631]收←◆??? CAM1 maybe NO PARKING?    conf=412 frame=238 red box=131,372,159,455
+
+[22:59:29.662]收←◆??? CAM2 maybe other sign?    conf=486 frame=260 red box=238,109,267,127
+
+[22:59:29.724]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=207 frame=260 red box=580,224,597,236
+
+[22:59:29.755]收←◆??? CAM1 maybe other sign?    conf=789 frame=239 red box=373,123,397,140
+
+[22:59:29.847]收←◆??? CAM2 maybe NO ENTRY?      conf=13 frame=260 red box=35,369,79,476
+
+[22:59:29.910]收←◆??? CAM2 maybe other sign?    conf=167 frame=261 red box=287,115,313,129
+
+[22:59:29.971]收←◆??? CAM2 maybe NO PARKING?    conf=675 frame=261 red box=89,352,121,445
+
+[22:59:30.064]收←◆??? CAM1 maybe NO PARKING?    conf=431 frame=239 red box=179,367,211,465
+
+[22:59:30.125]收←◆??? CAM1 maybe other sign?    conf=370 frame=240 red box=398,128,425,142
+
+[22:59:30.310]收←◆??? CAM1 maybe NO PARKING?    conf=33 frame=240 red box=200,351,235,469
+
+[22:59:30.340]收←◆??? CAM2 maybe NO ENTRY?      conf=1 frame=262 red box=582,234,599,245
+
+[22:59:30.433]收←◆??? CAM1 maybe other sign?    conf=593 frame=241 red box=416,127,441,140
+
+[22:59:30.464]收←◆??? CAM2 maybe other sign?    conf=54 frame=263 red box=582,234,599,245
+
+[22:59:30.589]收←◆??? CAM2 maybe other sign?    conf=1015 frame=263 red box=316,111,335,124
+
+[22:59:30.618]收←◆??? CAM1 maybe NO PARKING?    conf=229 frame=241 red box=210,342,243,437
+
+[22:59:30.773]收←◆??? CAM2 maybe other sign?    conf=282 frame=264 red box=312,87,333,102
+
+[22:59:30.804]收←◆??? CAM1 maybe other sign?    conf=570 frame=242 red box=422,106,443,126
+
+[22:59:30.835]收←◆??? CAM2 maybe NO ENTRY?      conf=193 frame=264 yellow box=584,238,595,244
+
+[22:59:30.897]收←◆??? CAM2 maybe NO PARKING?    conf=91 frame=264 red box=107,305,135,366
+
+[22:59:30.989]收←◆??? CAM1 maybe other sign?    conf=1157 frame=242 blue box=507,259,533,308
+
+[22:59:31.020]收←◆>>> CAM2 NO ENTRY             conf=1253 frame=265 red box=318,87,337,98
+
+[22:59:31.144]收←◆??? CAM2 maybe other sign?    conf=514 frame=266 red box=306,86,325,103
+
+[22:59:31.174]收←◆??? CAM1 maybe other sign?    conf=254 frame=243 red box=424,97,445,111
+
+[22:59:31.391]收←◆??? CAM2 maybe other sign?    conf=1020 frame=235 red box=204,100,225,113
+
+[22:59:31.484]收←◆??? CAM1 maybe other sign?    conf=674 frame=244 red box=418,99,439,115
+
+[22:59:31.576]收←◆??? CAM2 maybe other sign?    conf=692 frame=235 red box=584,403,619,438
+
+[22:59:31.730]收←◆--- t=85s cam1 15.0fps cam2 15.0fps | last 5s: sign 1, other 2, unsure 55, bg 104, err 0 | seen NO ENTRY x1
+
+[22:59:31.792]收←◆??? CAM1 maybe other sign?    conf=624 frame=245 red box=436,95,457,112
+
+[22:59:31.823]收←◆??? CAM2 maybe other sign?    conf=1029 frame=267 red box=314,85,339,101
+
+[22:59:31.946]收←◆??? CAM2 maybe other sign?    conf=561 frame=269 red box=340,89,359,102
+
+[22:59:32.070]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=319 frame=269 red box=566,225,581,235
+
+[22:59:32.100]收←◆??? CAM1 maybe other sign?    conf=901 frame=245 yellow box=598,239,605,250
+
+[22:59:32.162]收←◆??? CAM1 maybe other sign?    conf=482 frame=246 red box=448,101,467,115
+
+[22:59:32.255]收←◆??? CAM2 other sign           conf=1433 frame=270 red box=348,90,367,105
+
+[22:59:32.316]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=371 frame=270 red box=566,225,581,236
+
+[22:59:32.409]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=167 frame=246 red box=580,235,596,246
+
+[22:59:32.593]收←◆??? CAM1 maybe other sign?    conf=662 frame=247 red box=452,104,471,117
+
+[22:59:32.624]收←◆??? CAM2 maybe other sign?    conf=855 frame=271 red box=350,94,369,106
+
+[22:59:32.872]收←◆??? CAM2 maybe NO ENTRY?      conf=736 frame=271 red box=598,369,615,382
+
+[22:59:32.899]收←◆??? CAM1 maybe other sign?    conf=171 frame=248 red box=416,96,443,112
+
+[22:59:32.995]收←◆??? CAM2 maybe other sign?    conf=1226 frame=272 blue box=463,213,473,224
+
+[22:59:33.118]收←◆??? CAM2 maybe other sign?    conf=238 frame=272 red box=299,82,319,97
+
+[22:59:33.273]收←◆??? CAM1 maybe other sign?    conf=625 frame=249 red box=412,96,431,112
+
+[22:59:33.426]收←◆??? CAM2 maybe NO ENTRY?      conf=186 frame=273 red box=64,283,97,392
+
+[22:59:33.489]收←◆??? CAM2 maybe other sign?    conf=477 frame=273 red box=304,84,323,97
+
+[22:59:33.674]收←◆??? CAM2 maybe other sign?    conf=533 frame=274 blue box=459,207,473,220
+
+[22:59:33.736]收←◆??? CAM2 maybe NO ENTRY?      conf=806 frame=274 red box=70,293,107,411
+
+[22:59:33.798]收←◆??? CAM2 maybe other sign?    conf=296 frame=274 red box=309,86,329,98
+
+[22:59:33.859]收←◆??? CAM2 maybe other sign?    conf=649 frame=275 red box=316,88,335,102
+
+[22:59:33.890]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=63 frame=250 red box=178,297,221,400
+
+[22:59:33.951]收←◆??? CAM1 maybe NO ENTRY?      conf=41 frame=250 red box=416,98,436,109
+
+[22:59:34.013]收←◆??? CAM1 maybe other sign?    conf=878 frame=251 red box=426,100,445,115
+
+[22:59:34.106]收←◆??? CAM2 maybe NO ENTRY?      conf=1053 frame=275 red box=67,300,115,417
+
+[22:59:34.229]收←◆??? CAM2 maybe other sign?    conf=160 frame=276 red box=324,87,343,100
+
+[22:59:34.291]收←◆??? CAM2 maybe other sign?    conf=387 frame=276 blue box=460,207,475,217
+
+[22:59:34.384]收←◆??? CAM1 maybe NO ENTRY?      conf=58 frame=251 red box=188,308,231,403
+
+[22:59:34.477]收←◆??? CAM2 maybe NO ENTRY?      conf=66 frame=276 red box=460,226,473,235
+
+[22:59:34.507]收←◆??? CAM1 maybe other sign?    conf=959 frame=252 red box=436,99,457,114
+
+[22:59:34.600]收←◆??? CAM2 other sign           conf=1474 frame=277 red box=326,87,345,103
+
+[22:59:34.815]收←◆??? CAM1 maybe other sign?    conf=574 frame=253 red box=438,99,457,116
+
+[22:59:34.846]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=5 frame=277 red box=566,225,581,235
+
+[22:59:34.877]收←◆??? CAM1 maybe other sign?    conf=66 frame=253 red box=580,235,595,246
+
+[22:59:35.031]收←◆??? CAM2 maybe NO ENTRY?      conf=244 frame=278 yellow box=468,222,483,232
+
+[22:59:35.062]收←◆??? CAM1 maybe NO ENTRY?      conf=163 frame=253 red box=198,303,241,408
+
+[22:59:35.124]收←◆??? CAM1 maybe other sign?    conf=492 frame=254 red box=438,101,457,116
+
+[22:59:35.155]收←◆??? CAM2 maybe other sign?    conf=809 frame=278 red box=328,89,347,104
+
+[22:59:35.463]收←◆??? CAM2 maybe other sign?    conf=610 frame=279 red box=327,89,345,104
+
+[22:59:35.525]收←◆??? CAM2 maybe NO HONKING?    conf=455 frame=279 red box=452,227,475,245
+
+[22:59:35.649]收←◆??? CAM2 maybe other sign?    conf=742 frame=280 red box=328,90,347,104
+
+[22:59:35.680]收←◆??? CAM1 maybe NO ENTRY?      conf=132 frame=255 red box=198,308,239,417
+
+[22:59:35.772]收←◆??? CAM2 maybe NO ENTRY?      conf=519 frame=280 yellow box=463,222,473,230
+
+[22:59:35.804]收←◆??? CAM1 maybe other sign?    conf=233 frame=255 red box=438,103,457,115
+
+[22:59:35.834]收←◆??? CAM2 maybe NO ENTRY?      conf=478 frame=280 red box=460,227,473,234
+
+[22:59:35.865]收←◆??? CAM1 maybe other sign?    conf=468 frame=256 red box=438,102,458,116
+
+[22:59:36.019]收←◆??? CAM2 maybe NO ENTRY?      conf=248 frame=281 red box=328,91,346,102
+
+[22:59:36.112]收←◆??? CAM1 maybe NO ENTRY?      conf=159 frame=256 red box=198,303,239,425
+
+[22:59:36.143]收←◆??? CAM2 other sign           conf=1706 frame=281 red box=458,227,475,247
+
+[22:59:36.204]收←◆??? CAM2 maybe NO PARKING?    conf=36 frame=281 red box=84,302,123,414
+
+[22:59:36.235]收←◆??? CAM1 maybe other sign?    conf=207 frame=257 red box=438,103,458,115
+
+[22:59:36.297]收←◆??? CAM1 maybe NO PARKING?    conf=285 frame=257 red box=198,305,243,427
+
+[22:59:36.327]收←◆??? CAM2 maybe other sign?    conf=880 frame=282 red box=328,89,347,105
+
+[22:59:36.390]收←◆??? CAM2 maybe NO ENTRY?      conf=33 frame=282 yellow box=458,220,469,228
+
+[22:59:36.575]收←◆??? CAM2 maybe other sign?    conf=882 frame=282 red box=452,225,469,243
+
+[22:59:36.606]收←◆??? CAM1 maybe other sign?    conf=1060 frame=258 red box=437,101,457,118
+
+[22:59:36.728]收←◆--- t=90s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 3, unsure 54, bg 105, err 0
+
+[22:59:36.759]收←◆??? CAM2 maybe NO ENTRY?      conf=815 frame=283 red box=81,300,127,418
+
+[22:59:36.821]收←◆??? CAM2 maybe other sign?    conf=983 frame=283 red box=330,90,349,106
+
+[22:59:36.976]收←◆??? CAM1 maybe other sign?    conf=724 frame=259 red box=440,102,461,118
+
+[22:59:37.006]收←◆??? CAM2 maybe other sign?    conf=743 frame=284 red box=330,91,349,104
+
+[22:59:37.037]收←◆??? CAM1 maybe NO PARKING?    conf=73 frame=259 red box=200,300,243,417
+
+[22:59:37.069]收←◆??? CAM2 maybe NO ENTRY?      conf=974 frame=284 red box=456,214,467,224
+
+[22:59:37.192]收←◆??? CAM2 maybe NO PARKING?    conf=371 frame=284 red box=89,299,127,409
+
+[22:59:37.315]收←◆??? CAM2 maybe other sign?    conf=870 frame=285 red box=329,90,349,104
+
+[22:59:37.346]收←◆??? CAM1 maybe other sign?    conf=630 frame=260 red box=440,101,461,118
+
+[22:59:37.501]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=113 frame=285 red box=567,225,581,235
+
+[22:59:37.592]收←◆??? CAM1 maybe NO PARKING?    conf=254 frame=260 red box=200,304,245,419
+
+[22:59:37.716]收←◆??? CAM1 maybe other sign?    conf=258 frame=261 red box=440,103,459,115
+
+[22:59:37.747]收←◆??? CAM2 maybe other sign?    conf=367 frame=286 red box=458,210,469,221
+
+[22:59:37.870]收←◆??? CAM2 maybe NO ENTRY?      conf=378 frame=286 red box=86,299,125,415
+
+[22:59:37.932]收←◆??? CAM2 maybe other sign?    conf=322 frame=286 red box=330,90,347,103
+
+[22:59:38.024]收←◆??? CAM1 maybe NO ENTRY?      conf=139 frame=261 red box=198,301,243,412
+
+[22:59:38.055]收←◆??? CAM2 maybe other sign?    conf=675 frame=287 red box=330,90,349,105
+
+[22:59:38.149]收←◆??? CAM1 maybe other sign?    conf=623 frame=262 red box=440,102,460,118
+
+[22:59:38.303]收←◆??? CAM2 maybe NO ENTRY?      conf=38 frame=287 red box=88,300,125,409
+
+[22:59:38.487]收←◆??? CAM2 maybe NO PARKING?    conf=79 frame=288 red box=91,301,128,409
+
+[22:59:38.642]收←◆??? CAM1 maybe NO PARKING?    conf=144 frame=263 red box=200,303,243,414
+
+[22:59:38.673]收←◆>>> CAM2 NO ENTRY             conf=1285 frame=289 yellow box=464,211,481,222
+
+[22:59:38.735]收←◆??? CAM2 maybe NO ENTRY?      conf=684 frame=289 red box=462,214,481,228
+
+[22:59:38.796]收←◆??? CAM2 maybe other sign?    conf=457 frame=289 red box=328,97,345,111
+
+[22:59:38.827]收←◆??? CAM1 maybe other sign?    conf=825 frame=264 red box=426,107,445,122
+
+[22:59:38.981]收←◆??? CAM2 maybe other sign?    conf=553 frame=290 red box=323,86,339,99
+
+[22:59:39.105]收←◆??? CAM2 maybe NO ENTRY?      conf=338 frame=290 red box=463,213,481,228
+
+[22:59:39.167]收←◆>>> CAM2 NO ENTRY             conf=1737 frame=290 yellow box=464,211,481,222
+
+[22:59:39.258]收←◆??? CAM1 maybe other sign?    conf=535 frame=265 red box=408,94,425,106
+
+[22:59:39.290]收←◆??? CAM2 maybe NO HONKING?    conf=72 frame=291 yellow box=464,210,481,220
+
+[22:59:39.351]收←◆??? CAM2 maybe NO ENTRY?      conf=544 frame=291 red box=465,214,481,228
+
+[22:59:39.383]收←◆??? CAM1 maybe NO ENTRY?      conf=366 frame=265 yellow box=485,221,499,230
+
+[22:59:39.413]收←◆??? CAM2 maybe NO ENTRY?      conf=374 frame=291 red box=138,259,169,356
+
+[22:59:39.475]收←◆??? CAM2 maybe other sign?    conf=223 frame=291 red box=318,82,334,95
+
+[22:59:39.537]收←◆??? CAM2 maybe NO ENTRY?      conf=1047 frame=292 red box=470,212,483,224
+
+[22:59:39.569]收←◆??? CAM1 maybe NO ENTRY?      conf=839 frame=265 red box=484,226,497,235
+
+[22:59:39.630]收←◆??? CAM1 maybe other sign?    conf=935 frame=266 red box=402,90,419,106
+
+[22:59:39.660]收←◆??? CAM2 maybe other sign?    conf=791 frame=292 red box=300,72,317,89
+
+[22:59:39.710]收←◆??? CAM2 maybe NO ENTRY?      conf=716 frame=292 yellow box=470,211,483,218
+
+[22:59:39.845]收←◆??? CAM2 maybe NO ENTRY?      conf=848 frame=293 red box=472,210,487,226
+
+[22:59:39.969]收←◆??? CAM2 maybe other sign?    conf=676 frame=293 red box=268,30,289,48
+
+[22:59:40.000]收←◆??? CAM1 maybe NO ENTRY?      conf=93 frame=266 yellow box=484,220,499,230
+
+[22:59:40.123]收←◆??? CAM1 maybe other sign?    conf=598 frame=267 red box=370,47,389,64
+
+[22:59:40.277]收←◆??? CAM2 maybe other sign?    conf=424 frame=294 red box=269,22,289,38
+
+[22:59:40.400]收←◆??? CAM2 maybe NO ENTRY?      conf=384 frame=294 red box=471,214,489,231
+
+[22:59:40.462]收←◆??? CAM2 maybe NO ENTRY?      conf=353 frame=294 yellow box=471,211,487,222
+
+[22:59:40.493]收←◆??? CAM1 maybe NO ENTRY?      conf=97 frame=267 red box=580,235,595,246
+
+[22:59:40.586]收←◆??? CAM2 maybe other sign?    conf=623 frame=295 red box=267,23,285,35
+
+[22:59:40.679]收←◆??? CAM1 maybe NO ENTRY?      conf=253 frame=268 red box=492,227,503,235
+
+[22:59:40.802]收←◆??? CAM1 maybe other sign?    conf=387 frame=268 red box=376,38,395,52
+
+[22:59:40.832]收←◆??? CAM2 maybe other sign?    conf=79 frame=296 red box=262,16,279,28
+
+[22:59:40.926]收←◆??? CAM1 maybe NO ENTRY?      conf=237 frame=268 red box=618,382,639,398
+
+[22:59:41.172]收←◆??? CAM1 maybe other sign?    conf=54 frame=269 blue box=462,156,493,239
+
+[22:59:41.295]收←◆??? CAM1 maybe other sign?    conf=462 frame=269 red box=368,31,387,45
+
+[22:59:41.326]收←◆??? CAM2 maybe other sign?    conf=224 frame=297 red box=578,228,589,242
+
+[22:59:41.357]收←◆??? CAM1 maybe NO ENTRY?      conf=392 frame=269 red box=502,219,509,230
+
+[22:59:41.388]收←◆??? CAM2 maybe other sign?    conf=98 frame=297 red box=258,13,277,28
+
+[22:59:41.481]收←◆??? CAM1 maybe SPEED LIMIT 80? conf=284 frame=269 blue box=592,239,601,252
+
+[22:59:41.511]收←◆??? CAM2 maybe other sign?    conf=488 frame=298 red box=258,16,275,32
+
+[22:59:41.604]收←◆??? CAM1 maybe other sign?    conf=433 frame=270 red box=364,27,381,44
+
+[22:59:41.666]收←◆??? CAM1 maybe NO ENTRY?      conf=379 frame=270 blue box=458,154,487,249
+
+[22:59:41.731]收←◆--- t=95s cam1 15.0fps cam2 15.0fps | last 5s: sign 2, other 0, unsure 59, bg 101, err 0 | seen NO ENTRY x2
+
+[22:59:41.758]收←◆??? CAM2 maybe other sign?    conf=227 frame=298 red box=454,236,463,245
+
+[22:59:41.789]收←◆??? CAM1 maybe NO ENTRY?      conf=195 frame=270 red box=480,232,497,240
+
+[22:59:41.820]收←◆??? CAM2 maybe other sign?    conf=298 frame=299 red box=256,16,275,32
+
+[22:59:41.933]收←◆??? CAM2 maybe NO ENTRY?      conf=200 frame=299 red box=458,217,479,231
+
+[22:59:42.005]收←◆??? CAM2 maybe NO PARKING?    conf=64 frame=299 red box=86,252,125,350
+
+[22:59:42.098]收←◆??? CAM1 maybe other sign?    conf=940 frame=271 red box=361,30,379,47
+
+[22:59:42.190]收←◆??? CAM2 maybe other sign?    conf=616 frame=300 red box=256,15,275,30
+
+[22:59:42.406]收←◆??? CAM1 maybe other sign?    conf=1205 frame=272 red box=358,29,377,45
+
+[22:59:42.499]收←◆??? CAM2 maybe other sign?    conf=1137 frame=301 red box=254,19,273,31
+
+[22:59:42.623]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=382 frame=301 red box=567,225,581,236
+
+[22:59:42.869]收←◆??? CAM2 maybe other sign?    conf=420 frame=302 red box=252,17,271,33
+
+[22:59:43.147]收←◆??? CAM1 maybe other sign?    conf=1151 frame=273 red box=356,33,373,45
+
+[22:59:43.177]收←◆??? CAM2 maybe other sign?    conf=618 frame=303 red box=252,20,269,36
+
+[22:59:43.209]收←◆??? CAM1 maybe other sign?    conf=412 frame=274 red box=356,33,375,48
+
+[22:59:43.424]收←◆??? CAM2 maybe NO ENTRY?      conf=75 frame=304 red box=252,24,269,35
+
+[22:59:43.640]收←◆??? CAM1 maybe other sign?    conf=613 frame=275 red box=354,37,371,50
+
+[22:59:43.733]收←◆??? CAM2 maybe other sign?    conf=480 frame=305 red box=250,20,269,36
+
+[22:59:43.826]收←◆??? CAM1 maybe other sign?    conf=265 frame=275 blue box=446,161,475,223
+
+[22:59:43.888]收←◆??? CAM1 maybe NO PARKING?    conf=347 frame=275 blue box=592,239,599,250
+
+[22:59:43.949]收←◆??? CAM1 maybe other sign?    conf=1049 frame=276 red box=353,34,371,49
+
+[22:59:43.980]收←◆??? CAM2 maybe other sign?    conf=90 frame=306 red box=196,19,211,38
+
+[22:59:44.042]收←◆??? CAM2 other sign           conf=1254 frame=306 red box=252,21,269,33
+
+[22:59:44.320]收←◆??? CAM1 maybe other sign?    conf=493 frame=277 red box=354,36,371,49
+
+[22:59:44.351]收←◆??? CAM2 maybe other sign?    conf=823 frame=307 red box=252,21,269,37
+
+[22:59:44.597]收←◆??? CAM2 maybe NO ENTRY?      conf=526 frame=307 red box=104,370,123,392
+
+[22:59:44.659]收←◆??? CAM2 maybe other sign?    conf=1076 frame=308 red box=254,26,273,41
+
+[22:59:44.783]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=235 frame=308 red box=566,225,581,236
+
+[22:59:44.937]收←◆??? CAM1 maybe other sign?    conf=925 frame=278 red box=358,40,375,56
+
+[22:59:44.968]收←◆??? CAM2 maybe other sign?    conf=180 frame=309 red box=255,24,273,37
+
+[22:59:45.245]收←◆??? CAM1 maybe other sign?    conf=77 frame=279 red box=358,38,376,51
+
+[22:59:45.338]收←◆??? CAM2 maybe other sign?    conf=288 frame=310 red box=256,25,273,37
+
+[22:59:45.400]收←◆??? CAM2 maybe NO ENTRY?      conf=78 frame=310 red box=370,240,397,279
+
+[22:59:45.461]收←◆??? CAM2 maybe SPEED LIMIT 60? conf=88 frame=310 red box=464,222,473,232
+
+[22:59:45.677]收←◆??? CAM1 maybe other sign?    conf=763 frame=280 red box=359,41,377,52
+
+[22:59:45.708]收←◆??? CAM2 maybe other sign?    conf=244 frame=311 red box=254,25,272,39
+
+[22:59:45.739]收←◆??? CAM1 maybe NO ENTRY?      conf=14 frame=280 red box=480,231,491,240
+
+[22:59:45.801]收←◆??? CAM1 maybe other sign?    conf=383 frame=281 red box=357,39,375,53
+
+[22:59:45.894]收←◆??? CAM2 maybe SPEED LIMIT 60? conf=667 frame=311 red box=461,220,472,231
+
+[22:59:46.079]收←◆??? CAM2 maybe other sign?    conf=341 frame=312 red box=254,27,271,37
+
+[22:59:46.140]收←◆??? CAM2 maybe SPEED LIMIT 60? conf=845 frame=312 red box=462,219,473,230
+
+[22:59:46.170]收←◆??? CAM1 maybe other sign?    conf=430 frame=282 red box=354,40,373,53
+
+[22:59:46.419]收←◆??? CAM1 maybe SPEED LIMIT 120? conf=166 frame=282 yellow box=486,231,495,237
+
+[22:59:46.449]收←◆??? CAM2 maybe other sign?    conf=759 frame=313 red box=252,28,270,43
+
+[22:59:46.512]收←◆??? CAM2 maybe other sign?    conf=998 frame=313 yellow box=468,221,481,227
+
+[22:59:46.541]收←◆??? CAM1 maybe other sign?    conf=815 frame=283 red box=354,42,373,58
+
+[22:59:46.728]收←◆--- t=100s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 1, unsure 44, bg 118, err 0
+
+[22:59:46.818]收←◆??? CAM2 maybe other sign?    conf=427 frame=314 red box=254,32,273,47
+
+[22:59:47.035]收←◆??? CAM1 maybe NO HONKING?    conf=56 frame=284 red box=357,46,375,61
+
+[22:59:47.189]收←◆??? CAM2 maybe other sign?    conf=680 frame=315 red box=254,31,271,45
+
+[22:59:47.251]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=251 frame=315 red box=567,225,582,235
+
+[22:59:47.405]收←◆??? CAM1 maybe other sign?    conf=382 frame=285 red box=356,44,375,61
+
+[22:59:47.467]收←◆??? CAM1 maybe other sign?    conf=164 frame=285 yellow box=484,231,495,236
+
+[22:59:47.560]收←◆??? CAM2 maybe other sign?    conf=1163 frame=316 red box=253,33,271,45
+
+[22:59:47.590]收←◆??? CAM1 maybe other sign?    conf=1110 frame=286 red box=356,47,375,60
+
+[22:59:47.621]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=272 frame=316 red box=567,226,581,236
+
+[22:59:47.777]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=222 frame=286 red box=581,236,595,247
+
+[22:59:47.869]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=32 frame=316 red box=82,259,119,363
+
+[22:59:47.930]收←◆??? CAM2 maybe other sign?    conf=593 frame=317 red box=254,29,271,45
+
+[22:59:48.115]收←◆??? CAM2 maybe other sign?    conf=65 frame=317 yellow box=466,219,477,225
+
+[22:59:48.146]收←◆??? CAM1 maybe other sign?    conf=75 frame=287 red box=358,42,376,57
+
+[22:59:48.301]收←◆??? CAM2 maybe other sign?    conf=746 frame=318 red box=254,25,273,41
+
+[22:59:48.424]收←◆??? CAM2 maybe other sign?    conf=725 frame=318 yellow box=466,217,481,226
+
+[22:59:48.516]收←◆??? CAM1 maybe other sign?    conf=470 frame=288 red box=358,39,376,55
+
+[22:59:48.671]收←◆??? CAM2 maybe other sign?    conf=847 frame=319 red box=254,29,271,40
+
+[22:59:48.794]收←◆??? CAM2 maybe other sign?    conf=179 frame=319 yellow box=466,218,477,226
+
+[22:59:48.917]收←◆??? CAM2 maybe other sign?    conf=521 frame=320 red box=254,26,271,40
+
+[22:59:48.948]收←◆??? CAM1 maybe other sign?    conf=610 frame=289 red box=358,42,375,55
+
+[22:59:49.164]收←◆??? CAM2 maybe other sign?    conf=557 frame=321 red box=252,27,270,41
+
+[22:59:49.257]收←◆??? CAM1 maybe other sign?    conf=780 frame=290 red box=356,40,374,54
+
+[22:59:49.504]收←◆??? CAM1 maybe other sign?    conf=1248 frame=291 red box=356,40,373,56
+
+[22:59:49.596]收←◆??? CAM2 maybe other sign?    conf=1171 frame=322 red box=250,29,267,44
+
+[22:59:49.658]收←◆??? CAM2 maybe NO PARKING?    conf=520 frame=322 red box=80,258,119,400
+
+[22:59:49.843]收←◆??? CAM2 maybe other sign?    conf=307 frame=323 red box=248,30,265,45
+
+[22:59:49.935]收←◆??? CAM1 maybe other sign?    conf=707 frame=292 red box=352,43,369,59
+
+[22:59:50.060]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=127 frame=292 red box=580,235,595,247
+
+[22:59:50.090]收←◆??? CAM2 maybe other sign?    conf=680 frame=324 red box=248,32,265,47
+
+[22:59:50.306]收←◆??? CAM1 maybe other sign?    conf=579 frame=293 red box=352,45,371,60
+
+[22:59:50.399]收←◆??? CAM2 maybe other sign?    conf=490 frame=325 red box=248,34,266,46
+
+[22:59:50.584]收←◆??? CAM2 maybe NO PARKING?    conf=335 frame=325 red box=78,261,119,402
+
+[22:59:50.738]收←◆??? CAM1 maybe other sign?    conf=621 frame=294 red box=352,48,371,61
+
+[22:59:50.954]收←◆??? CAM2 maybe NO ENTRY?      conf=92 frame=326 red box=80,261,117,373
+
+[22:59:51.078]收←◆??? CAM2 maybe NO ENTRY?      conf=397 frame=327 red box=250,35,267,45
+
+[22:59:51.108]收←◆??? CAM1 maybe other sign?    conf=714 frame=295 red box=353,48,371,60
+
+[22:59:51.324]收←◆??? CAM2 other sign           conf=1258 frame=328 red box=252,34,269,49
+
+[22:59:51.355]收←◆??? CAM1 maybe other sign?    conf=382 frame=296 red box=355,47,373,62
+
+[22:59:51.694]收←◆??? CAM2 maybe other sign?    conf=750 frame=329 red box=252,34,269,50
+
+[22:59:51.735]收←◆??? CAM1 maybe other sign?    conf=1001 frame=297 red box=354,48,373,65
+--- t=105s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 1, unsure 40, bg 121, err 0
+
+[22:59:52.004]收←◆??? CAM2 maybe other sign?    conf=922 frame=330 red box=252,37,269,49
+
+[22:59:52.251]收←◆??? CAM2 maybe NO ENTRY?      conf=294 frame=330 red box=104,378,123,402
+
+[22:59:52.281]收←◆??? CAM1 maybe other sign?    conf=181 frame=298 red box=356,50,373,64
+
+[22:59:52.311]收←◆??? CAM2 maybe other sign?    conf=741 frame=331 red box=250,36,269,50
+
+[22:59:52.373]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=433 frame=331 red box=566,226,581,236
+
+[22:59:52.589]收←◆??? CAM1 maybe other sign?    conf=252 frame=299 red box=354,49,372,65
+
+[22:59:52.651]收←◆??? CAM1 maybe other sign?    conf=156 frame=299 red box=580,235,595,246
+
+[22:59:52.682]收←◆??? CAM2 maybe other sign?    conf=924 frame=332 red box=252,38,269,50
+
+[22:59:52.836]收←◆??? CAM1 maybe other sign?    conf=428 frame=300 red box=356,51,373,64
+
+[22:59:52.990]收←◆??? CAM2 maybe other sign?    conf=496 frame=333 red box=252,39,269,53
+
+[22:59:53.206]收←◆??? CAM1 maybe other sign?    conf=785 frame=301 red box=354,52,373,69
+
+[22:59:53.299]收←◆??? CAM2 maybe other sign?    conf=977 frame=334 red box=254,45,271,57
+
+[22:59:53.576]收←◆??? CAM1 maybe NO ENTRY?      conf=173 frame=302 red box=356,58,373,69
+
+[22:59:53.607]收←◆??? CAM2 maybe other sign?    conf=775 frame=335 red box=255,47,273,60
+
+[22:59:53.916]收←◆??? CAM2 maybe other sign?    conf=865 frame=336 red box=256,54,273,68
+
+[22:59:54.070]收←◆??? CAM1 maybe other sign?    conf=489 frame=303 red box=358,62,377,79
+
+[22:59:54.163]收←◆??? CAM2 maybe other sign?    conf=311 frame=337 red box=254,56,273,70
+
+[22:59:54.225]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=194 frame=337 red box=83,286,119,381
+
+[22:59:54.317]收←◆??? CAM1 maybe other sign?    conf=813 frame=304 red box=360,71,377,84
+
+[22:59:54.595]收←◆??? CAM2 maybe other sign?    conf=1215 frame=338 red box=252,54,270,70
+
+[22:59:54.656]收←◆??? CAM2 maybe NO PARKING?    conf=117 frame=338 red box=78,284,119,387
+
+[22:59:54.749]收←◆??? CAM1 maybe other sign?    conf=833 frame=305 red box=356,67,375,83
+
+[22:59:54.904]收←◆??? CAM2 maybe other sign?    conf=334 frame=339 red box=256,55,275,70
+
+[22:59:55.118]收←◆??? CAM1 maybe other sign?    conf=540 frame=306 red box=358,68,375,82
+
+[22:59:55.274]收←◆??? CAM2 maybe other sign?    conf=126 frame=340 red box=253,52,271,67
+
+[22:59:55.306]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=366 frame=306 red box=580,236,595,246
+
+[22:59:55.490]收←◆??? CAM1 maybe other sign?    conf=214 frame=307 red box=360,67,377,79
+
+[22:59:55.582]收←◆??? CAM2 maybe NO PARKING?    conf=48 frame=340 red box=81,285,121,386
+
+[22:59:55.645]收←◆??? CAM2 maybe other sign?    conf=537 frame=341 red box=256,56,275,69
+
+[22:59:55.737]收←◆??? CAM1 maybe other sign?    conf=256 frame=308 red box=361,67,379,82
+
+[22:59:55.829]收←◆??? CAM2 maybe NO PARKING?    conf=289 frame=341 red box=83,287,123,413
+
+[22:59:55.952]收←◆??? CAM2 maybe NO ENTRY?      conf=223 frame=342 red box=254,57,273,68
+
+[22:59:56.169]收←◆??? CAM1 maybe NO ENTRY?      conf=72 frame=309 red box=359,70,377,82
+
+[22:59:56.385]收←◆??? CAM2 maybe other sign?    conf=1074 frame=343 red box=256,54,275,70
+
+[22:59:56.477]收←◆??? CAM1 maybe other sign?    conf=1210 frame=310 red box=360,68,377,85
+
+[22:59:56.508]收←◆??? CAM2 maybe NO ENTRY?      conf=188 frame=343 red box=78,285,123,421
+
+[22:59:56.632]收←◆??? CAM2 maybe other sign?    conf=1005 frame=344 red box=254,56,273,72
+
+[22:59:56.729]收←◆--- t=110s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 0, unsure 37, bg 125, err 0
+
+[22:59:56.755]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=175 frame=344 red box=80,287,121,393
+
+[22:59:56.971]收←◆??? CAM1 maybe other sign?    conf=449 frame=311 red box=360,70,379,86
+
+[22:59:57.002]收←◆??? CAM2 maybe NO PARKING?    conf=67 frame=345 red box=80,287,121,402
+
+[22:59:57.125]收←◆??? CAM2 maybe NO ENTRY?      conf=149 frame=345 red box=366,280,397,318
+
+[22:59:57.187]收←◆??? CAM2 maybe NO ENTRY?      conf=215 frame=345 red box=255,58,273,71
+
+[22:59:57.341]收←◆??? CAM1 maybe other sign?    conf=620 frame=312 red box=359,70,379,86
+
+[22:59:57.372]收←◆??? CAM2 maybe other sign?    conf=822 frame=346 red box=256,57,273,72
+
+[22:59:57.527]收←◆??? CAM1 maybe NO PARKING?    conf=1039 frame=312 blue box=476,270,489,282
+
+[22:59:57.557]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=305 frame=346 red box=83,286,121,396
+
+[22:59:57.619]收←◆??? CAM2 maybe other sign?    conf=411 frame=347 red box=257,56,275,68
+
+[22:59:57.651]收←◆??? CAM1 maybe other sign?    conf=382 frame=313 red box=362,69,379,82
+
+[22:59:57.959]收←◆??? CAM1 maybe other sign?    conf=510 frame=314 red box=362,65,379,81
+
+[22:59:57.990]收←◆??? CAM2 maybe SPEED LIMIT 120? conf=224 frame=348 red box=258,52,277,67
+
+[22:59:58.174]收←◆??? CAM2 maybe other sign?    conf=28 frame=349 red box=258,54,276,69
+
+[22:59:58.299]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=354 frame=349 red box=85,285,123,396
+
+[22:59:58.391]收←◆??? CAM1 maybe other sign?    conf=630 frame=315 red box=363,67,381,82
+
+[22:59:58.483]收←◆??? CAM2 maybe other sign?    conf=555 frame=350 red box=262,54,280,67
+
+[22:59:58.699]收←◆??? CAM1 maybe other sign?    conf=616 frame=316 red box=365,67,384,80
+
+[22:59:58.731]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=19 frame=350 red box=89,283,126,391
+
+[22:59:58.791]收←◆??? CAM2 maybe other sign?    conf=694 frame=351 red box=262,53,281,69
+
+[22:59:59.069]收←◆??? CAM1 maybe other sign?    conf=241 frame=317 red box=366,67,383,81
+
+[22:59:59.101]收←◆??? CAM2 maybe NO ENTRY?      conf=97 frame=351 red box=87,282,125,397
+
+[22:59:59.162]收←◆??? CAM2 other sign           conf=1266 frame=352 red box=262,56,279,68
+
+[22:59:59.564]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=229 frame=318 blue box=580,236,595,247
+
+[22:59:59.625]收←◆??? CAM1 maybe other sign?    conf=539 frame=318 red box=369,69,387,85
+
+[22:59:59.656]收←◆??? CAM2 maybe NO PARKING?    conf=498 frame=353 red box=88,283,127,426
+
+[22:59:59.686]收←◆??? CAM1 maybe other sign?    conf=65 frame=318 red box=593,238,601,253
+
+[22:59:59.718]收←◆??? CAM2 maybe other sign?    conf=842 frame=353 red box=266,56,285,72
+
+[22:59:59.748]收←◆??? CAM1 maybe other sign?    conf=793 frame=319 red box=390,76,411,92
+
+[22:59:59.811]收←◆??? CAM1 maybe WATCH PEDESTRIANS? conf=233 frame=319 red box=580,236,595,246
+
+[22:59:59.840]收←◆??? CAM2 maybe other sign?    conf=307 frame=354 red box=288,61,307,77
+
+[22:59:59.902]收←◆??? CAM2 maybe NO PARKING?    conf=27 frame=354 red box=93,289,131,385
+
+[22:59:59.992]收←◆??? CAM1 maybe NO PARKING?    conf=42 frame=319 red box=208,293,245,398
+
+[23:00:00.211]收←◆??? CAM2 maybe other sign?    conf=451 frame=355 red box=292,64,317,84
+
+[23:00:00.303]收←◆??? CAM1 maybe other sign?    conf=433 frame=320 red box=404,71,425,87
+
+[23:00:00.396]收←◆??? CAM2 maybe other sign?    conf=235 frame=355 red box=51,300,129,449
+
+[23:00:00.426]收←◆??? CAM1 maybe other sign?    conf=377 frame=321 red box=390,85,411,97
+
+[23:00:00.550]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=22 frame=321 blue box=592,239,601,253
+
+[23:00:00.574]收←◆??? CAM2 maybe other sign?    conf=658 frame=356 red box=279,75,300,90
+
+[23:00:00.767]收←◆??? CAM2 maybe NO ENTRY?      conf=65 frame=356 red box=46,316,113,444
+
+[23:00:00.859]收←◆??? CAM1 maybe other sign?    conf=387 frame=322 red box=382,92,402,106
+
+[23:00:01.045]收←◆??? CAM1 maybe NO ENTRY?      conf=206 frame=323 red box=382,96,402,109
+
+[23:00:01.199]收←◆??? CAM2 maybe other sign?    conf=549 frame=357 red box=269,82,288,94
+
+[23:00:01.261]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=28 frame=357 red box=38,328,101,441
+
+[23:00:01.353]收←◆??? CAM1 maybe other sign?    conf=1041 frame=324 red box=386,95,407,112
+
+[23:00:01.446]收←◆??? CAM2 maybe other sign?    conf=446 frame=358 red box=270,84,289,100
+
+[23:00:01.569]收←◆??? CAM2 maybe NO ENTRY?      conf=212 frame=358 red box=40,333,101,443
+
+[23:00:01.600]收←◆??? CAM1 maybe other sign?    conf=708 frame=325 red box=385,93,405,110
+
+[23:00:01.729]收←◆--- t=115s cam1 15.0fps cam2 15.2fps | last 5s: sign 0, other 1, unsure 47, bg 114, err 0
+
+[23:00:01.816]收←◆??? CAM2 maybe other sign?    conf=499 frame=359 red box=272,81,291,98
+
+[23:00:01.847]收←◆>>> CAM1 NO PARKING           conf=1382 frame=325 blue box=494,222,504,233
+
+[23:00:01.908]收←◆??? CAM1 maybe other sign?    conf=416 frame=326 red box=386,96,405,110
+
+[23:00:01.939]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=6 frame=359 red box=37,328,103,447
+
+[23:00:02.032]收←◆??? CAM1 maybe NO PARKING?    conf=22 frame=326 blue box=493,220,506,232
+
+[23:00:02.094]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=907 frame=326 blue box=580,236,593,250
+
+[23:00:02.124]收←◆??? CAM2 maybe other sign?    conf=501 frame=360 red box=272,84,291,97
+
+[23:00:02.341]收←◆??? CAM1 maybe NO PARKING?    conf=252 frame=327 blue box=492,222,502,232
+
+[23:00:02.464]收←◆??? CAM1 maybe other sign?    conf=566 frame=327 red box=386,95,405,112
+
+[23:00:02.525]收←◆??? CAM1 maybe NO ENTRY?      conf=189 frame=327 red box=583,235,595,246
+
+[23:00:02.556]收←◆??? CAM2 maybe other sign?    conf=738 frame=361 red box=272,84,292,99
+
+[23:00:02.587]收←◆??? CAM1 maybe other sign?    conf=841 frame=328 red box=386,97,406,110
+
+[23:00:02.896]收←◆??? CAM1 maybe NO PARKING?    conf=312 frame=328 blue box=495,222,505,232
+??? CAM2 maybe other sign?    conf=338 frame=362 red box=274,84,293,100
+
+[23:00:02.958]收←◆??? CAM1 maybe other sign?    conf=310 frame=329 red box=386,97,407,113
+
+[23:00:03.112]收←◆??? CAM2 maybe NO ENTRY?      conf=37 frame=362 red box=37,330,103,445
+
+[23:00:03.144]收←◆??? CAM1 maybe NO PARKING?    conf=316 frame=329 red box=184,334,211,413
+
+[23:00:03.328]收←◆??? CAM1 maybe other sign?    conf=671 frame=330 red box=387,98,407,113
+
+[23:00:03.358]收←◆??? CAM2 maybe other sign?    conf=835 frame=363 red box=274,85,293,102
+
+[23:00:03.421]收←◆??? CAM2 maybe NO ENTRY?      conf=49 frame=363 red box=36,332,102,450
+
+[23:00:03.543]收←◆??? CAM2 maybe other sign?    conf=122 frame=364 red box=276,90,295,100
+
+[23:00:03.574]收←◆??? CAM1 maybe other sign?    conf=413 frame=330 red box=582,245,597,255
+
+[23:00:03.637]收←◆??? CAM1 maybe other sign?    conf=973 frame=331 red box=388,101,407,115
+
+[23:00:03.667]收←◆??? CAM2 maybe NO ENTRY?      conf=204 frame=364 red box=35,333,103,450
+
+[23:00:03.852]收←◆??? CAM2 maybe other sign?    conf=250 frame=365 red box=279,90,297,107
+
+[23:00:04.007]收←◆??? CAM1 maybe other sign?    conf=436 frame=332 red box=391,104,410,118
+
+[23:00:04.223]收←◆??? CAM2 maybe other sign?    conf=1235 frame=366 red box=280,94,299,106
+
+[23:00:04.593]收←◆??? CAM2 maybe other sign?    conf=1196 frame=367 red box=284,93,305,109
+
+[23:00:04.624]收←◆??? CAM1 maybe other sign?    conf=928 frame=333 red box=392,105,411,120
+
+[23:00:04.717]收←◆??? CAM2 maybe NO PARKING?    conf=240 frame=367 red box=73,322,115,419
+
+[23:00:04.809]收←◆??? CAM1 maybe other sign?    conf=965 frame=334 red box=394,106,413,122
+
+[23:00:04.840]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=63 frame=368 red box=566,225,581,236
+
+[23:00:04.963]收←◆??? CAM2 maybe other sign?    conf=564 frame=368 red box=286,89,303,104
+
+[23:00:05.025]收←◆??? CAM2 maybe NO PARKING?    conf=408 frame=368 red box=76,313,118,410
+
+[23:00:05.088]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=51 frame=369 red box=567,225,581,236
+
+[23:00:05.149]收←◆??? CAM2 maybe other sign?    conf=659 frame=369 red box=282,87,299,101
+
+[23:00:05.272]收←◆??? CAM2 maybe NO ENTRY?      conf=338 frame=369 red box=74,314,117,423
+
+[23:00:05.365]收←◆??? CAM1 maybe other sign?    conf=794 frame=335 red box=388,99,405,114
+
+[23:00:05.426]收←◆??? CAM1 maybe NO PARKING?    conf=203 frame=335 blue box=490,223,504,236
+
+[23:00:05.457]收←◆??? CAM2 maybe NO ENTRY?      conf=578 frame=370 red box=372,272,401,339
+
+[23:00:05.673]收←◆??? CAM1 maybe other sign?    conf=233 frame=336 red box=388,99,405,111
+
+[23:00:05.797]收←◆??? CAM1 maybe NO PARKING?    conf=244 frame=336 blue box=495,295,507,321
+
+[23:00:05.982]收←◆??? CAM1 other sign           conf=1415 frame=337 red box=475,221,491,235
+
+[23:00:06.012]收←◆??? CAM2 maybe other sign?    conf=218 frame=371 red box=461,211,473,222
+
+[23:00:06.229]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=241 frame=337 red box=130,264,151,284
+
+[23:00:06.290]收←◆??? CAM1 maybe NO ENTRY?      conf=186 frame=337 red box=610,376,632,392
+
+[23:00:06.476]收←◆??? CAM1 maybe NO ENTRY?      conf=135 frame=338 red box=280,153,306,212
+
+[23:00:06.661]收←◆??? CAM1 maybe other sign?    conf=54 frame=339 red box=594,237,603,252
+
+[23:00:06.732]收←◆--- t=120s cam1 15.0fps cam2 15.0fps | last 5s: sign 1, other 1, unsure 46, bg 114, err 0 | seen NO PARKING x1
+
+[23:00:06.784]收←◆??? CAM1 maybe NO ENTRY?      conf=494 frame=340 red box=280,155,308,212
+
+[23:00:06.908]收←◆??? CAM1 maybe NO ENTRY?      conf=252 frame=341 red box=280,153,307,212
+
+[23:00:07.000]收←◆??? CAM2 maybe NO ENTRY?      conf=154 frame=374 red box=616,381,629,390
+
+[23:00:07.092]收←◆??? CAM1 maybe NO ENTRY?      conf=249 frame=342 red box=280,153,307,212
+
+[23:00:07.216]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=451 frame=342 red box=580,235,593,244
+
+[23:00:07.247]收←◆??? CAM2 maybe other sign?    conf=28 frame=375 yellow box=580,229,587,240
+
+[23:00:07.371]收←◆??? CAM2 maybe NO HONKING?    conf=139 frame=375 red box=614,378,629,389
+
+[23:00:07.464]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=285 frame=343 red box=580,235,595,245
+
+[23:00:07.587]收←◆??? CAM1 maybe NO ENTRY?      conf=818 frame=344 red box=280,152,307,213
+
+[23:00:07.679]收←◆??? CAM2 maybe NO HONKING?    conf=486 frame=376 red box=613,377,629,390
+
+[23:00:07.772]收←◆??? CAM1 maybe NO ENTRY?      conf=784 frame=345 red box=280,153,307,212
+
+[23:00:08.203]收←◆??? CAM1 maybe NO ENTRY?      conf=213 frame=347 red box=580,245,597,256
+
+[23:00:08.328]收←◆??? CAM1 maybe NO ENTRY?      conf=179 frame=348 red box=280,153,306,212
+
+[23:00:08.387]收←◆??? CAM1 maybe NO ENTRY?      conf=528 frame=349 red box=280,153,307,213
+
+[23:00:08.728]收←◆??? CAM2 maybe NO ENTRY?      conf=590 frame=380 red box=615,379,627,388
+
+[23:00:08.759]收←◆??? CAM1 maybe other sign?    conf=1198 frame=4 red box=300,55,319,77
+
+[23:00:09.161]收←◆??? CAM2 maybe other sign?    conf=53 frame=381 red box=610,376,631,391
+
+[23:00:09.253]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=14 frame=351 blue box=580,235,592,246
+
+[23:00:09.315]收←◆??? CAM1 maybe other sign?    conf=245 frame=351 red box=594,237,603,253
+
+[23:00:09.376]收←◆??? CAM1 maybe NO ENTRY?      conf=316 frame=353 red box=280,153,306,212
+
+[23:00:09.469]收←◆??? CAM2 maybe other sign?    conf=136 frame=382 red box=580,226,591,243
+
+[23:00:09.839]收←◆??? CAM2 maybe other sign?    conf=121 frame=383 yellow box=580,229,587,240
+
+[23:00:09.901]收←◆??? CAM2 maybe other sign?    conf=881 frame=383 red box=609,375,631,390
+
+[23:00:09.932]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=384 frame=355 red box=580,235,595,245
+
+[23:00:10.148]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=500 frame=384 red box=566,224,577,235
+
+[23:00:10.178]收←◆??? CAM1 maybe NO ENTRY?      conf=541 frame=356 red box=280,153,307,212
+
+[23:00:10.363]收←◆??? CAM1 maybe NO ENTRY?      conf=251 frame=357 red box=280,158,307,213
+
+[23:00:10.426]收←◆??? CAM1 maybe NO ENTRY?      conf=491 frame=358 red box=280,153,307,212
+
+[23:00:10.611]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=77 frame=358 red box=580,245,595,256
+
+[23:00:10.703]收←◆??? CAM2 maybe NO HONKING?    conf=486 frame=385 red box=610,375,629,389
+
+[23:00:10.733]收←◆??? CAM1 maybe NO ENTRY?      conf=190 frame=359 red box=280,157,306,212
+
+[23:00:10.796]收←◆??? CAM1 maybe NO ENTRY?      conf=292 frame=359 red box=580,245,597,256
+
+[23:00:11.011]收←◆??? CAM2 maybe NO ENTRY?      conf=14 frame=386 red box=614,379,626,388
+
+[23:00:11.105]收←◆??? CAM1 maybe NO ENTRY?      conf=127 frame=361 red box=284,153,303,171
+
+[23:00:11.259]收←◆??? CAM2 maybe NO ENTRY?      conf=92 frame=387 red box=566,235,583,246
+
+[23:00:11.444]收←◆??? CAM2 maybe other sign?    conf=390 frame=387 red box=610,376,629,391
+
+[23:00:11.474]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=63 frame=362 blue box=580,235,591,246
+
+[23:00:11.730]收←◆--- t=125s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 0, unsure 37, bg 125, err 0
+??? CAM2 maybe NO ENTRY?      conf=888 frame=388 red box=615,379,629,389
+
+[23:00:11.845]收←◆??? CAM1 maybe other sign?    conf=244 frame=363 red box=594,237,603,252
+
+[23:00:11.906]收←◆??? CAM1 maybe NO ENTRY?      conf=383 frame=364 red box=280,153,307,212
+
+[23:00:12.245]收←◆??? CAM2 maybe NO ENTRY?      conf=342 frame=390 red box=610,376,625,387
+
+[23:00:12.523]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=179 frame=366 red box=580,235,593,245
+
+[23:00:12.678]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=76 frame=391 red box=566,224,583,235
+
+[23:00:12.739]收←◆??? CAM2 maybe NO ENTRY?      conf=761 frame=391 red box=614,377,625,387
+
+[23:00:12.924]收←◆??? CAM2 maybe NO ENTRY?      conf=53 frame=392 red box=618,382,631,391
+
+[23:00:13.203]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=109 frame=370 red box=580,245,595,256
+
+[23:00:13.357]收←◆??? CAM2 maybe NO HONKING?    conf=112 frame=393 red box=612,377,629,390
+
+[23:00:13.572]收←◆??? CAM1 maybe NO ENTRY?      conf=270 frame=372 red box=280,153,306,213
+
+[23:00:13.727]收←◆??? CAM2 maybe NO ENTRY?      conf=378 frame=394 red box=615,377,631,391
+
+[23:00:13.789]收←◆??? CAM2 maybe NO ENTRY?      conf=629 frame=394 red box=566,235,583,246
+
+[23:00:14.190]收←◆??? CAM1 maybe other sign?    conf=235 frame=375 red box=594,237,603,254
+
+[23:00:14.375]收←◆??? CAM1 maybe NO ENTRY?      conf=785 frame=377 red box=280,153,307,212
+
+[23:00:14.468]收←◆??? CAM2 maybe NO ENTRY?      conf=456 frame=396 red box=612,377,625,386
+
+[23:00:14.746]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=172 frame=367 red box=580,235,593,245
+
+[23:00:14.931]收←◆??? CAM1 maybe NO ENTRY?      conf=473 frame=378 red box=284,153,300,171
+
+[23:00:14.992]收←◆??? CAM1 maybe NO ENTRY?      conf=69 frame=378 red box=280,169,306,213
+
+[23:00:15.146]收←◆??? CAM2 maybe NO ENTRY?      conf=743 frame=398 red box=615,379,629,389
+
+[23:00:15.826]收←◆??? CAM2 maybe NO ENTRY?      conf=229 frame=400 red box=614,377,629,390
+
+[23:00:15.857]收←◆??? CAM1 maybe NO ENTRY?      conf=210 frame=382 red box=280,153,306,212
+
+[23:00:16.134]收←◆??? CAM2 maybe NO ENTRY?      conf=375 frame=401 red box=566,234,583,246
+
+[23:00:16.288]收←◆??? CAM1 maybe NO ENTRY?      conf=154 frame=385 red box=280,153,307,212
+
+[23:00:16.474]收←◆??? CAM1 maybe other sign?    conf=199 frame=386 red box=594,237,603,253
+
+[23:00:16.730]收←◆--- t=130s cam1 15.0fps cam2 15.0fps | last 5s: sign 0, other 0, unsure 25, bg 137, err 0
+
+[23:00:16.983]收←◆??? CAM2 maybe other sign?    conf=258 frame=404 red box=611,376,631,391
+
+[23:00:17.338]收←◆??? CAM1 maybe NO ENTRY?      conf=1015 frame=383 red box=280,154,307,214
+
+[23:00:17.399]收←◆??? CAM1 maybe KEEP RIGHT?    conf=56 frame=383 red box=580,245,593,256
+
+[23:00:17.461]收←◆??? CAM1 maybe NO ENTRY?      conf=499 frame=391 red box=284,152,304,173
+
+[23:00:17.708]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=142 frame=391 red box=580,235,595,245
+
+[23:00:17.832]收←◆??? CAM1 maybe NO ENTRY?      conf=123 frame=393 red box=280,153,306,212
+
+[23:00:18.325]收←◆??? CAM1 maybe NO ENTRY?      conf=464 frame=392 red box=280,153,306,212
+
+[23:00:18.511]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=444 frame=392 red box=580,235,593,245
+
+[23:00:18.541]收←◆??? CAM2 maybe NO ENTRY?      conf=67 frame=409 red box=566,234,583,246
+
+[23:00:18.603]收←◆??? CAM2 maybe KEEP RIGHT?    conf=63 frame=409 blue box=581,226,589,242
+
+[23:00:18.759]收←◆??? CAM1 maybe NO ENTRY?      conf=62 frame=401 blue box=580,235,595,247
+
+[23:00:18.973]收←◆??? CAM2 maybe other sign?    conf=158 frame=411 red box=274,43,311,59
+
+[23:00:19.004]收←◆??? CAM1 maybe NO ENTRY?      conf=688 frame=401 red box=598,415,615,424
+
+[23:00:19.159]收←◆??? CAM2 maybe NO HONKING?    conf=4 frame=411 red box=555,424,566,434
+
+[23:00:19.282]收←◆??? CAM2 maybe other sign?    conf=1105 frame=412 red box=240,50,261,67
+
+[23:00:19.313]收←◆??? CAM1 maybe other sign?    conf=226 frame=402 red box=348,65,367,80
+
+[23:00:19.714]收←◆??? CAM2 maybe other sign?    conf=42 frame=412 red box=596,370,637,396
+
+[23:00:19.775]收←◆??? CAM2 maybe other sign?    conf=976 frame=413 red box=240,58,261,84
+
+[23:00:20.052]收←◆??? CAM1 maybe other sign?    conf=33 frame=403 red box=602,371,639,398
+
+[23:00:20.176]收←◆??? CAM1 maybe other sign?    conf=586 frame=403 red box=348,63,368,80
+
+[23:00:20.238]收←◆??? CAM1 maybe NO ENTRY?      conf=962 frame=403 red box=596,414,617,428
+
+[23:00:20.300]收←◆>>> CAM1 SPEED LIMIT 40       conf=1724 frame=404 yellow box=216,215,439,442
+
+[23:00:20.393]收←◆>>> CAM2 SPEED LIMIT 40       conf=1431 frame=414 yellow box=106,205,333,441
+
+[23:00:20.547]收←◆??? CAM1 maybe NO ENTRY?      conf=18 frame=404 red box=363,81,389,97
+
+[23:00:20.578]收←◆??? CAM2 maybe NO HONKING?    conf=6 frame=414 red box=266,73,290,87
+
+[23:00:20.640]收←◆??? CAM2 maybe WATCH PEDESTRIANS? conf=631 frame=414 red box=566,226,583,236
+
+[23:00:20.733]收←◆??? CAM1 maybe NO ENTRY?      conf=573 frame=404 red box=611,376,631,391
+
+[23:00:20.763]收←◆??? CAM2 maybe NO ENTRY?      conf=169 frame=415 red box=394,195,427,241
+
+[23:00:20.795]收←◆??? CAM1 maybe other sign?    conf=226 frame=406 red box=410,89,431,101
+
+[23:00:20.824]收←◆>>> CAM2 SPEED LIMIT 40       conf=1752 frame=415 yellow box=126,199,349,430
+
+[23:00:20.855]收←◆>>> CAM1 SPEED LIMIT 40       conf=1567 frame=406 yellow box=238,208,457,432
+
+[23:00:20.947]收←◆??? CAM2 maybe NO ENTRY?      conf=828 frame=415 red box=68,240,124,333
+
+[23:00:21.010]收←◆??? CAM2 maybe NO ENTRY?      conf=38 frame=415 red box=306,77,324,88
+
+[23:00:21.102]收←◆??? CAM1 maybe NO ENTRY?      conf=587 frame=406 red box=611,376,626,389
+
+[23:00:21.164]收←◆??? CAM1 maybe other sign?    conf=1060 frame=406 red box=582,409,612,443
+
+[23:00:21.257]收←◆??? CAM2 maybe NO ENTRY?      conf=189 frame=416 red box=381,195,413,242
+
+[23:00:21.288]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=889 frame=407 yellow box=228,214,451,440
+
+[23:00:21.318]收←◆??? CAM2 maybe SPEED LIMIT 40? conf=866 frame=416 yellow box=114,206,343,440
+
+[23:00:21.380]收←◆??? CAM2 maybe NO ENTRY?      conf=49 frame=416 yellow box=446,216,476,250
+
+[23:00:21.442]收←◆??? CAM2 maybe NO ENTRY?      conf=803 frame=416 red box=51,256,112,344
+
+[23:00:21.503]收←◆??? CAM2 maybe NO ENTRY?      conf=130 frame=416 red box=286,78,305,89
+
+[23:00:21.596]收←◆??? CAM1 maybe NO ENTRY?      conf=409 frame=407 red box=396,89,414,101
+
+[23:00:21.719]收←◆??? CAM1 maybe NO ENTRY?      conf=121 frame=407 red box=612,376,625,388
+--- t=135s cam1 15.0fps cam2 15.0fps | last 5s: sign 4, other 0, unsure 39, bg 119, err 0 | seen SPEED LIMIT 40 x4
+
+[23:00:21.782]收←◆>>> CAM1 SPEED LIMIT 40       conf=1284 frame=408 yellow box=220,210,445,437
+
+[23:00:21.813]收←◆>>> CAM2 SPEED LIMIT 40       conf=1625 frame=417 yellow box=106,200,333,435
+
+[23:00:21.997]收←◆??? CAM2 maybe other sign?    conf=777 frame=417 red box=274,68,295,83
+
+[23:00:22.058]收←◆??? CAM2 maybe NO ENTRY?      conf=300 frame=417 red box=40,251,102,342
+
+[23:00:22.151]收←◆??? CAM1 maybe other sign?    conf=818 frame=408 red box=384,80,403,97
+
+[23:00:22.213]收←◆??? CAM1 maybe other sign?    conf=539 frame=408 red box=583,409,609,442
+
+[23:00:22.275]收←◆>>> CAM1 SPEED LIMIT 40       conf=1526 frame=409 yellow box=226,212,449,439
+
+[23:00:22.306]收←◆??? CAM2 maybe NO ENTRY?      conf=216 frame=418 red box=378,191,412,236
+
+[23:00:22.367]收←◆>>> CAM2 SPEED LIMIT 40       conf=1665 frame=418 yellow box=110,203,339,438
+
+[23:00:22.429]收←◆??? CAM2 maybe other sign?    conf=92 frame=418 red box=282,72,299,85
+
+[23:00:22.491]收←◆??? CAM2 maybe NO ENTRY?      conf=164 frame=418 yellow box=446,216,477,250
+
+[23:00:22.645]收←◆??? CAM1 maybe NO ENTRY?      conf=171 frame=409 red box=612,376,624,389
+
+[23:00:22.707]收←◆??? CAM1 maybe other sign?    conf=576 frame=409 red box=392,85,411,98
+
+[23:00:22.738]收←◆??? CAM2 maybe NO ENTRY?      conf=257 frame=419 red box=384,191,419,233
+
+[23:00:22.769]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=1214 frame=410 yellow box=230,212,455,440
+
+[23:00:22.800]收←◆>>> CAM2 SPEED LIMIT 40       conf=1574 frame=419 yellow box=115,203,343,438
+
+[23:00:22.830]收←◆??? CAM1 maybe other sign?    conf=648 frame=410 red box=398,85,418,98
+
+[23:00:22.954]收←◆??? CAM1 maybe NO ENTRY?      conf=137 frame=410 red box=580,235,595,246
+
+[23:00:22.984]收←◆??? CAM2 maybe other sign?    conf=240 frame=419 red box=287,72,306,85
+
+[23:00:23.170]收←◆??? CAM2 maybe NO ENTRY?      conf=16 frame=420 red box=390,192,423,235
+
+[23:00:23.200]收←◆??? CAM1 maybe other sign?    conf=864 frame=410 red box=582,411,611,443
+
+[23:00:23.231]收←◆>>> CAM2 SPEED LIMIT 40       conf=1259 frame=420 yellow box=118,203,347,437
+
+[23:00:23.262]收←◆??? CAM1 maybe other sign?    conf=251 frame=411 red box=404,85,424,100
+
+[23:00:23.293]收←◆??? CAM2 maybe NO ENTRY?      conf=38 frame=420 yellow box=446,217,476,250
+
+[23:00:23.324]收←◆>>> CAM1 SPEED LIMIT 40       conf=1574 frame=411 yellow box=234,211,459,438
+
+[23:00:23.478]收←◆??? CAM2 maybe other sign?    conf=795 frame=420 red box=294,73,313,88
+
+[23:00:23.664]收←◆??? CAM2 maybe NO ENTRY?      conf=411 frame=421 red box=393,191,427,235
+
+[23:00:23.695]收←◆??? CAM1 maybe NO ENTRY?      conf=383 frame=411 red box=611,377,625,389
+
+[23:00:23.725]收←◆>>> CAM2 SPEED LIMIT 40       conf=1771 frame=421 yellow box=120,198,349,433
+
+[23:00:23.757]收←◆??? CAM1 maybe NO ENTRY?      conf=74 frame=412 red box=410,83,429,95
+
+[23:00:23.787]收←◆??? CAM2 maybe other sign?    conf=449 frame=421 red box=300,71,318,82
+
+[23:00:23.818]收←◆??? CAM1 maybe SPEED LIMIT 40? conf=1160 frame=412 yellow box=235,208,459,435
