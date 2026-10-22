@@ -53,7 +53,6 @@ module Hnpu_image_service #(
     localparam integer PTR_BITS = (QUEUE_DEPTH <= 2) ? 1 : $clog2(QUEUE_DEPTH);
     localparam integer RES_PTR_BITS = (RESULT_DEPTH <= 2) ? 1 : $clog2(RESULT_DEPTH);
     localparam integer RELEASE_DEPTH = (QUEUE_DEPTH * 2) + 2;
-    localparam integer REL_PTR_BITS = (RELEASE_DEPTH <= 2) ? 1 : $clog2(RELEASE_DEPTH);
     // The descriptor describes the complete image stored by the front-end.
     // The CNN engine receives the 32x32 tensor after its 3-pixel decimator.
     localparam integer SOURCE_BYTES = 96 * 96 * 4;
@@ -95,18 +94,23 @@ module Hnpu_image_service #(
     reg [RES_PTR_BITS:0] result_count;
     reg [RES_PTR_BITS+1:0] result_reserved;
 
-    reg [7:0] release_camera_mem [0:RELEASE_DEPTH-1];
-    reg [31:0] release_frame_mem [0:RELEASE_DEPTH-1];
-    reg [1:0] release_block_mem [0:RELEASE_DEPTH-1];
-    reg [3:0] release_position_mem [0:RELEASE_DEPTH-1];
-    reg [31:0] release_generation_mem [0:RELEASE_DEPTH-1];
-    reg [REL_PTR_BITS-1:0] release_rd_ptr, release_wr_ptr;
-    reg [REL_PTR_BITS:0] release_count;
+    // 释放队列：每条 lane 内部 release_ready 恒为 rst_n（lane 无条件接收），
+    // 所以深度 RELEASE_DEPTH 的环形队列任何时刻最多只驻留 1 条记录——写进去的
+    // 下一拍就被取走。这里按该不变式把它等价收敛成一级 skid 寄存器：
+    //   * 仍保证"每拍可交付 1 条"，且可在同一拍写入下一条（不丢）；
+    //   * 释放载荷从此由触发器驱动，工具可以对它做寄存器复制；
+    //   * 去掉了原来"LUTRAM 读 -> 300+ 扇出 mux"这条组合头，
+    //     它无法被复制，曾是 125MHz 下 −9.0ns 违例的起点。
+    reg        rel_v;
+    reg [7:0]  rel_camera;
+    reg [1:0]  rel_block;
+    reg [3:0]  rel_position;
+    reg [31:0] rel_frame;
+    reg [31:0] rel_generation;
 
     wire result_pop = result_valid && result_ready;
-    wire release_head_lane = (release_camera_mem[release_rd_ptr] == 8'd2);
-    wire release_head_pop = (release_count != 0) &&
-                            release_ready[release_head_lane];
+    wire release_head_lane = (rel_camera == 8'd2);
+    wire release_head_pop = rel_v && release_ready[release_head_lane];
     wire [63:0] ddr_end = {32'b0, DDR_BASE} + {32'b0, DDR_BYTES};
     wire [31:0] image_addr0 = image_data_addr[31:0];
     wire [31:0] image_addr1 = image_data_addr[63:32];
@@ -125,7 +129,8 @@ module Hnpu_image_service #(
                          (image_addr1[4:0] == 0) &&
                          (image_addr1 >= DDR_BASE) && (image_end1 <= ddr_end);
     wire result_capacity = (result_count + result_reserved < RESULT_DEPTH);
-    wire release_capacity = (release_count + q_count[0] + q_count[1] + active < RELEASE_DEPTH);
+    wire release_capacity = ({5'b0, rel_v} + {1'b0, q_count[0]} + {1'b0, q_count[1]} +
+                             {4'b0, active} < RELEASE_DEPTH);
     wire input_cap0 = image_valid[0] && (q_count[0] < QUEUE_DEPTH) &&
                       image_format0 && result_capacity && release_capacity;
     wire input_cap1 = image_valid[1] && (q_count[1] < QUEUE_DEPTH) &&
@@ -157,28 +162,23 @@ module Hnpu_image_service #(
         result_roi, 1'b0, result_frame, result_camera
     };
 
-    assign release_valid = (release_count == 0) ? 2'b00 :
+    assign release_valid = !rel_v ? 2'b00 :
                            (release_head_lane ? 2'b10 : 2'b01);
-    assign release_camera = release_count == 0 ? 16'b0 :
+    assign release_camera = !rel_v ? 16'b0 :
                             (release_head_lane ?
-                             {release_camera_mem[release_rd_ptr], 8'b0} :
-                             {8'b0, release_camera_mem[release_rd_ptr]});
-    assign release_frame = release_count == 0 ? 64'b0 :
+                             {rel_camera, 8'b0} : {8'b0, rel_camera});
+    assign release_frame = !rel_v ? 64'b0 :
                            (release_head_lane ?
-                            {release_frame_mem[release_rd_ptr], 32'b0} :
-                            {32'b0, release_frame_mem[release_rd_ptr]});
-    assign release_block = release_count == 0 ? 4'b0 :
+                            {rel_frame, 32'b0} : {32'b0, rel_frame});
+    assign release_block = !rel_v ? 4'b0 :
                            (release_head_lane ?
-                            {release_block_mem[release_rd_ptr], 2'b0} :
-                            {2'b0, release_block_mem[release_rd_ptr]});
-    assign release_position = release_count == 0 ? 8'b0 :
+                            {rel_block, 2'b0} : {2'b0, rel_block});
+    assign release_position = !rel_v ? 8'b0 :
                               (release_head_lane ?
-                               {release_position_mem[release_rd_ptr], 4'b0} :
-                               {4'b0, release_position_mem[release_rd_ptr]});
-    assign release_generation = release_count == 0 ? 64'b0 :
+                               {rel_position, 4'b0} : {4'b0, rel_position});
+    assign release_generation = !rel_v ? 64'b0 :
                                 (release_head_lane ?
-                                 {release_generation_mem[release_rd_ptr], 32'b0} :
-                                 {32'b0, release_generation_mem[release_rd_ptr]});
+                                 {rel_generation, 32'b0} : {32'b0, rel_generation});
     assign busy = active || engine_busy || (q_count[0] != 0) || (q_count[1] != 0);
 
     wire engine_start = enable && !stop && active && !engine_issued;
@@ -212,7 +212,8 @@ module Hnpu_image_service #(
     integer i, j;
     integer q_index;
     integer q_count_next0, q_count_next1;
-    integer result_count_next, reserve_next, release_count_next;
+    integer result_count_next, reserve_next;
+    reg rel_v_next;
     reg accept_image, enqueue_result, choose_queue;
     always @(posedge clk or negedge rst_n) begin
         if (!rst_n) begin
@@ -225,7 +226,8 @@ module Hnpu_image_service #(
             active_generation <= 0;
             result_rd_ptr <= 0; result_wr_ptr <= 0; result_count <= 0;
             result_reserved <= 0;
-            release_rd_ptr <= 0; release_wr_ptr <= 0; release_count <= 0;
+            rel_v <= 0; rel_camera <= 0; rel_block <= 0; rel_position <= 0;
+            rel_frame <= 0; rel_generation <= 0;
             error <= 0; error_code <= 0; accepted_images <= 0;
             completed_images <= 0; error_images <= 0; fifo_overflows <= 0;
         end else begin
@@ -234,7 +236,7 @@ module Hnpu_image_service #(
             q_count_next1 = q_count[1];
             result_count_next = result_count;
             reserve_next = result_reserved;
-            release_count_next = release_count;
+            rel_v_next = rel_v;
             accept_image = image_accept;
             enqueue_result = engine_done && active;
             choose_queue = take_queue;
@@ -243,10 +245,8 @@ module Hnpu_image_service #(
                 result_rd_ptr <= (result_rd_ptr == RESULT_DEPTH-1) ? 0 : result_rd_ptr + 1'b1;
                 result_count_next = result_count_next - 1;
             end
-            if (release_head_pop) begin
-                release_rd_ptr <= (release_rd_ptr == RELEASE_DEPTH-1) ? 0 : release_rd_ptr + 1'b1;
-                release_count_next = release_count_next - 1;
-            end
+            // lane 拿走当前这条后，skid 立即腾空；同一拍若能装入下一条就不会丢。
+            if (release_head_pop) rel_v_next = 1'b0;
 
             if (accept_image) begin
                 q_index = q_tail[accept_cam];
@@ -312,14 +312,14 @@ module Hnpu_image_service #(
                     fifo_overflows <= fifo_overflows + 1'b1;
                     error <= 1'b1; error_code <= 8'h06;
                 end
-                if (release_count_next < RELEASE_DEPTH) begin
-                    release_camera_mem[release_wr_ptr] <= active_camera;
-                    release_frame_mem[release_wr_ptr] <= active_frame;
-                    release_block_mem[release_wr_ptr] <= active_block;
-                    release_position_mem[release_wr_ptr] <= active_position;
-                    release_generation_mem[release_wr_ptr] <= active_generation;
-                    release_wr_ptr <= (release_wr_ptr == RELEASE_DEPTH-1) ? 0 : release_wr_ptr + 1'b1;
-                    release_count_next = release_count_next + 1;
+                // skid 有空间（空，或本拍正被取走）就装下这条释放消息。
+                if (!rel_v_next) begin
+                    rel_v_next = 1'b1;
+                    rel_camera <= active_camera;
+                    rel_frame <= active_frame;
+                    rel_block <= active_block;
+                    rel_position <= active_position;
+                    rel_generation <= active_generation;
                 end else begin
                     error <= 1'b1; error_code <= 8'h07;
                 end
@@ -330,7 +330,7 @@ module Hnpu_image_service #(
             result_count <= result_count_next;
             q_count[0] <= q_count_next0;
             q_count[1] <= q_count_next1;
-            release_count <= release_count_next;
+            rel_v <= rel_v_next;
         end
     end
 endmodule

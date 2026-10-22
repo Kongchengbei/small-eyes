@@ -136,6 +136,14 @@ module Hnpu_cnn_engine #(
     // flush states retire the final product after the last issue cycle.
     localparam [5:0] ST_CONV_MAC_FLUSH = 6'd31;
     localparam [5:0] ST_FC_MAC_FLUSH = 6'd32;
+    // Layer dispatch is split over three cycles so that no cycle contains a
+    // multiplier chain followed by the 30-term descriptor predicate:
+    //   ST_LAYER_FETCH : latch descriptor fields + first-level products
+    //   ST_DISPATCH    : second-level products -> layer_* constants
+    //   ST_CHECK       : predicates -> error/state only
+    // Costs one clock per layer (144 clocks on the 144-layer road model,
+    // 0.0038% of an inference) and adds no logic.
+    localparam [5:0] ST_CHECK = 6'd33;
 
     reg [5:0] state;
     reg signed [7:0] model_mem [0:MAX_MODEL_BYTES-1];
@@ -208,13 +216,152 @@ module Hnpu_cnn_engine #(
     reg [7:0] layer_shift;
     reg signed [7:0] layer_input_zp, layer_weight_zp, layer_output_zp;
 
-    integer out_x, out_y, out_c;
-    integer kernel_index;
-    integer pool_index;
-    integer tensor_index;
+    // ---- Per-layer constants and per-pixel address bases --------------------
+    // Before this change the tensor address cone recomputed, on every single
+    // MAC issue, all of: out_y*layer_sh, out_x*layer_sw, y*layer_in_w,
+    // layer_in_h*layer_in_w, ic*layer_in_w*layer_in_h and
+    // layer_kh*layer_kw*layer_in_c.  mul_u16_no_dsp expands to a four-level
+    // shift/add tree, so the cone reached 24 logic levels (Logic 5.789 /
+    // Route 8.724 ns) against an 8 ns clock, i.e. PDS reported
+    // tensor_a_1/ADB0[14] at -6.734 ns.
+    //
+    // Every quantity below changes only at a layer boundary, at an output
+    // pixel boundary, or (for the kernel offsets) at a kernel step, so it can
+    // live in a register.  What is left in the cone is two 16-bit adds for the
+    // bounds test and two 16-bit adds for the address, with no multiplier.
+    // The kernel loop still issues one MAC per clock: nothing here adds a
+    // pipeline stage, it only moves work out of the combinational path.
+    reg [15:0] layer_in_c_m1;
+    reg [7:0]  layer_kw_m1;           // layer_kw - 1
+    reg [15:0] layer_out_w_m1, layer_out_h_m1, layer_out_c_m1;
+    reg [15:0] layer_hw;              // layer_in_h * layer_in_w
+    reg [15:0] layer_kh_kw_m1;        // layer_kh * layer_kw - 1
+    reg [31:0] layer_kernel_size_m1;  // layer_kh * layer_kw * layer_in_c - 1
+    reg [31:0] layer_kernel_size;     // layer_kh * layer_kw * layer_in_c
+    reg [31:0] layer_elements;        // layer_in_h * layer_in_w * layer_in_c
+    // Descriptor-bound products that are only read by ST_CHECK.  Holding them
+    // in registers keeps the comparator tree off the multiplier output.
+    reg [31:0] layer_out_elements;    // layer_out_h * layer_out_w * layer_out_c
+    reg [31:0] layer_conv_weight_req; // layer_kernel_size * layer_out_c
+    reg [31:0] layer_fc_weight_req;   // layer_out_c * layer_in_c
+    reg [15:0] layer_out_hw;          // layer_out_h * layer_out_w
+    // Address-space scaling: 1 for CHW, layer_in_c for HWC4, because
+    //   CHW  addr = ic*H*W + y*W + x
+    //   HWC4 addr = (y*W + x)*C + ic
+    reg [15:0] layer_ic_stride;       // H*W (CHW) or 1 (HWC4)
+    reg [15:0] layer_kern_step;       // kx step,  = layer_c_scale
+    reg [15:0] layer_kern_wrap;       // kx wrap,  = (W - (kw-1)) * c_scale
+    reg [15:0] layer_pix_step_x;      // = layer_sw * c_scale
+    reg [15:0] layer_row_step;        // = W * c_scale * layer_sh
+    reg [15:0] layer_row_step_padl;   // = layer_row_step - pad_left*c_scale
+    reg [15:0] layer_row_a0;          // = -pad_top * W * c_scale
+    reg [15:0] layer_row0_a;          // = (-pad_top*W - pad_left) * c_scale
+    reg [15:0] layer_neg_pad_top;     // = -layer_pad_top
+    reg [15:0] layer_neg_pad_left;    // = -layer_pad_left
+    // Per output pixel: window origin in pixel space and in address space.
+    reg [15:0] pix_base_y;            // out_y*sh - pad_top
+    reg [15:0] pix_base_x;            // out_x*sw - pad_left
+    reg [15:0] pix_row_a;             // (out_y*sh - pad_top) * W * c_scale
+    reg [15:0] pix_origin_a;          // pix_row_a + (out_x*sw - pad_left)*c_scale
+    // Kernel offsets within the current output pixel.
+    reg [15:0] conv_kern_off;         // (ky*W + kx) * c_scale
+    reg [15:0] conv_ic_off;           // conv_ic_reg * ic_stride
+    reg [15:0] pool_kern_off;         // (pool_ky*W + pool_kx) * c_scale
+    reg [15:0] pool_ic_off;           // out_c * ic_stride
+    // The tensor BRAM latches its address one cycle before the data is
+    // consumed, so the in-bounds decision made for the *addressed* element is
+    // exactly the validity of the element read on the next cycle.  Holding it
+    // removes a duplicate bounds cone from the mac_product path.
+    reg tensor_valid_q;
+
+    // ---- Three-stage layer dispatch ----------------------------------------
+    // ST_DISPATCH used to evaluate sixteen 16x16 / 32x16 multiplier trees and
+    // the thirty-term descriptor predicate in the same cycle, so that
+    // predicate drove the clock enable of 143 data registers
+    // (N7446, fanout 143).  PDS reported layer_in_h[3] -> gap_position[16]
+    // at -5.963 ns with Logic 4.905 / Route 8.522 ns over 22 logic levels.
+    //
+    // The work is now spread so that no cycle holds a multiplier chain
+    // followed by the comparator tree:
+    //   ST_LAYER_FETCH : ds_* straight from descriptor_bits, first-level
+    //                    products latched into d1_*
+    //   ST_DISPATCH    : second-level products latched into layer_*
+    //   ST_CHECK       : comparisons only; the result drives state/error
+    //
+    // Every reassociation below is unsigned mod-2^16 / mod-2^32 arithmetic,
+    // where multiplication is associative and commutative, so each value is
+    // bit-identical to the previous single-cycle expression.
+    wire [15:0] disp_c_scale = (model_layout_reg == LAYOUT_HWC4) ?
+                               layer_in_c : 16'd1;
+    wire [15:0] ds_h  = desc_u16(2);
+    wire [15:0] ds_w  = desc_u16(4);
+    wire [15:0] ds_c  = desc_u16(6);
+    wire [15:0] ds_oh = desc_u16(8);
+    wire [15:0] ds_ow = desc_u16(10);
+    wire [15:0] ds_oc = desc_u16(12);
+    wire [7:0]  ds_kh = descriptor_bits[14*8 +: 8];
+    wire [7:0]  ds_kw = descriptor_bits[15*8 +: 8];
+    wire [7:0]  ds_sh = descriptor_bits[16*8 +: 8];
+    wire [7:0]  ds_sw = descriptor_bits[17*8 +: 8];
+    wire [7:0]  ds_pt = descriptor_bits[18*8 +: 8];
+    wire [7:0]  ds_pl = descriptor_bits[19*8 +: 8];
+    wire [15:0] ds_cs = (model_layout_reg == LAYOUT_HWC4) ? ds_c : 16'd1;
+
+    // First-level products.  Eight-bit operands use the eight-bit shift/add
+    // tree (three levels) instead of the sixteen-bit tree (five levels): the
+    // descriptor declares kh/kw/sh/sw/pad_* as single bytes.
+    wire [31:0] ds_p_hw   = mul_u16_no_dsp(ds_h, ds_w);    // exact, < 2^32
+    wire [31:0] ds_p_ohw  = mul_u16_no_dsp(ds_oh, ds_ow);  // exact
+    wire [23:0] ds_p_khkw24 = mul_u16_u8_no_dsp({8'b0, ds_kh}, ds_kw);
+    wire [15:0] ds_p_khkw = ds_p_khkw24[15:0];
+    wire [31:0] ds_p_wc32 = mul_u16_no_dsp(ds_w, ds_cs);
+    wire [15:0] ds_p_wc   = ds_p_wc32[15:0];
+    wire [23:0] ds_p_ptw24 = mul_u16_u8_no_dsp(ds_w, ds_pt);
+    wire [15:0] ds_p_ptw  = ds_p_ptw24[15:0];
+    wire [23:0] ds_p_plc24 = mul_u16_u8_no_dsp(ds_cs, ds_pl);
+    wire [15:0] ds_p_plc  = ds_p_plc24[15:0];
+    wire [15:0] ds_p_kw1  = (ds_w - {8'b0, ds_kw}) + 16'd1;
+
+    reg [31:0] d1_hw;                 // in_h * in_w   (exact)
+    reg [31:0] d1_ohw;                // out_h * out_w (exact)
+    reg [15:0] d1_khkw;               // kh * kw
+    reg [15:0] d1_wc;                 // in_w * c_scale
+    reg [15:0] d1_ptw;                // pad_top * in_w
+    reg [15:0] d1_plc;                // pad_left * c_scale
+    reg [15:0] d1_kw1;                // in_w - kw + 1
+
+    // Second-level products.  These are registered by ST_DISPATCH, so the
+    // whole multiplier tree ends at a flip-flop instead of at a clock enable.
+    wire [31:0] disp_elements = mul_u32_u16_no_dsp(d1_hw, layer_in_c);
+    wire [31:0] disp_out_elements =
+        mul_u32_u16_no_dsp(d1_ohw, layer_out_c);
+    wire [31:0] disp_kernel_size =
+        mul_u32_u16_no_dsp({16'b0, d1_khkw}, layer_in_c);
+    wire [31:0] disp_conv_weight_req =
+        mul_u32_u16_no_dsp(disp_kernel_size, layer_out_c);
+    wire [31:0] disp_fc_weight_req = mul_u16_no_dsp(layer_out_c, layer_in_c);
+    wire [23:0] disp_row_step24 = mul_u16_u8_no_dsp(d1_wc, layer_sh);
+    wire [15:0] disp_row_step   = disp_row_step24[15:0];
+    wire [31:0] disp_kern_wrap32 = mul_u16_no_dsp(d1_kw1, disp_c_scale);
+    wire [15:0] disp_kern_wrap   = disp_kern_wrap32[15:0];
+    wire [23:0] disp_pix_step24 = mul_u16_u8_no_dsp(disp_c_scale, layer_sw);
+    wire [15:0] disp_pix_step_x = disp_pix_step24[15:0];
+    wire [23:0] disp_row0_a24 = mul_u16_u8_no_dsp(d1_wc, layer_pad_top);
+    wire [15:0] disp_row0_a   = disp_row0_a24[15:0];
+    wire [31:0] disp_out_hw32 = mul_u16_no_dsp(layer_out_h, layer_out_w);
+    wire [15:0] disp_out_hw   = disp_out_hw32[15:0];
+
+    // Loop counters.  Every one of them is bounded by a 16-bit descriptor
+    // dimension, so 32-bit integers only added carry chains and clock-enable
+    // fanout: gap_position[16..31] were the reported end points of the
+    // -5.963 ns path even though bits above 16 can never be set.
+    reg [15:0] out_x, out_y, out_c;
+    reg [16:0] kernel_index;          // kernel_size <= MAX_MODEL_BYTES
+    reg [15:0] pool_index;
+    reg [15:0] tensor_index;
     integer tensor_read_index;
-    integer fc_index, fc_output;
-    integer arg_index;
+    reg [15:0] fc_index, fc_output;
+    reg [15:0] arg_index;
     // These counters walk the kernel/window coordinates directly.  Keeping
     // them registered avoids synthesizing variable divide/modulo operators
     // in the tensor BRAM address path.
@@ -236,16 +383,8 @@ module Hnpu_cnn_engine #(
     reg signed [31:0] best_score, second_score;
     reg [7:0] best_class;
 
-    integer conv_kernel_size;
-    integer gap_channel, gap_position;
+    reg [15:0] gap_channel, gap_position;
     integer fc_input_index, fc_weight_index;
-    integer layer_input_elements_int;
-    integer layer_output_elements_int;
-    integer conv_weight_required_int;
-    integer conv_bias_required_int;
-    integer fc_weight_required_int;
-    integer fc_bias_required_int;
-    integer scratch_required_int;
     integer source_offset;
     reg [6:0] downsample_source_x;
     reg [1:0] downsample_channel;
@@ -590,14 +729,11 @@ module Hnpu_cnn_engine #(
                         mul_u32_u16_no_dsp(fc_output[15:0], layer_in_c);
                 else
                     model_read_addr = layer_weight_offset +
-                        mul_u32_u16_no_dsp(out_c[15:0],
-                            mul_u32_u16_no_dsp(layer_kh,
-                                mul_u16_no_dsp(layer_kw, layer_in_c)));
+                        mul_u32_u16_no_dsp(out_c[15:0], layer_kernel_size);
             end
             ST_CONV_MAC: model_read_addr = layer_weight_offset +
-                mul_u32_u16_no_dsp(out_c[15:0],
-                    mul_u32_u16_no_dsp(layer_kh,
-                        mul_u16_no_dsp(layer_kw, layer_in_c))) + kernel_index + 1;
+                mul_u32_u16_no_dsp(out_c[15:0], layer_kernel_size) +
+                kernel_index + 1;
             ST_FC_MAC: model_read_addr = layer_weight_offset +
                 mul_u32_u16_no_dsp(fc_output[15:0], layer_in_c) + fc_index + 1;
             default: model_read_addr = 0;
@@ -612,11 +748,9 @@ module Hnpu_cnn_engine #(
     // asynchronous tensor_read() calls made PDS replicate the banks into
     // thousands of LUT RAMs and prevented placement.
     integer tensor_addr_index;
-    integer tensor_addr_ky, tensor_addr_kx, tensor_addr_ic;
-    integer tensor_addr_y, tensor_addr_x;
-    integer tensor_current_y, tensor_current_x;
-    integer tensor_addr_plane;
-    integer tensor_addr_pixel;
+    reg [15:0] tensor_addr_ky, tensor_addr_kx, tensor_addr_ic;
+    reg [15:0] tensor_addr_y, tensor_addr_x;
+    reg [15:0] tensor_addr_kern_off, tensor_addr_ic_off;
     always @* begin
         tensor_read_addr = 0;
         tensor_addr_index = 0;
@@ -625,10 +759,8 @@ module Hnpu_cnn_engine #(
         tensor_addr_ic = 0;
         tensor_addr_y = 0;
         tensor_addr_x = 0;
-        tensor_current_y = 0;
-        tensor_current_x = 0;
-        tensor_addr_plane = 0;
-        tensor_addr_pixel = 0;
+        tensor_addr_kern_off = 0;
+        tensor_addr_ic_off = 0;
         case (state)
             ST_WEIGHT_PRIME, ST_CONV_MAC: begin
                 if (layer_op == OP_FC) begin
@@ -637,99 +769,97 @@ module Hnpu_cnn_engine #(
                     tensor_addr_ky = conv_ky_reg;
                     tensor_addr_kx = conv_kx_reg;
                     tensor_addr_ic = conv_ic_reg;
-                    tensor_current_y = mul_u32_u16_no_dsp(out_y[15:0], layer_sh) +
-                                       conv_ky_reg - layer_pad_top;
-                    tensor_current_x = mul_u32_u16_no_dsp(out_x[15:0], layer_sw) +
-                                       conv_kx_reg - layer_pad_left;
+                    tensor_addr_kern_off = conv_kern_off;
+                    tensor_addr_ic_off = conv_ic_off;
                     // The synchronous tensor BRAM returns the address
                     // presented in the preceding cycle.  During MAC, point
                     // it at the next kernel element while the FSM consumes
-                    // the current one.
+                    // the current one.  Only precomputed strides are added
+                    // here; the two products that used to be on this path
+                    // (y*W and ic*H*W) are now registered offsets.
                     if (state == ST_CONV_MAC &&
-                        !(conv_ic_reg == layer_in_c - 1 &&
-                          conv_kx_reg == layer_kw - 1 &&
-                          conv_ky_reg == layer_kh - 1)) begin
-                        if (conv_ic_reg == layer_in_c - 1) begin
+                        kernel_index != layer_kernel_size_m1) begin
+                        if (conv_ic_reg == layer_in_c_m1) begin
                             tensor_addr_ic = 0;
-                            if (conv_kx_reg == layer_kw - 1) begin
+                            tensor_addr_ic_off = 0;
+                            if (conv_kx_reg == layer_kw_m1) begin
                                 tensor_addr_kx = 0;
-                                tensor_addr_ky = conv_ky_reg + 1;
+                                tensor_addr_ky = conv_ky_reg + 16'd1;
+                                tensor_addr_kern_off = conv_kern_off +
+                                                       layer_kern_wrap;
                             end else begin
-                                tensor_addr_kx = conv_kx_reg + 1;
+                                tensor_addr_kx = conv_kx_reg + 16'd1;
+                                tensor_addr_kern_off = conv_kern_off +
+                                                       layer_kern_step;
                             end
                         end else begin
-                            tensor_addr_ic = conv_ic_reg + 1;
+                            tensor_addr_ic = conv_ic_reg + 16'd1;
+                            tensor_addr_ic_off = conv_ic_off + layer_ic_stride;
                         end
                     end
-                    tensor_addr_y = mul_u32_u16_no_dsp(out_y[15:0], layer_sh) +
-                                    tensor_addr_ky - layer_pad_top;
-                    tensor_addr_x = mul_u32_u16_no_dsp(out_x[15:0], layer_sw) +
-                                    tensor_addr_kx - layer_pad_left;
-                    if (tensor_addr_y >= 0 && tensor_addr_y < layer_in_h &&
-                        tensor_addr_x >= 0 && tensor_addr_x < layer_in_w) begin
-                        tensor_addr_pixel = mul_u16_no_dsp(tensor_addr_y[15:0], layer_in_w) +
-                                            tensor_addr_x;
-                        tensor_addr_plane = mul_u16_no_dsp(layer_in_h, layer_in_w);
-                        if (model_layout_reg == LAYOUT_HWC4)
-                        tensor_read_addr = mul_u32_u16_no_dsp(tensor_addr_pixel,
-                                                              layer_in_c) + tensor_addr_ic;
-                        else
-                            tensor_read_addr = mul_u16_no_dsp(tensor_addr_ic[15:0],
-                                                              tensor_addr_plane[15:0]) +
-                                               tensor_addr_pixel;
-                    end
+                    tensor_addr_y = pix_base_y + tensor_addr_ky;
+                    tensor_addr_x = pix_base_x + tensor_addr_kx;
+                    // Zero padding: a tap outside the input tensor reads
+                    // address 0 and its product is forced to zero.
+                    if (!tensor_addr_y[15] && tensor_addr_y < layer_in_h &&
+                        !tensor_addr_x[15] && tensor_addr_x < layer_in_w)
+                        tensor_read_addr = pix_origin_a + tensor_addr_kern_off +
+                                           tensor_addr_ic_off;
                 end
             end
             ST_FC_MAC: tensor_read_addr = fc_index + 1;
             ST_RELU_PRIME: tensor_read_addr = tensor_index;
             ST_RELU: tensor_read_addr = tensor_index + 1;
             ST_POOL_PRIME, ST_POOL: begin
-                tensor_current_y = mul_u32_u16_no_dsp(out_y[15:0], layer_sh) +
-                                   pool_ky_reg - layer_pad_top;
-                tensor_current_x = mul_u32_u16_no_dsp(out_x[15:0], layer_sw) +
-                                   pool_kx_reg - layer_pad_left;
                 tensor_addr_ky = pool_ky_reg;
                 tensor_addr_kx = pool_kx_reg;
-                if (state == ST_POOL && pool_index !=
-                    mul_u16_no_dsp(layer_kh, layer_kw) - 1) begin
-                    if (pool_kx_reg == layer_kw - 1) begin
+                tensor_addr_kern_off = pool_kern_off;
+                tensor_addr_ic_off = pool_ic_off;
+                if (state == ST_POOL && pool_index != layer_kh_kw_m1) begin
+                    if (pool_kx_reg == layer_kw_m1) begin
                         tensor_addr_kx = 0;
-                        tensor_addr_ky = pool_ky_reg + 1;
+                        tensor_addr_ky = pool_ky_reg + 16'd1;
+                        tensor_addr_kern_off = pool_kern_off + layer_kern_wrap;
                     end else begin
-                        tensor_addr_kx = pool_kx_reg + 1;
+                        tensor_addr_kx = pool_kx_reg + 16'd1;
+                        tensor_addr_kern_off = pool_kern_off + layer_kern_step;
                     end
                 end
-                tensor_addr_y = mul_u32_u16_no_dsp(out_y[15:0], layer_sh) +
-                                tensor_addr_ky - layer_pad_top;
-                tensor_addr_x = mul_u32_u16_no_dsp(out_x[15:0], layer_sw) +
-                                tensor_addr_kx - layer_pad_left;
-                if (tensor_addr_y >= 0 && tensor_addr_y < layer_in_h &&
-                    tensor_addr_x >= 0 && tensor_addr_x < layer_in_w) begin
-                    tensor_addr_pixel = mul_u16_no_dsp(tensor_addr_y[15:0], layer_in_w) +
-                                        tensor_addr_x;
-                    tensor_addr_plane = mul_u16_no_dsp(layer_in_h, layer_in_w);
-                    if (model_layout_reg == LAYOUT_HWC4)
-                        tensor_read_addr = mul_u32_u16_no_dsp(tensor_addr_pixel,
-                                                          layer_in_c) + out_c;
-                    else
-                        tensor_read_addr = mul_u16_no_dsp(out_c[15:0],
-                                                          tensor_addr_plane[15:0]) +
-                                           tensor_addr_pixel;
-                end
+                tensor_addr_y = pix_base_y + tensor_addr_ky;
+                tensor_addr_x = pix_base_x + tensor_addr_kx;
+                if (!tensor_addr_y[15] && tensor_addr_y < layer_in_h &&
+                    !tensor_addr_x[15] && tensor_addr_x < layer_in_w)
+                    tensor_read_addr = pix_origin_a + tensor_addr_kern_off +
+                                       tensor_addr_ic_off;
             end
             ST_GAP_PRIME, ST_GAP: begin
                 tensor_addr_index = (state == ST_GAP_PRIME) ? gap_position : gap_position + 1;
                 if (model_layout_reg == LAYOUT_HWC4)
-                    tensor_read_addr = mul_u16_no_dsp(tensor_addr_index[15:0], layer_in_c) +
-                                       gap_channel;
+                    tensor_read_addr = mul_u16_no_dsp(tensor_addr_index[15:0],
+                                                      layer_in_c) + gap_channel;
                 else
-                    tensor_read_addr = mul_u32_u16_no_dsp(gap_channel[15:0],
-                        mul_u16_no_dsp(layer_in_h, layer_in_w)) + tensor_addr_index;
+                    tensor_read_addr = mul_u16_no_dsp(gap_channel[15:0],
+                                                      layer_hw) + tensor_addr_index;
             end
             ST_ARGMAX_PRIME: tensor_read_addr = arg_index;
             ST_ARGMAX: tensor_read_addr = arg_index + 1;
             default: tensor_read_addr = 0;
         endcase
+    end
+
+    // The bounds decision above belongs to the element whose data appears on
+    // the next cycle, which is exactly the element the MAC/pool stage consumes.
+    // Registering it removes a second copy of the bounds cone from the
+    // mac_product zeroing path.
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n)
+            tensor_valid_q <= 1'b0;
+        else if (state == ST_WEIGHT_PRIME || state == ST_CONV_MAC ||
+                 state == ST_POOL_PRIME || state == ST_POOL)
+            tensor_valid_q <= (!tensor_addr_y[15] &&
+                               tensor_addr_y < layer_in_h &&
+                               !tensor_addr_x[15] &&
+                               tensor_addr_x < layer_in_w);
     end
 
     always @(posedge clk) begin
@@ -813,6 +943,26 @@ module Hnpu_cnn_engine #(
             tensor_index <= 0; fc_index <= 0; fc_output <= 0;
             conv_ky_reg <= 0; conv_kx_reg <= 0; conv_ic_reg <= 0;
             pool_ky_reg <= 0; pool_kx_reg <= 0;
+            layer_in_c_m1 <= 0; layer_kw_m1 <= 0;
+            layer_out_w_m1 <= 0; layer_out_h_m1 <= 0; layer_out_c_m1 <= 0;
+            layer_hw <= 0; layer_kh_kw_m1 <= 0;
+            layer_kernel_size_m1 <= 0; layer_kernel_size <= 0;
+            layer_elements <= 0;
+            layer_out_elements <= 0; layer_conv_weight_req <= 0;
+            layer_fc_weight_req <= 0; layer_out_hw <= 0;
+            d1_hw <= 0; d1_ohw <= 0; d1_khkw <= 0;
+            d1_wc <= 0; d1_ptw <= 0; d1_plc <= 0; d1_kw1 <= 0;
+            layer_ic_stride <= 0;
+            layer_kern_step <= 1; layer_kern_wrap <= 0;
+            layer_pix_step_x <= 0; layer_row_step <= 0;
+            layer_row_step_padl <= 0; layer_row0_a <= 0;
+            layer_row_a0 <= 0;
+            layer_neg_pad_top <= 0; layer_neg_pad_left <= 0;
+            pix_base_y <= 0; pix_base_x <= 0;
+            pix_row_a <= 0; pix_origin_a <= 0;
+            conv_kern_off <= 0; conv_ic_off <= 0;
+            pool_kern_off <= 0; pool_ic_off <= 0;
+            // tensor_valid_q is reset in its own always block below.
             arg_index <= 0;
             accumulator <= 0; pool_value <= 0; gap_accumulator <= 0;
             mac_product <= 0; mac_product_valid <= 1'b0;
@@ -1197,40 +1347,70 @@ module Hnpu_cnn_engine #(
                         layer_input_zp <= descriptor_bits[53*8 +: 8];
                         layer_weight_zp <= descriptor_bits[54*8 +: 8];
                         layer_output_zp <= descriptor_bits[55*8 +: 8];
+                        // Stage 1 of dispatch: the descriptor is already
+                        // resident in descriptor_bits, so the first-level
+                        // products cost one multiplier tree here and are
+                        // consumed in ST_DISPATCH.
+                        d1_hw   <= ds_p_hw;
+                        d1_ohw  <= ds_p_ohw;
+                        d1_khkw <= ds_p_khkw;
+                        d1_wc   <= ds_p_wc;
+                        d1_ptw  <= ds_p_ptw;
+                        d1_plc  <= ds_p_plc;
+                        d1_kw1  <= ds_p_kw1;
                         state <= ST_DISPATCH;
                     end
                 end
 
                 ST_DISPATCH: begin
-                    // Widen shape/parameter arithmetic before comparison.  A
-                    // descriptor field is 16/8 bits, so multiplying the raw
-                    // fields can otherwise wrap before MAX_TENSOR_BYTES is
-                    // consulted for a malformed package.
-                    layer_input_elements_int = layer_in_h;
-                    layer_input_elements_int = mul_u32_u16_no_dsp(
-                        layer_input_elements_int, layer_in_w);
-                    layer_input_elements_int = mul_u32_u16_no_dsp(
-                        layer_input_elements_int, layer_in_c);
-                    layer_output_elements_int = layer_out_h;
-                    layer_output_elements_int = mul_u32_u16_no_dsp(
-                        layer_output_elements_int, layer_out_w);
-                    layer_output_elements_int = mul_u32_u16_no_dsp(
-                        layer_output_elements_int, layer_out_c);
-                    conv_weight_required_int = layer_out_c;
-                    conv_weight_required_int = mul_u32_u16_no_dsp(
-                        conv_weight_required_int, layer_kh);
-                    conv_weight_required_int = mul_u32_u16_no_dsp(
-                        conv_weight_required_int, layer_kw);
-                    conv_weight_required_int = mul_u32_u16_no_dsp(
-                        conv_weight_required_int, layer_in_c);
-                    conv_bias_required_int = layer_out_c << 2;
-                    fc_weight_required_int = mul_u32_u16_no_dsp(
-                        layer_out_c, layer_in_c);
-                    fc_bias_required_int = layer_out_c << 2;
-                    // scratch_bytes describes the two intermediate tensor
-                    // banks.  The initial input has its own input_bytes
-                    // contract and must not be counted a second time here.
-                    scratch_required_int = layer_output_elements_int << 1;
+                    // ---- Per-layer constants, latched once per layer --------
+                    // Stage 2 of dispatch.  Every assignment below ends a
+                    // multiplier tree at a flip-flop, so the tree output no
+                    // longer feeds a clock enable.  The loads are
+                    // unconditional: ST_CHECK decides whether the layer may
+                    // run, and a rejected layer drops to ST_IDLE where the
+                    // next start re-initialises every register it touches.
+                    layer_in_c_m1  <= layer_in_c - 16'd1;
+                    layer_kw_m1    <= layer_kw - 8'd1;
+                    layer_out_w_m1 <= layer_out_w - 16'd1;
+                    layer_out_h_m1 <= layer_out_h - 16'd1;
+                    layer_out_c_m1 <= layer_out_c - 16'd1;
+                    layer_hw       <= d1_hw[15:0];
+                    layer_out_hw   <= disp_out_hw;
+                    layer_kh_kw_m1 <= d1_khkw - 16'd1;
+                    layer_kernel_size_m1 <= disp_kernel_size - 32'd1;
+                    layer_kernel_size    <= disp_kernel_size;
+                    layer_elements       <= disp_elements;
+                    layer_out_elements   <= disp_out_elements;
+                    layer_conv_weight_req <= disp_conv_weight_req;
+                    layer_fc_weight_req   <= disp_fc_weight_req;
+                    layer_ic_stride <= (model_layout_reg == LAYOUT_HWC4) ?
+                                       16'd1 : d1_hw[15:0];
+                    layer_kern_step <= disp_c_scale;
+                    layer_kern_wrap <= disp_kern_wrap;
+                    layer_pix_step_x <= disp_pix_step_x;
+                    layer_row_step   <= disp_row_step;
+                    layer_row_step_padl <= disp_row_step - d1_plc;
+                    layer_neg_pad_top  <= 16'd0 - {8'b0, layer_pad_top};
+                    layer_neg_pad_left <= 16'd0 - {8'b0, layer_pad_left};
+                    layer_row_a0 <= 16'd0 - disp_row0_a;
+                    layer_row0_a <= 16'd0 - (disp_row0_a + d1_plc);
+                    // Restart the window at the padding origin of the layer.
+                    pix_base_y   <= 16'd0 - {8'b0, layer_pad_top};
+                    pix_base_x   <= 16'd0 - {8'b0, layer_pad_left};
+                    pix_row_a    <= 16'd0 - disp_row0_a;
+                    pix_origin_a <= 16'd0 - (disp_row0_a + d1_plc);
+                    conv_kern_off <= 0; conv_ic_off <= 0;
+                    pool_kern_off <= 0; pool_ic_off <= 0;
+                    state <= ST_CHECK;
+                end
+
+                ST_CHECK: begin
+                    // Stage 3 of dispatch.  Comparisons only: nothing here is
+                    // written except control flops, so the thirty-term
+                    // predicate no longer gates any data register.  The wide
+                    // comparisons keep the original signedness: the products
+                    // were `integer` locals before they became registers.
                     if (layer_op != OP_CONV2D && layer_op != OP_RELU &&
                         layer_op != OP_MAXPOOL && layer_op != OP_GAP &&
                         layer_op != OP_FC && layer_op != OP_ARGMAX) begin
@@ -1240,10 +1420,10 @@ module Hnpu_cnn_engine #(
                                  layer_out_h == 0 || layer_out_w == 0 || layer_out_c == 0 ||
                                  layer_in_h != expected_in_h || layer_in_w != expected_in_w ||
                                  layer_in_c != expected_in_c ||
-                                 layer_input_elements_int > MAX_TENSOR_BYTES ||
-                                 layer_output_elements_int > MAX_TENSOR_BYTES ||
+                                 $signed(layer_elements) > MAX_TENSOR_BYTES ||
+                                 $signed(layer_out_elements) > MAX_TENSOR_BYTES ||
                                  ((!legacy_model_encoding_valid) &&
-                                  model_u32(52) < scratch_required_int) ||
+                                  model_u32(52) < (layer_out_elements << 1)) ||
                                  desc_u32(24) != 0 ||
                                  desc_u32(28) != 0 ||
                                  !descriptor_reserved_compatible(1'b0) ||
@@ -1272,8 +1452,8 @@ module Hnpu_cnn_engine #(
                             error <= 1'b1; error_code <= ERR_MODEL_QUANT;
                             busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                         end else if (layer_kh == 0 || layer_kw == 0 || layer_sh == 0 || layer_sw == 0 ||
-                            layer_weight_bytes < conv_weight_required_int ||
-                            layer_bias_bytes < conv_bias_required_int ||
+                            layer_weight_bytes < layer_conv_weight_req ||
+                            layer_bias_bytes < ({16'b0, layer_out_c} << 2) ||
                             !shape_dimension_valid(layer_in_h, layer_out_h, layer_kh,
                                 layer_sh, layer_pad_top, layer_pad_bottom) ||
                             !shape_dimension_valid(layer_in_w, layer_out_w, layer_kw,
@@ -1311,13 +1491,13 @@ module Hnpu_cnn_engine #(
                             busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                         end else begin
                             gap_channel <= 0; gap_position <= 0; gap_accumulator <= 0;
-                            gap_divisor <= mul_u16_no_dsp(layer_in_h, layer_in_w);
+                            gap_divisor <= d1_hw[15:0];
                             state <= ST_GAP_PRIME;
                         end
                     end else if (layer_op == OP_FC) begin
                         if (layer_in_h != 1 || layer_in_w != 1 ||
-                            layer_weight_bytes < fc_weight_required_int ||
-                            layer_bias_bytes < fc_bias_required_int) begin
+                            layer_weight_bytes < layer_fc_weight_req ||
+                            layer_bias_bytes < ({16'b0, layer_out_c} << 2)) begin
                             error <= 1'b1; error_code <= ERR_MODEL_SHAPE;
                             busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                         end else begin
@@ -1364,8 +1544,6 @@ module Hnpu_cnn_engine #(
                 ST_WRITE_DRAIN: state <= ST_LAYER_NEXT;
 
                 ST_CONV_MAC: begin
-                    conv_kernel_size = mul_u32_u16_no_dsp(
-                        mul_u16_no_dsp(layer_kh, layer_kw), layer_in_c);
                     next_accumulator = accumulator;
                     if (mac_product_valid)
                         next_accumulator = accumulator + mac_product;
@@ -1374,9 +1552,11 @@ module Hnpu_cnn_engine #(
                     // Issue the current BRAM operands into the product
                     // register.  Address generation continues to advance
                     // below, so this remains one MAC issue per clock after
-                    // the one-cycle pipeline fill.
-                    if (tensor_current_y >= 0 && tensor_current_y < layer_in_h &&
-                        tensor_current_x >= 0 && tensor_current_x < layer_in_w)
+                    // the one-cycle pipeline fill.  tensor_valid_q is the
+                    // in-bounds decision the address stage already made when
+                    // it presented this element, so the bounds cone is not
+                    // duplicated here.
+                    if (tensor_valid_q)
                         mac_product <=
                             (sign_extend_i8_32(tensor_read_data) -
                              sign_extend_i8_32(layer_input_zp)) *
@@ -1386,21 +1566,27 @@ module Hnpu_cnn_engine #(
                         mac_product <= 0;
                     mac_product_valid <= 1'b1;
 
-                    if (kernel_index == conv_kernel_size - 1) begin
+                    if (kernel_index == layer_kernel_size_m1) begin
                         kernel_index <= 0;
                         state <= ST_CONV_MAC_FLUSH;
                     end else begin
                         kernel_index <= kernel_index + 1;
-                        if (conv_ic_reg == layer_in_c - 1) begin
+                        if (conv_ic_reg == layer_in_c_m1) begin
                             conv_ic_reg <= 0;
-                            if (conv_kx_reg == layer_kw - 1) begin
+                            conv_ic_off <= 0;
+                            if (conv_kx_reg == layer_kw_m1) begin
                                 conv_kx_reg <= 0;
                                 conv_ky_reg <= conv_ky_reg + 1'b1;
+                                conv_kern_off <= conv_kern_off +
+                                                 layer_kern_wrap;
                             end else begin
                                 conv_kx_reg <= conv_kx_reg + 1'b1;
+                                conv_kern_off <= conv_kern_off +
+                                                 layer_kern_step;
                             end
                         end else begin
                             conv_ic_reg <= conv_ic_reg + 1'b1;
+                            conv_ic_off <= conv_ic_off + layer_ic_stride;
                         end
                     end
                 end
@@ -1418,7 +1604,7 @@ module Hnpu_cnn_engine #(
                             layer_out_c) + out_c;
                     else
                         tensor_write_index = mul_u32_u16_no_dsp(out_c[15:0],
-                            mul_u16_no_dsp(layer_out_h, layer_out_w)) +
+                            layer_out_hw) +
                             mul_u32_u16_no_dsp(out_y[15:0], layer_out_w) + out_x;
                     tensor_write_enable <= 1'b1;
                     tensor_write_slot <= ~tensor_active;
@@ -1428,29 +1614,41 @@ module Hnpu_cnn_engine #(
                     conv_ky_reg <= 0;
                     conv_kx_reg <= 0;
                     conv_ic_reg <= 0;
-                        if (out_x == layer_out_w - 1) begin
-                            out_x <= 0;
-                            if (out_y == layer_out_h - 1) begin
-                                out_y <= 0;
-                                if (out_c == layer_out_c - 1)
-                                    state <= ST_WRITE_DRAIN;
-                                else begin
-                                    out_c <= out_c + 1;
-                                    state <= ST_BIAS_PRIME;
-                                end
-                            end else begin
-                                out_y <= out_y + 1;
+                    conv_kern_off <= 0;
+                    conv_ic_off <= 0;
+                    // Advance the window origin without any multiply: every
+                    // stride involved is a per-layer constant.
+                    if (out_x == layer_out_w_m1) begin
+                        out_x <= 0;
+                        pix_base_x <= layer_neg_pad_left;
+                        if (out_y == layer_out_h_m1) begin
+                            out_y <= 0;
+                            pix_base_y <= layer_neg_pad_top;
+                            pix_row_a <= layer_row_a0;
+                            pix_origin_a <= layer_row0_a;
+                            if (out_c == layer_out_c_m1)
+                                state <= ST_WRITE_DRAIN;
+                            else begin
+                                out_c <= out_c + 1;
                                 state <= ST_BIAS_PRIME;
                             end
                         end else begin
-                            out_x <= out_x + 1;
+                            out_y <= out_y + 1;
+                            pix_base_y <= pix_base_y + {8'b0, layer_sh};
+                            pix_row_a <= pix_row_a + layer_row_step;
+                            pix_origin_a <= pix_row_a + layer_row_step_padl;
                             state <= ST_BIAS_PRIME;
                         end
+                    end else begin
+                        out_x <= out_x + 1;
+                        pix_base_x <= pix_base_x + {8'b0, layer_sw};
+                        pix_origin_a <= pix_origin_a + layer_pix_step_x;
+                        state <= ST_BIAS_PRIME;
+                    end
                 end
 
                 ST_RELU: begin
-                    if (tensor_index < mul_u32_u16_no_dsp(
-                            mul_u16_no_dsp(layer_in_h, layer_in_w), layer_in_c)) begin
+                    if (tensor_index < layer_elements) begin
                         tensor_write_enable <= 1'b1;
                         tensor_write_slot <= ~tensor_active;
                         tensor_write_addr <= tensor_index;
@@ -1464,19 +1662,18 @@ module Hnpu_cnn_engine #(
 
                 ST_POOL: begin
                     pool_next = pool_value;
-                    if (tensor_current_y >= 0 && tensor_current_y < layer_in_h &&
-                        tensor_current_x >= 0 && tensor_current_x < layer_in_w) begin
+                    if (tensor_valid_q) begin
                         if (tensor_read_data > pool_next)
                             pool_next = tensor_read_data;
                     end
-                    if (pool_index == mul_u16_no_dsp(layer_kh, layer_kw) - 1) begin
+                    if (pool_index == layer_kh_kw_m1) begin
                         if (model_layout_reg == LAYOUT_HWC4)
                             tensor_write_index = mul_u32_u16_no_dsp(
                                 mul_u32_u16_no_dsp(out_y[15:0], layer_out_w) + out_x,
                                 layer_out_c) + out_c;
                         else
                             tensor_write_index = mul_u32_u16_no_dsp(out_c[15:0],
-                                mul_u16_no_dsp(layer_out_h, layer_out_w)) +
+                                layer_out_hw) +
                                 mul_u32_u16_no_dsp(out_y[15:0], layer_out_w) + out_x;
                         tensor_write_enable <= 1'b1;
                         tensor_write_slot <= ~tensor_active;
@@ -1485,22 +1682,34 @@ module Hnpu_cnn_engine #(
                         pool_index <= 0;
                         pool_ky_reg <= 0;
                         pool_kx_reg <= 0;
+                        pool_kern_off <= 0;
                         pool_value <= -8'sd128;
-                        if (out_x == layer_out_w - 1) begin
+                        if (out_x == layer_out_w_m1) begin
                             out_x <= 0;
-                            if (out_y == layer_out_h - 1) begin
+                            pix_base_x <= layer_neg_pad_left;
+                            if (out_y == layer_out_h_m1) begin
                                 out_y <= 0;
-                                if (out_c == layer_out_c - 1) state <= ST_WRITE_DRAIN;
+                                pix_base_y <= layer_neg_pad_top;
+                                pix_row_a <= layer_row_a0;
+                                pix_origin_a <= layer_row0_a;
+                                if (out_c == layer_out_c_m1) state <= ST_WRITE_DRAIN;
                                 else begin
                                     out_c <= out_c + 1;
+                                    pool_ic_off <= pool_ic_off +
+                                                   layer_ic_stride;
                                     state <= ST_POOL_PRIME;
                                 end
                             end else begin
                                 out_y <= out_y + 1;
+                                pix_base_y <= pix_base_y + {8'b0, layer_sh};
+                                pix_row_a <= pix_row_a + layer_row_step;
+                                pix_origin_a <= pix_row_a + layer_row_step_padl;
                                 state <= ST_POOL_PRIME;
                             end
                         end else begin
                             out_x <= out_x + 1;
+                            pix_base_x <= pix_base_x + {8'b0, layer_sw};
+                            pix_origin_a <= pix_origin_a + layer_pix_step_x;
                             state <= ST_POOL_PRIME;
                         end
                     end else begin
@@ -1511,11 +1720,13 @@ module Hnpu_cnn_engine #(
                         // window can lose an earlier larger element.
                         pool_value <= pool_next;
                         pool_index <= pool_index + 1;
-                        if (pool_kx_reg == layer_kw - 1) begin
+                        if (pool_kx_reg == layer_kw_m1) begin
                             pool_kx_reg <= 0;
                             pool_ky_reg <= pool_ky_reg + 1'b1;
+                            pool_kern_off <= pool_kern_off + layer_kern_wrap;
                         end else begin
                             pool_kx_reg <= pool_kx_reg + 1'b1;
+                            pool_kern_off <= pool_kern_off + layer_kern_step;
                         end
                     end
                 end
@@ -1525,12 +1736,12 @@ module Hnpu_cnn_engine #(
                         tensor_read_index = mul_u32_u16_no_dsp(
                             gap_position[15:0], layer_in_c) + gap_channel;
                     else
-                        tensor_read_index = mul_u32_u16_no_dsp(gap_channel[15:0],
-                            mul_u16_no_dsp(layer_in_h, layer_in_w)) + gap_position;
+                        tensor_read_index = mul_u16_no_dsp(gap_channel[15:0],
+                            layer_hw) + gap_position;
                     next_gap_accumulator = gap_accumulator +
                         sign_extend_i8_32(tensor_read_data);
                     gap_accumulator <= next_gap_accumulator;
-                    if (gap_position == mul_u16_no_dsp(layer_in_h, layer_in_w) - 1) begin
+                    if (gap_position == layer_hw - 1) begin
                         gap_position <= 0;
                         gap_accumulator <= 0;
                         if ((layer_flags & FLAG_GAP_ROUND4) != 0) begin

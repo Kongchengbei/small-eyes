@@ -118,16 +118,46 @@ module Hcamera_preprocess #(
     wire [2:0] region_color;
     wire [15:0] rx0, ry0, rx1, ry1;
     wire [31:0] region_pixels;
-    wire [31:0] region_width = {16'b0,rx1}-{16'b0,rx0}+32'd1;
-    wire [31:0] region_height = {16'b0,ry1}-{16'b0,ry0}+32'd1;
-    wire [63:0] region_area = {32'b0,region_width}*{32'b0,region_height};
-    wire [63:0] color_fraction = {32'b0,region_pixels}*64'd256;
-    wire [63:0] aspect_width = {32'b0,region_width}*64'd256;
-    wire region_accepted = region_valid && region_pixels >= min_pixels &&
-        region_area >= {32'b0,min_area} && region_area <= {32'b0,max_area} &&
-        color_fraction >= region_area*{56'b0,min_fill} &&
-        aspect_width >= {32'b0,region_height}*{48'b0,min_aspect} &&
-        aspect_width <= {32'b0,region_height}*{48'b0,max_aspect};
+    // 区域判据位宽收敛（可证）：xs/xe <- mx0/mx1 <- scan_x ∈ [0,FRAME_WIDTH-1]，
+    // ys/ye 同理；因此宽 ≤ FRAME_WIDTH、高 ≤ FRAME_HEIGHT、面积 ≤ 帧像素数，
+    // min_fill 本身只有 8 位。原式按 32/64 位算，把 32x32 乘法打成 3 片 APM。
+    localparam integer RW_BITS = count_bits(FRAME_WIDTH);            // 640 -> 10
+    localparam integer RH_BITS = count_bits(FRAME_HEIGHT);           // 480 ->  9
+    localparam integer RA_BITS = RW_BITS+RH_BITS;                    // 面积
+    localparam integer RP_BITS = count_bits(FRAME_WIDTH*FRAME_HEIGHT);
+    localparam integer HF_BITS = RH_BITS+8;                          // h*min_fill
+    localparam integer FI_BITS = RW_BITS+HF_BITS;                    // w*(h*min_fill)
+    localparam integer AS_BITS = RH_BITS+16;                         // h*min_aspect
+    localparam integer CF_BITS = RP_BITS+8;                          // pixels*256
+    localparam integer CMP_BITS = 40;                                // 比较统一加宽
+    // FILTER 三拍：0=锁存查询 1=并行乘法 2=比较并写入。
+    // 每拍只跨 1 片 APM，替代原来 5 片 APM 串在一拍里。
+    reg [1:0] filter_phase;
+    reg               fq_valid;
+    reg [2:0]         fq_color;
+    reg [15:0]        fq_x0, fq_y0, fq_x1, fq_y1;
+    reg [RP_BITS-1:0] fq_pixels;
+    reg [RA_BITS-1:0] fx_area;
+    reg [HF_BITS-1:0] fx_hfill;
+    reg [AS_BITS-1:0] fx_asp_lo, fx_asp_hi;
+    wire [16:0] fq_w17 = {1'b0,fq_x1}-{1'b0,fq_x0}+17'd1;
+    wire [16:0] fq_h17 = {1'b0,fq_y1}-{1'b0,fq_y0}+17'd1;
+    // 坐标上限 FRAME_WIDTH-1 / FRAME_HEIGHT-1，故宽高 < 2^RW_BITS / 2^RH_BITS，截位无损。
+    wire [RW_BITS-1:0] fq_width  = fq_w17[RW_BITS-1:0];
+    wire [RH_BITS-1:0] fq_height = fq_h17[RH_BITS-1:0];
+    wire [CF_BITS-1:0] color_fraction = {fq_pixels, 8'b0};
+    wire [RW_BITS+8-1:0] aspect_width = {fq_width, 8'b0};
+    wire [FI_BITS-1:0] region_fill = fq_width*fx_hfill;
+    wire region_accepted = fq_valid &&
+        ({{(CMP_BITS-RP_BITS){1'b0}},fq_pixels} >= {{(CMP_BITS-32){1'b0}},min_pixels}) &&
+        ({{(CMP_BITS-RA_BITS){1'b0}},fx_area} >= {{(CMP_BITS-32){1'b0}},min_area}) &&
+        ({{(CMP_BITS-RA_BITS){1'b0}},fx_area} <= {{(CMP_BITS-32){1'b0}},max_area}) &&
+        ({{(CMP_BITS-CF_BITS){1'b0}},color_fraction} >=
+         {{(CMP_BITS-FI_BITS){1'b0}},region_fill}) &&
+        ({{(CMP_BITS-RW_BITS-8){1'b0}},aspect_width} >=
+         {{(CMP_BITS-AS_BITS){1'b0}},fx_asp_lo}) &&
+        ({{(CMP_BITS-RW_BITS-8){1'b0}},aspect_width} <=
+         {{(CMP_BITS-AS_BITS){1'b0}},fx_asp_hi});
     wire [31:0] crop_byte_address = source_addr +
         (({16'b0,src_y}*FRAME_WIDTH)+{16'b0,src_x})*32'd2;
     wire [31:0] crop_beat_address = {crop_byte_address[31:5],5'b0};
@@ -233,6 +263,7 @@ module Hcamera_preprocess #(
             cache_address<=0; cache_valid<=0; scan_lane<=0; pack_count<=0;
             scan_offset<=0; scan_pixels<=0; scan_x<=0; scan_y<=0;
             region_index<=0; roi_count<=0; roi_index<=0; output_offset<=0;
+            filter_phase<=2'd0; fq_valid<=0;
             src_x<=0; src_y<=0; dst_x<=0; dst_y<=0; x_remainder<=0; y_remainder<=0;
             roi_width<=0; roi_height<=0;
             for (k=0;k<MAX_REGIONS;k=k+1) begin
@@ -302,23 +333,43 @@ module Hcamera_preprocess #(
                     end
                 end
                 FILTER: begin
-                    if (region_overflow) begin report_error(ERR_REGIONS); state<=RELEASE; end
-                    else if (region_query_index==MAX_REGIONS) begin
+                    if (region_overflow) begin
+                        report_error(ERR_REGIONS); filter_phase<=2'd0; state<=RELEASE;
+                    end else if (region_query_index==MAX_REGIONS) begin
+                        filter_phase<=2'd0;
                         if (roi_count==0) state<=FINISH;
                         else begin roi_index<=0; state<=ROI_START; end
                     end else begin
-                        if (region_accepted) begin
-                            boxes_x0[append_index]<=rx0>margin ? rx0-margin : 16'd0;
-                            boxes_y0[append_index]<=ry0>margin ? ry0-margin : 16'd0;
-                            boxes_x1[append_index]<=({16'b0,rx1}+{16'b0,margin}<FRAME_WIDTH) ?
-                                rx1+margin : LAST_X;
-                            boxes_y1[append_index]<=({16'b0,ry1}+{16'b0,margin}<FRAME_HEIGHT) ?
-                                ry1+margin : LAST_Y;
-                            for(k=0;k<MAX_REGIONS;k=k+1)
-                                if(roi_count32==k) result_colors[k*3 +: 3]<=region_color;
-                            roi_count<=roi_count+1;
-                        end
-                        region_index<=region_index+1;
+                        case (filter_phase)
+                            2'd0: begin
+                                fq_valid<=region_valid; fq_color<=region_color;
+                                fq_x0<=rx0; fq_y0<=ry0; fq_x1<=rx1; fq_y1<=ry1;
+                                fq_pixels<=region_pixels[RP_BITS-1:0];
+                                filter_phase<=2'd1;
+                            end
+                            2'd1: begin
+                                fx_area  <=fq_width*fq_height;
+                                fx_hfill <=fq_height*min_fill;
+                                fx_asp_lo<=fq_height*min_aspect;
+                                fx_asp_hi<=fq_height*max_aspect;
+                                filter_phase<=2'd2;
+                            end
+                            default: begin
+                                if (region_accepted) begin
+                                    boxes_x0[append_index]<=fq_x0>margin ? fq_x0-margin : 16'd0;
+                                    boxes_y0[append_index]<=fq_y0>margin ? fq_y0-margin : 16'd0;
+                                    boxes_x1[append_index]<=({16'b0,fq_x1}+{16'b0,margin}<FRAME_WIDTH) ?
+                                        fq_x1+margin : LAST_X;
+                                    boxes_y1[append_index]<=({16'b0,fq_y1}+{16'b0,margin}<FRAME_HEIGHT) ?
+                                        fq_y1+margin : LAST_Y;
+                                    for(k=0;k<MAX_REGIONS;k=k+1)
+                                        if(roi_count32==k) result_colors[k*3 +: 3]<=fq_color;
+                                    roi_count<=roi_count+1;
+                                end
+                                filter_phase<=2'd0;
+                                region_index<=region_index+1;
+                            end
+                        endcase
                     end
                 end
                 ROI_START: begin

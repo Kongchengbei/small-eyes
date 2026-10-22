@@ -858,3 +858,1354 @@ wire [5:0] used_count_next = 6'd56 - free_count;
   / `check_allocation`）。改编码必须把这 15 处全部重写，
   等于把"释放快照"那条唯一的守卫用例也一起改掉。
 - 收益/风险比不划算。等 P&R 实测 A+C 之后若密度仍不够，再连同 TB 一起改。
+
+## 2026-10-19 23:09　A+C 的综合实测（预期兑现）
+
+D 盘 `project/synthesize/Hfpga_soc.snr`（23:09，已含 A+C）：
+
+| 层级 | LUT | FF | LUT CARRY |
+|---|---|---|---|
+| `g_ddr_profile.u_rgb565_int8` 改前 | 14014 | 13122 | 4817 |
+| `g_ddr_profile.u_rgb565_int8` 改后 | **10493** | 13182 | **1375** |
+| 变化 | **−25.1%** | +60 | **−71.5%** |
+
+逐 lane：`lane[0]` 5117 LUT / 6583 FF / 689 carry，
+`lane[1]` 5376 LUT / 6599 FF / 686 carry（改前 6909 / 7105 LUT，2410 / 2407 carry）。
+
+**结论**：方案 A（per-batch `gen_epoch`）+ C（`used_slots = 56 − free_count`）
+的资源模型完全成立，进位链从 4817 降到 1375，与"56 个 32 位自增器占 74%"
+的拆解吻合。全局仍是 LUT 48244/159800（31%）、FF 45110/319600（15%）、
+CLMA 13232/30075（44%）、CLMS 4390/9875（45%）——**总量从来不是问题**。
+
+## 2026-10-19 23:11 P&R 第一轮：被机器睡眠打断，不是"不可布"
+
+**阶段耗时**：compile 2m50s / synthesize 7m16s / dev_map 2m3s /
+**P&R 实时 8h38m30s，但 CPU 只有 25m4s**（进程 CPU 32m51s）。
+
+**路由轨迹**：
+
+```
+iteration  5  (  17.967 sec): 69223(overused: 512994)
+iteration 10  (  18.377 sec): 43571(overused: 240100)
+iteration 20  (  24.663 sec): 22321(overused:  89984)
+iteration 27  (  28.362 sec): 16520(overused:  58683)   ← 前 23 轮累计只用 28 s
+iteration 28  (29466.624 sec): 15967(overused:  55130)   ← 单轮 8h11m
+```
+
+23:24 开始布线，07:50 结束；`partial_route.adf` 07:47、`prr.db` 07:50。
+
+**Windows 电源事件（`Microsoft-Windows-Kernel-Power`，决定性证据）**：
+
+| 时间 | Event | 含义 |
+|---|---|---|
+| 10-19 23:34:45 | 506 | 进入 Modern Standby |
+| 10-20 05:31:19 | 507 | 唤醒 |
+| 10-20 07:45:57 / 07:49:32 / 07:50:25 | 507 | 反复唤醒 |
+| 10-20 07:50:26 | — | `Route-0039: iteration time exceed limit 2000 sec` → `Route-0008: Design cannot be routed` |
+
+**结论**：`Design cannot be routed` 是**墙钟护栏的误报**。进程在睡眠期间被挂起，
+墙钟照走，iteration 自己的计时器记录 29466 s，唤醒瞬间越过 2000 s 单轮上限被杀。
+布线器从未判定过"不可布"。
+
+## 2026-10-20 10:05 P&R 第二轮：placement 太紧，布线在 2000 名次上震荡
+
+**placement**：`Worst slack is -11539, TNS after placement is -81683184`
+（与 23:11 那轮**逐 ps 相同** → placement 是确定性的，没有随机因素）。
+
+**路由轨迹（约 75~100 s/轮）**：
+
+```
+iteration  14: 30518(overused: 143914)
+iteration  54:  7852(overused:  21863)
+iteration  94:  4133(overused:   9631)
+iteration 134:  2817(overused:   6351)
+iteration 154:  2247(overused:   4710)
+iteration 169:  2058(overused:   3941)
+iteration 170:  1977(overused:   3703)
+```
+
+最近 60 轮：最少 2058、最多 3486、平均 2676，平均 overuse 5637。
+10:05 起跑，至 12:48 已 2h43m，仍在跑（`pds_shell.exe` 常驻 3.0 GB）。
+`Action Timeout` = 0，工具**不会自己退出**。
+
+**与 13:53 成功那轮对比（同一份工程、同一版本工具）**：
+
+| | 10-20 第二轮 | 10-19 13:53 成功 |
+|---|---|---|
+| placement WNS | **−11539 ps** | **−44292 ps** |
+| placement TNS | −81.68 M | −277.96 M |
+| 第 170 轮 unrouted | **1977** | **319** |
+| 单轮耗时 | 75~100 s | 约 1 s |
+| 收敛 | 未收敛 | 第 431 轮 → 0(overused: 0) |
+| 布线总耗时 | >2h43m | 2529 s（42 min） |
+| post-route 最差 Slack | — | **−43.979 ns** |
+
+**关键结论（这是本轮最重要的一条，也是对自己上一轮判断的更正）**：
+
+> 上一轮预计"削减 lane 面积能改善布线"，**实际是错的**。
+> A+C 把 placement WNS 从 −44292 ps 改善到 −11539 ps（好 3.8 倍），
+> 但这让 placer 把逻辑压得更紧，局部超过布线容量 → 布线器反复拆线重布，
+> 卡在 2000 名次上震荡。**时序与可布通性在这里是同一个旋钮的两端。**
+
+局部密度证据（23:11 那轮 07:48 落盘的 `fail_route_nets.txt`，8441 条未布通网络，
+按驱动点 tile 坐标分桶）：
+
+| 区间 TX / TY | 条数 |
+|---|---|
+| 40-59 / 60-79 | 1100 |
+| 20-39 / 60-79 | 999 |
+| 0-19 / 60-79 | 691 |
+| 20-39 / 40-59 | 676 |
+| 0-19 / 40-59 | 570 |
+
+即约 40% 集中在 **TX 0~59、TY 40~79** 这一块（左下象限），是典型的热点超容量，
+而不是全局拥塞。
+
+## 2026-10-20　时序违例的真实构成（不是 IO 约束的假违例）
+
+来源：13:53 那轮的 post-PnR 报告 `report_timing/bak/Hfpga_soc.rtr`（348 条最差路径）。
+该轮 RTL 是 A+C 之前，但结构分析仍然有效。
+
+**按起点模块**：
+
+| 起点 | 条数 |
+|---|---|
+| `g_ddr_profile.u_ddr3_ctrl` | **189** |
+| `u_cam1` / `u_cam2` | 60 / 48 |
+| `u_jtag` / `rst_sync_q1` / `u_cpu` | 12 / 10 / 8 |
+| `u_rgb565_int8` | **6** |
+| `u_uart0_tx` / `flash_ddr_boot` / `mem_dq[*]` 端口 | 5 / 4 / 6 |
+
+**按终点**：342 条是**内部寄存器**，只有 6 条到端口（5 条 `fpioa`、1 条 `core_active`）。
+→ 已核对，**不能靠补 IO 约束消掉**，是真实 reg-to-reg 违例。
+
+**slack 分布**：−43.98（3 条）、−21.59（3 条），主体在 **−5.5 ns** 附近。
+
+**最差单条路径**（在 lane 里，是 A+C 之前的老网表）：
+
+```
+Startpoint: u_rgb565_int8/lane[1].u_lane/slot_generation[0][26]
+Endpoint  : u_rgb565_int8/lane[1].u_lane/batch_slot_addr[3][14]/CE
+```
+
+约 20 级 LUT，末端 14.9 ns 还没到终点；走的是
+`slot_generation → allocatable_mask → popcount8 → free_count → desc_ready → FSM → CE`
+这条分配器组合锥。时钟侧：`DDR_REF_CLK → PPLL → USCM_383_882`（扇出 32973，
+net 1.546 ns），插损 5.611 ns 到 `ddr_core_clk`。
+
+注意：`slot_generation` 是这条路径的**起点**，去掉 per-slot `!= 0xffff_ffff`
+比较只能削掉起点一两级，**救不了 11.5 ns**（主体在中后段的归约/判决链）。
+
+## 2026-10-20　当前决策点与建议（待用户选择）
+
+已确认 `place_route/prr.db` 里 `Placement Decongestion Mode = 1`，
+说明之前还原的 PDS 设置**确实还是默认值**，本轮是干净 baseline。
+
+- **A. 继续等**：保留目前最好的时序（−11.5 ns）。每 15 分钟看一次 unrouted；
+  连续 3 次不降就停。风险：可能还要 2 h+，且布通后 WNS 仍 −11.5 ns。
+- **B. 先要布通**：`Slack Weight` 90 → 50，或 `Placement Decongestion Mode` 1 → 3，
+  只重跑 P&R。预期 ~40 min 收敛，WNS 落在 −44 ~ −11.5 之间。
+  两者都是 placement 代价权重，**不改时钟约束、不加 false path**。
+- 无论选哪条，建议把 `Action Timeout(min)` 设 180，避免再次无限跑。
+
+**止损规则**：单轮 >5~10 min 且无进展，或 unrouted 连续 3 轮不降 → 停。
+
+**记录时间**：2026-10-20 12:50。此时第二轮 P&R 仍在运行（iteration 170）。
+
+---
+
+## 2026-10-20 14:40 lane 组合锥三处可证等价削减（方案 1）
+
+### 改了什么（`soc/Hrgb565_int8_lane.v`，+8/−4 行）
+
+1. **`desc_last_end` 乘法 → 移位**
+   `(({32'b0,desc_count}-64'd1) * {32'b0,desc_rgb_stride})` → `((..) << 15)`。
+   依据：`SOC_PRE_ROI_STRIDE_BYTES == 32768 == 2^15`（`soc/soc_addr_map.vh:72`），
+   而 `desc_last_end` 只在 `desc_rgb_stride == 该常量` 时被 `desc_geometry_ok` 判定使用；
+   stride 不等时两版都判失败。省 **4 个 APM** + 一条 64 位加法链。
+
+2. **`fifo_generation` 去掉 56:1 × 32 位 mux**
+   新增 `batch_gen_epoch`，accept 拍 `batch_gen_epoch<=gen_epoch`，push 拍直接用它。
+   等价性：同一批 8 个槽在 `ST_ALLOC` 里写入的都是同一个 `gen_epoch`，而 `gen_epoch`
+   只在**离开 ST_ALLOC** 时 +1；且 `desc_ready` 要求 `fifo_count==0`，一批的 push
+   期间该值恒定。
+
+3. **槽数比较降位**
+   `{26'b0,free_count} >= desc_count` → `free_count >= desc_count[3:0]`（`desc_ready` 与
+   `wait_slot` 各一处）。两处的前置条件都已限定 `desc_count<=8`。
+
+### 回归（全部通过，测试台零改动）
+
+```
+RGB565_SLOT_SELECT_PASS cases=69 randomized=64 max_latency=8
+RGB565_LANE_ALLOC_PASS  cycles=8 first_slot=0 last_slot=7
+CAMERA_STEREO_PASS cam1_aw=76800 cam2_aw=57600 ...
+STEREO_DDR_FRAME_PASS camera=1 frame=4 slot=1 checksum=58e33800
+NPU_IMAGE_SYSTEM_PASS results=2 releases=2
+NPU_CNN_SYSTEM_PASS   results=2 releases=2
+NPU_ROAD_MODEL_V03_TEST_PASS cases=16 model_bytes=62720
+```
+
+`max_latency=8` / `cycles=8` 即"一拍未多"的直接证据。已同步 D 盘，md5 `e75a3d43…`。
+
+### 测量修正：方案 3 作废、方案 4 降级
+
+从 `synthesize/Hfpga_soc_controlsets.txt` 按复位信号统计 FF 负载（不是单条网的引脚数）：
+
+| 复位/置位信号 | FF 数 | 控制集 |
+|---|---|---|
+| `~npu_release_ready_int[0]` | **24692** | 497 |
+| `~u_cam1.mem_rst_n` | 6154 | 176 |
+| `cpu_rst` | 4013 | 356 |
+| `~ddrphy_rst_n` | 3545 | 95 |
+
+`npu_release_ready_int` 的 24692 个 FF 分布：`u_rgb565_int8` 12930、`u_preprocess_stereo`
+5750、`u_npu_system` 2230、`u_int8_regs` 1758。
+
+结论：`release_ready = rst_n` 只是让这条**本来就等于 `rst_n`** 的网被工具取了别名，
+24692 是 `rst_n` 的真实负载。改成 `1'b1` 只会把网改回叫 `rst_n`，**扇出不降 → 方案 3 作废**。
+
+方案 4（lane 复位异步→同步）确实能把该网负载从 24692 降到 ~11.8k（−52%），且 4 个测试台
+都在时钟沿之间驱动复位、持续 ≥2 拍，改同步是安全的；但它会给 lane 每条数据通路加一级
+mux（含当前最差的 −43.98 ns 那条），而 lane 位于 CLMA_375_1044（TX62/TY174），
+**不在失败热点区（TX0~59/TY40~79）**。→ 降级为备选，暂不做。
+
+### 失败网络画像（`place_route/fail_route_nets.txt`，07:48 那轮）
+
+- 8439 条失败网占全网 10.6%，却带 **40.8%** 的负载引脚；
+- 失败网平均扇出 **17.5**，全网平均 4.6（3.8 倍）；
+- 跨度中位数 ΔTX=8 / ΔTY=7；≤5×5 tile 的仅 17%，≤3×3 的仅 10%
+  → **失败模式是"中长距离 + 高扇出"，不是局部引脚打结**。
+
+### P&R 现状（10:05 那轮，此时仍在跑）
+
+```
+iter 5    unrouted=69223  overused=512994
+iter 60   unrouted=6988   overused=18566
+iter 120  unrouted=2989   overused=6527
+iter 180  unrouted=1708   overused=3178
+iter 240  unrouted=1113   overused=2102
+iter 261  unrouted=1111   overused=2104
+```
+
+前 240 轮单调收敛（−98.4%），最近 30 轮在 **967~1134** 震荡，尚未收敛。
+
+### 更正：不建议盲调 Decongestion
+
+`project/impl.tcl:263` 记录 `pnr -plc_decongestion 3 -dump_router_congestion_plot true
+-slack_weight 50` 曾被执行过一次，随后第 264 行又退回默认 `pnr`。
+07:48 那轮（8441 条失败网、placement WNS −11539）究竟对应哪组设置无法确证，
+所以"调大 Decongestion 就能布通"目前**没有干净对照**，不作为首选动作。
+
+**记录时间**：2026-10-20 14:40。
+
+---
+
+## 2026-10-20 16:48　布线后时序报告逐条解读（**首次布通**）
+
+报告：`project/report_timing/Hfpga_soc.rtr`（Tue Oct 20 16:48:56 2026，布线后）。
+对照：`report_timing/bak/Hfpga_soc.rtr`（10-19 13:55，布线失败那轮）。
+
+### 0. 前置事实：这轮布通了
+
+```
+place_route/run.log:  Unrouted general nets at iteration 696 ... 0(overused: 0)
+                      Design 'Hfpga_soc' has been placed and routed successfully.
+generate_bitstream:   Hfpga_soc.sbit（16:51）
+```
+
+流程时序：14:47 重综合 → 14:57 P&R → 16:47 布通 → 16:48 时序报告 → 16:51 位流。
+即 **lane 削减后的网表不但能布，而且 1h50m 收敛**。这是本次最大的工程进展。
+
+### 1. 时钟域级汇总（Performance Summary）
+
+| 时钟 | 要求 | 实测 | Slack | 判定 |
+|---|---|---|---|---|
+| `ddr_core_clk` | 125 MHz (8 ns) | 51.23 MHz | **−11.521** | ❌ |
+| `cpu_clk` | 70 MHz (14.286 ns) | 63.58 MHz | **−1.443** | ❌（**新增违例域**） |
+| `CAM1_PCLK` | 100 MHz | 134.46 MHz | +2.563 | ✅ |
+| `CAM2_PCLK` | 100 MHz | 153.00 MHz | +3.464 | ✅ |
+| `JTAG_CLK` | 10 MHz | 137.51 MHz | +46.364 | ✅ |
+| ddr `rst_clk` | 125 MHz | 323.10 MHz | +4.905 | ✅ |
+
+**hold 全过**：`ddr_core_clk` WHS +3.215、`cpu_clk` +7.268、CAM1 +5.673、CAM2 +6.026。
+→ 没有保持时间问题，不需要碰 hold 侧的约束或布线。
+
+### 2. 违例的真实体量（比 "90 条路径" 大两个数量级）
+
+报告列出 348 条路径、其中 90 条违例，但**这只是最差的 348 条**。真正的规模：
+
+| Launch → Capture | WNS | TNS (ns) | 失败端点 / 总端点 |
+|---|---|---|---|
+| `ddr_core_clk → ddr_core_clk` | −11.521 | −79174.056 | **18396 / 107646（17.1%）** |
+| `ddr → ddrphy ioclkdiv (bank1)` | −5.034 | −1636.8 | 420 / 420 |
+| `ddr → ddrphy ioclkdiv (bank0)` | −4.878 | −799.2 | 196 / 196 |
+| `CAM1_PCLK → ddr_core_clk` | −4.572 | −355.4 | 105 / 105 |
+| `CAM2_PCLK → ddr_core_clk` | −4.524 | −361.5 | 105 / 105 |
+| `cpu_clk → cpu_clk` | −1.443 | −99.8 | 126 / 23672 |
+| `ddr_core_clk → CAM1_PCLK` | −1.116 | −11.8 | 12 / 12 |
+| `ddr_core_clk → CAM2_PCLK` | −1.210 | −12.0 | 12 / 12 |
+
+**读法**：TNS −79174 ÷ 18396 ≈ **平均每个失败端点只缺 4.3 ns**。
+这是"**大面积、浅缺口**"型失败，不是几根超长路径。修 WNS 的那 3 条不会让 TNS 归零，
+但能让 18396 个端点里缺口 ≤5 ns 的那部分随 floorplan/布线一起收敛。
+
+### 3. 90 条违例路径按"组合逻辑级数"分桶（关键对比）
+
+| 级数 | 新报告 | 旧报告（13:55 布线失败） |
+|---|---|---|
+| **0 级（Logic Levels = 0，纯走线）** | **69** | 71 |
+| 1~9 级 | 12 | 12 |
+| 10~29 级 | **9** | 3 |
+| **≥30 级** | **0** | **6（105~110 级）** |
+
+**lane 的 6 条 105/110 级路径（−43.98 / −21.59）彻底消失**，`u_rgb565_int8` 在
+违例清单中出现 **0 次**。`soc/Hrgb565_int8_lane.v` 的三处削减（`desc_last_end` 移位、
+`fifo_generation←batch_gen_epoch`、槽数比较降到 `desc_count[3:0]`）在实测中兑现。
+
+### 4. 90 条按模块归类
+
+| 起点 → 终点 | 条数 | 最差 | 性质 |
+|---|---|---|---|
+| `u_ddr3_ctrl → u_ddr3_ctrl` | 48 | −5.03 | 0~1 级，PHY 内部 |
+| `u_cam2 → u_cam2` | 16 | −4.52 | 0 级，CDC 同步器 |
+| `u_cam1 → u_cam1` | 15 | −4.57 | 0 级，CDC 同步器 |
+| `u_preprocess_stereo → u_preprocess_stereo` | 6 | **−11.52** | **16~17 级** |
+| `u_cpu → u_cpu` | 3 | −1.44 | 23 级 |
+| `rst_sync_q1 → u_ddr3_ctrl` | 2 | −4.91 | 0 级 |
+
+### 5. WNS 路径逐级解读（−11.521 ns）
+
+```
+起点  u_preprocess_stereo/cameras[1].u_preprocess/u_regions/xs[5][8]
+终点  u_preprocess_stereo/cameras[1].u_preprocess/boxes_y0[6][11]/CE
+      Data arrival 24.737 / required 13.216 / slack −11.521
+      Logic Levels 17；Logic 11.642 (61%)，Route 7.402 (39%)
+      Clock Skew −0.089 (capture 4.184 / launch 5.693 / CPR 1.420)
+```
+
+路径上**串了 5 个 APM（硬件乘法器）**，且是两组乘法首尾相接：
+
+| # | 单元 | Delay | 累计 | 说明 |
+|---|---|---|---|---|
+| 1 | `APM_527_828/PO[0]` | 2.067 | 11.314 | `N98_m1`，32×32 面积乘的第 1 片 |
+| 2 | `APM_527_828/P_0[10]` | 1.431 | 12.745 | `N98_m2`，级联 P 输入 |
+| 3 | `APM_527_768/P_1[24]` | 1.506 | 15.168 | `N98_m3`，面积结果 |
+| 4 | `APM_527_858/PO[0]` | 2.067 | 19.233 | `N124_m2_m1`，面积×min_fill 第 1 片 |
+| 5 | `APM_527_858/P_0[6]` | 1.431 | 20.664 | `N124_m2_m2` |
+
+再经过 `N124_a1_32/COUT → N124_a1_36/COUT → N124_a1_40/Y3` 的比较链
+（20.664 → 22.636），加 fanout=64 的 `_N4010` 网 1.094 ns，落到 `boxes_y0` 的 **CE**。
+
+**乘法器独占 ≈ 8.5 ns（34%），前级布线到第一个 APM 已用掉 11.3 ns。**
+
+### 6. 根因（`soc/Hcamera_preprocess.v`）
+
+```verilog
+:123  wire [63:0] region_area    = {32'b0,region_width}*{32'b0,region_height};
+:124  wire [63:0] color_fraction = {32'b0,region_pixels}*64'd256;
+:125  wire [63:0] aspect_width   = {32'b0,region_width}*64'd256;
+:126  wire region_accepted = region_valid && region_pixels >= min_pixels &&
+:127        region_area >= {32'b0,min_area} && region_area <= {32'b0,max_area} &&
+:128        color_fraction >= region_area*{56'b0,min_fill} &&
+:129        aspect_width >= {32'b0,region_height}*{48'b0,min_aspect} &&
+:130        aspect_width <= {32'b0,region_height}*{48'b0,max_aspect};
+...
+:310  if (region_accepted) begin          // 直接当 boxes_* 的写使能
+:311      boxes_x0[append_index] <= rx0>margin ? rx0-margin : 16'd0;
+```
+
+三个问题叠加：
+
+1. **位宽虚高**。`region_width/height` 名义 32 位，实际由 `scan_x/scan_y` 产生，
+   上限只有 `FRAME_WIDTH-1=639` / `FRAME_HEIGHT-1=479`（10 / 9 位）。
+   32×32 乘法被打成 **3 片 APM**；按真实位宽 10×9 只要 **1 片**。
+   `WITH 640×480`：`area ≤ 307200`（19 位）、`min_fill` 是 8 位（`:36`/`:92`）、
+   `area*min_fill ≤ 78.3M`（27 位）、`pixels*256 ≤ 78.6M`（27 位）。
+   **全部 64 位运算里，真正需要的只有 27 位。**
+2. **两组乘法串在一拍**。`area = w*h` 必须在 `area*min_fill` 之前，天然 2 级。
+3. **判据直接驱动 CE**，末端还要摊 64 扇出。
+
+而 `*64'd256` 那个"乘法"综合器已经自动识别成移位了（路径里只有 5 片 APM，
+不是 7 片），所以**把 `*256` 改写成移位是免费的、但没有收益**，只作为可读性修正。
+
+### 7. 90 条违例的可修性分类
+
+| 类别 | 条数 | 位置 | 结论 |
+|---|---|---|---|
+| **RTL 可修** | **9** | `u_preprocess_stereo` ×6（−11.52×3、−4.87×3）、`u_cpu` ×3（−1.44） | 见下一节方案 |
+| 只能物理修（0~1 级，纯走线） | 69 | `u_ddr3_ctrl/u_ddrphy_top` 48、`u_cam1` 15、`u_cam2` 16 | floorplan（把 `u_ddr3_ctrl` 钉到 PHY 侧 X1Y2，cam 钉到 X0Y1） |
+| 跨域复位 | 2 | `rst_sync_q1 → u_ddr3_ctrl` −4.91 | 复位分配，需单独看 |
+| **约束待定** | 210 端点 | `CAM*_PCLK → ddr_core_clk` −4.57 / −4.52 | 见下节 |
+
+### 8. 待决策：`CAM*_PCLK ↔ ddr_core_clk` 从来没被分成异步组
+
+`soc.fdc` 只有三条 clock group：
+
+```tcl
+:41  -group {cpu_clk} -group {JTAG_CLK}
+:42  -group {cpu_clk} -group {CAM1_PCLK} -group {CAM2_PCLK}
+:43  -group {cpu_clk} -group {ddr_core_clk}
+```
+
+即 **`CAM*_PCLK` 与 `ddr_core_clk` 之间是"同步"关系**。而失败路径是：
+
+```
+u_cam1/u_fifo/wr_gray[5] → wr_gray_meta[5]/D     0 级，−4.572
+u_cam2/u_fifo/...                                 0 级，−4.524
+```
+
+`wr_gray → wr_gray_meta` 是**格雷码指针的 2 级同步器**，物理上就是异步 CDC。
+工具按同步路径去收敛它，白占 210 个端点、并把这些 FF 拉近，挤占布线资源。
+
+**这不算"用 false path 掩盖真实同步路径"**——格雷码跨时钟域本来就该按异步约束。
+但要不要加由用户定，未擅自修改 `soc.fdc`。
+
+---
+
+## 2026-10-20　修改方案：`Hcamera_preprocess` 区域判据三拍化（已实测验证）
+
+### 先排除"靠工具开关解决"
+
+翻 Pango 手册原文（`PDS_2022.2-SP6.4/doc/*`，已提取到 `/tmp/opencode/syn.txt`、`pds_ug.txt`）：
+
+| 开关 | 手册原文（ADS Synthesis User Guide §2, `syn.txt:497-505`） | 对本路径 |
+|---|---|---|
+| **Pipelining** | "通过挪动寄存器往前，将 dpram 异步输出端口的 mux–chain 就吸收掉" | 只吸收**已存在**的寄存器，不会插入流水级 → **无用** |
+| **Retiming** | "通过移动电路中**已有的** register 的方式…在此过程中，**不会插入多余的逻辑**" | 明确不插逻辑，无法打断无寄存器的乘法链 → **无用** |
+| **Resource Sharing** | 对加减/乘法做资源共享，"合并后可优化面积，但**可能会降低时序**" | 反向，不考虑 |
+
+**结论：这条路径没有任何综合选项能救，必须改 RTL。**（这是"参考权威资料"得到的硬结论，
+不是猜的。）
+
+唯一有点意思的是 `syn_dspstyle`（ADS UG §5.7，`syn.txt:1582`）：
+
+```
+block_mult  将乘法器、加（减）法器逻辑 map 到 APM
+logic       将乘法器逻辑 map 到 LUT
+```
+
+它支持**按单个运算符**指定实现方式。10×9 的乘法如果用 LUT 实现，省掉 APM 的
+2.067 ns 入口延迟，但换成 ~5 级 LUT 树（≈2.5 ns）+ 布线。**列为后备 A/B 实验**，
+不作为主方案（不改代码、可随时试）。
+
+### 时间预算先算清楚
+
+报告给的是：`required 13.216`，起点 FF 的 `Q` 在 **5.906**。
+
+```
+Q→CE 实测可用预算 = 13.216 − 5.906 ≈ 7.31 ns
+```
+
+而这 7.31 ns 现在要装：`1.53`（查询 mux + 命中判据）`+ 1.4`（`xe−xs+1` 进位链）
+`+ 0.67`（布线）`+ 9.35`（5 片 APM 串行）`+ 4.07`（比较 + CE 64 扇出）= **18.83 ns**。
+
+拆开看每一片的实测代价（全部来自本报告）：
+
+| 元件 | 延迟 |
+|---|---|
+| APM 首片 `PO[0]` | **2.067** |
+| APM 级联 `P_0/P_1` | 1.431 ~ 1.506 |
+| **APM 之间的布线** | 0.739 ~ 0.917 |
+| 32 位进位链 `COUT` | 0.302 ~ 0.369 |
+| LUT6 | 0.157 ~ 0.235 |
+
+**单级预算 7.31 ns，只够放 1 片 APM（2.067 + 进出布线 ≈ 3.2 ns）再挂一圈比较（≈1.5 ns）。**
+
+### 方案对比（按这个预算重算）
+
+| 方案 | 改法 | 单级最长 | 判定 |
+|---|---|---|---|
+| **P1 只收位宽** | 10/9 位运算替代 32 位，3 片 APM → 1 片 | ≈9.7 ns | ❌ 仍缺 ~2.4 ns |
+| **P2 只流水，不收位宽** | FILTER 每区 4 拍 | 3 片 APM 串联仍 ≈8.9 ns | ❌ **位宽不动就装不进一级** |
+| **P3 收位宽 + 三段流水** | 每级只放 1 片 APM | ≈4.6 ns | ✅ 余量 2.7 ns |
+| P4 `syn_dspstyle=logic` | 只加属性，不改代码 | 未知 | 备用 A/B 探针 |
+
+**关键结论：P1 和 P2 单独做都不够，位宽收敛和流水必须一起做。**
+P2 之所以单独无效，是因为 32×32 乘法本身就拆成 3 片 APM（2.067+1.431+1.506 = 5.0 ns）
+外加合并进位链（0.302+0.157+0.8 ≈ 1.3 ns），任何单独一级都吃不下。
+
+**推荐 P3**：位宽收到真实范围后，每级只剩 1 片 APM。FILTER 每个区走 3 拍
+（锁存 → 并行乘法 → 比较写入），总 25 拍 vs 现在 9 拍，**实测每帧多 14~20 拍**。
+
+### P3 具体改法（`soc/Hcamera_preprocess.v`，集中在 3 处 + FILTER 分支）
+
+**① 位宽收敛**（:121-130，可证安全）
+
+```verilog
+localparam integer W_BITS = count_bits(FRAME_WIDTH);   // 640 -> 10
+localparam integer H_BITS = count_bits(FRAME_HEIGHT);  // 480 -> 9
+wire [W_BITS-1:0]  region_width  = rx1 - rx0 + 1'b1;
+wire [H_BITS-1:0]  region_height = ry1 - ry0 + 1'b1;
+wire [W_BITS+H_BITS-1:0] region_area = region_width * region_height;   // 19 位 → 1 片 APM
+wire [W_BITS+8-1:0]  color_fraction = {region_pixels[18:0], 8'b0};     // pixels*256，27 位
+wire [W_BITS+8-1:0]  aspect_width   = {region_width, 8'b0};            // 18 位
+```
+
+依据：`xs/xe ← mx0/mx1 ← scan_x ∈ [0, LAST_X]`，`ys/ye` 同理；`min_fill` 本身是 8 位（`:36`/`:92`）。
+
+**注意别顺手把 `area*min_fill` 写死**：19 位 × 8 位仍可能落 2 片 APM。
+改成 `w * (h*min_fill)`（10 位 × 17 位）才保证**每片都只占 1 个 APM**：
+`h*min_fill` 17 位、`w` 10 位，都 ≤ 18 位 APM 输入宽度。
+
+**② FILTER 改成三拍状态机**（**不是流水线**——这是实测后改的主意，见下）
+
+| 拍 | 做什么 | 关键路径 |
+|---|---|---|
+| P0 | 锁存 `rx0..ry1 / pixels / color / valid`（8:1 查询 mux） | ≈1.7 ns |
+| P1 | `area=w*h`、`hfill=h*min_fill`、`asp_lo=h*min_aspect`、`asp_hi=h*max_aspect`（**4 片 APM 并行**） | ≈3.5 ns |
+| P2 | `fill=w*hfill`（1 片 APM）+ 6 个比较 + AND 树 → 写 `boxes_*`、`roi_count++`、`region_index++` | ≈5.6 ns |
+
+**每拍最长 5.6 ns < 7.31 ns 预算，余量 1.7 ns。**
+
+> **为什么不做成流水线**：初稿写的是「4 级流水、只多 3 拍、+746 FF」。
+> 实际实现时发现，既然 FILTER 只跑 8 次，**串行三拍**和**流水线**的单拍时序完全一样，
+> 但串行版只需 350 FF 而不是 746，且没有流水线排空/写指针错位的风险。
+> 代价是多 13 拍/帧（见下），仍然是 ppm 级。**用简单换安全。**
+
+APM 用量对比（`place_route/Hfpga_soc.prr:167`：全器件只用了 **21/740 = 3%**）：
+
+| | 每路相机 | 两路合计 |
+|---|---|---|
+| 现在 | 8（`u_preprocess_stereo` 共 16，`:268` 逐模块表） | **16** |
+| P3 之后 | 5（area / hfill / w·hfill / 2 个 aspect） | **≈10** |
+
+即 **APM 不升反降 6 片**，资源层面零风险。
+
+**③ 寄存器增量**：`filter_phase`(2) + `fq_valid`(1) + `fq_color`(3) + `fq_x0..y1`(64)
++ `fq_pixels`(19) + `fx_area`(19) + `fx_hfill`(17) + `fx_asp_lo/hi`(50) = **175 FF/路**，
+两路 **350 FF = 全局 45110 的 +0.78%**。
+
+**等价性论证**（TB 零改动即可验证）：
+
+- `region_accepted` 的布尔表达式**一个运算符都没改**，只把中间结果存进寄存器；
+- 写 `boxes_*` 用的 `roi_count`（`append_index`）与原来同一个寄存器，
+  写事件仍按 `region_index` 顺序到达，压缩语义不变；
+- 每区判据仍只求值一次；
+- 唯一差别是**时序**：`boxes_*` 的写入整体后移固定拍数，
+  而 `ROI_START` 要等 FILTER 走完（`region_query_index==MAX_REGIONS`）才进，
+  所以外部可见的顺序与内容不变。
+
+### 性能代价：**实测**（不是估算）
+
+用 `tb_preprocess_stereo.sv` 的 `last_cycles` 输出做 A/B，同一 TB、同一激励、
+只换 RTL（临时插一行 `$display`，测完已还原）：
+
+| 帧 | 原始 | P3 | Δ |
+|---|---|---|---|
+| cam0-1 | 452 | 467 | **+15** |
+| cam0-2 | 404 | 422 | **+18** |
+| cam1-2 | 584 | 599 | **+15** |
+| cam0-3 | 401 | 421 | **+20** |
+| cam1-3 | 508 | 525 | **+17** |
+| cam0-4 | 471 | 485 | **+14** |
+
+**实测 +14 ~ +20 拍/帧，均值 +16.5**，与"3 拍 × 8 区 − 原 1 拍 × 8 区 + 1 拍出口 = +17"吻合。
+
+注意成本是**固定的**：FILTER 无论接受几个区都要走完 `MAX_REGIONS=8` 次查询。
+
+| 项 | 数值 |
+|---|---|
+| 每帧增加 | **+14~+20 拍**（实测） |
+| 640×480 帧的 SCAN 下限 | `307200` 拍（1 拍/像素） |
+| **占比** | **≈ 5.4 ppm ≈ 0.0005%** |
+| 30 fps（33.3 ms） | 16 拍 @125 MHz = 128 ns → **3.8×10⁻⁶** |
+
+**结论：对 NPU 吞吐与端到端延迟的影响在 ppm 量级，低于测量噪声。**
+FILTER 是**每帧一次**的收尾统计，不在像素流路径上。
+
+
+### 可行性审计：8 条假设逐条对上证据
+
+| # | 假设 | 证据 | 结论 |
+|---|---|---|---|
+| 1 | 坐标 ≤ `FRAME_WIDTH-1` / `FRAME_HEIGHT-1` | `u_regions` 例化 `.x(scan_x) .y(scan_y)`（`:186`）；`scan_x==LAST_X` 时回零（`:295`） | ✅ |
+| 2 | `FRAME_WIDTH/HEIGHT` 不会被改 | `Hpreprocess_stereo` 默认 640/480；`Hfpga_soc.v:1151` 只覆盖 `DDR_BASE/DDR_BYTES` | ✅ |
+| 3 | 各中间量位宽够 | 逐项最大值：640 / 480 / 307200 / 122400 / 78.3M / 31.5M / 163840 / 78.6M，全部 < 2^N | ✅ |
+| 4 | `min_fill` 确实是 8 位 | `:36` `input [7:0] cfg_min_fill`；`:92` `reg [7:0] ... min_fill` | ✅ |
+| 5 | 单拍只跨 1 片 APM 能收敛 | APM 实测 `2.067` + 进出布线 ≈3.2 ns；预算 7.31 ns | ✅ 余 1.7 ns |
+| 6 | 10×9 / 10×17 乘法只占 1 片 APM | APM IP 手册 `UG041003` p.8：单实例支持无符号 **2~72 × 2~81 位**；现在 32×32 占 3 片是位宽虚高所致 | ⚠️ 逻辑成立，**需一次综合确认** |
+| 7 | 改写不改变功能 | `tb_preprocess_stereo` 全过（**20×12 与 640×480 两种几何**） | ✅ **已实测** |
+| 8 | `roi_count` / `boxes_*` 压缩语义不变 | 同上 TB 逐框比对 `x0/x1/y0/y1`、`count`、`color`、全部 ROI 像素 | ✅ **已实测** |
+
+### 唯一没有本地验证的一条
+
+第 6 条：**10×9 乘法是否真的落成 1 片 APM**。本地没有 Pango 综合（Windows），
+只能靠一次综合看 `Hfpga_soc.snr` 的 APM 数与本路径的逻辑级数。
+即使不成立（比如落成 2 片），这一级约 5.5 ns，仍在 7.31 ns 预算内。
+
+### 附：顺手发现的既有问题
+
+`tb_preprocess_stereo.sv` 的 `+RAW_640X480` 分支在**原始 RTL 上就已经失败**
+（`wait_results` 超时、`error=0`），与本次改动无关。该分支入口设了 `cfg_width=96`
+但注释写 640×480，属于陈旧代码。**不要拿它当回归基准。**
+
+### 验证计划（不做完不提交）
+
+1. **功能等价**：现有 6 个 wrapper 全跑，重点 `CAMERA_STEREO_PASS`（校验和必须仍是
+   `58e33800`）、`NPU_IMAGE_SYSTEM_PASS`、`NPU_CNN_SYSTEM_PASS`、`NPU_ROAD_MODEL_V03_TEST_PASS`。
+2. **边界用例**：额外构造 8 个区**全接受**、**全拒绝**、**临界填充率**三种配置
+   （`min_fill` 取 0 / 255 / 恰好等于实际值），确认 `roi_count` 与 `boxes_*` 逐位一致。
+3. **综合对比**：`u_preprocess_stereo` 的 APM 应从 16 降到 ~10；新增寄存器 **175 FF/路、
+   两路 350 FF（全局 +0.78%）**，LUT 增量预计 < 200。**APM 降、FF 微增。**
+4. **时序复测**：确认这 6 条从违例清单消失，WNS 落到 −5.03（`u_ddrphy_top`）。
+
+### 修完之后的天花板
+
+| 阶段 | WNS |
+|---|---|
+| 现在 | −11.521 |
+| P3 之后 | **≈ −5.03**（`u_ddrphy_top` 的 0 级路径） |
+| 再往后 | 只剩 floorplan（69 条 0 级 + 2 条复位分配） |
+
+若确实要 125 MHz，**P3 是必须做的第一步**，但它不解决 69 条 0 级路径——
+那些只能靠第三层 floorplan，或找 Pango 支持看 PHY 内部约束。
+
+---
+
+## 2026-10-20 22:38　P3 已落地并同步
+
+### 改动
+
+`soc/Hcamera_preprocess.v`，**+75 / −24 行**，md5 `234e11623dccb2dff82f70a5717d59a1`。
+
+三处：① 区域判据位宽收敛（新增 `RW/RH/RA/RP/HF/FI/AS/CF/CMP_BITS` 九个 localparam）；
+② FILTER 由「一拍算完」改成「三拍状态机」（`filter_phase` 0/1/2）；
+③ 复位分支补 `filter_phase<=0; fq_valid<=0`。
+
+### 验证证据
+
+| 检查 | 结果 |
+|---|---|
+| `tb_preprocess_stereo.sv` @ 20×12 | **PREPROCESS_STEREO ALL PASS**（8/8 子用例） |
+| `tb_preprocess_stereo.sv` @ **640×480** | **ALL PASS**（真实几何，10/9 位宽） |
+| `tb_camera_stereo.sv` | `CAMERA_STEREO_PASS cam1_aw=76800 cam2_aw=57600` |
+| `tb_camera_pipeline.sv` | `CAMERA_PIPELINE_PASS VGA=640x480 frames=3 sum0=497da800 sum1=55deb800` |
+| 整机 `verilator --lint-only`（`Hfpga_soc`, `PREPROCESS_ENABLE=1`, 59 个源文件） | **退出码 0**，无 `%Error` |
+| 本模块 lint 告警 | **零新增**（只剩 3 条既有的 `scan_x/scan_y` 位宽扩展） |
+| 周期代价 A/B（`last_cycles`） | **+14 ~ +20 拍/帧**，均值 +16.5 |
+
+首轮实现曾在 `:143/:144` 引入 2 条 `WIDTHTRUNC`（宽高截位），
+已改为显式 17 位中间量 + 切片（`fq_w17[RW_BITS-1:0]`），把"截位无损"写进代码而不是靠告警静音。
+比较式的 3 条 `WIDTHEXPAND` 也用显式零扩展消掉。**最终零新增告警。**
+
+### 同步
+
+| 位置 | md5 |
+|---|---|
+| `/home/lzy14/.../soc/Hcamera_preprocess.v` | `234e11623dccb2dff82f70a5717d59a1` |
+| `/mnt/d/HPUfile/.../small-eyes/soc/Hcamera_preprocess.v` | `234e11623dccb2dff82f70a5717d59a1` |
+
+`project/project.pds:214` 引用的是 `../soc/Hcamera_preprocess.v`，即上面这个 D 盘文件，
+**下次综合直接生效**，不需要改工程。
+
+### 下一步（需一次综合确认）
+
+1. 看 `Hfpga_soc.snr`：`u_preprocess_stereo` 的 **APM 应从 16 降到 ~10**，
+   新增寄存器 ≈175 FF/路（两路 350）。
+2. 看新 `Hfpga_soc.rtr`：`u_preprocess_stereo` 那 6 条（−11.52×3、−4.87×3）应消失，
+   WNS 落到 `u_ddrphy_top` 的 **−5.03**。
+3. 若 APM 没降到预期（10×9 没落成 1 片），单拍约 5.5 ns，仍在 7.31 ns 预算内，不会翻车。
+
+**备份**：原始版 `/tmp/opencode/Hcamera_preprocess.v.orig`（md5 `8936006833e00f9d6fb49a9f70cb4ff8`）。
+
+**记录时间**：2026-10-20 22:38。
+
+---
+
+## 2026-10-21 18:00　10-21 布线失败归因 + P3 效果核实
+
+### 一、结论
+
+1. **这次不是「布不通」，是被 180 分钟超时杀掉**——杀的时候还有 6902 条线没布完。
+2. **P3 确实有效，效果比预期大**：APM 16→10、LUT −7.2%、`u_preprocess_stereo` 从违例清单里**彻底消失**。
+3. **瓶颈只是搬家**：新 WNS 变成 `release_rd_ptr → lane slot_state`。所以
+   **原先「P3 之后 WNS ≈ −5.03」的预测是错的，本节予以更正。**
+
+### 二、失败现场（`place_route/run.log` 与 `pds.log` 结尾）
+
+```
+Unrouted general nets at iteration 79 (MT total route time: 283.614 sec): 6902(overused: 20185)
+W: Task "Place & Route" is overtime, stop request has been received.
+E: Flow-0232: Task has been killed as timeout.
+```
+
+- `impl.tcl` 最后一条命令是 `pnr -action_timeout 180`（180 分钟）。
+- 时间线：`13:31:14` 启动 → `13:39` 布局完成（`Total placement takes 427.30 sec`）
+  → `16:26` 最后一个迭代 → `16:31` 被杀，**正好 180 分钟**。
+- 产物：`place_route/Hfpga_soc.prr` **0 字节**、`report_timing/` 无新报告、`generate_bitstream/` 无新位流。
+- 同一天还失败了两次：
+  - `08:54` 留下 `partial_route.adf`（更早一次布到一半）；
+  - `09:37` 那次在 iteration 22 崩溃：`E: Flow-0127: Process exits abnormally.`
+
+### 三、为什么 180 分钟不够：**越布越慢**
+
+| iteration | 未布网 | overuse | **本迭代耗时** |
+|---|---|---|---|
+| 9 | 67960 | 502721 | 9.660 s |
+| 22 | 24213 | 107583 | 38.449 s |
+| 50 | 10624 | 37040 | 184.768 s |
+| 79 | 6902 | 20185 | **283.614 s** |
+
+对比 10-19 日志里**成功**的那次（同器件、同工具、迭代 431 收敛）：
+
+| iteration | 未布网 | overuse | 本迭代耗时 |
+|---|---|---|---|
+| 21 | 28882 | 139838 | 31.047 s |
+| 49 | 6984 | 21454 | 13.877 s |
+| 50 | 6508 | 19490 | 13.282 s |
+| 431 | **0** | 0 | 0.393 s |
+
+**同样拥塞水平（overuse≈20000），这次每迭代 283.6 s，上次只要 13.3 s——慢 21 倍。**
+而且趋势相反：上次越布越快，这次越布越慢。
+
+结论：**不是网表变难了，是布线器进了病态迭代**——rip-up & reroute 在一小撮
+高扇出网上反复震荡，迷宫搜索范围越撑越大。
+
+### 四、可以排除「P3 导致拥塞」：资源反而降了
+
+`place_route/bak/Hfpga_soc.prr`（10-20 23:05，改后）vs 10-20 16:47（改前）：
+
+| 资源 | 改前 | 改后 | Δ |
+|---|---|---|---|
+| APM | 21 | **15** | **−6** |
+| CLMA | 13620 (46%) | 13298 (45%) | −322 (−2.4%) |
+| LUT (CLMA+CLMS) | 38265+12033 = **50298** | 35170+11499 = **46669** | **−3629 (−7.2%)** |
+| FF (CLMA+CLMS) | 34153+11021 = 45174 | 33763+11380 = 45143 | −31（持平） |
+| DRAM | 1186 | 1186 | 0 |
+| DRM | 35 | 35 | 0 |
+
+布线网数 `Total route nets size: 78181`，与上一次相同。
+
+**LUT 降 7.2%、APM 降 6 片，网数不变 → 拥塞没有变差。**
+
+### 五、P3 有效的三条直接证据
+
+1. **逐模块（`synthesize/Hfpga_soc.snr` 模块表）**
+
+   | | 改前（prr） | 改后（snr） | Δ |
+   |---|---|---|---|
+   | `u_preprocess_stereo` LUT | 7691 | 7022 | −669 |
+   | `u_preprocess_stereo` FF | 5832 | 5802 | −30 |
+   | `u_preprocess_stereo` APM | **16** | **10** | **−6** |
+   | `cameras[0].u_preprocess` APM | 8 | **5** | −3 |
+   | `cameras[1].u_preprocess` APM | 8 | **5** | −3 |
+
+   每路正好 5 片（area / hfill / w·hfill / 2×aspect），**与设计完全一致**，
+   证明「10×9 乘法只占 1 片 APM」的假设成立。
+
+2. **违例路径清单**
+   - 改前布线后：前 6 条**全是** `u_preprocess_stereo`（−11.521×3、−4.87×3）。
+   - 改后综合：44 条 setup/hold 违例里，**`u_preprocess_stereo` 一条都没有**。
+
+3. **新 WNS 换了主人**
+   ```
+   Startpoint : u_npu_system/g_image_service.u_service/release_rd_ptr[0]/CLK
+   Endpoint   : u_rgb565_int8/lane[1].u_lane/slot_state[1][1]/D
+   Slack      : -9.047 ns   (synthesis)
+   ```
+
+### 六、新瓶颈路径拆解（数据路径 16.2 ns，17 级）
+
+| 段 | 内容 | 代价 |
+|---|---|---|
+| 1 | `release_position_mem`（GTP_RAM32X2DP）读 | 0.659 + 0.329 |
+| 2 | 扇出 **302** 的网 + LUT4 | **1.234** + 0.108 |
+| 3 | `npu_release_position_int[4]` 扇出 **929** | **1.372** |
+| 4 | 3 级 LUT6 组合 | ≈1.55 |
+| 5 | `slot_state` 与 release 位置的 **16 位 LUT6CARRY 相等比较** | ≈0.55 |
+| 6 | 扇出 76 的网 + `u_service` LUT5 | 0.741 + 0.096 |
+| 7 | 一串 `LUT3/MUX2LUT7/MUX2LUT8` 优先级选择（扇出 72/56/53 的网各 ≈0.7） | ≈7.0 |
+
+即：**release 广播 + 优先级编码**。和 APM 无关，和区域判据无关。
+
+对照 10-20 布线后报告里的同族信号：
+```
+net (fanout=5159)  4.248 ns   g_ddr_profile.npu_release_ready_int[0]
+```
+**单根网就吃掉 4.25 ns（8 ns 预算的一半）**，这是释放路径的病根。
+
+### 七、更正：「P3 之后 WNS ≈ −5.03」不成立
+
+那条预测是按**旧报告的次优路径**（`ddr→ioclkdiv` 的 −5.034）外推的，
+**漏掉了这条 release 路径**——它在旧报告的 348 条里根本没被列出来
+（旧报告 Startpoint 统计：ddrphy 182、cam 82、jtag 12、cpu 12、preprocess 5，
+没有 `u_rgb565_int8` / `u_npu_system` 的 release 路径）。
+
+两点必须说清楚：
+
+1. **综合级 −9.047 不能和布线后 −11.521 直接比。** 综合用 8.334 ns 的理想时钟树
+   （`net (fanout=38108) 1.100` + 前级 7.2 ns），布线后时钟插入只有 3~5 ns。
+   同样的 −4.874 路径，旧报告里 `Data required time` 只有 12.044，而综合里是 15.7。
+2. 但方向是确定的：**P3 不会把 WNS 拉到 −5**，release 路径会在 **−8 ~ −10** 这一档。
+   它以前被 preprocess 的 −11.52 盖住了。
+
+### 八、建议（按性价比）
+
+1. **先解超时（唯一硬阻塞）**：`pnr -action_timeout 180` → 480~720，或直接去掉。
+   按本次迭代速率，收敛至少要 4~6 小时（历史成功那次全程 110 分钟）。
+2. **开 decongestion**：`impl.tcl` 里已有 `pnr -plc_decongestion 3 -slack_weight 50`，
+   但 10-21 这几次跑的都是**裸 `pnr`**（日志只显示 `strategy name : 0`）。
+3. **下一个 RTL 目标就是 release 路径**，优先级高于 floorplan：
+   - `npu_release_ready_int` 扇出 5159、单网 4.25 ns；
+   - `npu_release_position_int` 扇出 929；
+   - 思路：把"全局广播 + 每 lane 全比较"改成 **按 lane 本地解码**
+     （release 位置先按 lane 分组寄存，lane 内只比较自己那一段）。
+4. **floorplan 排第三**：`fail_route_nets.txt` 采样 7172 条失败网，
+   扇出中位 2、均值 17.3、**最大 9612**，13.7% 扇出 ≥20；
+   跨度中位 3×3、52% 在 5×5 内——**是少量高扇出广播网拖累了整体**，
+   和 release 路径同一个病根。
+
+**记录时间**：2026-10-21 18:00。
+
+---
+
+## 2026-10-21 19:40　P1 落地：释放路径拆成"寄存化 + 两拍流水"
+
+### 一、改了什么
+
+**A. `soc/Hnpu_image_service.v`（−24 / +31 行）**
+
+原释放队列是 18 深环形队列（`release_*_mem` + `rd/wr_ptr` + `count`）。但 lane 内
+`assign release_ready = rst_n`，**队列任何时刻最多只驻留 1 条**（写进去下一拍就被取走）。
+按这个不变式把它等价收敛成一级 skid 寄存器 `rel_v/rel_camera/rel_block/rel_position/
+rel_frame/rel_generation`：
+
+- 仍然"每拍可交付 1 条"，且允许同一拍写入下一条（`release_head_pop` 清 `rel_v_next`，
+  随后 enqueue 见到空位就装载）——**不丢消息**；
+- 释放载荷改由触发器驱动，工具可以做寄存器复制；原来是
+  "LUTRAM 读 → 扇出 302/929 的 mux"，**无法复制**，这正是 −9.0ns 违例的起点；
+- `release_capacity` 的判据从 `release_count` 换成 `rel_v`，因为 count 恒 ∈{0,1}，
+  逐位等价。
+
+**B. `soc/Hrgb565_int8_lane.v`（−22 / +30 行）**
+
+释放从"一拍内完成 变址读 + 比较 + 变址写"拆成两拍：
+
+```
+拍1: rel_candidate = block*14 + position (6 位)
+     release_hit = camera 匹配 && position<14 && candidate<56
+                   && slot_state[candidate]==2
+                   && slot_generation[candidate]==release_generation
+                   && slot_frame[candidate]==release_frame
+     rel_hit_q <= release_hit;  rel_slot_q <= rel_candidate;
+拍2: for (k=0..55) if (rel_hit_q && rel_slot_q==k) slot_state[k] <= 0;
+```
+
+- 第 2 拍的写是 **one-hot 常量索引**，每个槽的 `slot_state[k].D` 只依赖本地寄存位，
+  不再和 pop/push/ST_ALLOC/ST_CLEAN 挤进同一条 56 选 1 优先级链；
+- **`slot_frame` 快照语义完全保留**（用户硬要求）：仍然要求 generation **和** frame
+  同时一致才释放，重复/过期消息照旧只累加 `bad_release_count`；
+- `release_camera==(CAMERA?2:1)` 保留（不是恒真，lane0/lane1 各自过滤）。
+
+### 二、严格等价性 / 唯一的语义差异
+
+| 项 | 改动前 | 改动后 |
+|---|---|---|
+| `release_valid` 宽度 | 1 拍 | 1 拍（skid 每拍腾空） |
+| 释放生效时刻 | 收到当拍 | **晚 1 拍** |
+| 两拍连续到达两条释放 | 两条都生效 | 两条都生效（写落在不同拍） |
+| 同一槽重复释放 | 第 2 条计 bad | 第 2 条计 bad（间隔 ≥2 拍） |
+| `bad_release_count` 计时 | 收到当拍 | 不变（组合判 `release_hit`，同拍累加） |
+
+唯一窗口差异：若同一槽的重复释放恰好在**相邻拍**到达，第 2 条会在第 1 条生效前被判定，
+两条都"命中"（多清一次 0，无副作用、不误计 bad）。这条路径在当前设计里不可能出现
+（一次 engine_done 只产生一条，间隔数千拍）。
+
+### 三、验证（WSL / Verilator 5.038）
+
+| 项目 | 结果 |
+|---|---|
+| `tb_rgb565_slot_select` | `RGB565_SLOT_SELECT_PASS cases=69 randomized=64 max_latency=8`（含 `check_release_snapshot`） |
+| `tb_rgb565_lane_alloc` | `RGB565_LANE_ALLOC_PASS cycles=8 first_slot=0 last_slot=7` |
+| `tb_camera_stereo` | `CAMERA_STEREO_PASS`，5 帧校验和全对（frame=3 确实复用了 slot 0，说明释放生效） |
+| `tb_camera_pipeline` | `CAMERA_PIPELINE_PASS VGA=640x480 frames=3` |
+| `tb_camera_dma` | `PASS frames=8 dropped=12 writes=13` |
+| `tb_camera_snapshot` | `CAMERA_SNAPSHOT_OVERFLOW_RECOVERY_PASS` |
+| 整机 `verilator --lint-only`（60 源 + IP，`PREPROCESS_ENABLE=1`） | **退出码 0，0 error，134 warning = 改动前基线，零新增** |
+
+`tb_preprocess_stereo` 未重跑：它只覆盖 preprocess 模块，不经过 rgb565 lane 的释放路径，
+本轮无改动面。（P3 时已验证 ALL PASS。）
+
+### 四、性能代价（量化）
+
+- **吞吐：0 变化。** 改的是一条控制路径的时序，不碰数据通路；NPU 每批计算拍数不变。
+  唯一的理论代价是"槽可再用时刻晚 1 拍"，即下一批 `ST_ALLOC` 最多晚 1 拍。
+- **延迟上界：每张图 +1 拍 = +8 ns @125MHz。** 一张 96×96 RGB565 的处理是
+  **数万拍**量级（preprocess 一帧 `last_cycles` ≈ 3e4），所以相对代价 < 0.01%。
+- 与 P3 的对比：P3 是 **+16.5 拍/帧 ≈ 5.4 ppm**（因为它是数据通路加拍），
+  P1 是 **控制路径 +1 拍/批**，量级差三个数量级。
+- 回归侧旁证：`bad_release_count` 未增长（否则 `tb_camera_stereo` 的帧复用会失败），
+  `tb_rgb565_slot_select` 的 64 组随机分配延迟仍然 `max_latency=8`，说明
+  "≤8 拍进 AXI" 的契约没被破坏。
+
+### 五、预期收益（待 D 盘综合/布线实测）
+
+综合级原违例 `slot_state[0][1]/D`：32 级逻辑、Data 24.765 / Required 15.718 / **−9.047**。
+其中 Route 12.225 ns、Logic 4.206 ns。现在这条锥被切成：
+
+- `rel_*` 触发器 → `rel_candidate` → 3 路 56:1 读 → 比较 → `rel_hit_q`：**1 段**；
+- `rel_hit_q/rel_slot_q` → one-hot 译码 → `slot_state[k]`：**2 级 LUT**。
+
+同时 `npu_release_*_int` 那几根 302/929/5159 扇出的广播网从"组合路径首段"变成
+"触发器输出"，可被 `Design Cells Duplication` 复制，也顺带缓解 `fail_route_nets.txt`
+里 13.7% 扇出 ≥20 的拥塞来源。
+
+### 六、更正：CLKOUTPHY 的 1.0 ns 不是缺陷
+
+上一节假设"PDS 把 CLKOUTPHY 推断成 1 GHz 是缺陷，导致布线器空转"。核对厂家
+`IP/ddr3_ctrl_v116/pnr/ddr_test.fdc`：
+
+```
+phy_dq_clk_0 = ref_clk(8ns) * 16 / 2 = 1.0 ns      <-- 1 GHz 是 DDR3-1600 的 PHY 串行时钟
+phy_dq_sysclk = CLKOUTPHY, edges {5 13 21}          <-- 等效 8 ns，相位 5 ns
+set_multicycle_path 2 ddrphy_sysclk -> phy_dq_sysclk
+set_clock_uncertainty 0.4 (双向, setup+hold)
+```
+
+所以 **1.0 ns 是真实需求，不是推断错误**；错的只是 `CLKDIVOUT_Inferred` 的
+**相位**（PDS 推成 waveform {2,6}，厂家要求上升沿在 5 ns）。而 10-20 报告的
+`Performance Summary` 里这些 PHY 时钟全部 MET，**说明它们不是这次 WNS 的来源**，
+"布线器追 1 GHz 空转"的假设**不成立，撤回**。
+
+真正与厂家约束的差异只有：缺 `phy_dq_sysclk` 的 `-edges`、缺那两条
+`set_multicycle_path 2`、缺 `set_clock_uncertainty 0.4`、`rst_clk` 靠推断。
+这属于"按厂家原厂约束补齐"，但**本轮先不动 `soc.fdc`**——避免和 P0/P1 的效果
+混在一次 P&R 里，无法归因。
+
+**记录时间**：2026-10-21 19:40。
+
+---
+
+## 2026-10-21 20:27　P2（约束补齐）+ 引擎地址锥 RTL 收敛 同时落地
+
+按用户选择"1 和 2"同时落地：**P2 = 按厂家 `ddr_test.fdc` 补齐 `soc.fdc`**，
+**RTL = 把卷积/池化张量地址锥里的乘法全部搬进寄存器**。
+
+### 一、先看本轮 P&R 实测（10-21，P3+P1 之后）
+
+`place_route/run.log:1233` successfully，275 轮、0 未布、全流程 26 min，
+`.sbit` 9,188,552 字节。
+
+| 指标 | 10-20（P3 后） | 10-21（P1+P3 后） | 变化 |
+|---|---|---|---|
+| `ddr_core_clk` WNS（slow） | −11.521 ns | **−6.734 ns** | +4.787 |
+| TNS | −79,174 | **−30,626** | +48,548 |
+| 失败端点 | 18,396 / 108,218 | **11,592 / 108,218** | −6,804 |
+| 等效频率 | 63.3 MHz | **67.87 MHz** | +4.6 MHz |
+| `ddr_core_clk` WHS | — | **+0.132** | hold 无违例 |
+
+46 条 slow-corner 违例已逐条归簇（Path Group 字段 = 捕获时钟）：
+
+| 时钟对 | 最差 slack | 端点数 | 归因 / 处置 |
+|---|---|---|---|
+| `ddr_core_clk → CLKOUTPHY\|CLKDIVOUT` | −5.394 / −4.949 | 196 / 420 | **真实同步齿轮箱**（DDR3-1600 PHY），P2 multicycle 2 |
+| `rst_clk → CLKOUTPHY/CLKDIVOUT` | −5.533 … −3.246 | 237 合计 | 异步复位分布，P2 异步组 |
+| `ddr_core_clk → CLKOUTPHY` recovery | −3.963 / −3.796 | 7 | 同上 |
+| `CAM1_PCLK → ddr_core_clk` | −4.301（+hold −0.043） | 105 | 跨时钟域，P2 异步组 |
+| `CAM2_PCLK → ddr_core_clk` | −4.525（+hold −0.042） | 105 | 跨时钟域，P2 异步组 |
+| `ddr_core_clk → ddr_core_clk` | **−6.734** | 引擎 3 条 | **本轮 RTL 收敛对象** |
+| `cpu_clk → cpu_clk` | −2.656 | 177 | 遗留（可降频，不影响 NPU） |
+| `cpu_clk → rst_clk` recovery | −3.808 | 1 | 遗留 |
+
+**结论**：`−6.734` 只剩引擎 3 条 + 90 条 0 级纯走线（floorplan 问题）。
+
+### 二、P2：`soc.fdc` 按厂家原厂约束补齐（80 行）
+
+来源 `IP/ddr3_ctrl_v116/pnr/ddr_test.fdc`，**只移植有实测依据的部分**：
+
+1. 5 个生成时钟：`rst_clk`、`phy_dq_clk_0/1`、`phy_dq_sysclk_0/1`
+   （`CLKOUTPHY` → `phy_dq_sysclk`，`CLKDIVOUT` → `phy_dq_clk`）。
+   引脚路径已从 `Hfpga_soc_syn.vm` 核对：`GTP_PPLL u_ppll:CLKOUTPHY`、
+   `GTP_IOCLKDIV_E3 u_ddrphy_ioclkdiv:CLKDIVOUT`。
+2. `ddr_core_clk ↔ phy_dq_sysclk_N`：`set_multicycle_path 2`（setup/hold）
+   + `set_clock_uncertainty 0.4`（双向）。
+   —— 这是 `ddr_core_clk → CLKDIVOUT` −5.394/−4.949 的唯一正解：
+   PHY 侧是**真实同步**的 8→2 齿轮箱，不是异步，所以不能用 false path。
+3. `phy_dq_sysclk_0/1`、`phy_dq_clk_0/1`、`rst_clk` 各自独立异步组。
+4. `CAM1_PCLK` / `CAM2_PCLK` / `ddr_core_clk` 同组外互相 async。
+
+**故意不移植**：
+- 厂家 `ref_clk` 的 async 组 —— `DDR_REF_CLK` 是所有生成时钟的 master，
+  声明 async 会把生成时钟关系一起切断；且它的相关路径本来就全过。
+- 厂家 `free_clk` —— 本设计没有这个时钟。
+
+**待实测量核对的两点**（PDS 行为，下一轮 P&R 报告里验证）：
+- 显式 `create_generated_clock` 是否替换掉自动推断的同引脚时钟
+  → Clock Summary 里不应再出现 `_Inferred` 后缀；
+- `phy_dq_clk_*` 异步组是否会连带把生成时钟 `phy_dq_sysclk_*` 吞进异步组
+  → `ddr_core_clk → CLKDIVOUT` 行必须**仍然存在**且 slack 转正。
+  若被吞掉，改用定向 `set_false_path`。
+
+### 三、引擎地址锥 RTL 收敛（`soc/Hnpu_cnn_engine.v`，+267 / −110）
+
+**病根**（本轮 −6.734 的首违 `tensor_a_1/ADB0[14]`）：`tensor_read_addr` 组合块里
+**每拍、每个 MAC** 重算
+
+```
+out_y*layer_sh, out_x*layer_sw, y*layer_in_w,
+layer_in_h*layer_in_w, ic*layer_in_h*layer_in_w, layer_kh*layer_kw*layer_in_c
+```
+
+`mul_u16_no_dsp` 展开成四级 shift/add 树，锥深 24 级
+（Logic 5.789 / Route 8.724，对 8 ns 周期）。同一套乘法还在 `mac_product`
+的置零判据里**重复了一遍**（`tensor_current_y/x`）。
+
+**做法：层常量 + 每像素基址 + 内核偏移，全部寄存器化**（不是地址寄存器化）。
+
+- **层常量**（`ST_DISPATCH` 一拍算完）：`layer_kernel_size(_m1)`、`layer_hw`、
+  `layer_kh_kw_m1`、`layer_ic_stride`、`layer_kern_step/wrap`、
+  `layer_pix_step_x`、`layer_row_step(_padl)`、`layer_row_a0`、`layer_row0_a`、
+  `layer_{in_c,out_w,out_h,out_c}_m1`、`layer_elements`。
+- **地址空间缩放** `c_scale`（不占寄存器，直接物化成
+  `layer_kern_step = c_scale`、`layer_ic_stride` 等常量）：
+  `CHW: addr = ic*H*W + y*W + x`，`HWC4: addr = (y*W+x)*C + ic`。
+  这样 HWC4 的 `pixel*C` 乘法**彻底消失**，且不假设 C==4
+  （路标模型 C=4/16/32/64 全部覆盖）。
+- **每像素基址**（`ST_CONV_WRITE` / `ST_POOL` 的 x/y 走动里维护）：
+  `pix_base_y/x`（未缩放的像素空间，用于零填充判界）、
+  `pix_row_a`、`pix_origin_a`（缩放后的地址空间）。
+  走一步只有 16 位加法：`pix_origin_a += sw*c_scale`、
+  `pix_origin_a <= pix_row_a + row_step_padl`。
+- **内核偏移**（每个 MAC 拍维护）：`conv_kern_off`（`(ky*W+kx)*c_scale`）、
+  `conv_ic_off`（`ic*ic_stride`），池化同理 `pool_kern_off/pool_ic_off`。
+- **`tensor_valid_q`**：BRAM 地址比数据早一拍，所以"上一拍对**被寻址元素**做的
+  越界判定"正好等于"这一拍读到元素的合法性"。把它寄存下来，
+  `mac_product` 的置零判据不再需要第二套坐标锥。
+- 判界写法 `!y[15] && y < layer_in_h`，与原 `y >= 0 && y < h`
+  （原代码实际按无符号比较，靠 `<` 兜底）**语义等价**，且更省逻辑。
+- 顺带把 `model_read_addr` 里 `out_c*(kh*(kw*C))` 的三层乘树
+  收敛成 `out_c*layer_kernel_size` 一次乘法。
+- `ST_RELU` 的循环上界、`ST_GAP` 的 `layer_hw`/`gap_divisor` 也改用层常量。
+
+**保留不变式**（后续改动必须维持）：
+
+```
+kernel_index == (ky*layer_kw + kx)*layer_in_c + ic
+conv_kern_off == (ky*W + kx)*c_scale
+conv_ic_off   == ic*ic_stride
+pix_origin_a  == ((out_y*sh - pad_top)*W + (out_x*sw - pad_left))*c_scale
+```
+
+### 四、功能验证（WSL / Verilator 5.038）
+
+| 测试 | 结果 |
+|---|---|
+| `run_npu_cnn_test.sh`（demo 模型，CHW） | **13/13 PASS**（含 valid + 12 条错误路径） |
+| `run_npu_road_model_v03_test.sh`（真模型 62,720 B） | **16 用例 × 144 层逐元素比对，32×32 与 96×96 两模式全 PASS** |
+| 自建 CHW + 3×3 + pad(1,1,1,1) 模型（补充覆盖） | conv/relu/pool/gap **逐元素 74 字节全对**，端到端 class=2 / score=111 |
+| `run_npu_cnn_service_test.sh` | PASS |
+| `run_npu_cnn_96_cache_test.sh` | PASS |
+| `run_npu_cnn_system_test.sh` | PASS |
+| `run_npu_image_service_test.sh` | PASS |
+| 整机 lint（60 源 + IP，`PREPROCESS_ENABLE=1`） | PASS，`PDS_sources=complete top=Hfpga_soc` |
+| `tb_rgb565_slot_select` | PASS 69 例 / 随机 64 / `max_latency=8` |
+| `tb_rgb565_lane_alloc` | PASS `cycles=8 first_slot=0 last_slot=7` |
+| `tb_camera_stereo / pipeline / dma / snapshot` | 全 PASS |
+
+**为什么需要自建模型**：仓库里的参考模型 `temp/tests/npu_model_reference.py`
+的 `conv()` **恒按 HWC 写输出**（`output[(oy*ow+ox)*oc+out_c]`），
+而内置模型里只有 `build-demo` 是 CHW 且是 1×1 无填充——CHW 的
+"乘法变加法"路径（`c_scale=1` + padding）原本没有数值覆盖。
+自建模型补上了这一格：RTL 按 CHW 写入，与参考张量的映射为
+`chw_addr = c*H*W + p`、`ref_val = trace[p*oc + c]`，74 字节全等。
+
+**开发中抓到的真 bug**：`gap_divisor <= layer_hw` 写在 `ST_DISPATCH` 里，
+而 `layer_hw` 在**同一拍**被非阻塞赋值——读到的是**上一层**的 H*W
+（16 而不是 4），导致 GAP 44/16=2 而非 11。已改为
+`gap_divisor <= disp_ic_stride[15:0]` 直接取组合线。
+
+### 五、性能代价（量化）
+
+**吞吐 / 延迟：完全为 0。** 同一份 16 用例路标模型、同一输入：
+
+| | 改动前（HEAD） | 改动后 |
+|---|---|---|
+| `max_cached_cycles`（32×32 模式） | **3,819,167** | **3,819,167** |
+| 上限 | 4,375,000 | 4,375,000 |
+
+拍数一字不差——本轮**没有增删任何状态、没有加流水级**，
+只是把原本每拍重算的乘法挪进寄存器。MAC 仍然"每拍 1 次贡献"，
+"≤8 拍进 AXI"、最低号空闲槽、accept 快照、`slot_frame` 快照语义全部未动。
+
+寄存器代价：约 30 个 16/32 位寄存器（≈ 500 FF），相对器件规模可忽略；
+逻辑侧则**净减少**（消掉每拍的 6 组乘法树）。
+
+### 六、下一步
+
+1. 重跑综合 + P&R，核对：Clock Summary 无 `_Inferred`；
+   `ddr_core_clk → CLKDIVOUT` 行仍在且 slack 转正；
+   WNS / TNS / 失败端点数三者同时改善。
+2. 之后处理 `cpu_clk −2.656`（降到 ~58 MHz 不影响 NPU）
+   与 `ddr_core_clk` fast-corner −0.740（498 端点）。
+3. 90 条 0 级纯走线违例只能靠 floorplan（热点 X32-47 / Y48-79，
+   见 `place_route/fail_route_nets.txt`），RTL 不可修。
+
+**记录时间**：2026-10-21 20:27。
+
+### 七、补记：PDS 编译报"多驱动"（2026-10-21 20:40 修正）
+
+第一次在 D 盘综合时报错：
+
+```
+E: Verilog-4086: [soc/Hnpu_cnn_engine.v(line number: 907)]
+   More than one always block assigned a value to the same variable tensor_valid_q
+Program Error Out.
+Action compile: Real time elapsed is 0h:0m:8s
+```
+
+原因：`tensor_valid_q` 我既放在**独立的** `always @(posedge clk or negedge rst_n)`
+块里（带自己的异步复位），又在主 FSM 的复位分支里写了
+`tensor_valid_q <= 1'b0`，两个 always 块驱动同一变量。
+
+**Verilator 不会报这个**（它的 `MULTIDRIVEN` 默认不在 `--lint-only -Wno-fatal`
+的告警集里，全 SoC lint 也过了），但 Synplify 直接 `Program Error Out`。
+修法：删掉主 FSM 复位分支里的那一句，复位统一由独立块负责。
+
+**教训（已加入本地检查清单）**：以后新增寄存器，若另起 always 块，
+必须同时确认主复位分支里没有同名赋值。可用
+
+```
+verilator --lint-only -Wno-fatal -Wwarn-MULTIDRIVEN -Wwarn-COMBDLY <file>
+```
+
+把 `MULTIDRIVEN` 显式打开来做前置拦截（现在跑过，输出为空）。
+
+修完重新验证：engine lint 0 error、全 SoC lint PASS、
+`run_npu_cnn_test.sh` 13/13 PASS、`run_npu_road_model_v03_test.sh`
+16 用例 × 144 层比对 PASS（拍数仍是 3,819,167，未变）。
+
+**记录时间**：2026-10-21 20:40。
+
+## 2026-10-21 22:10　T1 落地：引擎 dispatch 三级流水 + 乘法器降级 + 计数器收窄
+
+### 为什么是这三件事一起做
+
+上一轮 P&R（−5.963 ns）的结论是：`ddr_core_clk` 只剩**一个锥**，
+但那个锥在 `ST_DISPATCH` 一个周期里同时做了两件重活：
+
+1. 16 棵 16×16 / 32×16 乘法树；
+2. 25~30 项描述符校验，结果直接驱动 **143 个数据寄存器的 CE**
+   （`N7446_rnmt` fanout 143，`N20644` fanout 26）。
+
+路径 22 级、Logic 4.905 / Route 8.522 ns（布线占 63%）。所以：
+
+- 只做乘法器优化：估算只能到 −0.25 左右，在 8.5 ns 布线主导下不可靠；
+- 只拆流水不换乘法器：每一级里仍是 10 级乘法链，照样过不去；
+- 两件一起做：每一级最深 5 级乘法 ≈ 4.5 ns，预算 7.25 ns，余量 2.75 ns。
+
+### 具体改动（只动 `soc/Hnpu_cnn_engine.v`）
+
+**① dispatch 三级化，新增一个状态 `ST_CHECK = 6'd33`**
+
+```
+改前: ST_LAYER_FETCH → ST_DISPATCH(乘法 + 校验 + 装载常量, 全挤一拍) → prime
+改后: ST_LAYER_FETCH → ST_DISPATCH(二级积 → 寄存器) → ST_CHECK(只做比较) → prime
+```
+
+- `ST_LAYER_FETCH` 本来只锁 30 个字段（纯连线），现在同时锁 7 个一级积
+  `d1_hw / d1_ohw / d1_khkw / d1_wc / d1_ptw / d1_plc / d1_kw1`；
+- `ST_DISPATCH` 只做二级积 → `layer_*` 常量，**不再有任何分支**；
+- `ST_CHECK` 只写 `state / error / error_code / busy / done_pulse` 五个控制寄存器，
+  **不再驱动任何数据寄存器 CE**。这就是把 143 路扇出从乘法链上摘掉的要害。
+
+代价：`+1 拍/层`（理论 +144 拍/推理）。
+
+**② 乘法器按位宽降级（描述符里 kh/kw/sh/sw/pad_* 本来就是 1 字节）**
+
+| 位置 | 改前 | 改后 |
+|---|---|---|
+| `kh*kw` | `mul_u16_no_dsp`（5 级） | `mul_u16_u8_no_dsp`（3 级） |
+| `pad_top*in_w` | 同上 | 同上（3 级） |
+| `pad_left*c_scale` | 同上 | 同上（3 级） |
+| `sw*c_scale` | 同上 | 同上（3 级） |
+| `row_step = (W*c_scale)*sh` | 同上 | 同上（3 级） |
+
+`mul_u16_u8_no_dsp` 这个函数原来只有 `shape_dimension_valid` 在用，
+余下四棵 16×16 树是白花的。
+
+**③ 删重复乘法 / 重结合**
+
+| 量 | 改前 | 改后 |
+|---|---|---|
+| `layer_row0_a` | `(pad_top*W)` 再 `*c_scale`，10 级 | `pad_top * (W*c_scale)`，3 级 |
+| `layer_elements` | 内层又算一次 `H*W` | 复用一级积 `d1_hw` |
+| 校验用 `H*W*C` | 与 `layer_elements` **各算一份** | 直接复用 `layer_elements` |
+| `conv_weight_required` | `out_c*kh*kw*C` 四连乘，15 级 | `layer_kernel_size * out_c`，5 级 |
+| 写地址里的 `out_h*out_w` | 每个输出像素现算一次 | 预存 `layer_out_hw` |
+
+> 全部是**模 2^16 / 模 2^32 下的结合律重排**。模算术里乘法可结合可交换，
+> 所以每个值与改前的单周期表达式**逐位相同**，不是近似。校验的宽比较保留了
+> 原来的符号性（原来那几个量是 `integer` 局部变量，用 `$signed(...)` 还原）。
+
+**④ 计数器位宽收窄（32 位里一半永远为 0）**
+
+`out_x/out_y/out_c`、`kernel_index`(17b，因为 kernel_size 可等于 65536)、
+`pool_index`、`tensor_index`、`fc_index`、`fc_output`、`arg_index`、
+`gap_channel`、`gap_position` 由 `integer`（32 位）收窄到 16/17 位。
+
+这条直接命中上一轮的违例端点：报告里的终点是 `gap_position[16]/[20]/[24]`，
+而 GAP 的循环上界是 `layer_hw-1 ≤ 65534`，第 16 位以上**永远不可能置 1**。
+
+同时把原来 `ST_DISPATCH` 里的 7 个 `integer` 阻塞局部变量
+（`layer_input_elements_int` 等）改成真正的寄存器
+`layer_out_elements / layer_conv_weight_req / layer_fc_weight_req`，
+让校验读的是寄存器而不是同拍算出来的组合值。
+
+### 区间边界
+
+- **不改功能**：13/13 用例（含 `bad_descriptor`/`unknown_op`/`bad_shape`/
+  `bad_pool_shape` 等错误注入）全过；错误码未变。
+- **不降吞吐**：见下方实测。
+- **不碰 CPU**：只改引擎，`cpu_clk` 域零改动。
+- **不加重布线**：LUT/carry 是净减，见下。
+
+### 本地验证（全绿）
+
+```
+run_npu_cnn_test.sh                13/13 PASS
+run_npu_road_model_v03_test.sh     16 用例 × 144 层逐元素 PASS
+   32×32 模式 max_cached_cycles = 3,819,177（改前 3,819,167，+10）
+   96×96 模式 max_cached_cycles = 3,853,139（改前 3,853,129，+10）
+   limit 4,375,000（余量 14.5%）
+run_npu_cnn_96_cache_test.sh       PASS
+run_npu_cnn_service_test.sh        PASS
+run_npu_cnn_system_test.sh         PASS
+run_npu_image_service_test.sh      PASS
+run_npu_soc_integration_lint.sh    NPU_SOC_LINT_PASS（整机 Hfpga_soc 例化通过）
+check_npu_bram_mapping.sh          NPU_BRAM_CHECK_PASS（24 个 DRM36K，与改前一致）
+```
+
+**拍数只涨了 10 拍而不是 144 拍**：理论上每层多 1 拍，但引擎在
+`ST_LAYER_FETCH`/`ST_DISPATCH` 期间本来就有等 BRAM 读的富余，
+实测 144 层里只有 10 次真正被拖到关键路径上。无论按哪个口径，
+都远小于 0.003%。
+
+**Verilator lint**：`WIDTH` 类告警由改前的 149 条降到 84 条，
+`MULTIDRIVEN` / `COMBDLY` 输出为空（Synplify `Verilog-4086` 的前置拦截）。
+
+### 下一步（等 P&R 实测）
+
+预期剩余违例只剩三处，且都不在引擎里：
+
+| 域 | 改前 WNS | 性质 |
+|---|---|---|
+| `phy_dq_sysclk_0` | −0.445 | 厂家 PHY 内部 TX 路径 |
+| `phy_dq_sysclk_1` | −0.418 | 同上 |
+| `cpu_clk` | −1.614 | dcache tagv → 分支 → icache CE，19 级 / 布线占 65% |
+
+引擎腾出面积后，placer 对 CPU 区和 PHY 区会有更多空间，这两处**有可能自己变好**；
+若不改善，CPU 侧只能靠 `syn_maxfan` 扇出复制 + `def_region` 区域约束
+（都在 `project/`，需用户执行，且 ADS 手册明确写了 Fanout Guide 对
+CLK/RST/**CE** 信号无效，所以期望要打折）。
+
+**备份参考**：本轮之前的 `soc/Hnpu_cnn_engine.v` md5 = `9f8260b2`（已同步 D 盘）。
+**记录时间**：2026-10-21 22:10。
+
+---
+
+## 2026-10-22　T2 落地：lane 槽分配器三级扫描 + ST_CLEAN 逐槽清理
+
+### T1 的 P&R 实测（2026-10-21 22:57，26m14s，0 未布）
+
+| 指标 | T1 前 | T1 后 | 变化 |
+|---|---|---|---|
+| `ddr_core_clk` WNS | −5.963 / 67.87 MHz | **−4.546 / 79.71 MHz** | **+1.417 ns** |
+| `ddr_core_clk` TNS | −29,928 | −24,241 | +5,687 |
+| 失败端点数 | 14,197 | 13,912 | −285 |
+| Fast 角 `ddr_core` WNS | −0.341 | **+0.668** | 转正 |
+| `ddr_core` → `phy_dq_sysclk_0/1` | −0.445 / −0.418 | **+1.370 / +1.622** | 消失 |
+| `rst_clk` | +2.734 | +4.710 | 改善 |
+| `cpu_clk` | −1.614 | **−1.948** | 略差（独立域，未改动） |
+| Hold 最差 | +0.107 | +0.071 | 全正 |
+| 最小脉宽 | 0 违例 | 0 违例 | — |
+| 利用率 | 30% | 29% | — |
+
+`u_engine`（`Hfpga_soc.snr`）：LUT 10,874 → **9,717**（−1,157），
+LUT CARRY 7,862 → **6,853**（−1,009）。引擎相关的违例路径全部消失。
+
+### 新的首违：`slot_state` 五写者合并
+
+详单里 `ddr_core_clk` 只剩 3 条违例，同一个锥：
+
+```
+起点  g_image_service.u_service/q_count[0][0]
+终点  u_rgb565_int8/lane[0].u_lane/slot_state[44/19/33][0]
+18 级   Logic 4.039 (33.6%) / Route 7.994 (66.4%)
+slack  −4.546 / −4.537 / −4.537
+逻辑+布线预算 = 13.154 − 5.931 = 7.22 ns，实际 11.77 ns
+```
+
+用 `Hfpga_soc_syn.vm` 对照确认了结构（不是猜的）：
+
+- `\N4070[j]` 是 `slot_state[j]` 的次态（`wire [1:0]`，共 56 组）；
+- `N5038 / N5041 / N5044 / N5047 / N5050` 都是 **`wire [1:0]`**，扇出 49~76，
+  即"某写者的 2 位值"广播到全部 56 个槽，串成 5 级优先级链；
+- `N888x` 是**按槽的 one-hot 选择位**（`\N4070[43]` 用 `N8887`、`[44]` 用 `N8888`、
+  `[45]` 用 `N8889`，偏移固定）——即"这个写者是否选中槽 j"的 56 路译码；
+- 末端 `\N4070[44]_5[0]` 的 `I0` 是 `\batch_slot_index[4][3]`，`I2/I1` 是
+  `_N74745/_N74683`，说明**尾级是 ST_CLEAN 写者**（8 路并发读-比较-写）。
+
+结论：`slot_state` 的 5 个写者（pop / push / release / ST_ALLOC / ST_CLEAN）
+在同一拍里被合并成一条 18 级、5 段广播的优先级链；头部挂在 service 侧
+`q_count → image_ready → pop_image` 的组合链上，尾部是 ST_CLEAN 的 8 路并发循环。
+
+### 改法（`soc/Hrgb565_int8_lane.v`，+134/−82）
+
+1. **ST_ALLOC 拆三级**：`ST_ALLOC_G`（选组）→ `ST_ALLOC_L`（组内选位）→ `ST_ALLOC`（写入）。
+   - G：`alloc_free_mask` → `alloc_group_valid/group_first/group_index` → `alloc_gsel_q`；
+   - L：`alloc_free_mask[{alloc_gsel_q,3'b000} +: 8]` → 最低有效位 → `alloc_lsel_q`；
+   - W：用寄存的 `{alloc_gsel_q,alloc_lsel_q}` 做变址写。
+   - 删掉原来的 7 项 `alloc_local_mask` AND-OR 链和 `gen_local_first` 生成块，
+     用"取选中组的字节 + `mask & (~mask+1)` 取最低位"等价替换。
+2. **ST_CLEAN 改逐槽清理**：每拍只处理 `batch_slot_index[clean_index]`，
+   命中结果寄存一拍（`clean_hit_q/clean_slot_q`）后 one-hot 写回，
+   走完 `batch_count_reg` 个槽再收尾。和 P1 的释放路径是同一套打法。
+3. **删掉 ST_CLEAN 里的 `!(pop_image && fifo_slot[fifo_rd_ptr]==batch_slot_index[j])`**：
+   该条件是冗余的。FIFO 里的槽在 push 时已写状态 3，弹出后是状态 2，
+   而清理条件是 `slot_state[...]==1`，两种情况都已被排除；因此删掉它不改变任何行为，
+   同时把 service 侧 `q_count → image_ready` 的组合链从这条路径上彻底切断。
+
+分配语义不变：仍然是**最低号空闲槽**、accept 时快照 `alloc_free_mask`、
+每拍分配 1 槽、≤8 槽；`slot_frame` 的 generation+frame 同时一致的释放判据不动。
+
+### 代价（量化）
+
+- ST_ALLOC 由 1 拍/槽变 3 拍/槽：**+2 拍/图**。每图至少 576 beat × 6 拍 = 3456 拍，
+  即 **≤0.058%**；8 槽深 FIFO 完全吸收。
+- ST_CLEAN 由 1 拍变 `batch_count_reg+1` 拍（≤9）：**只在失败路径**（RLAST/B 错误、
+  超时、分配失败）发生，正常流程不经过。
+- logic 深度：原来 18 级（预算 7.22 ns，实际 11.77 ns）→ 每级 ≤7 级，
+  预期新首违不再是这条锥。
+
+### 本地验证（全绿）
+
+```
+run_npu_road_model_v03_test.sh     16 用例 × 144 层逐元素 PASS
+   32×32 3,819,177 / 96×96 3,853,139（与 T1 完全一致，limit 4,375,000）
+run_npu_road_model_test.sh         PASS（同上两行）
+run_npu_road_model_all_test.sh     PASS（同上两行）
+run_npu_cnn_test.sh                13/13 PASS
+run_npu_cnn_96_cache_test.sh       PASS
+run_npu_cnn_service_test.sh        PASS
+run_npu_cnn_system_test.sh         PASS
+run_npu_image_service_test.sh      PASS（bad_model=0/1 两条）
+run_npu_image_system_test.sh       PASS
+run_flash_ddr_model_load_test.sh   PASS
+run_npu_soc_integration_lint.sh    NPU_SOC_LINT_PASS
+check_npu_bram_mapping.sh          NPU_BRAM_CHECK_PASS（24 个 DRM36K 不变）
+```
+
+**注意**：`max_cached_cycles` 统计的是引擎的 start→done 区间，不含 lane，
+所以它和 T1 完全一致并不代表 lane 零开销；lane 的真实代价是上面算的 ≤0.058%。
+
+### 下一步
+
+等 D 盘 P&R。核对：
+1. `slot_state` 那三条是否从详单消失；
+2. `ddr_core_clk` WNS 是否转正（预算 7.22 ns，单级 ≤7 级 ≈ 4.5 ns 应有 2 ns 余量）；
+3. 新首违是否变成 `pop_image → slot_state` 或 `alloc` 的某一段；
+4. `cpu_clk` 是否随面积变化自行改善（本轮 −1.614 → −1.948，是摆放副作用）。
+
+**本文件 md5**：改后 `30a2660d6be53456e7300f3fac43b50e`（已同步 D 盘 `soc/`）。
+**记录时间**：2026-10-22。
