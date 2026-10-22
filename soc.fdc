@@ -5,6 +5,72 @@
 #时序约束
 create_clock -period {37.037} [get_ports {clk}] -name clk
 
+# DDR3 reference clock is the differential 125 MHz input to the controller.
+# The controller's core_clk is generated 1:1 by its DDR PHY GPLL, so all
+# logic clocked by ddr_core_clk must be checked against an 8 ns period.
+create_clock -period {8.000} [get_ports {clk_p}] -name DDR_REF_CLK
+create_generated_clock -name ddr_core_clk \
+    -source [get_ports {clk_p}] \
+    -master_clock DDR_REF_CLK \
+    -multiply_by 1 \
+    -divide_by 1 \
+    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_gpll/u_gpll:CLKOUT0}]
+
+# -----------------------------------------------------------------------------
+# DDR PHY 内部时钟（移植自 IP/ddr3_ctrl_v116/pnr/ddr_test.fdc，2026-10-21）
+#
+# 此前工程只声明了 ddr_core_clk，PHY 内部三个时钟由 PDS 自行推断（布线后报告
+# 里带 _Inferred 后缀）。推断结果给出 1 ns 的 CLKOUTPHY 域，并且把 CLKDIVOUT
+# 的相位推成 {2 6}（厂家要求上升沿在第 5 个 CLKOUTPHY 周期），导致 10-21 报告
+# 里出现下面这些并非真实同步路径的违例：
+#   ddr_core_clk -> phy_dq_sysclk_0/1   setup     -5.394 / -4.949 (616 端点)
+#   rst_clk -> phy_dq_clk/sysclk        recovery  -5.533 / -4.466 (237 端点)
+# 厂家参考工程对同一套 PHY 的约束是：显式定义 CLKOUTPHY 与 CLKDIVOUT，
+# 系统时钟到 CLKOUTPHY/8 齿轮箱给 2 拍 multicycle + 0.4 ns 不确定度，
+# 并把 CLKOUTPHY、rst_clk 各自放进独立异步组。
+# -----------------------------------------------------------------------------
+
+# PHY 复位域：由 ref_clk 1:1 产生的 125 MHz，与其它域无相位关系。
+create_generated_clock -name {rst_clk} \
+    -source [get_ports {clk_p}] \
+    -master_clock DDR_REF_CLK \
+    -multiply_by 16 -divide_by 16 \
+    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/rst_clk_gpll/u_gpll:CLKOUT0}]
+
+# CLKOUTPHY：DDR3-1600 串行时钟，8 ns x 16 / 2 = 1.0 ns。只驱动 PHY 内部
+# 的 I/O 寄存器，不对 fabric 施加建立关系。
+create_generated_clock -name {phy_dq_clk_0} \
+    -source [get_ports {clk_p}] \
+    -master_clock DDR_REF_CLK \
+    -multiply_by 16 -divide_by 2 \
+    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].ddrphy_ppll/u_ppll:CLKOUTPHY}]
+create_generated_clock -name {phy_dq_clk_1} \
+    -source [get_ports {clk_p}] \
+    -master_clock DDR_REF_CLK \
+    -multiply_by 16 -divide_by 2 \
+    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll:CLKOUTPHY}]
+
+# CLKDIVOUT：CLKOUTPHY 的 /8 并行域（125 MHz，与 ddr_core_clk 同频）。
+# 上升沿取 CLKOUTPHY 的第 5 个周期：edges {5 13 21}。
+create_generated_clock -name {phy_dq_sysclk_0} \
+    -source [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].ddrphy_ppll/u_ppll:CLKOUTPHY}] \
+    -master_clock [get_clocks {phy_dq_clk_0}] \
+    -edges {5 13 21} -edge_shift {0 0 0} \
+    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].u_ddrphy_ioclkdiv:CLKDIVOUT}]
+create_generated_clock -name {phy_dq_sysclk_1} \
+    -source [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll:CLKOUTPHY}] \
+    -master_clock [get_clocks {phy_dq_clk_1}] \
+    -edges {5 13 21} -edge_shift {0 0 0} \
+    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].u_ddrphy_ioclkdiv:CLKDIVOUT}]
+
+# 系统时钟 -> PHY 并行域：DDR 写数据齿轮箱允许 2 拍；两侧各加 0.4 ns 不确定度。
+set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_0}]
+set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_1}]
+set_clock_uncertainty {0.4} -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_0}] -setup -hold
+set_clock_uncertainty {0.4} -from [get_clocks {phy_dq_sysclk_0}] -to [get_clocks {ddr_core_clk}] -setup -hold
+set_clock_uncertainty {0.4} -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_1}] -setup -hold
+set_clock_uncertainty {0.4} -from [get_clocks {phy_dq_sysclk_1}] -to [get_clocks {ddr_core_clk}] -setup -hold
+
 # JTAG时钟约束 (10MHz, 100ns周期)
 create_clock -period {100.000} [get_ports {JTAG_TCK}] -name JTAG_CLK
 
@@ -29,6 +95,18 @@ create_generated_clock -name cpu_clk \
 # 异步时钟域声明
 set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {JTAG_CLK}]
 set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {CAM1_PCLK}] -group [get_clocks {CAM2_PCLK}]
+set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {ddr_core_clk}]
+
+# PHY 内部时钟：CLKOUTPHY 是 1 GHz 串行时钟，rst_clk 是 PHY 复位域，两者与
+# fabric 时钟都没有可约束的相位关系（厂家 ddr_test.fdc 同样各自独立成组）。
+set_clock_groups -name phy_dq_clk_0 -asynchronous -group [get_clocks {phy_dq_clk_0}]
+set_clock_groups -name phy_dq_clk_1 -asynchronous -group [get_clocks {phy_dq_clk_1}]
+set_clock_groups -name rst_clk -asynchronous -group [get_clocks {rst_clk}]
+
+# 摄像头像素时钟：OV5640 自由振荡，与 ddr_core_clk 无相位关系。跨域只有
+# Hcamera_async_fifo 的两级同步器、以及 snapshot 计数器的 toggle 握手，
+# 两者都是异步跨域而不是被漏约束的同步路径。
+set_clock_groups -asynchronous -group [get_clocks {CAM1_PCLK}] -group [get_clocks {CAM2_PCLK}] -group [get_clocks {ddr_core_clk}]
 
 # IO 引脚约束：这里只保留 Hfpga_soc 顶层实际存在的外部端口。
 # DDR3 端口使用板卡原理图/引脚表中的专用资源位置，不能改用普通 IO。

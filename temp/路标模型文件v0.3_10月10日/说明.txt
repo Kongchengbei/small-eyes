@@ -1,0 +1,32 @@
+路标模型文件 v0.3（10 月 10 日）
+
+一、文件
+  model.npu    v0.3 路标模型（11 类，卷积 4→16→32→64→64，GAP，全连接 64→11），62,720 字节，
+               SHA-256 c8387cddfdac903527b566669ad4b4712dd6b9e7293e14712a49115e15813a27。
+               用仓库 ee3b764 的 scripts/npu_model.py build-road 从“路标模型包v0.3_10月9日”生成，脚本没改；
+               自己用 build-road 生成的应与它逐字节相同。
+  classes.csv  编号 0～10：0 背景、1 未知标志、2 禁止驶入、3 禁止停车、4 禁止鸣喇叭、5～8 限速 40/60/80/120、
+               9 靠右侧道路行驶、10 注意行人（zzx 10 月 9 日定的编号）。
+  logits 金样  就是模型包 golden_output.csv 的 l0～l10 列（101 个框）；逐层金样见 10 月 9 日发的“路标逐层金样v0.3_10月9日.zip”。
+  temp/tests/tb_npu_road_model_v03.sv、temp/tests/run_npu_road_model_v03_test.sh  核对用的测试台和脚本，见第三节。
+
+二、核对结果
+  1. npu_model.py check 通过。
+  2. 文件内容另外核对：文件头 NPU1；CRC32（zlib，第 128 字节到文件末尾）对；拒识门槛 1251 在文件头 0x4C；
+     五组权重和 bias 与模型包里的 L1～L4、FC 的 bin 逐字节相同；各卷积层右移 10、7、8、7，标志 0x03（ReLU、bias 已含舍入）；
+     GAP 标志 0x04（和加 8 右移 4）。
+  3. 在 ee3b764 的 Hnpu_cnn_engine 上用 Verilator 5.052 仿真，跑模型包里全部 101 个金样框（覆盖 11 类，其中拒识 22 个）：
+     类别、margin、拒识、最大 logit 全部与 golden_output.csv 相同；32×32 直接输入、96×96 隔 3 取 1（input_downsample3=1）
+     两种都相同。故意把一个期望的 margin 改错，测试会报 FAIL。
+
+三、复现
+  把“路标模型包v0.3_10月9日.zip”解到仓库 temp/ 下（得到 temp/路标模型包v0.3_10月9日/），把本包 temp/tests 下的两个文件
+  放进仓库的 temp/tests/，在仓库根目录运行：
+      bash temp/tests/run_npu_road_model_v03_test.sh
+  约 3 分钟，最后打印 NPU_ROAD_MODEL_V03_TEST_PASS cases=101。测试台在 tb_npu_road_model_all.sv 上改了这几处：
+  模型 62,720 字节、101 个框、测试内存 4 MiB、加 -DDS3 时走 96×96 输入，每个框打印一行结果，其余不变。
+  仓库里 run_npu_road_model_test.sh、run_npu_road_model_all_test.sh 还指向 v0.1 的模型包（33 个框、62,496 字节），可换成这个。
+
+四、备注（不影响结果）
+  文件头 scratch_bytes 是 2,048（build-road 按最后的 4×4×64 算的），最大中间张量是 32×32×16＝16,384 字节；
+  引擎现在用片内张量缓存、没读这个字段。以后改用 DDR 暂存时再改 build-road 里这一行。

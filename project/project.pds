@@ -127,9 +127,29 @@
                     (_format verilog)
                     (_timespec "2026-10-03T20:47:27")
                 )
-                (_file "../soc/Hnpu_dma.v"
+                (_file "../soc/Hnpu_cnn_engine.v"
                     (_format verilog)
-                    (_timespec "2026-10-03T20:47:27")
+                    (_timespec "2026-10-12T00:00:00")
+                )
+                (_file "../soc/Hnpu_service.v"
+                    (_format verilog)
+                    (_timespec "2026-10-12T00:00:00")
+                )
+                (_file "../soc/Hnpu_image_service.v"
+                    (_format verilog)
+                    (_timespec "2026-10-12T00:00:00")
+                )
+                (_file "../soc/Hnpu_result_mmio.v"
+                    (_format verilog)
+                    (_timespec "2026-10-12T00:00:00")
+                )
+                (_file "../soc/Hnpu_result_bridge.v"
+                    (_format verilog)
+                    (_timespec "2026-10-12T00:00:00")
+                )
+                (_file "../soc/Hnpu_system.v"
+                    (_format verilog)
+                    (_timespec "2026-10-12T00:00:00")
                 )
                 (_file "../soc/Haxi_2m1s_arbiter.v"
                     (_format verilog)
