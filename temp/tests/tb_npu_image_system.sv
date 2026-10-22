@@ -81,8 +81,7 @@ module tb_npu_image_system;
         .DDR_BASE(DDR_BASE), .DDR_BYTES(32'h0010_0000),
         .NPU_MMIO_BASE(NPU_BASE), .NPU_MMIO_BYTES(32'h100),
         .QUEUE_DEPTH(2), .RESULT_DEPTH(4), .RESULT_FIFO_DEPTH(4),
-        .MAX_ROIS(4), .MAX_FEATURES(1024), .MAX_CLASSES(8),
-        .ENGINE_MODE(1), .MAX_MODEL_BYTES(65536), .IMAGE_MODE(1),
+        .MAX_ROIS(4), .MAX_CLASSES(8), .MAX_MODEL_BYTES(65536), .IMAGE_MODE(1),
         .MODEL_BASE(MODEL_ADDR), .MODEL_BYTES(MODEL_BYTES)
     ) dut (
         .ddr_clk(ddr_clk), .cpu_clk(cpu_clk), .rst_n(rst_n),

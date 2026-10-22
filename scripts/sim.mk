@@ -12,8 +12,7 @@ SIM_PROGRAM ?=
 SIM_BUILD_ONLY ?= 0
 
 .PHONY: sim-run sim-list run all \
-	npu-test npu-ctrl npu-dma npu-arbiter npu-fc-engine \
-	npu-service npu-service-drop npu-result-mmio npu-system npu-model npu-quant npu-cnn npu-cnn-96-cache npu-image-service npu-image-system npu-cnn-service npu-cnn-system npu-road-all
+	npu-test npu-ctrl npu-arbiter npu-result-mmio npu-model npu-cnn npu-cnn-96-cache npu-image-service npu-image-system npu-cnn-service npu-cnn-system npu-road-all
 sim-run:
 	@SIMULATOR='$(SIMULATOR)' SIM_JOBS='$(SIM_JOBS)' SIM_TIMEOUT='$(SIM_TIMEOUT)' \
 	 SIM_ARGS='$(SIM_ARGS)' SIM_FLAGS='$(SIM_FLAGS)' SIM_PROGRAM='$(SIM_PROGRAM)' \
@@ -42,10 +41,6 @@ npu-test:
 
 npu-model:
 	@bash temp/tests/test_npu_model.sh
-
-npu-quant:
-	@SIMULATOR='$(SIMULATOR)' SIM_JOBS='$(SIM_JOBS)' SIM_TIMEOUT='$(SIM_TIMEOUT)' \
-	 bash scripts/run_testbench.sh tb_npu_quant
 
 npu-cnn:
 	@SIMULATOR='$(SIMULATOR)' SIM_JOBS='$(SIM_JOBS)' SIM_TIMEOUT='$(SIM_TIMEOUT)' \
@@ -79,30 +74,10 @@ npu-ctrl:
 	@SIMULATOR='$(SIMULATOR)' SIM_JOBS='$(SIM_JOBS)' SIM_TIMEOUT='$(SIM_TIMEOUT)' \
 	 bash scripts/run_testbench.sh tb_npu_ctrl
 
-npu-dma:
-	@SIMULATOR='$(SIMULATOR)' SIM_JOBS='$(SIM_JOBS)' SIM_TIMEOUT='$(SIM_TIMEOUT)' \
-	 bash scripts/run_testbench.sh tb_npu_dma
-
 npu-arbiter:
 	@SIMULATOR='$(SIMULATOR)' SIM_JOBS='$(SIM_JOBS)' SIM_TIMEOUT='$(SIM_TIMEOUT)' \
 	 bash scripts/run_testbench.sh tb_axi_2m1s_arbiter
 
-npu-fc-engine:
-	@SIMULATOR='$(SIMULATOR)' SIM_JOBS='$(SIM_JOBS)' SIM_TIMEOUT='$(SIM_TIMEOUT)' \
-	 bash scripts/run_testbench.sh tb_npu_fc_engine
-
-npu-service:
-	@SIMULATOR='$(SIMULATOR)' SIM_JOBS='$(SIM_JOBS)' SIM_TIMEOUT='$(SIM_TIMEOUT)' \
-	 bash scripts/run_testbench.sh tb_npu_service
-
-npu-service-drop:
-	@SIMULATOR='$(SIMULATOR)' SIM_JOBS='$(SIM_JOBS)' SIM_TIMEOUT='$(SIM_TIMEOUT)' \
-	 bash scripts/run_testbench.sh tb_npu_service_drop
-
 npu-result-mmio:
 	@SIMULATOR='$(SIMULATOR)' SIM_JOBS='$(SIM_JOBS)' SIM_TIMEOUT='$(SIM_TIMEOUT)' \
 	 bash scripts/run_testbench.sh tb_npu_result_mmio
-
-npu-system:
-	@SIMULATOR='$(SIMULATOR)' SIM_JOBS='$(SIM_JOBS)' SIM_TIMEOUT='$(SIM_TIMEOUT)' \
-	 bash scripts/run_testbench.sh tb_npu_system

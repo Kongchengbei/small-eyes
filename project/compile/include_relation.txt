@@ -28,7 +28,6 @@ F:/SocFpga/jtag/jtag_top.v|F:/SocFpga/soc/defines.v|
 
 
 F:/SocFpga/soc/Hnpu_ctrl.v|F:/SocFpga/soc/soc_addr_map.vh|
-F:/SocFpga/soc/Hnpu_dma.v|F:/SocFpga/soc/soc_addr_map.vh|
 
 F:/SocFpga/soc/Hfpga_soc.v|F:/SocFpga/soc/soc_addr_map.vh|F:/SocFpga/soc/soc_timeout.vh|
 F:/SocFpga/soc/soc_timeout.vh|F:/SocFpga/soc/soc_addr_map.vh|

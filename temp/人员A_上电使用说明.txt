@@ -1,0 +1,17 @@
+人员A NPU 上电使用说明
+
+已完成：
+1. 默认开启双路前处理和 NPU 图像服务。
+2. 前处理输出 96x96x4 HWC4 INT8；NPU 内部隔 3 取 1，模型输入为 32x32x4、4096 字节。
+3. Flash 启动器先搬运 CPU 固件，再搬运 model.npu 到 DDR 0xB9000000，并逐字回读校验。
+4. 两段都校验通过后才释放 CPU、前处理和 NPU，首个 ROI 不会早于模型就绪。
+5. 模型驻留 NPU 片内缓存后，ROI 推理不重复从 DDR 读取权重。
+
+Flash 文件格式：
+  [CPU 固件固定区 16384 字节][model.npu 62720 字节]
+  总长度：79104 字节；起始地址：0x00A00000。
+
+生成联合镜像：
+  bash scripts/make_npu_flash_image.sh CPU.bin model.npu output.bin 16384
+
+本次只完成 RTL 和 Verilator 仿真。上板前仍需用 PDS 重新综合、生成位流，并把联合镜像烧到 Flash 0x00A00000；BRAM 配置不启用本链路。

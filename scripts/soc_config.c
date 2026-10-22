@@ -772,7 +772,8 @@ static int copy_or_pad(const char *src, const char *dst, uint64_t target) {
 
 static char *make_manifest(const char *source, const char *bin,
                            const char *profile, uint64_t fl, uint64_t image,
-                           uint64_t bin_size, const char *padded_path) {
+                           uint64_t bin_size, uint64_t model_bytes,
+                           const char *padded_path) {
     char esource[PATH_CAP * 2], ebin[PATH_CAP * 2], epadded[PATH_CAP * 2];
     char bin_json[PATH_CAP * 2 + 4], padded_json[PATH_CAP * 2 + 4], end[64];
     json_escape(source, esource, sizeof(esource));
@@ -784,7 +785,11 @@ static char *make_manifest(const char *source, const char *bin,
         json_escape(padded_path, epadded, sizeof(epadded));
         snprintf(padded_json, sizeof(padded_json), "\"%s\"", epadded);
     }
-    snprintf(end, sizeof(end), "0x%06" PRIX64, fl + image);
+    uint64_t flash_bytes = image + model_bytes;
+    char model_address[32];
+    if (model_bytes) snprintf(model_address, sizeof(model_address), "\"0x%06" PRIX64 "\"", fl + image);
+    else strcpy(model_address, "null");
+    snprintf(end, sizeof(end), "0x%06" PRIX64, fl + flash_bytes);
     size_t cap = PATH_CAP * 7 + 1024;
     char *s = malloc(cap);
     if (!s) return NULL;
@@ -794,10 +799,14 @@ static char *make_manifest(const char *source, const char *bin,
         "  \"flash_start_address\": \"0x%06" PRIX64 "\",\n"
         "  \"input_bin\": %s,\n  \"input_bin_bytes\": %" PRIu64 ",\n"
         "  \"loader_image_bytes\": %" PRIu64 ",\n  \"padded_bin\": %s,\n"
+        "  \"npu_model_bytes\": %" PRIu64 ",\n"
+        "  \"npu_model_flash_address\": %s,\n"
+        "  \"flash_image_bytes\": %" PRIu64 ",\n"
         "  \"padding\": {\"fill_byte\": \"0xFF\", \"bytes\": %" PRIu64 "},\n"
         "  \"flash_end_exclusive\": \"%s\",\n"
         "  \"action\": \"Use the listed BIN artifact and address in the PDS Flash burn flow; this tool does not invoke PDS.\"\n}\n",
-        profile, esource, fl, bin_json, bin_size, image, padded_json, image - bin_size, end);
+        profile, esource, fl, bin_json, bin_size, image, padded_json,
+        model_bytes, model_address, flash_bytes, flash_bytes - bin_size, end);
     return s;
 }
 
@@ -877,13 +886,69 @@ static bool updates_overwrite_input(const FileUpdate *files, size_t count, const
     return false;
 }
 
-static int validate_bin(Config *c, Definitions *d, uint64_t *image, uint64_t *bin_size) {
+static uint32_t image_u32(const unsigned char *p) {
+    return (uint32_t)p[0] | (uint32_t)p[1] << 8 |
+           (uint32_t)p[2] << 16 | (uint32_t)p[3] << 24;
+}
+
+/* A combined image ends with one NPU-CNN V1 package. Match the complete
+ * header and extent, rather than a string embedded in CPU log messages.
+ * Return its CPU prefix length; zero means an ordinary CPU-only BIN. */
+static int inspect_npu_image(const char *path, Definitions *d,
+                             uint64_t *cpu_bytes, uint64_t *model_bytes) {
+    char *raw = NULL; size_t bytes = 0;
+    if (read_file(path, &raw, &bytes) != 0) return -1;
+    const unsigned char *data = (const unsigned char *)raw;
+    *cpu_bytes = 0; *model_bytes = 0;
+    for (size_t off = 4; off + 128 <= bytes; off += 4) {
+        const unsigned char *h = data + off;
+        if (memcmp(h, "NPU1", 4) || image_u32(h + 4) != UINT32_C(0x00010001) ||
+            image_u32(h + 8) != UINT32_C(0x00400080) ||
+            image_u32(h + 0x30) != bytes - off) continue;
+        Definition *model = find_def(d, "SOC_NPU_MODEL_BYTES");
+        if (*cpu_bytes || !model || model->value != bytes - off) {
+            fprintf(stderr, "soc_config: ambiguous NPU image or model length differs from SOC_NPU_MODEL_BYTES\n");
+            free(raw); return -1;
+        }
+        uint32_t expected = image_u32(h + 0x40), crc = UINT32_MAX;
+        for (size_t i = off + 128; i < bytes; ++i) {
+            crc ^= data[i];
+            for (unsigned bit = 0; bit < 8; ++bit)
+                crc = (crc >> 1) ^ ((crc & 1) ? UINT32_C(0xedb88320) : 0);
+        }
+        if (expected && (crc ^ UINT32_MAX) != expected) {
+            fprintf(stderr, "soc_config: NPU model payload CRC mismatch\n");
+            free(raw); return -1;
+        }
+        *cpu_bytes = off; *model_bytes = bytes - off;
+    }
+    free(raw); return 0;
+}
+
+static int validate_bin(Config *c, Definitions *d, uint64_t *image,
+                        uint64_t *bin_size, uint64_t *model_bytes) {
     uint64_t length = c->image_bytes;
+    *model_bytes = 0;
     if (c->firmware[0]) {
         if (file_size(c->firmware, bin_size) != 0) { fprintf(stderr, "soc_config: cannot stat firmware BIN '%s': %s\n", c->firmware, strerror(errno)); return -1; }
         if (!*bin_size) { fprintf(stderr, "soc_config: selected BIN is empty\n"); return -1; }
-        if (!length) length = *bin_size;
-        if (*bin_size > length) { fprintf(stderr, "soc_config: configured boot length is smaller than BIN length; refusing truncation\n"); return -1; }
+        uint64_t flash = find_def(d, "SOC_FLASH_BASE")->value;
+        uint64_t capacity = find_def(d, "SOC_FLASH_ADDRESS_BYTES")->value;
+        if (flash >= capacity || *bin_size > capacity - flash) {
+            fprintf(stderr, "soc_config: selected BIN exceeds Flash address space\n"); return -1;
+        }
+        uint64_t cpu_bytes = 0;
+        if (inspect_npu_image(c->firmware, d, &cpu_bytes, model_bytes) != 0) return -1;
+        if (*model_bytes) {
+            if (length && length != cpu_bytes) {
+                fprintf(stderr, "soc_config: combined BIN has a %" PRIu64 "-byte CPU segment; set Loader image bytes to 0 or %" PRIu64 " (not the total BIN size)\n", cpu_bytes, cpu_bytes);
+                return -1;
+            }
+            length = cpu_bytes;
+        } else {
+            if (!length) length = *bin_size;
+            if (*bin_size > length) { fprintf(stderr, "soc_config: configured boot length is smaller than BIN length; refusing truncation\n"); return -1; }
+        }
         if (length % 4) { fprintf(stderr, "soc_config: selected BIN/boot length is not 4-byte aligned; manually pad/align it\n"); return -1; }
     } else {
         *bin_size = 0;
@@ -1142,7 +1207,7 @@ static int command_apply(const char *source, const char *config_path, const char
     if (!bram) *profile_values[6] = c.flash_base;
     *profile_values[7] = c.uart_remote ? 31 : 0;
     if (bram && c.preprocess) { fprintf(stderr, "soc_config: BRAM profile requires preprocessing disabled\n"); free(source_text); return 2; }
-    uint64_t image = 0, bin_size = 0;
+    uint64_t image = 0, bin_size = 0, model_bytes = 0;
     BramInitImage bram_image = {0};
     if (bram) {
         if (!c.firmware_hex[0]) {
@@ -1153,7 +1218,7 @@ static int command_apply(const char *source, const char *config_path, const char
         if (!validate_defs(&defs) || bram_init_prepare(c.firmware_hex, &bram_image) != 0) {
             free(source_text); return 2;
         }
-    } else if (validate_bin(&c, &defs, &image, &bin_size) != 0) { free(source_text); return 2; }
+    } else if (validate_bin(&c, &defs, &image, &bin_size, &model_bytes) != 0) { free(source_text); return 2; }
     char *rewritten = rewrite_source_text(source_text, &defs); free(source_text);
     if (!rewritten) { fprintf(stderr, "soc_config: unable to prepare atomic soc_addr_map.vh update\n"); bram_init_free(&bram_image); return 2; }
     Definitions checkdefs;
@@ -1205,7 +1270,7 @@ static int command_apply(const char *source, const char *config_path, const char
     char *manifest = NULL;
     manifest = bram ? strdup("{\n  \"format\": \"soc-flash-disabled-v1\",\n  \"profile\": \"bram\",\n  \"input_bin\": null,\n  \"user_load_required\": false,\n  \"action\": \"Use bram_init_manifest.json and rebuild the bitstream; Flash loader is disabled.\"\n}\n") :
         make_manifest(source, c.firmware[0] ? c.firmware : NULL,
-                      c.profile, c.flash_base, image, bin_size, padded_for_json);
+                      c.profile, c.flash_base, image, bin_size, model_bytes, padded_for_json);
     char *bram_manifest = bram ? make_bram_manifest(source, c.firmware_hex, ipath, &bram_image) : NULL;
     if (!manifest || (bram && !bram_manifest)) { free(h); free(a); free(rewritten); free(new_fdc); free(manifest); free(bram_manifest); bram_init_free(&bram_image); return 2; }
     /* Stage artifacts and validate all inputs before replacing the authority. */
@@ -1244,6 +1309,8 @@ static int command_apply(const char *source, const char *config_path, const char
     printf("CPU=%" PRIu64 " Hz; keep actual PLL and firmware clock configuration consistent; rebuild bitstream and check timing.\n", c.cpu_hz);
     if (bram) printf("Initialized vendor imem from %s; generated %s. Rebuild bitstream; no IP regeneration or program User Load.\n", c.firmware_hex, ipath);
     else if (c.firmware[0]) printf("Generated %s (image %" PRIu64 " bytes at 0x%06" PRIX64 ")\n", mpath, image, c.flash_base);
+    if (model_bytes) printf("Combined NPU BIN: CPU=%" PRIu64 " bytes; model=%" PRIu64 " bytes at Flash 0x%06" PRIX64 "; burn all %" PRIu64 " bytes.\n",
+                            image, model_bytes, c.flash_base + image, bin_size);
     return 0;
 }
 
@@ -1317,8 +1384,11 @@ int main(int argc, char **argv) {
         Definitions d; char *text = NULL; if (load_defs(source, &d, &text) != 0) { free(text); return 2; }
         free(text); if (!validate_defs(&d)) return 2;
         char *bin = find_arg(argc, argv, "--bin"), *header = find_arg(argc, argv, "--header"), *asm = find_arg(argc, argv, "--asm");
-        if (bin) { uint64_t size; if (file_size(bin, &size) != 0) { fprintf(stderr, "soc_config: cannot stat BIN '%s': %s\n", bin, strerror(errno)); return 2; }
-            if (!size || size > find_def(&d, "SOC_BOOT_IMAGE_BYTES")->value) { fprintf(stderr, "soc_config: BIN is empty or exceeds SOC_BOOT_IMAGE_BYTES; refusing truncation\n"); return 2; }
+        if (bin) {
+            Config selected = {.image_bytes = find_def(&d, "SOC_BOOT_IMAGE_BYTES")->value};
+            uint64_t image, size, model_bytes;
+            if (snprintf(selected.firmware, sizeof(selected.firmware), "%s", bin) >= (int)sizeof(selected.firmware) ||
+                validate_bin(&selected, &d, &image, &size, &model_bytes) != 0) return 2;
         }
         if (header && !same_header_values(header, &d, false)) return 2;
         if (asm && !same_header_values(asm, &d, true)) return 2;

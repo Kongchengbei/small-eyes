@@ -9,15 +9,15 @@
 // Shared V1 NPU service for the two independent camera paths.  It accepts one
 // complete INT8 batch at a time, stores pending batches in independent CAM1 and
 // CAM2 queues, schedules one ROI with round-robin fairness, and exposes one
-// stable result record per ROI.  The compute engine is Hnpu_fc_engine.
+// stable result record per ROI.  The compute engine is Hnpu_cnn_engine.
 //
 // The input batch is already converted from RGB565 to the approved INT8
 // layout.  result_ready is a DDR-domain consumer handshake; a CPU-domain
 // result FIFO/CDC bridge can be placed above this service without changing the
 // ownership rules.  An INT8 bank is released exactly once, after the final ROI
 // of a batch has completed, and the original RGB565 bank release remains the
-// responsibility of the upstream converter. ENGINE_MODE=0 preserves the
-// FC V1 engine; ENGINE_MODE=1 selects the candidate model-driven CNN engine.
+// responsibility of the upstream converter. The batch path uses the same
+// model-driven CNN engine as image mode.
 // ============================================================================
 module Hnpu_service #(
     parameter [31:0] DDR_BASE = `SOC_DDR_BASE,
@@ -26,10 +26,12 @@ module Hnpu_service #(
     parameter integer QUEUE_DEPTH = 4,
     parameter integer RESULT_DEPTH = 16,
     parameter integer MAX_ROIS = 8,
-    parameter integer MAX_FEATURES = 1024,
     parameter integer MAX_CLASSES = 11,
-    parameter integer ENGINE_MODE = 0,
     parameter integer MAX_MODEL_BYTES = 65536,
+    // B-CNN32-v0.3 peaks at 16 KiB for one intermediate tensor.  Keep the
+    // batch path aligned with image mode so each tensor bank maps to BRAM
+    // without reserving an unused 64 KiB address space.
+    parameter integer MAX_TENSOR_BYTES = 16384,
     // At most two camera queues plus one active batch can be waiting for a
     // release.  The extra entries also cover a completion arriving while a
     // drop release is being emitted.
@@ -120,15 +122,10 @@ module Hnpu_service #(
     reg [31:0] q_input_base [0:1][0:QUEUE_DEPTH-1];
     reg [31:0] q_input_stride [0:1][0:QUEUE_DEPTH-1];
     reg [31:0] q_input_bytes [0:1][0:QUEUE_DEPTH-1];
-    reg [15:0] q_feature_count [0:1][0:QUEUE_DEPTH-1];
-    reg [31:0] q_weight_base [0:1][0:QUEUE_DEPTH-1];
-    reg [31:0] q_weight_stride [0:1][0:QUEUE_DEPTH-1];
-    reg [31:0] q_bias_base [0:1][0:QUEUE_DEPTH-1];
     reg [31:0] q_model_base [0:1][0:QUEUE_DEPTH-1];
     reg [31:0] q_model_bytes [0:1][0:QUEUE_DEPTH-1];
     reg [7:0] q_count_rois [0:1][0:QUEUE_DEPTH-1];
     reg [7:0] q_class_count [0:1][0:QUEUE_DEPTH-1];
-    reg [5:0] q_quant_shift [0:1][0:QUEUE_DEPTH-1];
     reg [63:0] q_boxes [0:1][0:QUEUE_DEPTH-1][0:MAX_ROIS-1];
     reg [2:0] q_colors [0:1][0:QUEUE_DEPTH-1][0:MAX_ROIS-1];
 
@@ -137,11 +134,8 @@ module Hnpu_service #(
     reg active_bank;
     reg [31:0] active_frame;
     reg [31:0] active_input_base, active_input_stride, active_input_bytes;
-    reg [15:0] active_feature_count;
-    reg [31:0] active_weight_base, active_weight_stride, active_bias_base;
     reg [31:0] active_model_base, active_model_bytes;
     reg [7:0] active_count, active_class_count;
-    reg [5:0] active_quant_shift;
     reg [63:0] active_boxes [0:MAX_ROIS-1];
     reg [2:0] active_colors [0:MAX_ROIS-1];
     reg [7:0] active_roi;
@@ -185,15 +179,10 @@ module Hnpu_service #(
     wire [63:0] batch_model_end = {32'b0, batch_model_base} + {32'b0, batch_model_bytes};
     wire batch_shape_valid = (batch_count != 0) && (batch_count <= MAX_ROIS) &&
                              (batch_class_count != 0) && (batch_class_count <= MAX_CLASSES) &&
-                             ((ENGINE_MODE == 1) ?
-                              (batch_feature_count == batch_input_bytes) :
-                              ((batch_feature_count != 0) &&
-                               (batch_feature_count <= MAX_FEATURES)));
+                             (batch_feature_count == batch_input_bytes);
     // The approved RoadSign/B-CNN32-0.1 input is one 32x32 HWC4 ROI:
     // 4096 signed-INT8 bytes, with each ROI starting on a 32-byte boundary.
-    // Keep the FC path's older feature-count contract unchanged.
-    wire batch_cnn_format_valid = (ENGINE_MODE != 1) ||
-                                  ((batch_input_bytes == CNN_INPUT_BYTES) &&
+    wire batch_cnn_format_valid = ((batch_input_bytes == CNN_INPUT_BYTES) &&
                                    (batch_input_stride >= batch_input_bytes) &&
                                    ((batch_input_stride[4:0]) == 0) &&
                                    ((batch_input_base[4:0]) == 0) &&
@@ -261,56 +250,31 @@ module Hnpu_service #(
     wire [15:0] engine_confidence;
     wire [31:0] engine_score;
     wire engine_reject_cnn;
-    wire engine_reject = (ENGINE_MODE == 1) ? engine_reject_cnn : 1'b0;
+    wire engine_reject = engine_reject_cnn;
 
-    generate
-        if (ENGINE_MODE == 0) begin : g_fc_engine
-            Hnpu_fc_engine #(
-                .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES), .AXI_ID(AXI_ID),
-                .MAX_FEATURES(MAX_FEATURES), .MAX_CLASSES(MAX_CLASSES)
-            ) u_fc_engine (
-                .clk(clk), .rst_n(rst_n), .start(engine_start), .clear_error(clear_errors),
-                .input_addr(active_input_base + active_roi * active_input_stride),
-                .input_bytes(active_input_bytes), .weight_addr(active_weight_base),
-                .weight_stride(active_weight_stride), .bias_addr(active_bias_base),
-                .feature_count(active_feature_count), .class_count(active_class_count),
-                .quant_shift(active_quant_shift), .busy(engine_busy), .done_pulse(engine_done),
-                .error(engine_error), .error_code(engine_error_code), .result_class(engine_class),
-                .result_confidence(engine_confidence), .result_score(engine_score),
-                .axi_araddr(axi_araddr), .axi_arid(axi_arid), .axi_arlen(axi_arlen),
-                .axi_arsize(axi_arsize), .axi_arburst(axi_arburst), .axi_arvalid(axi_arvalid),
-                .axi_arready(axi_arready), .axi_rdata(axi_rdata), .axi_rid(axi_rid),
-                .axi_rresp(axi_rresp), .axi_rlast(axi_rlast), .axi_rvalid(axi_rvalid),
-                .axi_rready(axi_rready)
-            );
-        end else if (ENGINE_MODE == 1) begin : g_cnn_engine
-            Hnpu_cnn_engine #(
-                .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES), .AXI_ID(AXI_ID),
-                .MAX_MODEL_BYTES(MAX_MODEL_BYTES), .MAX_TENSOR_BYTES(65536),
-                .MAX_LAYERS(16), .MAX_CLASSES(MAX_CLASSES)
-            ) u_cnn_engine (
-                .clk(clk), .rst_n(rst_n), .start(engine_start), .clear_error(clear_errors),
-                .model_base(active_model_base), .model_bytes(active_model_bytes),
-                .input_addr(active_input_base + active_roi * active_input_stride),
-                .input_bytes(active_input_bytes),
-                .input_source_bytes(active_input_bytes), .input_downsample3(1'b0),
-                .busy(engine_busy),
-                .done_pulse(engine_done), .error(engine_error),
-                .error_code(engine_error_code), .result_class(engine_class),
-                .result_confidence(engine_confidence), .result_score(engine_score),
-                .result_reject(engine_reject_cnn),
-                .model_cache_hit(), .model_cache_valid(), .model_load_count(),
-                .model_load_beats(),
-                .axi_araddr(axi_araddr), .axi_arid(axi_arid), .axi_arlen(axi_arlen),
-                .axi_arsize(axi_arsize), .axi_arburst(axi_arburst),
-                .axi_arvalid(axi_arvalid), .axi_arready(axi_arready),
-                .axi_rdata(axi_rdata), .axi_rid(axi_rid), .axi_rresp(axi_rresp),
-                .axi_rlast(axi_rlast), .axi_rvalid(axi_rvalid), .axi_rready(axi_rready)
-            );
-        end else begin : g_bad_engine_mode
-            initial $fatal(1, "Hnpu_service ENGINE_MODE must be 0 (FC) or 1 (CNN)");
-        end
-    endgenerate
+    Hnpu_cnn_engine #(
+        .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES), .AXI_ID(AXI_ID),
+        .MAX_MODEL_BYTES(MAX_MODEL_BYTES), .MAX_TENSOR_BYTES(MAX_TENSOR_BYTES),
+        .MAX_LAYERS(16), .MAX_CLASSES(MAX_CLASSES)
+    ) u_cnn_engine (
+        .clk(clk), .rst_n(rst_n), .start(engine_start), .clear_error(clear_errors),
+        .model_base(active_model_base), .model_bytes(active_model_bytes),
+        .input_addr(active_input_base + active_roi * active_input_stride),
+        .input_bytes(active_input_bytes),
+        .input_source_bytes(active_input_bytes), .input_downsample3(1'b0),
+        .busy(engine_busy),
+        .done_pulse(engine_done), .error(engine_error),
+        .error_code(engine_error_code), .result_class(engine_class),
+        .result_confidence(engine_confidence), .result_score(engine_score),
+        .result_reject(engine_reject_cnn),
+        .model_cache_hit(), .model_cache_valid(), .model_load_count(),
+        .model_load_beats(),
+        .axi_araddr(axi_araddr), .axi_arid(axi_arid), .axi_arlen(axi_arlen),
+        .axi_arsize(axi_arsize), .axi_arburst(axi_arburst),
+        .axi_arvalid(axi_arvalid), .axi_arready(axi_arready),
+        .axi_rdata(axi_rdata), .axi_rid(axi_rid), .axi_rresp(axi_rresp),
+        .axi_rlast(axi_rlast), .axi_rvalid(axi_rvalid), .axi_rready(axi_rready)
+    );
 
     integer i, j, k;
     integer cam_index;
@@ -332,10 +296,9 @@ module Hnpu_service #(
             q_count[0] <= 0; q_count[1] <= 0;
             active <= 0; active_cam <= 0; active_bank <= 0; active_frame <= 0;
             active_input_base <= 0; active_input_stride <= 0; active_input_bytes <= 0;
-            active_feature_count <= 0; active_weight_base <= 0; active_weight_stride <= 0;
-            active_bias_base <= 0; active_model_base <= 0; active_model_bytes <= 0;
+            active_model_base <= 0; active_model_bytes <= 0;
             active_count <= 0; active_class_count <= 0;
-            active_quant_shift <= 0; active_roi <= 0; engine_issued <= 0; rr_next <= 0;
+            active_roi <= 0; engine_issued <= 0; rr_next <= 0;
             result_rd_ptr <= 0; result_wr_ptr <= 0; result_count <= 0; result_reserved <= 0;
             release_rd_ptr <= 0; release_wr_ptr <= 0; release_count <= 0;
             int8_release_valid <= 0; int8_release_bank <= 0; int8_release_frame <= 0;
@@ -393,15 +356,10 @@ module Hnpu_service #(
                 q_input_base[cam_index][queue_index] <= batch_input_base;
                 q_input_stride[cam_index][queue_index] <= batch_input_stride;
                 q_input_bytes[cam_index][queue_index] <= batch_input_bytes;
-                q_feature_count[cam_index][queue_index] <= batch_feature_count;
-                q_weight_base[cam_index][queue_index] <= batch_weight_base;
-                q_weight_stride[cam_index][queue_index] <= batch_weight_stride;
-                q_bias_base[cam_index][queue_index] <= batch_bias_base;
                 q_model_base[cam_index][queue_index] <= batch_model_base;
                 q_model_bytes[cam_index][queue_index] <= batch_model_bytes;
                 q_count_rois[cam_index][queue_index] <= batch_count;
                 q_class_count[cam_index][queue_index] <= batch_class_count;
-                q_quant_shift[cam_index][queue_index] <= batch_quant_shift;
                 for (j = 0; j < MAX_ROIS; j = j + 1) begin
                     q_boxes[cam_index][queue_index][j] <= batch_boxes[j*64 +: 64];
                     q_colors[cam_index][queue_index][j] <= batch_colors[j*3 +: 3];
@@ -471,15 +429,10 @@ module Hnpu_service #(
                 active_input_base <= q_input_base[take_cam][queue_index];
                 active_input_stride <= q_input_stride[take_cam][queue_index];
                 active_input_bytes <= q_input_bytes[take_cam][queue_index];
-                active_feature_count <= q_feature_count[take_cam][queue_index];
-                active_weight_base <= q_weight_base[take_cam][queue_index];
-                active_weight_stride <= q_weight_stride[take_cam][queue_index];
-                active_bias_base <= q_bias_base[take_cam][queue_index];
                 active_model_base <= q_model_base[take_cam][queue_index];
                 active_model_bytes <= q_model_bytes[take_cam][queue_index];
                 active_count <= q_count_rois[take_cam][queue_index];
                 active_class_count <= q_class_count[take_cam][queue_index];
-                active_quant_shift <= q_quant_shift[take_cam][queue_index];
                 for (k = 0; k < MAX_ROIS; k = k + 1) begin
                     active_boxes[k] <= q_boxes[take_cam][queue_index][k];
                     active_colors[k] <= q_colors[take_cam][queue_index][k];

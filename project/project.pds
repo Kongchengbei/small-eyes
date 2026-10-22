@@ -127,10 +127,6 @@
                     (_format verilog)
                     (_timespec "2026-10-03T20:47:27")
                 )
-                (_file "../soc/Hnpu_dma.v"
-                    (_format verilog)
-                    (_timespec "2026-10-15T20:05:22")
-                )
                 (_file "../soc/Haxi_2m1s_arbiter.v"
                     (_format verilog)
                     (_timespec "2026-09-27T18:27:12")
@@ -246,6 +242,9 @@
                 (_file "../IP/imem/rtl/ipm2l_dpram_v1_9_imem.v"
                     (_format verilog)
                     (_timespec "2026-10-06T22:04:49")
+                )
+                (_file "../soc/Hnpu_service.v"
+                    (_format verilog)
                 )
                 (_file "../soc/Hnpu_system.v"
                     (_format verilog)

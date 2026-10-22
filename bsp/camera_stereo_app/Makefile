@@ -177,7 +177,7 @@ camera_stereo_npu_$(1).bin: camera_stereo_npu_$(1).elf
 	@set -eu; raw="$(BUILD)/camera_stereo_npu_$(1).raw.bin"; $$(OBJCOPY) -O binary $$< "$$$$raw"; bytes=$$$$(wc -c < "$$$$raw"); if [ "$$$$bytes" -eq 0 ] || [ "$$$$bytes" -gt $$(TARGET_BYTES) ] || [ $$$$((bytes % 4)) -ne 0 ]; then echo "ERROR: invalid complete camera_stereo_npu_$(1) raw image size: $$$$bytes"; exit 1; fi; echo "CAMERA_STEREO_NPU_$(1)_RAW_BYTES=$$$$bytes"; $$(OBJCOPY) -I binary -O binary --gap-fill=0 --pad-to=$$(TARGET_BYTES) "$$$$raw" $$@; test $$$$(wc -c < $$@) -eq $$(TARGET_BYTES)
 
 # 整片 Flash 镜像：[CPU 程序补到 32 KiB][model.npu]，从 Flash 0x00A00000 起整份写入。
-camera_stereo_npu_$(1)_flash.bin: camera_stereo_npu_$(1).bin $$(NPU_MODEL)
+camera_stereo_npu_$(1)_flash.bin: camera_stereo_npu_$(1).bin $$(NPU_MODEL) ../../soc/soc_addr_map.vh ../../scripts/make_npu_flash_image.sh
 	bash ../../scripts/make_npu_flash_image.sh $$< "$$(NPU_MODEL)" $$@
 endef
 

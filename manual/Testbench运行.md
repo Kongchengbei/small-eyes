@@ -6,7 +6,8 @@
 make all=tb_Hcsrrun
 make all=tb_Hcsr.svrun
 make tb_Hcsrrun
-make all=tb_npu_service run
+make -f scripts/sim.mk npu-cnn-service
+make -f scripts/sim.mk npu-image-system
 make sim-list
 ```
 

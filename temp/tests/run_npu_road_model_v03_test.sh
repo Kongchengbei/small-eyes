@@ -77,7 +77,7 @@ for mode in 32 96; do
         --top-module tb_npu_road_model_v03 -j "${SIM_JOBS:-2}" \
         --Mdir "$obj" -o simulator \
         -GMODEL_BYTES="$model_bytes" -GROI_COUNT="$roi_count" \
-        soc/Hnpu_quant.v soc/Hnpu_cnn_engine.v temp/tests/tb_npu_road_model_v03.sv \
+        soc/Hnpu_cnn_engine.v temp/tests/tb_npu_road_model_v03.sv \
         > "$tmp_dir/build$mode.log" 2>&1 || {
             tail -40 "$tmp_dir/build$mode.log" >&2
             exit 1

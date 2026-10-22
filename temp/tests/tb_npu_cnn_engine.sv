@@ -196,6 +196,9 @@ module tb_npu_cnn_engine;
         end else if (case_name == "bad_shape") begin
             mem[model_offset + 128 + 8] = 8'h03;
             recompute_payload_crc;
+        end else if (case_name == "bad_pool_shape") begin
+            mem[model_offset + 128 + 2*64 + 8] = 8'h01;
+            recompute_payload_crc;
         end else if (case_name == "weight_section") begin
             // Point the first CONV weight descriptor at the header.  The
             // package CRC is valid, so this exercises section-bound checking.
@@ -210,13 +213,14 @@ module tb_npu_cnn_engine;
             inject_rid = 1'b1;
         end else if (case_name == "bad_rlast") begin
             inject_bad_rlast = 1'b1;
-        end else if (case_name != "valid")
+        end else if (case_name != "valid" && case_name != "gap_div_negative")
             $fatal(1, "unknown test case %s", case_name);
 
         if (case_name == "valid" || case_name == "bad_magic" ||
             case_name == "bad_crc" || case_name == "bad_version" ||
             case_name == "bad_descriptor" || case_name == "unknown_op" ||
-            case_name == "bad_shape" || case_name == "weight_section") begin
+            case_name == "bad_shape" || case_name == "bad_pool_shape" ||
+            case_name == "weight_section") begin
             inject_rresp = 1'b0;
             inject_rid = 1'b0;
             inject_bad_rlast = 1'b0;
@@ -225,6 +229,28 @@ module tb_npu_cnn_engine;
         repeat (3) @(posedge clk);
         rst_n = 1'b1;
         @(negedge clk);
+        if (case_name == "gap_div_negative") begin
+            dut.state = 6'd30;
+            dut.gap_div_negative = 1'b1;
+            dut.gap_dividend = 32'd7;
+            dut.gap_divisor = 17'd4;
+            dut.gap_quotient = 0;
+            dut.gap_remainder = 0;
+            dut.gap_div_bit = 6'd31;
+            dut.gap_channel = 0;
+            dut.layer_out_c = 1;
+            dut.tensor_active = 0;
+            timeout = 0;
+            while (!dut.tensor_write_enable && timeout < 40) begin
+                @(negedge clk);
+                timeout = timeout + 1;
+            end
+            if (!dut.tensor_write_enable || dut.tensor_write_data !== -8'sd1)
+                $fatal(1, "GAP signed truncation mismatch valid=%0d value=%0d",
+                       dut.tensor_write_enable, dut.tensor_write_data);
+            $display("NPU_CNN_GAP_DIV_PASS signed=-7/4 result=-1");
+            $finish;
+        end
         start = 1'b1;
         @(posedge clk);
         @(negedge clk);
@@ -234,8 +260,8 @@ module tb_npu_cnn_engine;
         if (case_name == "valid") begin
             if (error || result_class != 0 || result_score != 11 ||
                 result_confidence != 1)
-                $fatal(1, "CNN result mismatch class=%0d score=%0d conf=%0d error=%0d",
-                       result_class, result_score, result_confidence, error);
+                $fatal(1, "CNN result mismatch class=%0d score=%0d conf=%0d error=%0d error_code=%0d state=%0d",
+                       result_class, result_score, result_confidence, error, error_code, dut.state);
         end else if (case_name == "bad_magic") begin
             if (!error || error_code != 8'h20) $fatal(1, "bad magic not rejected code=%0d", error_code);
         end else if (case_name == "bad_crc") begin
@@ -248,6 +274,8 @@ module tb_npu_cnn_engine;
             if (!error || error_code != 8'h26) $fatal(1, "unknown op not rejected code=%0d", error_code);
         end else if (case_name == "bad_shape") begin
             if (!error || error_code != 8'h25) $fatal(1, "bad shape not rejected code=%0d", error_code);
+        end else if (case_name == "bad_pool_shape") begin
+            if (!error || error_code != 8'h25) $fatal(1, "bad pool shape not rejected code=%0d", error_code);
         end else if (case_name == "weight_section") begin
             if (!error || error_code != 8'h25) $fatal(1, "weight section violation not rejected code=%0d", error_code);
         end else if (case_name == "bad_rresp") begin
