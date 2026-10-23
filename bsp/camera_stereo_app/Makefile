@@ -38,6 +38,15 @@ NPU_CAM2_ORIENTATION_AS_CAM1 ?= 1
 NPU_CAM_AE_TARGET_TUNED ?= 1
 NPU_DEFS := -DCAM2_ORIENTATION_AS_CAM1=$(NPU_CAM2_ORIENTATION_AS_CAM1) -DCAM_AE_TARGET_TUNED=$(NPU_CAM_AE_TARGET_TUNED) -DNPU_PRINT_BACKGROUND=$(NPU_PRINT_BACKGROUND) \
     -DNPU_VERBOSE=$(NPU_VERBOSE) -DNPU_NAMES_GBK=$(NPU_NAMES_GBK) -DNPU_STAT_SECONDS=$(NPU_STAT_SECONDS)
+# 路标确认层（sign_confirm.c）：NPU_CONFIRM=1 默认打开，=0 时 main_npu.c 里新代码一行都不编进去
+NPU_CONFIRM ?= 1
+# NPU_CONFIRM_TRACE=1 每张结果多打一行 ### VOTE（仿真对拍用）；NPU_QUIET=1 不打 >>> 和 ??? 行
+NPU_CONFIRM_TRACE ?= 0
+NPU_QUIET ?= 0
+# 原样追加到 npu 的编译参数，例如 NPU_SC_FLAGS=-DSC_H_MS=1000
+NPU_SC_FLAGS ?=
+NPU_SRCS += sign_confirm.c
+NPU_DEFS += -DNPU_CONFIRM=$(NPU_CONFIRM) -DNPU_CONFIRM_TRACE=$(NPU_CONFIRM_TRACE) -DNPU_QUIET=$(NPU_QUIET) $(NPU_SC_FLAGS)
 NPU_MODEL ?= ../../temp/路标模型文件v0.3_10月10日/model.npu
 
 .PHONY: all local remote diagnostics frame-dump frame-dump-local frame-dump-remote npu npu-local npu-remote clean

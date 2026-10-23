@@ -51,10 +51,32 @@ extern uint32_t system_cpu_freq;
 #if NPU_STAT_SECONDS < 1 || NPU_STAT_SECONDS > 30
 #error "NPU_STAT_SECONDS must be 1..30"
 #endif
+/* 1（默认）：路标确认层，连续几次一致才算确认，只新增 ### 开头的行；0：新代码一行都不编进去。只管默认格式。 */
+#ifndef NPU_CONFIRM
+#define NPU_CONFIRM 1
+#endif
+/* 1：每张结果多打一行 ### VOTE，仿真对拍用，串口放不下时会等。 */
+#ifndef NPU_CONFIRM_TRACE
+#define NPU_CONFIRM_TRACE 0
+#endif
+/* 1：不打 >>> 和 ??? 行，其余照打。 */
+#ifndef NPU_QUIET
+#define NPU_QUIET 0
+#endif
+#if (!NPU_CONFIRM || NPU_VERBOSE) && (NPU_CONFIRM_TRACE || NPU_QUIET)
+#error "NPU_CONFIRM_TRACE and NPU_QUIET need NPU_CONFIRM=1 and NPU_VERBOSE=0"
+#endif
 
 #define CLASS_COUNT 11u
 /* 一条结果最长约 150 字节；队列不够就只计数不打印，不拖住结果队列。 */
 #define LINE_RESERVE 200u
+
+#if NPU_CONFIRM && !NPU_VERBOSE
+#include "sign_confirm.h"
+#if SC_CLASSES != CLASS_COUNT
+#error "SC_CLASSES must equal CLASS_COUNT"
+#endif
+#endif
 
 #if NPU_VERBOSE
 /* 编号同 temp/路标模型文件v0.3_10月10日/classes.csv。 */
@@ -335,6 +357,143 @@ static void print_result(const struct npu_result *r,enum shown k)
     log_putc('\n');
 }
 
+#if NPU_CONFIRM
+/* 路标确认层的接线：只多打 ### 开头的行，上面 >>> ??? !!! 各行的内容不动。 */
+#if NPU_NAMES_GBK
+#define CF_SURE "\xc8\xb7\xb6\xa8"                                   /* 确定 */
+#define CF_GONE "\xcf\xfb\xca\xa7"                                   /* 消失 */
+#define CF_NOW "\xb5\xb1\xc7\xb0"                                    /* 当前 */
+#define CF_NONE "\xce\xde"                                           /* 无 */
+#define CF_OTHER "\xc6\xe4\xcb\xfb\xc2\xb7\xb1\xea"                  /* 其他路标 */
+#else
+#define CF_SURE "SURE"
+#define CF_GONE "GONE"
+#define CF_NOW "NOW"
+#define CF_NONE "none"
+#define CF_OTHER "OTHER SIGN"
+#endif
+/* 事件、NOW、VOTE 每行都不到 128 字节（含回车）。 */
+#define CF_LINE_MIN 128u
+#define CF_CYCLES_PER_MS (CPU_HZ/1000u)
+
+/* 毫秒钟：mtime 差值累加，不足 1 ms 的余数留到下次。 */
+static uint32_t cf_mt0,cf_ms,cf_rem;
+/* proc：每路上一个帧号和本周期帧号变化次数；cf_proc 是上个周期定下的值，等 NOW 行用。 */
+static uint32_t cf_frame[2],cf_count[2],cf_proc[2],cf_seen,cf_now_due;
+
+static uint32_t ms_now(void)
+{
+    uint32_t mt=read_mtime(),d=mt-cf_mt0+cf_rem;
+    cf_mt0=mt;
+    cf_ms+=d/CF_CYCLES_PER_MS;
+    cf_rem=d%CF_CYCLES_PER_MS;
+    return cf_ms;
+}
+
+static const char *cf_name(uint32_t cls)
+{ return cls==1u?CF_OTHER:sign_names[cls]; }
+
+static void cf_put_tenths(uint32_t frames)
+{
+    uint32_t tenths=frames*10u/NPU_STAT_SECONDS;
+    log_putdec(tenths/10u);log_putc('.');log_putdec(tenths%10u);
+}
+
+static void cf_start(void)
+{
+    sc_init();
+    log_puts("### CONFIRM W=");log_putdec(SC_W_MS);
+    log_puts(" H=");log_putdec(SC_H_MS);
+    log_puts(" KD=");log_putdec(SC_KD);
+    log_puts(" KS=");log_putdec(SC_KS);
+    log_puts(" KDO=");log_putdec(SC_KDO);
+    log_puts(" KSO=");log_putdec(SC_KSO);
+    log_puts(" MINL=");log_putdec(SC_MIN_LONG);
+    log_puts(" AR=");log_putdec(SC_MAX_AR);log_putc('\n');
+    cf_mt0=read_mtime();
+}
+
+#if NPU_CONFIRM_TRACE
+/* 仿真对拍用：先打一行票；串口放不下就等，既不丢这一行，也不挤掉后面的结果行。 */
+static void cf_trace(uint32_t ms,const struct npu_result *r)
+{
+    if(uart_async_free()<LINE_RESERVE+CF_LINE_MIN)uart_async_flush_blocking();
+    log_puts("### VOTE t=");log_putdec(ms);
+    log_puts(" cam=");log_putdec(r->camera);
+    log_puts(" cls=");log_putdec(r->cls);
+    log_puts(" frame=");log_putdec(r->frame);
+    log_puts(" conf=");log_putdec(r->confidence);
+    log_puts(" rej=");log_putdec(r->reject);
+    log_puts(" err=");log_putdec(r->error);
+    log_puts(" box=");log_putdec(r->x0);log_putc(',');log_putdec(r->y0);
+    log_putc(',');log_putdec(r->x1);log_putc(',');log_putdec(r->y1);
+    log_putc('\n');
+}
+#endif
+
+/* 每张结果都过一遍：记帧号变化，再喂确认层（不合格的它自己忽略）。 */
+static void cf_result(const struct npu_result *r)
+{
+    uint32_t ms=ms_now(),i=r->camera-1u;
+    if(i<2u&&((cf_seen&(1u<<i))==0u||cf_frame[i]!=r->frame)){cf_seen|=1u<<i;cf_frame[i]=r->frame;++cf_count[i];}
+#if NPU_CONFIRM_TRACE
+    cf_trace(ms,r);
+#endif
+    sc_feed(ms,r->camera,r->cls,r->frame,r->confidence,r->reject,r->error,r->x0,r->y0,r->x1,r->y1);
+}
+
+static void cf_period(void)
+{
+    uint32_t i;
+    for(i=0u;i<2u;++i){cf_proc[i]=cf_count[i];cf_count[i]=0u;}
+    cf_now_due=1u;
+}
+
+static void cf_print_event(const struct sc_event *e)
+{
+    uint32_t n;
+    if(e->type==SC_EV_SURE){
+        log_puts("### " CF_SURE " ");
+        n=put_len(cf_name(e->cls));
+        while(n<NAME_WIDTH){log_putc(' ');++n;}
+        log_puts(" cam=");log_puts(e->cams==1u?"1":e->cams==2u?"2":"1+2");
+        log_puts(" votes=");log_putdec(e->n1);log_putc('+');log_putdec(e->n2);
+        log_puts(" conf=");log_putdec(e->conf);
+    }else{
+        log_puts("### " CF_GONE " ");log_puts(cf_name(e->cls));
+        log_puts(" held=");log_putdec(e->held);
+    }
+    log_puts(" t=");log_putdec(e->t);log_putc('\n');
+}
+
+/* 当前确定的类（类号从小到大，最多 4 个，多的写 ,+N）和上个周期两路的处理帧率。 */
+static void cf_print_now(void)
+{
+    uint32_t mask=sc_active_mask(),i,shown=0u,total=0u;
+    log_puts("### " CF_NOW " ");
+    for(i=1u;i<CLASS_COUNT;++i){
+        if((mask&(1u<<i))==0u)continue;
+        ++total;
+        if(shown<4u){if(shown!=0u)log_putc(',');log_puts(cf_name(i));++shown;}
+    }
+    if(total==0u)log_puts(CF_NONE);
+    else if(total>shown){log_puts(",+");log_putdec(total-shown);}
+    log_puts(" | proc ");cf_put_tenths(cf_proc[0]);log_putc('/');cf_put_tenths(cf_proc[1]);log_puts(" fps");
+    if(sc_lost()!=0u){log_puts(" lost=");log_putdec(sc_lost());}
+    log_putc('\n');
+}
+
+/* 每圈：先追上时间；串口有余量就打一条队头事件，队列空了才轮到 NOW，所以 NOW 总和已打的 SURE/GONE 一致。 */
+static void cf_service(void)
+{
+    struct sc_event e;
+    sc_tick(ms_now());
+    if(uart_async_free()<CF_LINE_MIN)return;
+    if(sc_pop(&e))cf_print_event(&e);
+    else if(cf_now_due){cf_now_due=0u;cf_print_now();}
+}
+#endif
+
 /* 每轮最多取一条，队头不空就读 6 个字（第 181 位以上全是 0）再弹出。 */
 static void poll_result(struct npu_stats *n)
 {
@@ -346,6 +505,12 @@ static void poll_result(struct npu_stats *n)
     k=shown_of(&r);
     ++n->kind[k];
     if(k==SHOWN_SIGN)++n->per_class[r.cls];
+#if NPU_CONFIRM
+    cf_result(&r);
+#if NPU_QUIET
+    if(k==SHOWN_SIGN||k==SHOWN_OTHER||k==SHOWN_UNSURE)return;
+#endif
+#endif
 #if !NPU_PRINT_BACKGROUND
     if(k==SHOWN_BACKGROUND)return;
 #endif
@@ -534,8 +699,14 @@ int main(void)
 #if !NPU_VERBOSE
     print_legend();
 #endif
+#if NPU_CONFIRM && !NPU_VERBOSE
+    cf_start();
+#endif
     next=read_mtime()+REPORT_CYCLES;
     for(;;){
+#if NPU_CONFIRM && !NPU_VERBOSE
+        cf_service();
+#endif
         poll_result(&n);
         if((uint32_t)(read_mtime()-next)<0x80000000u){
 #if NPU_VERBOSE
@@ -545,6 +716,9 @@ int main(void)
 #else
             seconds+=NPU_STAT_SECONDS;
             report_period(&n,&a,&b,seconds);
+#if NPU_CONFIRM
+            cf_period();
+#endif
 #endif
             next+=REPORT_CYCLES;
         }
