@@ -57,6 +57,10 @@ ifneq ($(NPU_SWEEP),0)
 # 命令行给了 SWEEP_xxx 就原样传给 sweep.c（时间表各段毫秒数、图数、SWEEP_CAM2_FIXED），没给用 sweep.c 里的默认值
 NPU_DEFS += -DNPU_SWEEP=$(NPU_SWEEP) $(foreach m,SWEEP_SEG_MS SWEEP_SETTLE_MS SWEEP_PATCH_MS SWEEP_SWAP_MS SWEEP_IMAGES SWEEP_BLANK_MS SWEEP_SHOW_MS SWEEP_CAM2_FIXED,$(if $($(m)),-D$(m)=$($(m))))
 endif
+ifeq ($(NPU_SWEEP),1)
+# 确认层加扫参超过 16384 字节：只放宽这两个 NPU 固件的 CPU 镜像上限到 SOC_BOOT_IMAGE_BYTES（32768），整片 _flash.bin 仍是 95488 字节
+camera_stereo_npu_local.bin camera_stereo_npu_remote.bin: TARGET_BYTES := 32768
+endif
 NPU_MODEL ?= ../../temp/路标模型文件v0.3_10月10日/model.npu
 
 .PHONY: all local remote diagnostics frame-dump frame-dump-local frame-dump-remote npu npu-local npu-remote clean
