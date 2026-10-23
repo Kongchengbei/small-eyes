@@ -1156,10 +1156,10 @@ module Hfpga_soc #(
         // 首版可覆盖的联调参数，不是已训练模型的输入协议。
         .cfg_width({2{PREPROCESS_WIDTH}}), .cfg_height({2{PREPROCESS_HEIGHT}}),
         .cfg_colors(8'h77), .cfg_bright_min(16'h4040), .cfg_dominance(16'h4040),
-        .cfg_black_max(16'h2020), .cfg_min_pixels({2{32'd16}}),
-        .cfg_min_area({2{32'd16}}), .cfg_max_area({2{32'd307200}}),
-        .cfg_min_fill(16'h2020), .cfg_min_aspect({2{16'd64}}),
-        .cfg_max_aspect({2{16'd1024}}), .cfg_margin({2{16'd2}}),
+        .cfg_black_max(16'h2020), .cfg_min_pixels({2{32'd64}}),
+        .cfg_min_area({2{32'd576}}), .cfg_max_area({2{32'd307200}}),
+        .cfg_min_fill(16'h2020), .cfg_min_aspect({2{16'd128}}),
+        .cfg_max_aspect({2{16'd512}}), .cfg_margin({2{16'd2}}),
         // 转换器为每路保留足以容纳整批的INT8位置后才握手接收。
         .result_valid(pre_result_valid), .result_ready(int8_desc_ready),
         .result_camera(pre_result_camera), .result_bank(pre_result_bank),
