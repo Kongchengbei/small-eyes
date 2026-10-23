@@ -36,6 +36,12 @@ NPU_STAT_SECONDS ?= 5
 NPU_CAM2_ORIENTATION_AS_CAM1 ?= 1
 # 1：两路都写 zzx 调过的自动曝光目标（camera_stereo.c 的 ae_target_regs），0 用基础表
 NPU_CAM_AE_TARGET_TUNED ?= 1
+# 曝光扫参：NPU_SWEEP=1 扫预设，=2 只走展示时间表；默认 0，下面各行都不起作用
+NPU_SWEEP ?= 0
+ifneq ($(NPU_SWEEP),0)
+NPU_SRCS += sweep.c
+override NPU_PRINT_BACKGROUND := 1
+endif
 NPU_DEFS := -DCAM2_ORIENTATION_AS_CAM1=$(NPU_CAM2_ORIENTATION_AS_CAM1) -DCAM_AE_TARGET_TUNED=$(NPU_CAM_AE_TARGET_TUNED) -DNPU_PRINT_BACKGROUND=$(NPU_PRINT_BACKGROUND) \
     -DNPU_VERBOSE=$(NPU_VERBOSE) -DNPU_NAMES_GBK=$(NPU_NAMES_GBK) -DNPU_STAT_SECONDS=$(NPU_STAT_SECONDS)
 # 路标确认层（sign_confirm.c）：NPU_CONFIRM=1 默认打开，=0 时 main_npu.c 里新代码一行都不编进去
@@ -47,6 +53,10 @@ NPU_QUIET ?= 0
 NPU_SC_FLAGS ?=
 NPU_SRCS += sign_confirm.c
 NPU_DEFS += -DNPU_CONFIRM=$(NPU_CONFIRM) -DNPU_CONFIRM_TRACE=$(NPU_CONFIRM_TRACE) -DNPU_QUIET=$(NPU_QUIET) $(NPU_SC_FLAGS)
+ifneq ($(NPU_SWEEP),0)
+# 命令行给了 SWEEP_xxx 就原样传给 sweep.c（时间表各段毫秒数、图数、SWEEP_CAM2_FIXED），没给用 sweep.c 里的默认值
+NPU_DEFS += -DNPU_SWEEP=$(NPU_SWEEP) $(foreach m,SWEEP_SEG_MS SWEEP_SETTLE_MS SWEEP_PATCH_MS SWEEP_SWAP_MS SWEEP_IMAGES SWEEP_BLANK_MS SWEEP_SHOW_MS SWEEP_CAM2_FIXED,$(if $($(m)),-D$(m)=$($(m))))
+endif
 NPU_MODEL ?= ../../temp/路标模型文件v0.3_10月10日/model.npu
 
 .PHONY: all local remote diagnostics frame-dump frame-dump-local frame-dump-remote npu npu-local npu-remote clean

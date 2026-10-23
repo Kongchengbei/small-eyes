@@ -40,6 +40,19 @@ extern uint32_t system_cpu_freq;
 #ifndef NPU_PRINT_BACKGROUND
 #define NPU_PRINT_BACKGROUND 0
 #endif
+/* 曝光扫参（sweep.c）：0（默认）不编进去；1 扫预设；2 只走展示时间表。非 0 时必须打印背景框（Makefile 已强制）。 */
+#ifndef NPU_SWEEP
+#define NPU_SWEEP 0
+#endif
+#if NPU_SWEEP < 0 || NPU_SWEEP > 2
+#error "NPU_SWEEP must be 0..2"
+#endif
+#if NPU_SWEEP && !NPU_PRINT_BACKGROUND
+#error "NPU_SWEEP needs NPU_PRINT_BACKGROUND=1"
+#endif
+#if NPU_SWEEP
+#include "sweep.h"
+#endif
 /* 1：路标名用 GBK 中文（串口终端按 GBK/ANSI 显示时用），默认英文。只管默认格式。 */
 #ifndef NPU_NAMES_GBK
 #define NPU_NAMES_GBK 0
@@ -702,6 +715,9 @@ int main(void)
 #if NPU_CONFIRM && !NPU_VERBOSE
     cf_start();
 #endif
+#if NPU_SWEEP
+    sweep_init(&a.camera,&b.camera,a.streaming,b.streaming);
+#endif
     next=read_mtime()+REPORT_CYCLES;
     for(;;){
 #if NPU_CONFIRM && !NPU_VERBOSE
@@ -723,6 +739,9 @@ int main(void)
             next+=REPORT_CYCLES;
         }
         if(uart_async_dropped()!=drop_notice){drop_notice=uart_async_dropped();log_puts("LOG_DROPPED=");log_putdec(drop_notice);log_putc('\n');}
+#if NPU_SWEEP
+        sweep_step();
+#endif
         uart_async_service();
     }
 }
