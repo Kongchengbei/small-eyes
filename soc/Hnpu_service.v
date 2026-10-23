@@ -26,7 +26,7 @@ module Hnpu_service #(
     parameter integer QUEUE_DEPTH = 4,
     parameter integer RESULT_DEPTH = 16,
     parameter integer MAX_ROIS = 8,
-    parameter integer MAX_CLASSES = 11,
+    parameter integer MAX_CLASSES = 16,
     parameter integer MAX_MODEL_BYTES = 65536,
     // B-CNN32-v0.3 peaks at 16 KiB for one intermediate tensor.  Keep the
     // batch path aligned with image mode so each tensor bank maps to BRAM

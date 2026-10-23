@@ -59,8 +59,12 @@ if [[ -f "$road_model_dir/model.npu" ]]; then
         SIM_JOBS="${SIM_JOBS:-2}" \
         SIMULATOR="${SIMULATOR:-verilator}" \
         bash temp/tests/run_npu_road_model_v03_test.sh "$road_model_dir"
+    SIM_TIMEOUT="${SIM_TIMEOUT:-600}" \
+        SIM_JOBS="${SIM_JOBS:-2}" \
+        SIMULATOR="${SIMULATOR:-verilator}" \
+        bash temp/tests/run_npu_class_limit_test.sh "$road_model_dir"
     echo "NPU_TEST_ROAD_MODEL=RUN model=v0.3"
-    extra_count=1
+    extra_count=2
 elif [[ -f "$road_golden_dir/model.json" ]]; then
     SIM_TIMEOUT="${SIM_TIMEOUT:-120}" \
         SIM_JOBS="${SIM_JOBS:-2}" \

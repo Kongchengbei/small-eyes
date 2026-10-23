@@ -93,7 +93,7 @@ module tb_npu_cnn_service;
     Hnpu_service #(
         .DDR_BASE(DDR_BASE), .DDR_BYTES(32'h0004_0000), .AXI_ID(8'h80),
         .QUEUE_DEPTH(2), .RESULT_DEPTH(8), .MAX_ROIS(4),
-        .MAX_CLASSES(11),
+        .MAX_CLASSES(16),
         .MAX_MODEL_BYTES(65536)
     ) dut (
         .clk(clk), .rst_n(rst_n), .enable(enable), .clear_errors(clear_errors),
