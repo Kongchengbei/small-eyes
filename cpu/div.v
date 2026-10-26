@@ -93,6 +93,27 @@ module div (
                     quotient_reg  <= 32'h8000_0000;
                     remainder_reg <= 32'b0;
                     done_reg      <= 1'b1;
+                end else if (x == 32'b0) begin
+                    // For nonzero divisors, zero divided by any value is
+                    // zero and has zero remainder.
+                    quotient_reg  <= 32'b0;
+                    remainder_reg <= 32'b0;
+                    done_reg      <= 1'b1;
+                end else if (y == 32'd1) begin
+                    quotient_reg  <= x;
+                    remainder_reg <= 32'b0;
+                    done_reg      <= 1'b1;
+                end else if (div_signed && (y == 32'hffff_ffff)) begin
+                    // INT_MIN / -1 was handled above.
+                    quotient_reg  <= ~x + 32'd1;
+                    remainder_reg <= 32'b0;
+                    done_reg      <= 1'b1;
+                end else if (dividend_abs < divisor_abs) begin
+                    // A quotient magnitude below one truncates to zero;
+                    // signed remainder keeps the dividend's original sign.
+                    quotient_reg  <= 32'b0;
+                    remainder_reg <= x;
+                    done_reg      <= 1'b1;
                 end else begin
                     dividend_work  <= dividend_abs;
                     divisor_work   <= divisor_abs;

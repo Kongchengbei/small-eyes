@@ -15,6 +15,9 @@ module Hexu (
     input      [31:0] id_imm,
     input      [31:0] id_src1,
     input      [31:0] id_src2,
+    input             id_mul_early_ready,
+    input      [31:0] id_mul_early_src1,
+    input      [31:0] id_mul_early_src2,
     input             id_src1_mem_pending,
     input             id_src2_mem_pending,
     input      [4:0]  id_mem_pending_rd_addr,
@@ -140,8 +143,23 @@ module Hexu (
 
 	wire mul_x_signed =(ex_m_op == M_MUL)||(ex_m_op == M_MULH)||(ex_m_op == M_MULHSU);
 	wire mul_y_signed =(ex_m_op == M_MUL)||(ex_m_op == M_MULH);
-	wire mul_start = ex_m_is_mul && ex_operands_ready &&
-	                 !ex_mul_started && !ex_mul_done;
+	wire mul_ex_start = ex_m_is_mul && ex_operands_ready &&
+	                    !ex_mul_started && !ex_mul_done;
+    wire id_m_is_mul = id_m_op == M_MUL || id_m_op == M_MULH ||
+                       id_m_op == M_MULHSU || id_m_op == M_MULHU;
+    // Select ID data independently of the issue handshake, keeping ready/flush
+    // control out of the partial-product data path. An occupied EX multiplier
+    // retains ownership, including on its completion edge.
+    wire mul_id_select = !ex_m_is_mul &&
+        id_m_is_mul && id_mul_early_ready &&
+        !id_src1_mem_pending && !id_src2_mem_pending;
+    // Capture partial products on the same edge that accepts this ID entry.
+    wire mul_early_start = mul_id_select && !flush && id_to_ex_valid && ex_allowin;
+    wire mul_start = mul_ex_start || mul_early_start;
+    wire mul_input_x_signed = mul_id_select ?
+        (id_m_op == M_MUL || id_m_op == M_MULH || id_m_op == M_MULHSU) : mul_x_signed;
+    wire mul_input_y_signed = mul_id_select ?
+        (id_m_op == M_MUL || id_m_op == M_MULH) : mul_y_signed;
 	wire mul_done;
 	wire mul_done_fire = ex_m_is_mul && ex_mul_started && mul_done;
 	// mul_done 是脉冲。若 MEM 可接收，直接放行；若 MEM 背压，则把
@@ -154,10 +172,10 @@ module Hexu (
 	    .clk          (clk),
 	    .rst          (rst),
 	    .start        (mul_start),
-	    .x_signed     (mul_x_signed),
-	    .y_signed     (mul_y_signed),
-	    .x            (ex_src1_value),
-	    .y            (ex_src2_value),
+	    .x_signed     (mul_input_x_signed),
+	    .y_signed     (mul_input_y_signed),
+	    .x            (mul_id_select ? id_mul_early_src1 : ex_src1_value),
+	    .y            (mul_id_select ? id_mul_early_src2 : ex_src2_value),
 	    .result       (mul_result),
 	    .done         (mul_done)
 	);
@@ -413,11 +431,11 @@ module Hexu (
 
 			// 乘法状态寄存器，行为与除法握手一致。
 			if (flush || ex_allowin) begin
-				ex_mul_started <= 1'b0;
+				ex_mul_started <= !flush && mul_early_start;
 				ex_mul_done    <= 1'b0;
 			end else if (mul_done_fire) begin
 				ex_mul_done    <= 1'b1;
-			end else if (mul_start) begin
+			end else if (mul_ex_start) begin
 				ex_mul_started <= 1'b1;
 			end
 			// M-EXT MODIFIED END

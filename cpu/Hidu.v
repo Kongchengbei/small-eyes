@@ -1,8 +1,6 @@
 `timescale 1ns / 1ps
 
-module Hidu #(
-    parameter BRAM_MODE = 1'b0
-) (
+module Hidu (
     input             clk,
     input             rst,
 
@@ -38,6 +36,11 @@ module Hidu #(
     output wire [4:0]  id_rd_addr,
     output wire [31:0] id_src1,
     output wire [31:0] id_src2,
+    // Early multiplication uses only RF/WB values, avoiding an EX/MEM-to-ID
+    // forwarding path through the partial-product multipliers.
+    output wire        id_mul_early_ready,
+    output wire [31:0] id_mul_early_src1,
+    output wire [31:0] id_mul_early_src2,
     output wire        id_src1_mem_pending,
     output wire        id_src2_mem_pending,
     output wire [4:0]  id_mem_pending_rd_addr,
@@ -277,25 +280,29 @@ module Hidu #(
         (id_rs2_addr != 5'd0 && mem_forward_valid &&
          (mem_forward_rd_addr == id_rs2_addr)) ? mem_forward_data : id_rs2_data;
 
-    // DDR 版分支和 JALR 在 ID 级算跳转、决定冲刷取指。这里的操作数要是再接
-    // EX 的 ALU 结果或 DCache 刚返回的 load 数据，一路连到 ICache 地址，
-    // cpu_clk 70 MHz 收不住。所以只从寄存器取：MEM 级已锁存的非 load 结果，
-    // 或寄存器堆（含 WB 写穿）。依赖还在 EX 的指令或 MEM 里的 load 时多停，
-    // 等它往后走一级再取（见下面 br_operand_stall）。BRAM 版不变。
-    wire id_br_consumer = !BRAM_MODE && (id_is_branch || id_is_jalr);
+    wire early_mul_ex_dependency = ex_valid && ex_reg_wen && ex_rd_addr != 5'd0 &&
+        ((ex_rd_addr == id_rs1_addr) || (ex_rd_addr == id_rs2_addr));
+    wire early_mul_mem_dependency =
+        (mem_forward_valid || mem_load_wait || mem_load_valid || mem_alu_forward_valid) &&
+        mem_forward_rd_addr != 5'd0 &&
+        ((mem_forward_rd_addr == id_rs1_addr) || (mem_forward_rd_addr == id_rs2_addr));
+    // The CPU optimization is identical with either memory backend.
+    assign id_mul_early_ready = !early_mul_ex_dependency &&
+                               !early_mul_mem_dependency;
+    // HRegFile already implements WB write-through, including x0 handling.
+    assign id_mul_early_src1 = id_rs1_data;
+    assign id_mul_early_src2 = id_rs2_data;
 
-    wire [31:0] id_br_src1 = BRAM_MODE ? id_src1 :
-        (id_rs1_addr != 5'd0 && mem_alu_forward_valid &&
-         (mem_forward_rd_addr == id_rs1_addr)) ? mem_alu_forward_data : id_rs1_data;
-
-    wire [31:0] id_br_src2 = BRAM_MODE ? id_src2 :
-        (id_rs2_addr != 5'd0 && mem_alu_forward_valid &&
-         (mem_forward_rd_addr == id_rs2_addr)) ? mem_alu_forward_data : id_rs2_data;
+    // Execution forwarding is independent of the selected memory backend.
+    // Branch/JALR operands use the same newest-writer priority as ALU inputs.
+    // Loads remain subject to the ID dependency stalls below.
+    wire [31:0] id_br_src1 = id_src1;
+    wire [31:0] id_br_src2 = id_src2;
 
     // Branches and JALR still consume operands in ID. Other EX consumers
-    // may carry an immediately preceding load dependency into EX in BRAM mode.
-    wire id_mem_forward_consumer = BRAM_MODE &&
-                                   (id_alu_en || (id_m_op != M_NONE) ||
+    // may carry an immediately preceding load dependency into EX. EX waits
+    // for a matching MEM result, including cache misses and MMIO responses.
+    wire id_mem_forward_consumer = (id_alu_en || (id_m_op != M_NONE) ||
                                     (id_is_csr && !funct3[2])) &&
                                    !id_is_branch && !id_is_jalr;
     assign id_src1_mem_pending = id_mem_forward_consumer && id_uses_rs1 &&
@@ -331,19 +338,7 @@ module Hidu #(
                            (id_uses_rs2 && !id_ex_load_match_rs2 &&
                             (id_rs2_addr == mem_forward_rd_addr)));
 
-    // DDR 版分支/JALR：依赖还在 EX 的任何写寄存器指令，或 MEM 里的 load（不论
-    // 数据回没回来），都先停住
-    wire br_ex_match_rs1 = ex_valid && ex_reg_wen && (ex_rd_addr != 5'd0) &&
-                           id_uses_rs1 && (id_rs1_addr == ex_rd_addr);
-    wire br_ex_match_rs2 = ex_valid && ex_reg_wen && (ex_rd_addr != 5'd0) &&
-                           id_uses_rs2 && (id_rs2_addr == ex_rd_addr);
-    wire br_mem_load_match = mem_load_valid && (mem_forward_rd_addr != 5'd0) &&
-                             ((id_uses_rs1 && (id_rs1_addr == mem_forward_rd_addr)) ||
-                              (id_uses_rs2 && (id_rs2_addr == mem_forward_rd_addr)));
-    wire br_operand_stall = id_br_consumer &&
-                            (br_ex_match_rs1 || br_ex_match_rs2 || br_mem_load_match);
-
-    wire id_stall = id_valid && (ex_load_stall || mem_load_stall || br_operand_stall);
+    wire id_stall = id_valid && (ex_load_stall || mem_load_stall);
 
 	//控制信号
     wire   id_ready_go      = !id_stall;
@@ -432,7 +427,11 @@ module Hidu #(
                 id_valid <= if_to_id_valid;
             end
 
-            if (!flush && if_to_id_valid && id_allowin) begin
+            // A redirect clears id_valid above. Capturing a discarded IF
+            // payload on that edge is harmless: the next valid transfer
+            // replaces all fields before they can issue. Keep the late
+            // redirect signal out of the wide payload-register enables.
+            if (if_to_id_valid && id_allowin) begin
                 id_pc_reg          <= if_pc;
                 id_ins_reg         <= if_ins;
                 id_predict_next_pc <= btb_predict_next_pc;

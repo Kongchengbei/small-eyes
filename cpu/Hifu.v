@@ -63,99 +63,109 @@ module Hifu #(
 	wire [1:0] fetch_occupancy = {1'b0, if_valid} + {1'b0, skid_valid} + {1'b0, fetch_pending};
 	wire fetch_pop = if_valid && id_allowin;
 	wire fetch_room = (fetch_occupancy - fetch_pop) < 2;
-	// 非连续取指（DDR 版）冲刷当拍 imem_req_valid 为 0，跳转地址下一拍由
-	// forced_fetch_pc 发出，这一拍的取指地址没人用，所以只在连续取指时选
-	// redirect_pc，免得冲刷信号再拖到 ICache 的 RAM 地址上
+	// DDR 版允许冲刷当拍的旧预测地址被 ICache 暂存；延迟取消会在 lookup
+	// 阶段丢弃它，forced_fetch_pc 则保留正确 redirect 供下一次真实握手。
+	// 连续取指仍在冲刷当拍直接给出 redirect_pc。
 	assign imem_addr         = (CONTINUOUS_FETCH && flush) ? redirect_pc :
 	                             force_fetch ? forced_fetch_pc :
 	                             if_predict_next_pc;
 	assign imem_req_valid    = CONTINUOUS_FETCH ? (flush || fetch_room) :
-	                             (!flush && !fetch_pending && if_allowin);
+	                             (!fetch_pending && if_allowin);
   
+    // Delivery payload storage is independent of flush control. Flush clears
+    // the valid bits in the transaction block below; any same-edge payload
+    // move/response write is therefore invalidated and overwritten before use.
     always @(posedge clk) begin
         if (rst) begin
-            if_pc_reg <= RESET_PC - 32'd4;
-            if_ins_reg <= 32'h0000_0013;
-			fetch_pc_reg <= 32'b0;
-			fetch_pending <= 1'b0;
-			forced_fetch_pc <= RESET_PC;
-			force_fetch <= 1'b1;
-			skid_valid <= 1'b0;
-			skid_pc <= 32'b0;
-			skid_ins <= 32'h0000_0013;
-			skid_pred_next_pc <= RESET_PC + 32'd4;
-			if_pred_next_pc <= RESET_PC + 32'd4;
-            if_valid  <= 1'b0;
-        end else if (flush) begin
-            // Keep the next sequential calculation anchored at the
-            // redirect target while the cache discards any old miss. The
-            // fixed-latency BRAM path can accept the redirect on this edge;
-            // any response already in flight belongs to the discarded path.
-            if_pc_reg      <= redirect_pc - 32'd4;
-			if_ins_reg      <= 32'h0000_0013;
-			fetch_pending   <= CONTINUOUS_FETCH && imem_req_ready;
-			if (CONTINUOUS_FETCH && imem_req_ready)
-				fetch_pc_reg <= redirect_pc;
-			forced_fetch_pc <= redirect_pc;
-			force_fetch    <= !(CONTINUOUS_FETCH && imem_req_ready);
-			skid_valid     <= 1'b0;
-			skid_pc        <= 32'b0;
-			skid_ins       <= 32'h0000_0013;
-			skid_pred_next_pc <= redirect_pc + 32'd4;
-			if_pred_next_pc <= redirect_pc + 32'd4;
-			if_valid        <= 1'b0;
-		end else if (CONTINUOUS_FETCH) begin
-			if (imem_req_valid && imem_req_ready) begin
-				fetch_pc_reg <= imem_addr;
-				fetch_pending <= 1'b1;
-				force_fetch <= 1'b0;
-			end else begin
-				fetch_pending <= 1'b0;
-			end
+            if_pc_reg         <= RESET_PC - 32'd4;
+            if_ins_reg        <= 32'h0000_0013;
+            if_pred_next_pc   <= RESET_PC + 32'd4;
+            skid_pc           <= 32'b0;
+            skid_ins          <= 32'h0000_0013;
+            skid_pred_next_pc <= RESET_PC + 32'd4;
+        end else if (CONTINUOUS_FETCH) begin
+            // Preserve the existing slot-move priority: first move the skid
+            // entry to IF, then place a simultaneous response in the freed slot.
+            if (fetch_pop && skid_valid) begin
+                if_pc_reg       <= skid_pc;
+                if_ins_reg      <= skid_ins;
+                if_pred_next_pc <= skid_pred_next_pc;
+            end
 
-			if (fetch_pop) begin
-				if (skid_valid) begin
-					if_pc_reg <= skid_pc;
-					if_ins_reg <= skid_ins;
-					if_pred_next_pc <= skid_pred_next_pc;
-					skid_valid <= 1'b0;
-				end else begin
-					if_valid <= 1'b0;
-				end
-			end
-
-			if (imem_resp_valid && fetch_pending) begin
-				if (!if_valid || (fetch_pop && !skid_valid)) begin
-					if_pc_reg <= fetch_pc_reg;
-					if_ins_reg <= imem_rdata;
-					if_pred_next_pc <= if_predict_next_pc;
-					if_valid <= 1'b1;
-				end else begin
-					skid_pc <= fetch_pc_reg;
-					skid_ins <= imem_rdata;
-					skid_pred_next_pc <= if_predict_next_pc;
-					skid_valid <= 1'b1;
-				end
-			end
-        end else begin
-			if (if_valid && id_allowin)
-				if_valid <= 1'b0;
-
-			if (imem_req_valid && imem_req_ready) begin
-				fetch_pc_reg  <= imem_addr;
-				fetch_pending <= 1'b1;
-				force_fetch   <= 1'b0;
-			end
-
-			if (imem_resp_valid && fetch_pending) begin
-				if_pc_reg      <= fetch_pc_reg;
-				if_ins_reg     <= imem_rdata;
-				fetch_pending  <= 1'b0;
-				if_valid       <= 1'b1;
-			end
+            if (imem_resp_valid && fetch_pending) begin
+                if (!if_valid || (fetch_pop && !skid_valid)) begin
+                    if_pc_reg       <= fetch_pc_reg;
+                    if_ins_reg      <= imem_rdata;
+                    if_pred_next_pc <= if_predict_next_pc;
+                end else begin
+                    skid_pc           <= fetch_pc_reg;
+                    skid_ins          <= imem_rdata;
+                    skid_pred_next_pc <= if_predict_next_pc;
+                end
+            end
+        end else if (imem_resp_valid && fetch_pending) begin
+            if_pc_reg  <= fetch_pc_reg;
+            if_ins_reg <= imem_rdata;
         end
     end
 
+    // Transaction and validity state; flush retains its original priority.
+    always @(posedge clk) begin
+        if (rst) begin
+            fetch_pc_reg    <= 32'b0;
+            fetch_pending   <= 1'b0;
+            forced_fetch_pc <= RESET_PC;
+            force_fetch     <= 1'b1;
+            skid_valid      <= 1'b0;
+            if_valid        <= 1'b0;
+        end else if (flush) begin
+            // Invalidate both delivery slots. Keep redirect and request state
+            // handling here; payload values are irrelevant while valid is low.
+            fetch_pending <= CONTINUOUS_FETCH && imem_req_ready;
+            if (CONTINUOUS_FETCH && imem_req_ready)
+                fetch_pc_reg <= redirect_pc;
+            forced_fetch_pc <= redirect_pc;
+            force_fetch     <= !(CONTINUOUS_FETCH && imem_req_ready);
+            skid_valid      <= 1'b0;
+            if_valid        <= 1'b0;
+        end else if (CONTINUOUS_FETCH) begin
+            if (imem_req_valid && imem_req_ready) begin
+                fetch_pc_reg  <= imem_addr;
+                fetch_pending <= 1'b1;
+                force_fetch   <= 1'b0;
+            end else begin
+                fetch_pending <= 1'b0;
+            end
+
+            if (fetch_pop) begin
+                if (skid_valid)
+                    skid_valid <= 1'b0;
+                else
+                    if_valid <= 1'b0;
+            end
+
+            if (imem_resp_valid && fetch_pending) begin
+                if (!if_valid || (fetch_pop && !skid_valid))
+                    if_valid <= 1'b1;
+                else
+                    skid_valid <= 1'b1;
+            end
+        end else begin
+            if (if_valid && id_allowin)
+                if_valid <= 1'b0;
+
+            if (imem_req_valid && imem_req_ready) begin
+                fetch_pc_reg <= imem_addr;
+                fetch_pending <= 1'b1;
+                force_fetch <= 1'b0;
+            end
+
+            if (imem_resp_valid && fetch_pending) begin
+                fetch_pending <= 1'b0;
+                if_valid <= 1'b1;
+            end
+        end
+    end
 
 	//输出id的数据
 	    assign if_pc           = if_pc_reg;

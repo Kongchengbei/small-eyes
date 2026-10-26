@@ -115,6 +115,9 @@ module Htop #(
     wire [4:0]  id_rd_addr;
     wire [31:0] id_src1;
     wire [31:0] id_src2;
+    wire        id_mul_early_ready;
+    wire [31:0] id_mul_early_src1;
+    wire [31:0] id_mul_early_src2;
     wire        id_src1_mem_pending;
     wire        id_src2_mem_pending;
     wire [4:0]  id_mem_pending_rd_addr;
@@ -185,12 +188,25 @@ module Htop #(
     wire        flush    = ex_flush_req || id_flush_req;
     wire [31:0] flush_pc = ex_flush_req ? ex_flush_pc : actual_next_pc;
 
+    // Apply DDR ICache cancellation one cycle after Hifu consumes the redirect.
+    // The request masks prevent the forced redirect from handshaking during
+    // that cancellation cycle.
+    reg icache_cancel_q;
+    always @(posedge clk) begin
+        if (rst)
+            icache_cancel_q <= 1'b0;
+        else
+            icache_cancel_q <= flush;
+    end
+
     wire [31:0] btb_lookup_pc;
     wire [31:0] if_btb_lookup_pc;
     wire        btb_lookup_hit;
     wire        btb_lookup_match;
     wire        btb_lookup_predict_taken;
     wire [31:0] btb_look_up_target;
+    wire [31:0] fetch_predict_target;
+    wire        btb_lookup_is_return;
     wire        btb_update_valid;
     wire        btb_update_valid_id;
     wire [31:0] btb_update_pc;
@@ -277,11 +293,12 @@ module Htop #(
         .redirect_pc    (flush_pc),
         .imem_rdata     (BRAM_MODE ? bram_if_resp_data : if_resp_data),
         .imem_resp_valid(BRAM_MODE ? bram_if_resp_valid : if_resp_valid),
-        .imem_req_ready (BRAM_MODE ? bram_if_ready : if_req_ready),
+        .imem_req_ready (BRAM_MODE ? bram_if_ready :
+                                      (if_req_ready && !icache_cancel_q)),
         .imem_req_valid (if_req_valid),
         //btb
         .btb_hit        (btb_lookup_hit),
-        .btb_target     (btb_look_up_target),
+        .btb_target     (fetch_predict_target),
         .predict_next_pc(btb_predict_next_pc),
         .imem_addr      (if_req_pc),
         .if_ins         (if_ins),
@@ -299,8 +316,8 @@ module Htop #(
     ) u_icache (
         .clk            (clk),
         .rst            (rst),
-        .flush          (flush),
-        .cpu_req_valid  (if_req_valid),
+        .flush          (icache_cancel_q),
+        .cpu_req_valid  (if_req_valid && !icache_cancel_q),
         .cpu_req_pc     (if_req_pc),
         .cpu_req_ready  (if_req_ready),
         .cpu_resp_valid (if_resp_valid),
@@ -397,6 +414,34 @@ module Htop #(
 
     // Branch predictor
     assign btb_lookup_pc = BRAM_MODE ? if_btb_lookup_pc : if_pc;
+    // RV32I implicit RAS hints use either link register (x1 or x5).
+    // Update only on a resolved ID transfer. An older EX redirect suppresses
+    // this younger instruction; an ID misprediction must keep its own update.
+    wire ras_id_jal = (id_ins[6:0] == 7'b1101111);
+    wire ras_id_jalr = (id_ins[6:0] == 7'b1100111) &&
+                       (id_ins[14:12] == 3'b000);
+    wire ras_rd_link = (id_ins[11:7] == 5'd1) || (id_ins[11:7] == 5'd5);
+    wire ras_rs1_link = (id_ins[19:15] == 5'd1) || (id_ins[19:15] == 5'd5);
+    wire ras_push_hint = (ras_id_jal || ras_id_jalr) && ras_rd_link;
+    wire ras_pop_hint = ras_id_jalr && ras_rs1_link &&
+                        (!ras_rd_link || (id_ins[11:7] != id_ins[19:15]));
+    // A nonzero immediate still supplies the hint, but the unadjusted stack
+    // address is not its target. Such JALR instructions keep the BTB target.
+    wire btb_update_is_return = ras_pop_hint && (id_ins[31:20] == 12'd0);
+    wire ras_valid;
+    wire [31:0] ras_target;
+    ReturnAddressStack u_ras (
+        .clk       (clk),
+        .rst       (rst),
+        .clear     (ex_flush_req),
+        .push      (btb_update_valid && ras_push_hint),
+        .pop       (btb_update_valid && ras_pop_hint),
+        .push_addr (id_pc + 32'd4),
+        .valid     (ras_valid),
+        .top_addr  (ras_target)
+    );
+    assign fetch_predict_target = (btb_lookup_is_return && ras_valid) ?
+                                   ras_target : btb_look_up_target;
     Btb u_btb (
         .clk            (clk),
         .rst            (rst),
@@ -405,10 +450,12 @@ module Htop #(
         .update_pc      (btb_update_pc),
         .update_target  (btb_update_target),
         .update_is_conditional (btb_update_is_conditional),
+        .update_is_return (btb_update_is_return),
         .update_taken   (btb_update_taken),
         .lookup_match   (btb_lookup_match),
         .lookup_predict_taken (btb_lookup_predict_taken),
         .lookup_hit     (btb_lookup_hit),
+        .lookup_is_return (btb_lookup_is_return),
         .lookup_target  (btb_look_up_target)
     );
 
@@ -416,7 +463,7 @@ module Htop #(
     assign btb_update_valid = btb_update_valid_id && !ex_flush_req;
 
     // ID
-    Hidu #(.BRAM_MODE(BRAM_MODE)) u_idu (
+    Hidu u_idu (
         .clk                (clk),
         .rst                (rst),
         .if_to_id_valid     (if_to_id_valid),
@@ -448,6 +495,9 @@ module Htop #(
         .id_rd_addr         (id_rd_addr),
         .id_src1            (id_src1),
         .id_src2            (id_src2),
+        .id_mul_early_ready (id_mul_early_ready),
+        .id_mul_early_src1  (id_mul_early_src1),
+        .id_mul_early_src2  (id_mul_early_src2),
         .id_src1_mem_pending(id_src1_mem_pending),
         .id_src2_mem_pending(id_src2_mem_pending),
         .id_mem_pending_rd_addr(id_mem_pending_rd_addr),
@@ -499,6 +549,9 @@ module Htop #(
         .id_imm              (id_imm),
         .id_src1             (id_src1),
         .id_src2             (id_src2),
+        .id_mul_early_ready  (id_mul_early_ready),
+        .id_mul_early_src1   (id_mul_early_src1),
+        .id_mul_early_src2   (id_mul_early_src2),
         .id_src1_mem_pending (id_src1_mem_pending),
         .id_src2_mem_pending (id_src2_mem_pending),
         .id_mem_pending_rd_addr(id_mem_pending_rd_addr),

@@ -178,7 +178,7 @@ always @(posedge clk) begin
         endcase
 
         // ---- rd_req in-flight marker ----
-        if (rd_req)
+        if (rd_req && rd_rdy)
             rd_req_buffer <= 1'b1;
         else if (main_state_is_refill && (ret_valid && ret_last))
             rd_req_buffer <= 1'b0;
@@ -224,7 +224,7 @@ assign rand_repl_way = has_invalid_way ? invalid_way : chosen_way[1:0];
 assign replace_way   = rand_repl_way;
 
 //AXI总线
-assign rd_req   = main_state_is_replace;
+assign rd_req   = main_state_is_replace && !flush;
 assign rd_type  = request_buffer_uncache_en ? 3'b010 : 3'b100;
 assign rd_addr  = request_buffer_uncache_en ?
                   {request_buffer_tag, request_buffer_index, request_buffer_offset} :

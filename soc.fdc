@@ -14,7 +14,7 @@ create_clock -period {10.000} [get_ports {cam1_pclk}] -name CAM1_PCLK
 create_clock -period {10.000} [get_ports {cam2_pclk}] -name CAM2_PCLK
 
 # BEGIN SOC_JTAG_ROUTE (managed by menuconfig; follows the selected profile)
-define_attribute {n:g_ddr_profile.JTAG_TCK_in} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}
+define_attribute {n:g_bram_profile.u_bram_profile/JTAG_TCK_in} {PAP_CLOCK_DEDICATED_ROUTE} {FALSE}
 # END SOC_JTAG_ROUTE
 
 
@@ -24,7 +24,7 @@ create_generated_clock -name cpu_clk \
     -master_clock clk \
     -multiply_by 70 \
     -divide_by 27 \
-    [get_pins {g_ddr_profile.u_pll/u_gpll:CLKOUT0}]
+    [get_pins {g_bram_profile.u_bram_profile/u_pll/u_gpll:CLKOUT0}]
 # END SOC_CPU_CLOCK
 # 异步时钟域声明
 set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks {JTAG_CLK}]
@@ -46,46 +46,6 @@ set_clock_groups -asynchronous -group [get_clocks {cpu_clk}] -group [get_clocks 
 # ddr_core_clk 自己域内按 8 ns 查。
 # 下面这块由 menuconfig 按模式生成（模板在 scripts/soc_config.c）：DDR 模式写全，BRAM 模式没有 DDR 控制器，块里留空。
 # BEGIN SOC_DDR_CLOCK (managed by menuconfig; DDR profile only, empty for BRAM)
-create_clock -period {8.000} [get_ports {clk_p}] -name ddr_ref_clk
-create_generated_clock -name ddr_core_clk \
-    -source [get_ports {clk_p}] \
-    -master_clock ddr_ref_clk \
-    -multiply_by 16 \
-    -divide_by 16 \
-    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_gpll/u_gpll:CLKOUT0}]
-create_generated_clock -name ddr_rst_clk \
-    -source [get_ports {clk_p}] \
-    -master_clock ddr_ref_clk \
-    -multiply_by 16 \
-    -divide_by 16 \
-    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/rst_clk_gpll/u_gpll:CLKOUT0}]
-create_generated_clock -name phy_dq_clk_0 \
-    -source [get_ports {clk_p}] \
-    -master_clock ddr_ref_clk \
-    -edges {1 2 3} \
-    -edge_shift {0.000 -3.500 -7.000} \
-    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].ddrphy_ppll/u_ppll:CLKOUTPHY}]
-create_generated_clock -name phy_dq_sysclk_0 \
-    -source [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].ddrphy_ppll/u_ppll:CLKOUTPHY}] \
-    -master_clock phy_dq_clk_0 \
-    -edges {1 2 3} \
-    -edge_shift {2.000 5.500 9.000} \
-    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[0].u_ddrphy_ioclkdiv:CLKDIVOUT}]
-create_generated_clock -name phy_dq_clk_1 \
-    -source [get_ports {clk_p}] \
-    -master_clock ddr_ref_clk \
-    -edges {1 2 3} \
-    -edge_shift {0.000 -3.500 -7.000} \
-    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll:CLKOUTPHY}]
-create_generated_clock -name phy_dq_sysclk_1 \
-    -source [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].ddrphy_ppll/u_ppll:CLKOUTPHY}] \
-    -master_clock phy_dq_clk_1 \
-    -edges {1 2 3} \
-    -edge_shift {2.000 5.500 9.000} \
-    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].u_ddrphy_ioclkdiv:CLKDIVOUT}]
-set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_0}]
-set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_1}]
-set_clock_groups -asynchronous -group [get_clocks {ddr_ref_clk ddr_core_clk}] -group [get_clocks {ddr_rst_clk}] -group [get_clocks {clk cpu_clk}] -group [get_clocks {JTAG_CLK}] -group [get_clocks {CAM1_PCLK}] -group [get_clocks {CAM2_PCLK}]
 # END SOC_DDR_CLOCK
 
 # IO 引脚约束：这里只保留 Hfpga_soc 顶层实际存在的外部端口。
@@ -806,56 +766,56 @@ define_attribute {p:mem_a[0]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs[3]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs[3]} {PAP_IO_LOC} {C1}
 define_attribute {p:mem_dqs[3]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs[3]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs[3]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs[3]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs[3]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs[3]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs[2]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs[2]} {PAP_IO_LOC} {B5}
 define_attribute {p:mem_dqs[2]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs[2]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs[2]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs[2]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs[2]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs[2]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs[1]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs[1]} {PAP_IO_LOC} {H7}
 define_attribute {p:mem_dqs[1]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs[1]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs[1]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs[1]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs[1]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs[1]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs[0]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs[0]} {PAP_IO_LOC} {J4}
 define_attribute {p:mem_dqs[0]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs[0]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs[0]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs[0]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs[0]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs[0]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs_n[3]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs_n[3]} {PAP_IO_LOC} {B1}
 define_attribute {p:mem_dqs_n[3]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs_n[3]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs_n[3]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs_n[3]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs_n[3]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs_n[3]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs_n[2]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs_n[2]} {PAP_IO_LOC} {A5}
 define_attribute {p:mem_dqs_n[2]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs_n[2]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs_n[2]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs_n[2]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs_n[2]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs_n[2]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_LOC} {G7}
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs_n[1]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs_n[1]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs_n[1]} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_DIRECTION} {INOUT}
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_LOC} {H4}
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_dqs_n[0]} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_dqs_n[0]} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_dqs_n[0]} {PAP_IO_SLEW} {SLOW}
@@ -918,14 +878,14 @@ define_attribute {p:mem_cas_n} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_ck} {PAP_IO_DIRECTION} {OUTPUT}
 define_attribute {p:mem_ck} {PAP_IO_LOC} {U6}
 define_attribute {p:mem_ck} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_ck} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_ck} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_ck} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_ck} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_ck} {PAP_IO_SLEW} {SLOW}
 define_attribute {p:mem_ck_n} {PAP_IO_DIRECTION} {OUTPUT}
 define_attribute {p:mem_ck_n} {PAP_IO_LOC} {U5}
 define_attribute {p:mem_ck_n} {PAP_IO_VCCIO} {1.5}
-define_attribute {p:mem_ck_n} {PAP_IO_STANDARD} {HSTL15D_I}
+define_attribute {p:mem_ck_n} {PAP_IO_STANDARD} {HSTL15_I}
 define_attribute {p:mem_ck_n} {PAP_IO_DRIVE} {8}
 define_attribute {p:mem_ck_n} {PAP_IO_NONE} {TRUE}
 define_attribute {p:mem_ck_n} {PAP_IO_SLEW} {SLOW}
