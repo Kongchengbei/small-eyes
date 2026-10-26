@@ -121,14 +121,14 @@ INT8 → NPU → UART 输出识别结果，每个框一行，直接写路标名�
 
 - `camera_stereo_npu_local.bin`、`camera_stereo_npu_remote.bin`：16384 字节 CPU 镜像，
   UART 分别走 FPIOA[0]/C24、FPIOA[31]/AB26。
-- `camera_stereo_npu_local_flash.bin`、`camera_stereo_npu_remote_flash.bin`：95488 字节
+- `camera_stereo_npu_local_flash.bin`、`camera_stereo_npu_remote_flash.bin`：95552 字节
   整片 Flash 镜像，即 CPU 镜像补零到 `SOC_BOOT_IMAGE_BYTES`（当前 main 为 32768）后接
-  `model.npu`（62720 字节），由 `scripts/make_npu_flash_image.sh` 生成并检查模型文件。
+  `model.npu`（62784 字节），由 `scripts/make_npu_flash_image.sh` 生成并检查模型文件。
 
 ### 烧录：烧整片的 `_flash.bin`
 
 把 `_flash.bin` 整份从 Flash `0x00A00000` 写入（原始字节，不做端序交换）。上电后
-flash_ddr_boot 把前 32768 字节搬到 DDR `0x80000000` 执行，把 `0x00A08000` 起的 62720
+flash_ddr_boot 把前 32768 字节搬到 DDR `0x80000000` 执行，把 `0x00A08000` 起的 62784
 字节模型搬到 `SOC_NPU_WEIGHT_BASE`（`0xB9000000`）。
 
 16 KiB 的 `.bin` 只有 CPU 程序，没有模型。只烧它时 loader 照样把 Flash `0x00A08000` 处
@@ -139,8 +139,8 @@ flash_ddr_boot 把前 32768 字节搬到 DDR `0x80000000` 执行，把 `0x00A080
 !!! NO MODEL in DDR (magic=0xFFFFFFFF): burn the whole camera_stereo_npu_local_flash.bin (CPU program + model) at Flash 0x00A00000; the 16 KB .bin has no model
 ```
 
-启动时的 `MODEL` 行用于核对模型：本分支默认 v0.4 mild-s1 应为
-`magic=0x3155504E`、`crc=0x4CE06F4C`、`reject_margin=1239`，
+启动时的 `MODEL` 行用于核对模型：本分支默认左转候选应为
+`magic=0x3155504E`、`classes=12`、`bytes=62784`、`crc=0x28F4B306`、`reject_margin=1279`，
 magic 不对时显示 `MODEL=BAD_MAGIC`。位流须用同一份 `soc/soc_addr_map.vh`（DDR 版，
 `SOC_CPU_MEM_BRAM=0`）综合。
 
@@ -154,7 +154,7 @@ magic 不对时显示 `MODEL=BAD_MAGIC`。位流须用同一份 `soc/soc_addr_ma
 - `NPU_STAT_SECONDS`：汇总间隔秒数，1～30，默认 5。
 - `NPU_CAM2_ORIENTATION_AS_CAM1=0`：CAM2 保持驱动默认方向（默认 1，见下文）。
 - `NPU_CAM_AE_TARGET_TUNED=0`：两路都用基础表的自动曝光目标（默认 1，见下文）。
-- `NPU_MODEL`：模型文件，默认 `models/road-sign-v0.4-mild-s1/model.npu`。
+- `NPU_MODEL`：模型文件，默认 `models/road-sign-v0.4-left-i2-candidate/model.npu`。
 
 `.o` 不跟踪命令行变量，改变量后先
 `rm -rf build/npu camera_stereo_npu_*.bin camera_stereo_npu_*.elf` 再构建；不要用
@@ -169,7 +169,7 @@ UART 为 115200、8-N-1。上电约 0.5 秒（两颗摄像头配置完）后输�
 === Road Sign NPU Pipeline ===
 NPU_PIPELINE BOOT
 CPU CLOCK=70000000 UART=115200 TX_FPIOA=0 PRINT_BACKGROUND=0
-MODEL base=0xB9000000 magic=0x3155504E classes=11 bytes=62720 crc=0x4CE06F4C reject_margin=1239
+MODEL base=0xB9000000 magic=0x3155504E classes=12 bytes=62784 crc=0x28F4B306 reject_margin=1279
 CAM1 SCCB=OK PID=0x00005640
 CAM1_ORIENTATION=180 3820=0x00000047 3821=0x00000001 COLORBAR_503D=0x00000000
 CAM1_AE_TARGET 3A0F=40 3A10=38 3A11=71 3A1B=40 3A1E=38 3A1F=10
@@ -201,7 +201,7 @@ OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead ove
 - `CAM1`、`CAM2` 为哪一路摄像头，两路的行会交错。
 - 路标名见下表，补空格到 20 字节对齐。
 - `conf` 为最高分减第二名（16 位饱和），越大越确定。低于模型门槛 `reject_margin`（本分支
-  v0.4 为 1239，启动行和 `OUTPUT` 行里都有）算拿不准；最高分是背景的框不论 `conf` 高低都算背景。
+  默认候选为 1279，启动行和 `OUTPUT` 行里都有）算拿不准；最高分是背景的框不论 `conf` 高低都算背景。
 - `frame` 为该路 DMA 帧号；之后是前处理判定的颜色（red/yellow/blue/black）；`box` 为
   x0,y0,x1,y1，640×480 画面坐标，含端点。每帧最多 8 个框。
 - NPU 报错的框没有路标名和 `conf`，写成
@@ -220,8 +220,11 @@ OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead ove
 | 8 | pl120 | SPEED LIMIT 120 | 限速120 |
 | 9 | i5 | KEEP RIGHT | 靠右侧道路行驶 |
 | 10 | w57 | WATCH PEDESTRIANS | 注意行人 |
+| 11 | i2 | TURN LEFT | 向左转弯 |
 
 编号同 `classes.csv`。拿不准时英文写作 `maybe 名称?`，中文写作 `疑似名称`。
+当前没有直行/右转/多车道箭头类别，也不做车道箭头分段或组合语义解析；这些输入仍可能显示为 `other sign`。
+左转类别是基于 TT100K `i2` 的离线验证候选，未在道路摄像头上验证。
 
 ### 汇总行
 

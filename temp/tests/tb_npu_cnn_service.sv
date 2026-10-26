@@ -5,7 +5,9 @@ module tb_npu_cnn_service;
     localparam [31:0] MODEL_ADDR = 32'h8000_1000;
     localparam [31:0] INPUT1_ADDR = 32'h8002_0000;
     localparam [31:0] INPUT2_ADDR = 32'h8002_1000;
-    localparam integer MODEL_BYTES = 512;
+    integer model_bytes;
+    integer model_class_count;
+    integer strict_zero_output;
     localparam integer INPUT_BYTES = 4096;
 
     reg clk = 1'b0;
@@ -93,7 +95,7 @@ module tb_npu_cnn_service;
     Hnpu_service #(
         .DDR_BASE(DDR_BASE), .DDR_BYTES(32'h0004_0000), .AXI_ID(8'h80),
         .QUEUE_DEPTH(2), .RESULT_DEPTH(8), .MAX_ROIS(4),
-        .MAX_CLASSES(11),
+        .MAX_CLASSES(12),
         .MAX_MODEL_BYTES(65536)
     ) dut (
         .clk(clk), .rst_n(rst_n), .enable(enable), .clear_errors(clear_errors),
@@ -175,16 +177,20 @@ module tb_npu_cnn_service;
         if (rst_n && result_valid && result_ready) begin
             if (result_seen == 0) begin
                 if (result_camera != 1 || result_frame != 32'h101 || result_roi != 0 ||
-                    result_class != 0 || result_score != 0 || result_confidence != 0 ||
-                    result_reject != 0 || result_record[180] != 0 || result_error != 0 ||
+                    result_error != 0 ||
+                    (strict_zero_output && (result_class != 0 || result_score != 0 || result_confidence != 0 ||
+                     result_reject != 0 || result_record[180] != 0)) ||
+                    (!strict_zero_output && result_class >= model_class_count) ||
                     result_box != 64'h0000_0004_0000_0003)
                     $fatal(1, "CNN CAM1 result mismatch cam=%0d frame=%x roi=%0d class=%0d score=%0d conf=%0d reject=%0d error=%0d",
                            result_camera, result_frame, result_roi, result_class,
                            result_score, result_confidence, result_reject, result_error);
             end else if (result_seen == 1) begin
                 if (result_camera != 2 || result_frame != 32'h202 || result_roi != 0 ||
-                    result_class != 0 || result_score != 0 || result_confidence != 0 ||
-                    result_reject != 0 || result_record[180] != 0 || result_error != 0)
+                    result_error != 0 ||
+                    (strict_zero_output && (result_class != 0 || result_score != 0 || result_confidence != 0 ||
+                     result_reject != 0 || result_record[180] != 0)) ||
+                    (!strict_zero_output && result_class >= model_class_count))
                     $fatal(1, "CNN CAM2 result mismatch cam=%0d frame=%x roi=%0d class=%0d score=%0d conf=%0d reject=%0d error=%0d",
                            result_camera, result_frame, result_roi, result_class,
                            result_score, result_confidence, result_reject, result_error);
@@ -226,9 +232,9 @@ module tb_npu_cnn_service;
             // bytes in the model's FC feature vector.
             batch_feature_count = INPUT_BYTES;
             batch_model_base = MODEL_ADDR;
-            batch_model_bytes = MODEL_BYTES;
+            batch_model_bytes = model_bytes;
             batch_count = count;
-            batch_class_count = 2;
+            batch_class_count = model_class_count;
             batch_boxes = 0;
             batch_boxes[63:0] = box0;
             batch_boxes[127:64] = box1;
@@ -250,6 +256,12 @@ module tb_npu_cnn_service;
     initial begin
         if (!$value$plusargs("MODEL_HEX=%s", model_hex))
             $fatal(1, "MODEL_HEX is required");
+        if (!$value$plusargs("MODEL_BYTES=%d", model_bytes))
+            model_bytes = 512;
+        if (!$value$plusargs("MODEL_CLASS_COUNT=%d", model_class_count))
+            model_class_count = 2;
+        if (!$value$plusargs("STRICT_ZERO_OUTPUT=%d", strict_zero_output))
+            strict_zero_output = 1;
         if (!$value$plusargs("INPUT1_HEX=%s", input1_hex))
             $fatal(1, "INPUT1_HEX is required");
         if (!$value$plusargs("INPUT2_HEX=%s", input2_hex))
@@ -259,7 +271,7 @@ module tb_npu_cnn_service;
         model_offset = MODEL_ADDR - DDR_BASE;
         input1_offset = INPUT1_ADDR - DDR_BASE;
         input2_offset = INPUT2_ADDR - DDR_BASE;
-        $readmemh(model_hex, mem, model_offset, model_offset + MODEL_BYTES - 1);
+        $readmemh(model_hex, mem, model_offset, model_offset + model_bytes - 1);
         $readmemh(input1_hex, mem, input1_offset, input1_offset + INPUT_BYTES - 1);
         $readmemh(input2_hex, mem, input2_offset, input2_offset + INPUT_BYTES - 1);
 

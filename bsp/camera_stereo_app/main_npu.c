@@ -80,7 +80,7 @@ extern uint32_t system_cpu_freq;
 #error "NPU_CONFIRM_TRACE and NPU_QUIET need NPU_CONFIRM=1 and NPU_VERBOSE=0"
 #endif
 
-#define CLASS_COUNT 11u
+#define CLASS_COUNT 12u
 /* 一条结果最长约 150 字节；队列不够就只计数不打印，不拖住结果队列。 */
 #define LINE_RESERVE 200u
 
@@ -94,7 +94,7 @@ extern uint32_t system_cpu_freq;
 #if NPU_VERBOSE
 /* 编号同 temp/路标模型文件v0.3_10月10日/classes.csv。 */
 static const char *const class_names[CLASS_COUNT]={
-    "background","unknown","pne","pn","p11","pl40","pl60","pl80","pl120","i5","w57"
+    "background","unknown","pne","pn","p11","pl40","pl60","pl80","pl120","i5","w57","i2"
 };
 #endif
 /* Hpreprocess_color.v：1 红、2 黄、3 蓝、4 黑。 */
@@ -123,14 +123,15 @@ static const char *const sign_names[CLASS_COUNT]={
     "\xcf\xde\xcb\xd9""80",                                          /* 限速80 */
     "\xcf\xde\xcb\xd9""120",                                         /* 限速120 */
     "\xbf\xbf\xd3\xd2\xb2\xe0\xb5\xc0\xc2\xb7\xd0\xd0\xca\xbb",      /* 靠右侧道路行驶 */
-    "\xd7\xa2\xd2\xe2\xd0\xd0\xc8\xcb"                               /* 注意行人 */
+    "\xd7\xa2\xd2\xe2\xd0\xd0\xc8\xcb",                              /* 注意行人 */
+    "\xcf\xf2\xd7\xf3\xd7\xaa\xcd\xe4"                              /* 向左转弯 */
 };
 #define UNSURE_BEFORE "\xd2\xc9\xcb\xc6"                             /* 疑似 */
 #define UNSURE_AFTER ""
 #else
 static const char *const sign_names[CLASS_COUNT]={
     "background","other sign","NO ENTRY","NO PARKING","NO HONKING","SPEED LIMIT 40",
-    "SPEED LIMIT 60","SPEED LIMIT 80","SPEED LIMIT 120","KEEP RIGHT","WATCH PEDESTRIANS"
+    "SPEED LIMIT 60","SPEED LIMIT 80","SPEED LIMIT 120","KEEP RIGHT","WATCH PEDESTRIANS","TURN LEFT"
 };
 #define UNSURE_BEFORE "maybe "
 #define UNSURE_AFTER "?"
