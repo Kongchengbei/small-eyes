@@ -247,6 +247,10 @@
                     (_format verilog)
                     (_timespec "2026-10-22T18:36:17")
                 )
+                (_file "../soc/Hnpu_service.v"
+                    (_format verilog)
+                    (_timespec "2026-10-26T10:00:00")
+                )
                 (_file "../soc/Hnpu_image_service.v"
                     (_format verilog)
                     (_timespec "2026-10-22T18:36:17")

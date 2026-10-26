@@ -3,7 +3,7 @@
 // RGB565 原始颜色粗筛。优先级：红、黄、蓝、黑；0 表示非候选。
 // 阈值为 RGB888 数值，不是模型类别。黑色默认可由 color_enable[3] 关闭。
 // 红、蓝按比例判（2026-10-09 定）：红 8g<=5r 且 8b<=5r，蓝 2r<=b 且 8g<=5b，
-// 都还要过 bright_min；黄、黑不变，dominance 只用于黄。
+// 红、蓝使用独立 red_blue_bright_min；黄、黑不变，dominance 只用于黄。
 // 10-19 时序版：判定结果与上一版逐位相同（全输入形式等价已证），只换写法、不用加法器和进位链。
 // RGB565 分量扩展到 RGB888 是严格单调的，所以比例项可以直接按 565 分量查上限表
 // （例如 8g<=5r 等价于 G<=gmax_58(R)）；和阈值的比较用按位与或式；
@@ -12,6 +12,7 @@ module Hpreprocess_color (
     input [15:0] pixel,
     input [3:0] color_enable,
     input [7:0] bright_min,
+    input [7:0] red_blue_bright_min,
     input [7:0] dominance,
     input [7:0] black_max,
     output [2:0] color
@@ -97,10 +98,12 @@ module Hpreprocess_color (
     wire r_bright = ge8(r, bright_min);
     wire g_bright = ge8(g, bright_min);
     wire b_bright = ge8(b, bright_min);
-    wire red = r_bright && ge8({2'b0, gmax_58(r565)}, {2'b0, g565}) &&
+    wire rb_r_bright = ge8(r, red_blue_bright_min);
+    wire rb_b_bright = ge8(b, red_blue_bright_min);
+    wire red = rb_r_bright && ge8({2'b0, gmax_58(r565)}, {2'b0, g565}) &&
                ge8({3'b0, bmax_58(r565)}, {3'b0, b565});
     wire yellow = r_bright && g_bright && ge_sum8(r, b, dominance) && ge_sum8(g, b, dominance);
-    wire blue = b_bright && ge8({3'b0, rmax_21(b565)}, {3'b0, r565}) &&
+    wire blue = rb_b_bright && ge8({3'b0, rmax_21(b565)}, {3'b0, r565}) &&
                 ge8({2'b0, gmax_58(b565)}, {2'b0, g565});
     wire black = ge8(black_max, r) && ge8(black_max, g) && ge8(black_max, b);
     assign color = color_enable[0] && red ? 3'd1 :

@@ -61,7 +61,7 @@ ifeq ($(NPU_SWEEP),1)
 # 确认层加扫参超过 16384 字节：只放宽这两个 NPU 固件的 CPU 镜像上限到 SOC_BOOT_IMAGE_BYTES（32768），整片 _flash.bin 仍是 95488 字节
 camera_stereo_npu_local.bin camera_stereo_npu_remote.bin: TARGET_BYTES := 32768
 endif
-NPU_MODEL ?= ../../temp/路标模型文件v0.3_10月10日/model.npu
+NPU_MODEL ?= ../../models/road-sign-v0.4-mild-s1/model.npu
 
 .PHONY: all local remote diagnostics frame-dump frame-dump-local frame-dump-remote npu npu-local npu-remote clean
 all: camera_stereo_local.bin camera_stereo_remote.bin camera_stereo.bin

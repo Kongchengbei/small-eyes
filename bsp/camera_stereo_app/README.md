@@ -139,7 +139,8 @@ flash_ddr_boot 把前 32768 字节搬到 DDR `0x80000000` 执行，把 `0x00A080
 !!! NO MODEL in DDR (magic=0xFFFFFFFF): burn the whole camera_stereo_npu_local_flash.bin (CPU program + model) at Flash 0x00A00000; the 16 KB .bin has no model
 ```
 
-启动时的 `MODEL` 行用于核对模型：v0.3 应为 `magic=0x3155504E`、`crc=0x207156DE`，
+启动时的 `MODEL` 行用于核对模型：本分支默认 v0.4 mild-s1 应为
+`magic=0x3155504E`、`crc=0x4CE06F4C`、`reject_margin=1239`，
 magic 不对时显示 `MODEL=BAD_MAGIC`。位流须用同一份 `soc/soc_addr_map.vh`（DDR 版，
 `SOC_CPU_MEM_BRAM=0`）综合。
 
@@ -153,7 +154,7 @@ magic 不对时显示 `MODEL=BAD_MAGIC`。位流须用同一份 `soc/soc_addr_ma
 - `NPU_STAT_SECONDS`：汇总间隔秒数，1～30，默认 5。
 - `NPU_CAM2_ORIENTATION_AS_CAM1=0`：CAM2 保持驱动默认方向（默认 1，见下文）。
 - `NPU_CAM_AE_TARGET_TUNED=0`：两路都用基础表的自动曝光目标（默认 1，见下文）。
-- `NPU_MODEL`：模型文件，默认 `temp/路标模型文件v0.3_10月10日/model.npu`。
+- `NPU_MODEL`：模型文件，默认 `models/road-sign-v0.4-mild-s1/model.npu`。
 
 `.o` 不跟踪命令行变量，改变量后先
 `rm -rf build/npu camera_stereo_npu_*.bin camera_stereo_npu_*.elf` 再构建；不要用
@@ -168,7 +169,7 @@ UART 为 115200、8-N-1。上电约 0.5 秒（两颗摄像头配置完）后输�
 === Road Sign NPU Pipeline ===
 NPU_PIPELINE BOOT
 CPU CLOCK=70000000 UART=115200 TX_FPIOA=0 PRINT_BACKGROUND=0
-MODEL base=0xB9000000 magic=0x3155504E classes=11 bytes=62720 crc=0x207156DE reject_margin=1251
+MODEL base=0xB9000000 magic=0x3155504E classes=11 bytes=62720 crc=0x4CE06F4C reject_margin=1239
 CAM1 SCCB=OK PID=0x00005640
 CAM1_ORIENTATION=180 3820=0x00000047 3821=0x00000001 COLORBAR_503D=0x00000000
 CAM1_AE_TARGET 3A0F=40 3A10=38 3A11=71 3A1B=40 3A1E=38 3A1F=10
@@ -199,8 +200,8 @@ OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead ove
   默认不打印；`!!!` 错误或告警。
 - `CAM1`、`CAM2` 为哪一路摄像头，两路的行会交错。
 - 路标名见下表，补空格到 20 字节对齐。
-- `conf` 为最高分减第二名（16 位饱和），越大越确定。低于模型门槛 `reject_margin`（v0.3 为
-  1251，启动行和 `OUTPUT` 行里都有）算拿不准；最高分是背景的框不论 `conf` 高低都算背景。
+- `conf` 为最高分减第二名（16 位饱和），越大越确定。低于模型门槛 `reject_margin`（本分支
+  v0.4 为 1239，启动行和 `OUTPUT` 行里都有）算拿不准；最高分是背景的框不论 `conf` 高低都算背景。
 - `frame` 为该路 DMA 帧号；之后是前处理判定的颜色（red/yellow/blue/black）；`box` 为
   x0,y0,x1,y1，640×480 画面坐标，含端点。每帧最多 8 个框。
 - NPU 报错的框没有路标名和 `conf`，写成
@@ -329,7 +330,7 @@ zzx 给 CAM1 调过的 40/38/71/40/38/10（`camera_stereo.c` 的 `ae_target_regs
 
 整片 Verilator 仿真（`Hfpga_soc` 全芯片 + DDR3 行为模型 + SPI Flash 模型 + 两路
 OV5640 DVP 激励），从 local `_flash.bin` 上电启动，把 v0.3 金样图送进两路摄像头，串口每条
-结果与金样（`frontend_v03` 找框 + 参考模型分类）逐项比对行首标记、路标名、`conf`、帧号、
+结果与历史 v0.3 基线金样（`frontend_v03` 找框 + 参考模型分类）逐项比对行首标记、路标名、`conf`、帧号、
 颜色和框：单帧 2 帧 5 个框、每路 4 帧间隔发送 8 帧 22 个框、按真实帧率连续发送（含 DMA
 丢帧）23 帧 64 个框，全部一致；NPU 结果队列出的条数与金样框数相同，三个场景都没有告警、
 没有漏打。另外核对了：`NPU_PRINT_BACKGROUND=1 NPU_STAT_SECONDS=1` 时的背景行和两行汇总
