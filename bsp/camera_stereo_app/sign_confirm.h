@@ -34,7 +34,7 @@
 #define SC_MAX_AR 2u    /* 长边不超过这个倍数的短边，短边为 0 不过 */
 #endif
 #ifndef SC_CLASSES
-#define SC_CLASSES 12u  /* 类别总数，须与 main_npu.c 的 CLASS_COUNT 一致 */
+#define SC_CLASSES 20u  /* 类别总数，须与 main_npu.c 的 CLASS_COUNT 一致 */
 #endif
 #ifndef SC_EVQ
 #define SC_EVQ 8u       /* 事件队列深度 */

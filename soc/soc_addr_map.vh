@@ -121,7 +121,7 @@
 `define SOC_NPU_WEIGHT_BASE          32'hb900_0000
 `define SOC_NPU_WEIGHT_BYTES         32'h0200_0000
 `define SOC_NPU_WEIGHT_END           32'hbb00_0000
-`define SOC_NPU_MODEL_BYTES          32'd62784
+`define SOC_NPU_MODEL_BYTES          32'd63328
 
 `define SOC_NPU_OUTPUT_BASE          32'hbb00_0000
 `define SOC_NPU_OUTPUT_BYTES         32'h0100_0000

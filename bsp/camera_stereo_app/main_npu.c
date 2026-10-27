@@ -76,11 +76,18 @@ extern uint32_t system_cpu_freq;
 #ifndef NPU_QUIET
 #define NPU_QUIET 0
 #endif
+#ifndef NPU_LANE_ARROW
+#define NPU_LANE_ARROW 0
+#endif
 #if (!NPU_CONFIRM || NPU_VERBOSE) && (NPU_CONFIRM_TRACE || NPU_QUIET)
 #error "NPU_CONFIRM_TRACE and NPU_QUIET need NPU_CONFIRM=1 and NPU_VERBOSE=0"
 #endif
 
-#define CLASS_COUNT 12u
+#if NPU_LANE_ARROW
+#define CLASS_COUNT 11u
+#else
+#define CLASS_COUNT 20u
+#endif
 /* 一条结果最长约 150 字节；队列不够就只计数不打印，不拖住结果队列。 */
 #define LINE_RESERVE 200u
 
@@ -92,10 +99,17 @@ extern uint32_t system_cpu_freq;
 #endif
 
 #if NPU_VERBOSE
-/* 编号同 temp/路标模型文件v0.3_10月10日/classes.csv。 */
+#if NPU_LANE_ARROW
 static const char *const class_names[CLASS_COUNT]={
-    "background","unknown","pne","pn","p11","pl40","pl60","pl80","pl120","i5","w57","i2"
+    "left","straight","right","u_turn_left","u_turn_right","straight_left",
+    "straight_right","left_right","straight_left_right","non_arrow","unknown_arrow"
 };
+#else
+static const char *const class_names[CLASS_COUNT]={
+    "background","unknown","pne","pn","p11","pl40","pl60","pl80","pl120","i5","w57","i2",
+    "go_straight","turn_right","uturn_left","uturn_right","straight_left","straight_right","left_right","straight_left_right"
+};
+#endif
 #endif
 /* Hpreprocess_color.v：1 红、2 黄、3 蓝、4 黑。 */
 static const char *const color_names[8]={"none","red","yellow","blue","black","c5","c6","c7"};
@@ -111,7 +125,14 @@ static const char *const shown_labels[SHOWN_KINDS]={"sign","other","unsure","bg"
 #define REPORT_CYCLES (CPU_HZ*NPU_STAT_SECONDS)
 #define NAME_WIDTH 20u
 /* 显示用路标名，编号同 classes.csv。 */
-#if NPU_NAMES_GBK
+#if NPU_LANE_ARROW
+static const char *const sign_names[CLASS_COUNT]={
+    "LEFT","STRAIGHT","RIGHT","U-TURN LEFT","U-TURN RIGHT","STRAIGHT + LEFT",
+    "STRAIGHT + RIGHT","LEFT + RIGHT","STRAIGHT + LEFT + RIGHT","NON-ARROW","UNKNOWN ARROW"
+};
+#define UNSURE_BEFORE "maybe "
+#define UNSURE_AFTER "?"
+#elif NPU_NAMES_GBK
 static const char *const sign_names[CLASS_COUNT]={
     "\xb1\xb3\xbe\xb0",                                              /* 背景 */
     "\xce\xb4\xd6\xaa\xb1\xea\xd6\xbe",                              /* 未知标志 */
@@ -124,23 +145,34 @@ static const char *const sign_names[CLASS_COUNT]={
     "\xcf\xde\xcb\xd9""120",                                         /* 限速120 */
     "\xbf\xbf\xd3\xd2\xb2\xe0\xb5\xc0\xc2\xb7\xd0\xd0\xca\xbb",      /* 靠右侧道路行驶 */
     "\xd7\xa2\xd2\xe2\xd0\xd0\xc8\xcb",                              /* 注意行人 */
-    "\xcf\xf2\xd7\xf3\xd7\xaa\xcd\xe4"                              /* 向左转弯 */
+    "\xcf\xf2\xd7\xf3\xd7\xaa\xcd\xe4",                             /* 向左转弯 */
+    "GO STRAIGHT","TURN RIGHT","U-TURN LEFT","U-TURN RIGHT",
+    "STRAIGHT+LEFT","STRAIGHT+RIGHT","LEFT+RIGHT","STRAIGHT+LEFT+RIGHT"
 };
 #define UNSURE_BEFORE "\xd2\xc9\xcb\xc6"                             /* 疑似 */
 #define UNSURE_AFTER ""
 #else
 static const char *const sign_names[CLASS_COUNT]={
     "background","other sign","NO ENTRY","NO PARKING","NO HONKING","SPEED LIMIT 40",
-    "SPEED LIMIT 60","SPEED LIMIT 80","SPEED LIMIT 120","KEEP RIGHT","WATCH PEDESTRIANS","TURN LEFT"
+    "SPEED LIMIT 60","SPEED LIMIT 80","SPEED LIMIT 120","KEEP RIGHT","WATCH PEDESTRIANS","TURN LEFT",
+    "GO STRAIGHT","TURN RIGHT","U-TURN LEFT","U-TURN RIGHT","STRAIGHT + LEFT","STRAIGHT + RIGHT","LEFT + RIGHT","STRAIGHT + LEFT + RIGHT"
 };
 #define UNSURE_BEFORE "maybe "
 #define UNSURE_AFTER "?"
 #endif
 /* 没模型时提示烧哪个文件：local 版串口在 FPIOA0，remote 版在 FPIOA31。 */
 #if STEREO_UART_TX_FPIOA == 31
+#if NPU_LANE_ARROW
+#define FLASH_IMAGE "camera_stereo_lane_arrow_remote_flash.bin"
+#else
 #define FLASH_IMAGE "camera_stereo_npu_remote_flash.bin"
+#endif
+#else
+#if NPU_LANE_ARROW
+#define FLASH_IMAGE "camera_stereo_lane_arrow_local_flash.bin"
 #else
 #define FLASH_IMAGE "camera_stereo_npu_local_flash.bin"
+#endif
 #endif
 #endif
 
@@ -211,9 +243,14 @@ static void decode_result(const uint32_t *w,struct npu_result *r)
 static enum verdict verdict_of(const struct npu_result *r)
 {
     if(r->error!=0u||r->cls>=CLASS_COUNT)return VERDICT_ERROR;
+#if NPU_LANE_ARROW
+    if(r->reject!=0u)return VERDICT_UNKNOWN;
+    return VERDICT_SIGN;
+#else
     if(r->reject!=0u||r->cls==1u)return VERDICT_UNKNOWN;
     if(r->cls==0u)return VERDICT_BACKGROUND;
     return VERDICT_SIGN;
+#endif
 }
 
 static void print_result(const struct npu_result *r,enum verdict v)
@@ -223,8 +260,12 @@ static void print_result(const struct npu_result *r,enum verdict v)
     log_puts(" roi=");log_putdec(r->roi);
     log_puts(" result=");
     if(v==VERDICT_ERROR)log_puts("error");
+#if NPU_LANE_ARROW
+    else log_puts(class_names[r->cls]);
+#else
     else if(v==VERDICT_UNKNOWN)log_puts("unknown");
     else log_puts(class_names[r->cls]);
+#endif
     log_puts(" class=");log_putdec(r->cls);
     log_puts(" reject=");log_putdec(r->reject);
     log_puts(" conf=");log_putdec(r->confidence);
@@ -344,9 +385,14 @@ static const char *npu_error_name(uint32_t code)
 static enum shown shown_of(const struct npu_result *r)
 {
     if(r->error!=0u||r->cls>=CLASS_COUNT)return SHOWN_ERROR;
+#if NPU_LANE_ARROW
+    if(r->reject!=0u)return SHOWN_UNSURE;
+    return SHOWN_SIGN;
+#else
     if(r->cls==0u)return SHOWN_BACKGROUND;
     if(r->reject!=0u)return SHOWN_UNSURE;
     return r->cls==1u?SHOWN_OTHER:SHOWN_SIGN;
+#endif
 }
 
 /* 标记 摄像头 路标名 conf= frame= 颜色 box=x0,y0,x1,y1；conf 是第一名比第二名高出的分数。 */
@@ -541,12 +587,23 @@ static void warn_model(void)
 
 static void print_legend(void)
 {
+#if NPU_LANE_ARROW
+    log_puts("OUTPUT >>> lane-cell ROI class; margin is diagnostic only, !!! NPU error");
+#else
     log_puts("OUTPUT >>> sign, ??? other sign or unsure, ");
 #if NPU_PRINT_BACKGROUND
     log_puts("... background, ");
 #endif
     log_puts("!!! error or warning");
-    if(model_ok()){log_puts("; conf = lead over 2nd class, unsure below ");log_putdec(MODEL_WORD(0x4cu));}
+#endif
+    if(model_ok()){
+#if NPU_LANE_ARROW
+        log_puts("; margin threshold=");log_putdec(MODEL_WORD(0x4cu));
+        if(MODEL_WORD(0x4cu)==0u)log_puts(" (reject disabled)");
+#else
+        log_puts("; conf = lead over 2nd class, unsure below ");log_putdec(MODEL_WORD(0x4cu));
+#endif
+    }
     log_puts("; summary every ");log_putdec(NPU_STAT_SECONDS);log_puts("s\n");
 }
 
@@ -633,7 +690,11 @@ static void report_period(struct npu_stats *n,struct cam_run *a,struct cam_run *
     log_puts(" | last ");log_putdec(NPU_STAT_SECONDS);log_putc('s');
     for(i=0u;i<SHOWN_KINDS;++i){log_putc(i==0u?':':',');log_putc(' ');log_puts(shown_labels[i]);log_putc(' ');log_putdec(n->kind[i]);}
     if(n->unprinted!=0u){log_puts(", not printed ");log_putdec(n->unprinted);}
+#if NPU_LANE_ARROW
+    for(i=0u;i<CLASS_COUNT;++i){
+#else
     for(i=2u;i<CLASS_COUNT;++i){
+#endif
         if(n->per_class[i]==0u)continue;
         log_puts(first?" | seen ":", ");first=0u;
         log_puts(sign_names[i]);log_puts(" x");log_putdec(n->per_class[i]);
@@ -691,7 +752,11 @@ int main(void)
     uint32_t next,seconds=0u,drop_notice=0u;
     uint8_t uart_pin=STEREO_UART_TX_FPIOA;
     uart_async_init(115200u,uart_pin);
+#if NPU_LANE_ARROW
+    log_puts("=== Lane Arrow NPU ROI Classifier ===\n");
+#else
     log_puts("=== Road Sign NPU Pipeline ===\n");
+#endif
     log_puts("NPU_PIPELINE BOOT\nCPU CLOCK=");log_putdec(system_cpu_freq);
     log_puts(" UART=115200 TX_FPIOA=");log_putdec(uart_pin);
     log_puts(" PRINT_BACKGROUND=");log_putdec(NPU_PRINT_BACKGROUND);log_putc('\n');

@@ -15,8 +15,8 @@ make -C bsp/camera_stereo_app all
 
 会生成 `camera_stereo_local.bin`、`camera_stereo_remote.bin` 和兼容名
 `camera_stereo.bin`（local 副本）。local UART 使用 FPIOA[0]/C24，remote 使用
-FPIOA[31]/AB26，均为 115200、8-N-1、无流控。构建保留工程 RV32IM/ILP32、picolibc
-及现有 startup/init，完整原始镜像必须非空、4 字节对齐且不超过 16384 字节；
+FPIOA[31]/AB26，均为 115200、8-N-1、无流控。构建使用 `riscv64-elf-` 工具链、
+RV32IM_Zicsr/ILP32 和 freestanding runtime；完整原始镜像必须非空、4 字节对齐且不超过 16384 字节；
 短镜像仅在 binary 输入后补零，超长构建失败，不会裁剪。三个最终 `.bin` 固定
 16384 字节。
 
@@ -121,14 +121,29 @@ INT8 → NPU → UART 输出识别结果，每个框一行，直接写路标名�
 
 - `camera_stereo_npu_local.bin`、`camera_stereo_npu_remote.bin`：16384 字节 CPU 镜像，
   UART 分别走 FPIOA[0]/C24、FPIOA[31]/AB26。
-- `camera_stereo_npu_local_flash.bin`、`camera_stereo_npu_remote_flash.bin`：95552 字节
+- `camera_stereo_npu_local_flash.bin`、`camera_stereo_npu_remote_flash.bin`：96096 字节
   整片 Flash 镜像，即 CPU 镜像补零到 `SOC_BOOT_IMAGE_BYTES`（当前 main 为 32768）后接
-  `model.npu`（62784 字节），由 `scripts/make_npu_flash_image.sh` 生成并检查模型文件。
+  默认 20 类 `model.npu`（63328 字节），由 `scripts/make_npu_flash_image.sh` 生成并检查模型文件。
+
+## Lane-arrow ROI 分类器 Flash 试验包
+
+运行 `make -C bsp/camera_stereo_app lane-arrow-flash` 构建独立的
+`camera_stereo_lane_arrow_local_flash.bin` 和
+`camera_stereo_lane_arrow_remote_flash.bin`（各 96096 字节）。它们将当前 11 类
+lane-arrow v0.8 模型与对应的 CPU 结果显示程序组合；local UART 为 FPIOA[0]/C24，remote
+为 FPIOA[31]/AB26。构建会将模型补齐到当前 FPGA 镜像要求的 63328 字节，并更新包长度与
+CRC；权重保持不变。原始 62720 字节 `model.npu` 不会被改写。
+
+这是**单个硬件 ROI 的箭头类别分类试验包**，不是完整车道级导向牌识别固件：当前 FPGA
+前处理没有把整块牌拆成逐车道 ROI，程序不会自动输出整牌左右顺序序列。串口类别按模型
+编号输出，置信度 margin 阈值为 0（拒识关闭）。使用前须确认目标位流的
+`SOC_NPU_MODEL_BYTES=63328` 且 NPU 支持至少 11 类。烧录时将对应 `_flash.bin` 整份写入
+Flash `0x00A00000`；不要只烧 CPU `.bin`。
 
 ### 烧录：烧整片的 `_flash.bin`
 
 把 `_flash.bin` 整份从 Flash `0x00A00000` 写入（原始字节，不做端序交换）。上电后
-flash_ddr_boot 把前 32768 字节搬到 DDR `0x80000000` 执行，把 `0x00A08000` 起的 62784
+flash_ddr_boot 把前 32768 字节搬到 DDR `0x80000000` 执行，把 `0x00A08000` 起的 63328
 字节模型搬到 `SOC_NPU_WEIGHT_BASE`（`0xB9000000`）。
 
 16 KiB 的 `.bin` 只有 CPU 程序，没有模型。只烧它时 loader 照样把 Flash `0x00A08000` 处
@@ -139,8 +154,8 @@ flash_ddr_boot 把前 32768 字节搬到 DDR `0x80000000` 执行，把 `0x00A080
 !!! NO MODEL in DDR (magic=0xFFFFFFFF): burn the whole camera_stereo_npu_local_flash.bin (CPU program + model) at Flash 0x00A00000; the 16 KB .bin has no model
 ```
 
-启动时的 `MODEL` 行用于核对模型：本分支默认左转候选应为
-`magic=0x3155504E`、`classes=12`、`bytes=62784`、`crc=0x28F4B306`、`reject_margin=1279`，
+启动时的 `MODEL` 行用于核对模型：默认基础标识候选应为
+`magic=0x3155504E`、`classes=20`、`bytes=63328`、`crc=0x6E44E018`、`reject_margin=0`，
 magic 不对时显示 `MODEL=BAD_MAGIC`。位流须用同一份 `soc/soc_addr_map.vh`（DDR 版，
 `SOC_CPU_MEM_BRAM=0`）综合。
 
@@ -154,7 +169,7 @@ magic 不对时显示 `MODEL=BAD_MAGIC`。位流须用同一份 `soc/soc_addr_ma
 - `NPU_STAT_SECONDS`：汇总间隔秒数，1～30，默认 5。
 - `NPU_CAM2_ORIENTATION_AS_CAM1=0`：CAM2 保持驱动默认方向（默认 1，见下文）。
 - `NPU_CAM_AE_TARGET_TUNED=0`：两路都用基础表的自动曝光目标（默认 1，见下文）。
-- `NPU_MODEL`：模型文件，默认 `models/road-sign-v0.4-left-i2-candidate/model.npu`。
+- `NPU_MODEL`：模型文件，默认 `models/basic-sign-v0.2-ctsu-candidate/model.npu`。
 
 `.o` 不跟踪命令行变量，改变量后先
 `rm -rf build/npu camera_stereo_npu_*.bin camera_stereo_npu_*.elf` 再构建；不要用
@@ -169,7 +184,7 @@ UART 为 115200、8-N-1。上电约 0.5 秒（两颗摄像头配置完）后输�
 === Road Sign NPU Pipeline ===
 NPU_PIPELINE BOOT
 CPU CLOCK=70000000 UART=115200 TX_FPIOA=0 PRINT_BACKGROUND=0
-MODEL base=0xB9000000 magic=0x3155504E classes=12 bytes=62784 crc=0x28F4B306 reject_margin=1279
+MODEL base=0xB9000000 magic=0x3155504E classes=20 bytes=63328 crc=0x6E44E018 reject_margin=0
 CAM1 SCCB=OK PID=0x00005640
 CAM1_ORIENTATION=180 3820=0x00000047 3821=0x00000001 COLORBAR_503D=0x00000000
 CAM1_AE_TARGET 3A0F=40 3A10=38 3A11=71 3A1B=40 3A1E=38 3A1F=10
@@ -180,7 +195,7 @@ CAM2_AE_TARGET 3A0F=40 3A10=38 3A11=71 3A1B=40 3A1E=38 3A1F=10
 CAM2 CONFIG=OK VGA_RGB565 writes=261
 INT8 ctrl=0x00000001 status=0x00000020
 NPU_PIPELINE CAPTURE_STARTED
-OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead over 2nd class, unsure below 1251; summary every 5s
+OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead over 2nd class, unsure below 0; summary every 5s
 ```
 
 之后每个框一行。下面是整片仿真里的原样输出（单帧和连续出帧两个场景）：
@@ -195,13 +210,13 @@ OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead ove
 >>> CAM2 SPEED LIMIT 120      conf=2458 frame=1 red box=294,256,411,374
 ```
 
-- 行首标记：`>>>` 认出的路标；`???` 有两种，`other sign` 是模型认为是路标、但不在下表
-  9 类里，`maybe 名称?` 是 `conf` 低于门槛、拿不准，名称为最像的一类；`...` 背景框，
+- 行首标记：`>>>` 确认的路标；`???` 有两种，`other sign` 是模型输出未知类，`maybe 名称?`
+  是模型拒识后最像的一类；`...` 背景框，
   默认不打印；`!!!` 错误或告警。
 - `CAM1`、`CAM2` 为哪一路摄像头，两路的行会交错。
 - 路标名见下表，补空格到 20 字节对齐。
-- `conf` 为最高分减第二名（16 位饱和），越大越确定。低于模型门槛 `reject_margin`（本分支
-  默认候选为 1279，启动行和 `OUTPUT` 行里都有）算拿不准；最高分是背景的框不论 `conf` 高低都算背景。
+- `conf` 为最高分减第二名（16 位饱和），越大越确定。当前默认包头 `reject_margin=0`，不使用
+  margin 拒识；`NPU_CONFIRM` 的多帧票数与框尺寸门限负责时序确认，最高分是背景的框仍算背景。
 - `frame` 为该路 DMA 帧号；之后是前处理判定的颜色（red/yellow/blue/black）；`box` 为
   x0,y0,x1,y1，640×480 画面坐标，含端点。每帧最多 8 个框。
 - NPU 报错的框没有路标名和 `conf`，写成
@@ -211,20 +226,28 @@ OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead ove
 |---|---|---|---|
 | 0 | background | background | 背景 |
 | 1 | unknown | other sign | 未知标志 |
-| 2 | pne | NO ENTRY | 禁止驶入 |
-| 3 | pn | NO PARKING | 禁止停车 |
-| 4 | p11 | NO HONKING | 禁止鸣喇叭 |
-| 5 | pl40 | SPEED LIMIT 40 | 限速40 |
-| 6 | pl60 | SPEED LIMIT 60 | 限速60 |
-| 7 | pl80 | SPEED LIMIT 80 | 限速80 |
-| 8 | pl120 | SPEED LIMIT 120 | 限速120 |
-| 9 | i5 | KEEP RIGHT | 靠右侧道路行驶 |
-| 10 | w57 | WATCH PEDESTRIANS | 注意行人 |
-| 11 | i2 | TURN LEFT | 向左转弯 |
+| 2 | no_entry | NO ENTRY | 禁止驶入 |
+| 3 | no_parking | NO PARKING | 禁止停车 |
+| 4 | no_honking | NO HONKING | 禁止鸣喇叭 |
+| 5 | speed_40 | SPEED LIMIT 40 | 限速40 |
+| 6 | speed_60 | SPEED LIMIT 60 | 限速60 |
+| 7 | speed_80 | SPEED LIMIT 80 | 限速80 |
+| 8 | speed_120 | SPEED LIMIT 120 | 限速120 |
+| 9 | keep_right | KEEP RIGHT | 靠右侧道路行驶 |
+| 10 | pedestrian_warning | WATCH PEDESTRIANS | 注意行人 |
+| 11 | turn_left | TURN LEFT | 向左转弯 |
+| 12 | go_straight | GO STRAIGHT | 直行 |
+| 13 | turn_right | TURN RIGHT | 向右转弯 |
+| 14 | uturn_left | U-TURN LEFT | 左掉头 |
+| 15 | uturn_right | U-TURN RIGHT | 右掉头 |
+| 16 | straight_left | STRAIGHT + LEFT | 直行加左转 |
+| 17 | straight_right | STRAIGHT + RIGHT | 直行加右转 |
+| 18 | left_right | LEFT + RIGHT | 左右转 |
+| 19 | straight_left_right | STRAIGHT + LEFT + RIGHT | 直行加左右转 |
 
 编号同 `classes.csv`。拿不准时英文写作 `maybe 名称?`，中文写作 `疑似名称`。
-当前没有直行/右转/多车道箭头类别，也不做车道箭头分段或组合语义解析；这些输入仍可能显示为 `other sign`。
-左转类别是基于 TT100K `i2` 的离线验证候选，未在道路摄像头上验证。
+当前固件仍对每个前处理检测框独立分类；11 输出车道单元候选尚未接入多车道切分、左右排序与整牌确认。
+基础标识的 20 类离线验证不代表独立道路实景成绩；稀有掉头与复合箭头类别仍缺少真实训练样本。
 
 ### 汇总行
 
@@ -344,6 +367,6 @@ NPU_CAM_AE_TARGET_TUNED=0` 编出的四个镜像与改格式前入库的版本�
 仿真不含实物曝光和布线，最终以上板为准。
 
 目录里的四个 `camera_stereo_npu_*` 镜像即上述仿真所用版本（默认格式；仿真跑的是 local，
-remote 只差 UART 引脚）。`bsp_app` 不在仓库内，构建时的 startup/init 按现有
-`camera_stereo_local.bin` 反汇编复原；用本机 `bsp_app` 重新 `make npu` 得到的镜像功能
-相同，字节不一定一致。
+remote 只差 UART 引脚）。仓库不含原始 BSP startup/init 源码；当前构建使用按既有
+`camera_stereo_local.bin` 反汇编语义复原的启动代码，并以最小 freestanding `memset` 替代
+缺失的 libc。`make -C bsp/camera_stereo_app npu` 可从源码构建两路镜像；尚待实板确认启动及运行行为。

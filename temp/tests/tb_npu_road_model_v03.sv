@@ -2,7 +2,8 @@
 
 module tb_npu_road_model_v03 #(
     parameter integer MODEL_BYTES = 62720,
-    parameter integer ROI_COUNT = 101
+    parameter integer ROI_COUNT = 101,
+    parameter integer CLASS_COUNT = 11
 );
     localparam [31:0] DDR_BASE = 32'h8000_0000;
     localparam [31:0] MODEL_ADDR = 32'h8000_1000;
@@ -15,7 +16,7 @@ module tb_npu_road_model_v03 #(
     localparam integer SRC_BYTES = 4096;
 `endif
     localparam integer MEM_BYTES = 4194304;
-    localparam integer TRACE_BYTES_PER_ROI = 36972;
+    localparam integer TRACE_BYTES_PER_ROI = 36928 + CLASS_COUNT * 4;
     // First-version target: 16 ROIs/s across two cameras. 70 MHz is a
     // conservative NPU-clock assumption; this test uses a simulated DDR.
     localparam integer FIRST_VERSION_CYCLE_LIMIT = 70000000 / 16;
@@ -95,7 +96,7 @@ module tb_npu_road_model_v03 #(
     Hnpu_cnn_engine #(
         .DDR_BASE(DDR_BASE), .DDR_BYTES(32'h0040_0000),
         .MAX_MODEL_BYTES(65536), .MAX_TENSOR_BYTES(16384),
-        .MAX_LAYERS(16), .MAX_CLASSES(16)
+        .MAX_LAYERS(16), .MAX_CLASSES(20)
     ) dut (
         .clk(clk), .rst_n(rst_n), .start(start), .clear_error(clear_error),
         .model_base(model_base), .model_bytes(model_bytes),
@@ -179,7 +180,7 @@ module tb_npu_road_model_v03 #(
                 5: begin trace_base = 34816; trace_length = 1024;  end // Pool3
                 6: begin trace_base = 35840; trace_length = 1024;  end // Conv4
                 7: begin trace_base = 36864; trace_length = 64;    end // GAP
-                8: begin trace_base = 36928; trace_length = 44;    end // FC logits
+                8: begin trace_base = 36928; trace_length = CLASS_COUNT * 4; end // FC logits
                 default: $fatal(1, "unexpected layer boundary %0d", trace_layer);
             endcase
             for (trace_byte = 0; trace_byte < trace_length; trace_byte = trace_byte + 1) begin
