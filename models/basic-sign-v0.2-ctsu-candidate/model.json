@@ -1,0 +1,106 @@
+{
+  "version": "road-sign-basic-v0.1-int8-candidate",
+  "classes": [
+    "background",
+    "unknown",
+    "no_entry",
+    "no_parking",
+    "no_honking",
+    "speed_40",
+    "speed_60",
+    "speed_80",
+    "speed_120",
+    "keep_right",
+    "pedestrian_warning",
+    "turn_left",
+    "go_straight",
+    "turn_right",
+    "uturn_left",
+    "uturn_right",
+    "straight_left",
+    "straight_right",
+    "left_right",
+    "straight_left_right"
+  ],
+  "input_size": 32,
+  "input": {
+    "size": 32,
+    "layout": "HWC4 int8 RGB R,G,B,0",
+    "value": "u8 XOR 0x80 = u8-128",
+    "scale": "2^-7"
+  },
+  "layers": [
+    {
+      "name": "L1",
+      "weight_shape": [
+        16,
+        3,
+        3,
+        4
+      ],
+      "shift": 9,
+      "f_in": 7,
+      "f_weight": 5,
+      "f_out": 3,
+      "pool_after": true
+    },
+    {
+      "name": "L2",
+      "weight_shape": [
+        32,
+        3,
+        3,
+        16
+      ],
+      "shift": 7,
+      "f_in": 3,
+      "f_weight": 8,
+      "f_out": 4,
+      "pool_after": true
+    },
+    {
+      "name": "L3",
+      "weight_shape": [
+        64,
+        3,
+        3,
+        32
+      ],
+      "shift": 8,
+      "f_in": 4,
+      "f_weight": 8,
+      "f_out": 4,
+      "pool_after": true
+    },
+    {
+      "name": "L4",
+      "weight_shape": [
+        64,
+        3,
+        3,
+        64
+      ],
+      "shift": 8,
+      "f_in": 4,
+      "f_weight": 6,
+      "f_out": 2,
+      "pool_after": false
+    }
+  ],
+  "fc": {
+    "weight_shape": [
+      20,
+      64
+    ],
+    "logit_frac": 8
+  },
+  "margin_threshold_counts": 0,
+  "calibration_source": "training split only",
+  "test_partition_loaded": false,
+  "status": "research_candidate_not_board_integrated",
+  "limitations": [
+    "17 of 20 classes have training examples; uturn_right, straight_left, and straight_left_right are absent.",
+    "The model classifies a pre-cropped square sign only; localization, rejection calibration, and temporal confirmation are absent.",
+    "Data redistribution terms are not cleared; do not publish this package."
+  ]
+}
