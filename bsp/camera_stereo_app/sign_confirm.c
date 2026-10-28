@@ -161,18 +161,18 @@ static void sc_refresh(struct sc_track *track, uint32_t now_ms, uint32_t conf)
         track->uncertain = 0u;
         track->last_report = now_ms;
         sc_push(SC_EV_SURE, track, now_ms, winner, best, total, conf);
-    } else if ((counts[track->label] < SC_CONFIRM_VOTES && runner >= 2u) ||
-               (runner >= 2u && best < runner + SC_CONFIRM_LEAD)) {
-        if (track->uncertain == 0u) {
-            track->uncertain = 1u;
+    } else if (counts[track->label] >= SC_CONFIRM_VOTES &&
+               counts[track->label] >= runner + SC_CONFIRM_LEAD) {
+        if (track->uncertain != 0u) {
+            track->uncertain = 0u;
             track->last_report = now_ms;
-            sc_push(SC_EV_UNCERTAIN, track, now_ms, track->label,
+            sc_push(SC_EV_SURE, track, now_ms, track->label,
                     counts[track->label], total, conf);
         }
-    } else if (track->uncertain != 0u) {
-        track->uncertain = 0u;
+    } else if (track->uncertain == 0u) {
+        track->uncertain = 1u;
         track->last_report = now_ms;
-        sc_push(SC_EV_SURE, track, now_ms, track->label,
+        sc_push(SC_EV_UNCERTAIN, track, now_ms, track->label,
                 counts[track->label], total, conf);
     }
 }
@@ -191,6 +191,7 @@ void sc_tick(uint32_t now_ms)
                 track->active = 0u;
                 continue;
             }
+            sc_refresh(track, now_ms, 0u);
             if (track->confirmed != 0u && now_ms - track->last_report >= SC_REPEAT_MS) {
                 uint8_t counts[SC_CLASSES];
                 uint32_t total = sc_counts(track, now_ms, counts);
