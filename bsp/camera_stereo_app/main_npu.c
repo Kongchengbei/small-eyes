@@ -420,14 +420,10 @@ static void print_result(const struct npu_result *r,enum shown k)
 #if NPU_CONFIRM
 /* 路标确认层的接线：只多打 ### 开头的行，上面 >>> ??? !!! 各行的内容不动。 */
 #if NPU_NAMES_GBK
-#define CF_SURE "\xc8\xb7\xb6\xa8"                                   /* 确定 */
-#define CF_GONE "\xcf\xfb\xca\xa7"                                   /* 消失 */
 #define CF_NOW "\xb5\xb1\xc7\xb0"                                    /* 当前 */
 #define CF_NONE "\xce\xde"                                           /* 无 */
 #define CF_OTHER "\xc6\xe4\xcb\xfb\xc2\xb7\xb1\xea"                  /* 其他路标 */
 #else
-#define CF_SURE "SURE"
-#define CF_GONE "GONE"
 #define CF_NOW "NOW"
 #define CF_NONE "none"
 #define CF_OTHER "OTHER SIGN"
@@ -462,12 +458,7 @@ static void cf_put_tenths(uint32_t frames)
 static void cf_start(void)
 {
     sc_init();
-    log_puts("### CONFIRM W=");log_putdec(SC_W_MS);
-    log_puts(" H=");log_putdec(SC_H_MS);
-    log_puts(" KD=");log_putdec(SC_KD);
-    log_puts(" KS=");log_putdec(SC_KS);
-    log_puts(" KDO=");log_putdec(SC_KDO);
-    log_puts(" KSO=");log_putdec(SC_KSO);
+    log_puts("### TRACK HISTORY=5 CONFIRM=3 LEAD=2 SWITCH=4 REPEAT=1000 LOST=2500 IOU=40");
     log_puts(" MINL=");log_putdec(SC_MIN_LONG);
     log_puts(" AR=");log_putdec(SC_MAX_AR);log_putc('\n');
     cf_mt0=read_mtime();
@@ -511,17 +502,20 @@ static void cf_period(void)
 
 static void cf_print_event(const struct sc_event *e)
 {
-    uint32_t n;
-    if(e->type==SC_EV_SURE){
-        log_puts("### " CF_SURE " ");
-        n=put_len(cf_name(e->cls));
-        while(n<NAME_WIDTH){log_putc(' ');++n;}
-        log_puts(" cam=");log_puts(e->cams==1u?"1":e->cams==2u?"2":"1+2");
-        log_puts(" votes=");log_putdec(e->n1);log_putc('+');log_putdec(e->n2);
-        log_puts(" conf=");log_putdec(e->conf);
+    if(e->type==SC_EV_SURE||e->type==SC_EV_UNCERTAIN||e->type==SC_EV_TARGET){
+        log_puts("### TARGET id=");log_putdec(e->id);
+        log_puts(" cam=");log_putdec(e->camera);
+        log_puts(" label=");log_puts(cf_name(e->cls));
+        log_puts(" state=");
+        if(e->type==SC_EV_UNCERTAIN)log_puts("UNCERTAIN");
+        else log_puts("CONFIRMED");
+        log_puts(" votes=");log_putdec(e->votes);log_putc('/');log_putdec(e->count);
+        if(e->type==SC_EV_SURE){log_puts(" conf=");log_putdec(e->conf);}
     }else{
-        log_puts("### " CF_GONE " ");log_puts(cf_name(e->cls));
-        log_puts(" held=");log_putdec(e->held);
+        log_puts("### TARGET id=");log_putdec(e->id);
+        log_puts(" cam=");log_putdec(e->camera);
+        log_puts(" label=");log_puts(cf_name(e->cls));
+        log_puts(" state=LOST");
     }
     log_puts(" t=");log_putdec(e->t);log_putc('\n');
 }
@@ -543,7 +537,7 @@ static void cf_print_now(void)
     log_putc('\n');
 }
 
-/* 每圈：先追上时间；串口有余量就打一条队头事件，队列空了才轮到 NOW，所以 NOW 总和已打的 SURE/GONE 一致。 */
+/* 每圈先更新超时状态，再输出事件；队列空时输出周期摘要。 */
 static void cf_service(void)
 {
     struct sc_event e;

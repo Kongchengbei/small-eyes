@@ -210,17 +210,25 @@ OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead ove
 >>> CAM2 SPEED LIMIT 120      conf=2458 frame=1 red box=294,256,411,374
 ```
 
-- 行首标记：`>>>` 确认的路标；`???` 有两种，`other sign` 是模型输出未知类，`maybe 名称?`
+- 行首标记：`>>>` 是单帧模型识别出的已知路标；`???` 有两种，`other sign` 是模型输出未知类，`maybe 名称?`
   是模型拒识后最像的一类；`...` 背景框，
   默认不打印；`!!!` 错误或告警。
 - `CAM1`、`CAM2` 为哪一路摄像头，两路的行会交错。
 - 路标名见下表，补空格到 20 字节对齐。
 - `conf` 为最高分减第二名（16 位饱和），越大越确定。当前默认包头 `reject_margin=0`，不使用
-  margin 拒识；`NPU_CONFIRM` 的多帧票数与框尺寸门限负责时序确认，最高分是背景的框仍算背景。
+  margin 拒识。单帧 `>>>` 不代表目标已确认；稳定目标由 `### TARGET` 状态行报告。
 - `frame` 为该路 DMA 帧号；之后是前处理判定的颜色（red/yellow/blue/black）；`box` 为
   x0,y0,x1,y1，640×480 画面坐标，含端点。每帧最多 8 个框。
 - NPU 报错的框没有路标名和 `conf`，写成
   `!!! CAM1 NPU error 35 (model CRC) frame=1 blue box=346,170,430,266`。
+
+目标确认层按摄像头分别用框 IoU≥40% 关联目标，同一目标每帧最多投一票；每个目标保留最近 5 帧、最多 2.5 秒的结果。3 票且领先第二类至少 2 票时确认；已确认目标遇到单次类别跳变仍保留原标签，另一类达到 4/5 才切换，持续冲突则输出 `state=UNCERTAIN`。每秒重复输出仍可见的目标，连续 2.5 秒没有匹配框后输出 `state=LOST`。两路摄像头各自确认，不做未标定的跨摄像头合票。
+
+```text
+### TARGET id=1 cam=1 label=SPEED LIMIT 40 state=CONFIRMED votes=3/3 conf=492 t=2798
+### TARGET id=1 cam=1 label=SPEED LIMIT 40 state=UNCERTAIN votes=2/5 t=3800
+### TARGET id=1 cam=1 label=SPEED LIMIT 40 state=LOST t=7001
+```
 
 | 编号 | 类名 | 默认（英文） | `NPU_NAMES_GBK=1` |
 |---|---|---|---|
