@@ -1,10 +1,15 @@
 #include "sign_confirm.h"
 
 #define SC_TRACKS_PER_CAM 6u
-#define SC_HISTORY 5u
-#define SC_CONFIRM_VOTES 3u
-#define SC_CONFIRM_LEAD 2u
-#define SC_SWITCH_VOTES 4u
+#define SC_HISTORY 15u          /* 票环容量；只数最近 SC_VOTE_AGE_MS 以内的票 */
+#define SC_VOTE_AGE_MS 2500u
+#define SC_CONFIRM_VOTES 3u     /* 确认：标签至少 3 票 */
+#define SC_CONFIRM_PERCENT 60u  /* 且占有效票 60% 以上（5 票里 3 票即 60%） */
+#define SC_LEAD_PERCENT 30u     /* 且领先第二名有效票的 30% 以上 */
+#define SC_LEAD_MIN 2u          /* 领先票数不少于 2 */
+#define SC_SWITCH_VOTES 4u      /* 改判：新标签至少 4 票 */
+#define SC_SWITCH_PERCENT 75u   /* 且占有效票 75% 以上 */
+#define SC_MIN_SPAN_MS 500u     /* 首次确认：有效票至少跨这么久，帧率高时不被一小串连续帧骗 */
 #define SC_REPEAT_MS 1000u
 #define SC_TRACK_TIMEOUT_MS 2500u
 #define SC_IOU_PERCENT 40u
@@ -124,13 +129,31 @@ static uint32_t sc_counts(const struct sc_track *track, uint32_t now_ms, uint8_t
     for (i = 0u; i < SC_CLASSES; ++i) counts[i] = 0u;
     for (i = 0u; i < track->count; ++i) {
         const struct sc_vote *vote = &track->votes[i];
-        if (now_ms - vote->t > SC_TRACK_TIMEOUT_MS) continue;
+        if (now_ms - vote->t > SC_VOTE_AGE_MS) continue;
         if (vote->cls < SC_CLASSES) {
             ++counts[vote->cls];
             ++total;
         }
     }
     return total;
+}
+
+static uint32_t sc_span(const struct sc_track *track, uint32_t now_ms)
+{
+    uint32_t i, oldest = track->last_seen;
+    for (i = 0u; i < track->count; ++i) {
+        uint32_t t = track->votes[i].t;
+        if (now_ms - t <= SC_VOTE_AGE_MS && t < oldest) oldest = t;
+    }
+    return track->last_seen - oldest;
+}
+
+static int sc_supported(uint32_t best, uint32_t runner, uint32_t total)
+{
+    uint32_t lead = (total * SC_LEAD_PERCENT + 99u) / 100u;
+    if (lead < SC_LEAD_MIN) lead = SC_LEAD_MIN;
+    return best >= SC_CONFIRM_VOTES && best * 100u >= total * SC_CONFIRM_PERCENT &&
+           best >= runner + lead;
 }
 
 static void sc_refresh(struct sc_track *track, uint32_t now_ms, uint32_t conf)
@@ -147,7 +170,8 @@ static void sc_refresh(struct sc_track *track, uint32_t now_ms, uint32_t conf)
         }
     }
     if (track->confirmed == 0u) {
-        if (winner >= 2u && best >= SC_CONFIRM_VOTES && best >= runner + SC_CONFIRM_LEAD) {
+        if (winner >= 2u && sc_supported(best, runner, total) &&
+            sc_span(track, now_ms) >= SC_MIN_SPAN_MS) {
             track->label = (uint8_t)winner;
             track->confirmed = 1u;
             track->uncertain = 0u;
@@ -156,13 +180,13 @@ static void sc_refresh(struct sc_track *track, uint32_t now_ms, uint32_t conf)
         }
         return;
     }
-    if (winner >= 2u && winner != track->label && best >= SC_SWITCH_VOTES) {
+    if (winner >= 2u && winner != track->label && best >= SC_SWITCH_VOTES &&
+        best * 100u >= total * SC_SWITCH_PERCENT) {
         track->label = (uint8_t)winner;
         track->uncertain = 0u;
         track->last_report = now_ms;
         sc_push(SC_EV_SURE, track, now_ms, winner, best, total, conf);
-    } else if (counts[track->label] >= SC_CONFIRM_VOTES &&
-               counts[track->label] >= runner + SC_CONFIRM_LEAD) {
+    } else if (winner == track->label && sc_supported(best, runner, total)) {
         if (track->uncertain != 0u) {
             track->uncertain = 0u;
             track->last_report = now_ms;

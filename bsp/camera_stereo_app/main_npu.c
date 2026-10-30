@@ -458,7 +458,7 @@ static void cf_put_tenths(uint32_t frames)
 static void cf_start(void)
 {
     sc_init();
-    log_puts("### TRACK HISTORY=5 CONFIRM=3 LEAD=2 SWITCH=4 REPEAT=1000 LOST=2500 IOU=40");
+    log_puts("### TRACK HISTORY=15 AGE=2500 CONFIRM=3/60% LEAD=2/30% SWITCH=4/75% SPAN=500 REPEAT=1000 LOST=2500 IOU=40");
     log_puts(" MINL=");log_putdec(SC_MIN_LONG);
     log_puts(" AR=");log_putdec(SC_MAX_AR);log_putc('\n');
     cf_mt0=read_mtime();

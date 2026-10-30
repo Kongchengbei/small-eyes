@@ -222,11 +222,11 @@ OUTPUT >>> sign, ??? other sign or unsure, !!! error or warning; conf = lead ove
 - NPU 报错的框没有路标名和 `conf`，写成
   `!!! CAM1 NPU error 35 (model CRC) frame=1 blue box=346,170,430,266`。
 
-目标确认层按摄像头分别用框 IoU≥40% 关联目标，同一目标每帧最多投一票；每个目标保留最近 5 帧、最多 2.5 秒的结果。3 票且领先第二类至少 2 票时确认；已确认目标遇到单次类别跳变仍保留原标签，另一类达到 4/5 才切换。原标签在窗口内不足 3 票或与其他类别持续冲突时输出 `state=UNCERTAIN`；原标签重新达到 3 票且领先 2 票后才恢复确认。每秒重复输出仍可见的目标，连续 2.5 秒没有匹配框后输出 `state=LOST`。两路摄像头各自确认，不做未标定的跨摄像头合票。
+目标确认层按摄像头分别用框 IoU≥40% 关联目标，同一目标每帧最多投一票；每个目标只数最近 2.5 秒内的票，票环最多存 15 票，所以帧率低时窗口约 5 票、帧率高时约 15 票。首次确认条件：某一类至少 3 票，占窗口内全部票的 60% 以上，领先第二类至少 2 票且不少于全部票的 30%，并且窗口内全部票（不分类别）从最早到最近至少跨 500 ms。已确认目标遇到单次类别跳变仍保留原标签，另一类至少 4 票且占 75% 以上才改判。已确认目标的原标签不再满足上面的票数条件（至少 3 票、占 60% 以上、领先；不再查 500 ms 跨度）时输出 `state=UNCERTAIN`；重新满足后才恢复 `CONFIRMED`。每秒重复输出仍可见的目标，连续 2.5 秒没有匹配框后输出 `state=LOST`。两路摄像头各自确认，不做未标定的跨摄像头合票。`votes=a/b` 里 a 是当前标签的票数，b 是窗口内全部票数。
 
 ```text
-### TARGET id=1 cam=1 label=SPEED LIMIT 40 state=CONFIRMED votes=3/3 conf=492 t=2798
-### TARGET id=1 cam=1 label=SPEED LIMIT 40 state=UNCERTAIN votes=2/5 t=3800
+### TARGET id=1 cam=1 label=SPEED LIMIT 40 state=CONFIRMED votes=11/13 conf=492 t=2798
+### TARGET id=1 cam=1 label=SPEED LIMIT 40 state=UNCERTAIN votes=5/14 t=3800
 ### TARGET id=1 cam=1 label=SPEED LIMIT 40 state=LOST t=7001
 ```
 
