@@ -39,8 +39,21 @@ module Hcsr #(
     reg [31:0] csr_mtvec;
     reg [31:0] csr_mscratch;
     reg [31:0] csr_mepc;
-    reg [31:0] csr_mcause;
-    reg [31:0] csr_mtval;
+    localparam [2:0] MCAUSE_ZERO = 3'd0, MCAUSE_SOFTWARE = 3'd1,
+                     MCAUSE_ECALL = 3'd2, MCAUSE_EBREAK = 3'd3,
+                     MCAUSE_EXTERNAL = 3'd4, MCAUSE_TIMER = 3'd5;
+    reg [31:0] csr_mcause_data;
+    reg [2:0]  csr_mcause_kind;
+    reg [31:0] csr_mtval_data;
+    reg        csr_mtval_zero;
+    // Trap entry changes a small state tag instead of distributing a late
+    // trap enable/reset across both 32-bit software-writable payload banks.
+    wire [31:0] csr_mcause = (csr_mcause_kind == MCAUSE_SOFTWARE) ? csr_mcause_data :
+                             (csr_mcause_kind == MCAUSE_ECALL) ? 32'd11 :
+                             (csr_mcause_kind == MCAUSE_EBREAK) ? 32'd3 :
+                             (csr_mcause_kind == MCAUSE_EXTERNAL) ? 32'h8000_000b :
+                             (csr_mcause_kind == MCAUSE_TIMER) ? 32'h8000_0007 : 32'b0;
+    wire [31:0] csr_mtval = csr_mtval_zero ? 32'b0 : csr_mtval_data;
     // mtimecmp  MTIP 
     reg [63:0] csr_mtime;
     reg [63:0] csr_mtimecmp;
@@ -56,30 +69,19 @@ module Hcsr #(
 //irq _ Interrupt Request
     wire interrupt_mie = is_mret ? csr_mstatus[7] : csr_mstatus[3];
     wire interrupt_check = interrupt_boundary || is_mret;
-    wire take_external_irq = interrupt_check && interrupt_mie &&
-							 csr_mie[11] && external_pending;
-    wire take_timer_irq    = interrupt_check && interrupt_mie &&
-                             csr_mie[7] && timer_pending;
-    wire take_interrupt    = take_external_irq || take_timer_irq;
+    // Pending/enabled sources depend on registered CSR state. Merge them
+    // before applying the late EX retirement boundary rather than fanning
+    // that boundary through both source decoders and merging afterward.
+    wire external_irq_enabled_pending = csr_mie[11] && external_pending;
+    wire timer_irq_enabled_pending = csr_mie[7] && timer_pending;
+    wire irq_enabled_pending = external_irq_enabled_pending || timer_irq_enabled_pending;
+    wire take_interrupt = interrupt_check && interrupt_mie && irq_enabled_pending;
     wire take_exception    = is_ecall || is_ebreak;
 
-    reg        csr_writable;
     reg        csr_wen;
     reg [31:0] csr_read_data;
     reg [31:0] csr_write_data;
     wire [31:0] csr_src = csr_op[2] ? {27'b0, csr_imm} : csr_rs1_data;
-
-    //只读CSR寄存器：MVENDORID、MARCHID、MIMPID、MHARTID
-    always @(*) begin
-        case (csr_addr)
-            12'h300, 12'h304, 12'h305, 12'h340, 12'h341,
-            12'h342, 12'h343, 12'hB02, 12'hB82, 12'hB03,
-            12'hB83, 12'hB04, 12'hB84, 12'hB88:
-                csr_writable = 1'b1;
-            default:
-                csr_writable = 1'b0;
-        endcase
-    end
 
     always @(*) begin
         case (csr_addr)
@@ -115,7 +117,10 @@ module Hcsr #(
     always @(*) begin
         csr_wen        = 1'b0;
         csr_write_data = csr_read_data;
-        if (csr_valid && csr_writable) begin
+        // Decode write intent here; each actual register below checks its
+        // own writable address. Read-only/unknown addresses have no write
+        // destination. Avoid a global address-OR followed by another decode.
+        if (csr_valid) begin
             case (csr_op)
                 3'b001, 3'b101: begin // CSRRW/CSRRWI
                     csr_wen        = 1'b1;
@@ -134,6 +139,25 @@ module Hcsr #(
         end
     end
 
+    wire mtime_write_low  = csr_wen && (csr_addr == 12'hB03);
+    wire mtime_write_high = csr_wen && (csr_addr == 12'hB83);
+    wire mtime_count = csr_mcctr[2] && !mtime_write_low && !mtime_write_high;
+    wire minstret_write_low  = csr_wen && (csr_addr == 12'hB02);
+    wire minstret_write_high = csr_wen && (csr_addr == 12'hB82);
+    wire minstret_count = csr_mcctr[1] && !minstret_write_low && !minstret_write_high;
+
+    // A same-edge trap/reset masks any speculative payload write via the
+    // tags below. Every later software write replaces the full payload before
+    // its tag selects it, preserving CSRRW/CSRRS/CSRRC read/modify/write data.
+    always @(posedge clk) begin
+        // MRET holds the visible tags, so it must also hold any payload that
+        // they already select. Trap/reset instead select a constant value.
+        if (!is_mret && csr_wen && (csr_addr == 12'h342))
+            csr_mcause_data <= csr_write_data;
+        if (!is_mret && csr_wen && (csr_addr == 12'h343))
+            csr_mtval_data <= csr_write_data;
+    end
+
     always @(posedge clk) begin
         if (rst) begin
             csr_mtime    <= 64'b0;
@@ -143,24 +167,31 @@ module Hcsr #(
 			//默认设置，以便配置的定时器能够真正变为待处理状态。
             csr_mcctr    <= 5'b00100;
         end else begin
-            if (csr_wen && (csr_addr == 12'hB03))
+            // A software write to either half suppresses the entire counter
+            // increment, matching the original priority. Otherwise the high
+            // half changes only on the carry from the registered low half.
+            if (mtime_write_low)
                 csr_mtime[31:0] <= csr_write_data;
-            else if (csr_wen && (csr_addr == 12'hB83))
+            else if (mtime_count)
+                csr_mtime[31:0] <= csr_mtime[31:0] + 32'd1;
+            if (mtime_write_high)
                 csr_mtime[63:32] <= csr_write_data;
-            else if (csr_mcctr[2])
-                csr_mtime <= csr_mtime + 64'd1;
+            else if (mtime_count && (&csr_mtime[31:0]))
+                csr_mtime[63:32] <= csr_mtime[63:32] + 32'd1;
 
             if (csr_wen && (csr_addr == 12'hB04))
                 csr_mtimecmp[31:0] <= csr_write_data;
             else if (csr_wen && (csr_addr == 12'hB84))
                 csr_mtimecmp[63:32] <= csr_write_data;
 
-            if (csr_wen && (csr_addr == 12'hB02))
+            if (minstret_write_low)
                 csr_minstret[31:0] <= csr_write_data;
-            else if (csr_wen && (csr_addr == 12'hB82))
+            else if (minstret_count)
+                csr_minstret[31:0] <= csr_minstret[31:0] + 32'd1;
+            if (minstret_write_high)
                 csr_minstret[63:32] <= csr_write_data;
-            else if (csr_mcctr[1])
-                csr_minstret <= csr_minstret + 64'd1;
+            else if (minstret_count && (&csr_minstret[31:0]))
+                csr_minstret[63:32] <= csr_minstret[63:32] + 32'd1;
 
             if (csr_wen && (csr_addr == 12'hB88))
                 csr_mcctr <= csr_write_data[4:0];
@@ -174,23 +205,24 @@ module Hcsr #(
             csr_mtvec    <= 32'b0;
             csr_mscratch <= 32'b0;
             csr_mepc     <= 32'b0;
-            csr_mcause   <= 32'b0;
-            csr_mtval    <= 32'b0;
+            csr_mcause_kind <= MCAUSE_ZERO;
+            csr_mtval_zero  <= 1'b1;
         end else if (take_exception) begin
             // Trap entry: MPIE <= MIE, MIE <= 0, MPP <= M (11).
             csr_mstatus <= {19'b0, 2'b11, 3'b0, csr_mstatus[3],
                             3'b0, 1'b0, 3'b0};
             csr_mepc    <= current_pc & 32'hffff_fffc;
-            csr_mcause  <= is_ecall ? 32'd11 : 32'd3;
-            csr_mtval   <= 32'b0;
+            csr_mcause_kind <= is_ecall ? MCAUSE_ECALL : MCAUSE_EBREAK;
+            csr_mtval_zero  <= 1'b1;
         end else if (take_interrupt) begin
             csr_mstatus <= {19'b0, 2'b11, 3'b0, interrupt_mie,
                             3'b0, 1'b0, 3'b0};
             csr_mepc    <= is_mret ? csr_mepc :
                                     ((current_pc + 32'd4) & 32'hffff_fffc);
-            csr_mcause  <= take_external_irq ? 32'h8000_000b :
-                                                32'h8000_0007;
-            csr_mtval   <= 32'b0;
+            // This choice is sampled only under take_interrupt; an enabled
+            // external source keeps priority over an enabled timer source.
+            csr_mcause_kind <= external_irq_enabled_pending ? MCAUSE_EXTERNAL : MCAUSE_TIMER;
+            csr_mtval_zero  <= 1'b1;
         end else if (is_mret) begin
             // MRET: MIE <= MPIE, MPIE <= 1, MPP <= M M-only.
             csr_mstatus <= {19'b0, 2'b11, 3'b0, 1'b1,
@@ -206,15 +238,19 @@ module Hcsr #(
                 12'h305: csr_mtvec    <= csr_write_data & 32'hffff_fffc;
                 12'h340: csr_mscratch <= csr_write_data;
                 12'h341: csr_mepc     <= csr_write_data & 32'hffff_fffc;
-                12'h342: csr_mcause   <= csr_write_data;
-                12'h343: csr_mtval    <= csr_write_data;
+                12'h342: csr_mcause_kind <= MCAUSE_SOFTWARE;
+                12'h343: csr_mtval_zero  <= 1'b0;
                 default: ;
             endcase
         end
     end
 
     assign csr_rdata      = csr_read_data;
-    assign redirect_valid = take_exception || is_mret || take_interrupt;
+    // MRET always redirects, whether it returns or immediately takes an IRQ.
+    // Outside MRET, the IRQ redirect uses the ordinary MIE bit directly. This
+    // avoids carrying the MRET/MPIE selection through the EX flush fanout.
+    assign redirect_valid = take_exception || is_mret ||
+                            (interrupt_boundary && csr_mstatus[3] && irq_enabled_pending);
     assign redirect_pc    = (is_mret && !take_interrupt) ? csr_mepc :
                            (csr_mtvec & 32'hffff_fffc);
 

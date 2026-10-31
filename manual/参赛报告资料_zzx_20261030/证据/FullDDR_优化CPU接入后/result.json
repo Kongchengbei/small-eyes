@@ -1,0 +1,386 @@
+{
+  "execution_mode": "PDS GUI on second screen",
+  "stages": {
+    "compile": true,
+    "synthesis": true,
+    "mapping": true,
+    "pnr": true,
+    "timing": true,
+    "bitstream": true
+  },
+  "flow_completed": true,
+  "all_constraints_met": false,
+  "bitstream_generated": true,
+  "board_programmed": false,
+  "testbench_run": false,
+  "cpu_hz": 70000000,
+  "ddr_core_hz": 125000000,
+  "model_bytes": 63328,
+  "post_route_resources": {
+    "LUT": 44878,
+    "FF": 47422,
+    "Distributed_RAM": 1151,
+    "APM": 69,
+    "DRM": 35
+  },
+  "physical_lut_components": [
+    36645,
+    11740
+  ],
+  "physical_lut_sum": 48385,
+  "setup_slow": [
+    {
+      "launch": "JTAG_CLK",
+      "capture": "JTAG_CLK",
+      "wns_ns": 47.106,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 631
+    },
+    {
+      "launch": "CAM1_PCLK",
+      "capture": "CAM1_PCLK",
+      "wns_ns": 3.845,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 714
+    },
+    {
+      "launch": "CAM2_PCLK",
+      "capture": "CAM2_PCLK",
+      "wns_ns": 3.994,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 727
+    },
+    {
+      "launch": "cpu_clk",
+      "capture": "cpu_clk",
+      "wns_ns": -0.853,
+      "tns_ns": -94.381,
+      "failing_endpoints": 467,
+      "total_endpoints": 21990
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "ddr_core_clk",
+      "wns_ns": -2.693,
+      "tns_ns": -9094.984,
+      "failing_endpoints": 9986,
+      "total_endpoints": 112004
+    },
+    {
+      "launch": "phy_dq_sysclk_1",
+      "capture": "ddr_core_clk",
+      "wns_ns": 4.486,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 260
+    },
+    {
+      "launch": "phy_dq_sysclk_0",
+      "capture": "ddr_core_clk",
+      "wns_ns": 5.093,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 1
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 4.892,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 438
+    },
+    {
+      "launch": "phy_dq_sysclk_0",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 5.086,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 1
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_sysclk_0",
+      "wns_ns": 1.802,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 196
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_sysclk_1",
+      "wns_ns": 1.775,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 420
+    }
+  ],
+  "hold_fast": [
+    {
+      "launch": "JTAG_CLK",
+      "capture": "JTAG_CLK",
+      "wns_ns": 0.201,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 631
+    },
+    {
+      "launch": "CAM1_PCLK",
+      "capture": "CAM1_PCLK",
+      "wns_ns": 0.117,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 714
+    },
+    {
+      "launch": "CAM2_PCLK",
+      "capture": "CAM2_PCLK",
+      "wns_ns": 0.132,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 727
+    },
+    {
+      "launch": "cpu_clk",
+      "capture": "cpu_clk",
+      "wns_ns": 0.101,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 21990
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "ddr_core_clk",
+      "wns_ns": 0.1,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 112004
+    },
+    {
+      "launch": "phy_dq_sysclk_1",
+      "capture": "ddr_core_clk",
+      "wns_ns": 0.1,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 260
+    },
+    {
+      "launch": "phy_dq_sysclk_0",
+      "capture": "ddr_core_clk",
+      "wns_ns": 0.297,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 1
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 0.12,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 438
+    },
+    {
+      "launch": "phy_dq_sysclk_0",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 1.103,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 1
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_sysclk_0",
+      "wns_ns": 0.118,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 196
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_sysclk_1",
+      "wns_ns": 0.099,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 420
+    }
+  ],
+  "recovery_slow": [
+    {
+      "launch": "CAM1_PCLK",
+      "capture": "CAM1_PCLK",
+      "wns_ns": 7.213,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 192
+    },
+    {
+      "launch": "CAM2_PCLK",
+      "capture": "CAM2_PCLK",
+      "wns_ns": 7.432,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 192
+    },
+    {
+      "launch": "cpu_clk",
+      "capture": "cpu_clk",
+      "wns_ns": 7.204,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 2795
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "ddr_core_clk",
+      "wns_ns": 2.248,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 7894
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 6.129,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0,
+      "total_endpoints": 100
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_clk_0",
+      "wns_ns": -4.772,
+      "tns_ns": -142.18,
+      "failing_endpoints": 34,
+      "total_endpoints": 34
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_clk_0",
+      "wns_ns": -4.554,
+      "tns_ns": -13.004,
+      "failing_endpoints": 3,
+      "total_endpoints": 3
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_sysclk_0",
+      "wns_ns": -3.526,
+      "tns_ns": -102.292,
+      "failing_endpoints": 35,
+      "total_endpoints": 35
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_clk_1",
+      "wns_ns": -3.969,
+      "tns_ns": -281.791,
+      "failing_endpoints": 84,
+      "total_endpoints": 84
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_clk_1",
+      "wns_ns": -3.807,
+      "tns_ns": -14.47,
+      "failing_endpoints": 4,
+      "total_endpoints": 4
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_sysclk_1",
+      "wns_ns": -2.878,
+      "tns_ns": -186.779,
+      "failing_endpoints": 84,
+      "total_endpoints": 84
+    }
+  ],
+  "worst_setup_paths": {
+    "cpu_clk": {
+      "report_line": 1363,
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_ifu/force_fetch/opit_0_L6Q_perm/RS"
+    },
+    "ddr_core_clk": {
+      "report_line": 1819,
+      "startpoint": "g_ddr_profile.u_npu_system/g_image_service.u_service/u_engine/descriptor_bits[28]/opit_0_inv_srl/CLK",
+      "endpoint": "g_ddr_profile.u_npu_system/g_image_service.u_service/u_engine/legacy_expected_scratch[31]/opit_0_inv_L6Q_perm/I2"
+    }
+  },
+  "bitstream_sha256": "96e1e4063b3c86fc58e2ba0a388d5e01040a6ef7a170eb375506122904c67a96",
+  "bitstream_bytes": 9188552,
+  "report_time": "2026-10-30 11:08:17",
+  "bitstream_finished": "2026-10-30 11:09:37",
+  "git_head": "a00aa3b83a107b6fac714205e7ca39c967e65a57",
+  "cpu_import_commit": "78cd22d87291476988d868bc3b048407293a4dbc",
+  "current_worktree_source_matches_snapshot": {
+    "cpu/Btb.v": true,
+    "cpu/HRegFile.v": true,
+    "cpu/Halu.v": true,
+    "cpu/Hcsr.v": true,
+    "cpu/Hexu.v": true,
+    "cpu/Hidu.v": true,
+    "cpu/Hifu.v": true,
+    "cpu/Hmemu.v": true,
+    "cpu/Htop.v": true,
+    "cpu/Hwbu.v": true,
+    "cpu/ReturnAddressStack.v": true,
+    "cpu/axi_bridge.v": true,
+    "cpu/cache_bram.v": true,
+    "cpu/cache_sram_beh.v": true,
+    "cpu/cache_util.v": true,
+    "cpu/cpu_bram_ip_mem.v": true,
+    "cpu/cpu_bram_mem.v": true,
+    "cpu/dcache.v": true,
+    "cpu/div.v": true,
+    "cpu/icache.v": true,
+    "cpu/mul.v": true,
+    "jtag/full_handshake_rx.v": true,
+    "jtag/full_handshake_tx.v": true,
+    "jtag/jtag_dm.v": true,
+    "jtag/jtag_driver.v": true,
+    "jtag/jtag_top.v": true,
+    "soc/Debug_core.v": true,
+    "soc/Haxi_2m1s_arbiter.v": true,
+    "soc/Hcamera_async_fifo.v": true,
+    "soc/Hcamera_dma.v": true,
+    "soc/Hcamera_dvp_regs.v": true,
+    "soc/Hcamera_dvp_rx.v": true,
+    "soc/Hcamera_preprocess.v": true,
+    "soc/Hcamera_sccb_gpio.v": true,
+    "soc/Hcamera_subsystem.v": true,
+    "soc/Hfpga_soc.v": true,
+    "soc/Hfpga_soc_bram_profile.v": true,
+    "soc/Hfpioa_simple.v": true,
+    "soc/Hled.v": true,
+    "soc/Hnpu_cnn_engine.v": true,
+    "soc/Hnpu_ctrl.v": true,
+    "soc/Hnpu_image_service.v": true,
+    "soc/Hnpu_result_bridge.v": true,
+    "soc/Hnpu_result_mmio.v": true,
+    "soc/Hnpu_service.v": true,
+    "soc/Hnpu_system.v": true,
+    "soc/Hpreprocess_color.v": true,
+    "soc/Hpreprocess_regions.v": true,
+    "soc/Hpreprocess_stereo.v": true,
+    "soc/Hrgb565_int8_ddr_merge.v": true,
+    "soc/Hrgb565_int8_lane.v": true,
+    "soc/Hrgb565_int8_regs.v": true,
+    "soc/Hrgb565_int8_stereo.v": true,
+    "soc/Huart_tx.v": true,
+    "soc/axi_mem_backend.v": true,
+    "soc/camera_regs.vh": true,
+    "soc/config.v": true,
+    "soc/ddr_axi_bridge.v": true,
+    "soc/defines.v": true,
+    "soc/flash_boot/flash_bram_boot.v": true,
+    "soc/flash_boot/flash_ddr_boot.v": true,
+    "soc/flash_boot/flash_ddr_loader.v": true,
+    "soc/flash_boot/spi_flash_byte_reader.v": true,
+    "soc/soc_addr_map.vh": true,
+    "soc/soc_timeout.vh": true
+  }
+}

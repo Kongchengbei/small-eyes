@@ -4,7 +4,10 @@
 module tb_preprocess_stereo #(
     parameter integer W=20,
     parameter integer H=12,
-    parameter [0:0] SOURCE_FROM_CAMERA=1'b0
+    parameter [0:0] SOURCE_FROM_CAMERA=1'b0,
+    parameter [0:0] TEST_V04_CANDIDATE=1'b0,
+    parameter [0:0] TEST_V04_REDBLUE_ONLY=1'b0,
+    parameter [0:0] TEST_V04_REDBLUE_28=1'b0
 );
     localparam integer N=8;
     reg clk=0; always #5 clk=~clk;
@@ -27,10 +30,12 @@ module tb_preprocess_stereo #(
     wire [3:0] source_release_mask;
     reg [31:0] cfg_width={16'd7,16'd7}, cfg_height={16'd5,16'd5};
     reg [7:0] cfg_colors=8'h77;
-    reg [15:0] cfg_bright_min=16'h8080, cfg_dominance=16'h4040, cfg_black_max=16'h2020;
+    reg [15:0] cfg_bright_min=(TEST_V04_CANDIDATE || TEST_V04_REDBLUE_ONLY || TEST_V04_REDBLUE_28) ? 16'h4040 : 16'h8080;
+    reg [15:0] cfg_red_blue_bright_min=(TEST_V04_CANDIDATE || TEST_V04_REDBLUE_ONLY) ? 16'h3030 : (TEST_V04_REDBLUE_28 ? 16'h2828 : 16'h8080);
+    reg [15:0] cfg_dominance=16'h4040, cfg_black_max=16'h2020;
     reg [63:0] cfg_min_pixels={32'd4,32'd4}, cfg_min_area={32'd4,32'd4};
     reg [63:0] cfg_max_area={32'd240,32'd240};
-    reg [15:0] cfg_min_fill=16'h8080;
+    reg [15:0] cfg_min_fill=TEST_V04_CANDIDATE ? 16'h1818 : ((TEST_V04_REDBLUE_ONLY || TEST_V04_REDBLUE_28) ? 16'h2020 : 16'h8080);
     reg [31:0] cfg_min_aspect={16'd64,16'd64}, cfg_max_aspect={16'd1024,16'd1024};
     reg [31:0] cfg_margin=0;
     wire [1:0] result_valid;
@@ -81,7 +86,8 @@ module tb_preprocess_stereo #(
         .source_frames(SOURCE_FROM_CAMERA ? camera_frames : source_frames),
         .source_release_valid(source_release_valid),.source_release_mask(source_release_mask),
         .cfg_width(cfg_width),.cfg_height(cfg_height),.cfg_colors(cfg_colors),
-        .cfg_bright_min(cfg_bright_min),.cfg_dominance(cfg_dominance),.cfg_black_max(cfg_black_max),
+        .cfg_bright_min(cfg_bright_min),.cfg_red_blue_bright_min(cfg_red_blue_bright_min),
+        .cfg_dominance(cfg_dominance),.cfg_black_max(cfg_black_max),
         .cfg_min_pixels(cfg_min_pixels),.cfg_min_area(cfg_min_area),.cfg_max_area(cfg_max_area),
         .cfg_min_fill(cfg_min_fill),.cfg_min_aspect(cfg_min_aspect),.cfg_max_aspect(cfg_max_aspect),
         .cfg_margin(cfg_margin),.result_valid(result_valid),.result_ready(result_ready),

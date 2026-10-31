@@ -20,91 +20,94 @@
 // reports the controller's initialization-complete status.
 // ===========================================================================
 module Hfpga_soc #(
-    parameter MEM_FILE                  = `PROG_FPGA_PATH,
+    parameter                MEM_FILE                    = `PROG_FPGA_PATH,
     // 0 preserves the complete Camera+DDR application system; 1 selects the
     // Flash-to-on-chip-BRAM CoreMark system and prunes all DDR/Camera logic.
-    parameter integer CPU_MEM_BRAM       = `SOC_CPU_MEM_BRAM,
+    parameter integer        CPU_MEM_BRAM                = `SOC_CPU_MEM_BRAM,
     // 地址映射默认值集中在 soc_addr_map.vh；此处保留参数覆盖能力，便于
     // 更换 DDR 容量或重新划分 NPU 缓冲区时只改顶层实例。
-    parameter [31:0] DDR_BASE           = `SOC_DDR_BASE,
-    parameter [31:0] DDR_BYTES          = `SOC_DDR_BYTES,
-    parameter [23:0] FLASH_BASE         = `SOC_FLASH_BASE,
+    parameter         [31:0] DDR_BASE                    = `SOC_DDR_BASE,
+    parameter         [31:0] DDR_BYTES                   = `SOC_DDR_BYTES,
+    parameter         [23:0] FLASH_BASE                  = `SOC_FLASH_BASE,
     // 默认匹配 32 KiB CoreMark Flash 镜像。其他固件需补齐至此长度，
     // 或显式覆盖为其实际长度；加载器按完整32位字搬运并回读校验DDR。
-    parameter [31:0] BOOT_IMAGE_BYTES   = `SOC_BOOT_IMAGE_BYTES,
-    parameter integer SPI_DIV           = 4,
+    parameter         [31:0] BOOT_IMAGE_BYTES            = `SOC_BOOT_IMAGE_BYTES,
+    parameter integer        SPI_DIV                     = 4,
     // 本地主板 C24 对应 FPIOA0；远程板可覆盖为 31（AB26）。
-    parameter integer UART_TX_DEFAULT_FPIOA = `SOC_UART_TX_FPIOA,
-    parameter integer DDR_INIT_TIMEOUT_CYCLES = `SOC_DDR_INIT_TIMEOUT_CYCLES,
+    parameter integer        UART_TX_DEFAULT_FPIOA       = `SOC_UART_TX_FPIOA,
+    parameter integer        DDR_INIT_TIMEOUT_CYCLES     = `SOC_DDR_INIT_TIMEOUT_CYCLES,
     // 1 时两路前处理输出进入共享 CNN NPU；模型搬运完成前保持背压。
-    parameter [0:0] PREPROCESS_ENABLE = `SOC_ENABLE_PREPROCESS,
-    parameter [15:0] PREPROCESS_WIDTH = 16'd96,
-    parameter [15:0] PREPROCESS_HEIGHT = 16'd96,
-    parameter [31:0] CPU_CACHED_DDR_BASE  = `SOC_CPU_CACHED_DDR_BASE,
-    parameter [31:0] CPU_CACHED_DDR_BYTES = `SOC_CPU_CACHED_DDR_BYTES,
-    parameter [31:0] NPU_SHARED_BASE    = `SOC_NPU_SHARED_BASE,
-    parameter [31:0] NPU_SHARED_BYTES   = `SOC_NPU_SHARED_BYTES,
-    parameter [0:0] NPU_IMAGE_ENABLE    = PREPROCESS_ENABLE,
-    parameter [31:0] NPU_MODEL_BASE      = `SOC_NPU_WEIGHT_BASE,
+    parameter         [ 0:0] PREPROCESS_ENABLE           = `SOC_ENABLE_PREPROCESS,
+    parameter         [15:0] PREPROCESS_WIDTH            = 16'd96,
+    parameter         [15:0] PREPROCESS_HEIGHT           = 16'd96,
+    parameter         [ 0:0] PREPROCESS_V04_CANDIDATE    = 1'b1,
+    parameter         [ 0:0] PREPROCESS_V04_REDBLUE_ONLY = 1'b0,
+    parameter         [ 0:0] PREPROCESS_V04_REDBLUE_28   = 1'b0,
+    parameter         [31:0] CPU_CACHED_DDR_BASE         = `SOC_CPU_CACHED_DDR_BASE,
+    parameter         [31:0] CPU_CACHED_DDR_BYTES        = `SOC_CPU_CACHED_DDR_BYTES,
+    parameter         [31:0] NPU_SHARED_BASE             = `SOC_NPU_SHARED_BASE,
+    parameter         [31:0] NPU_SHARED_BYTES            = `SOC_NPU_SHARED_BYTES,
+    parameter         [ 0:0] NPU_IMAGE_ENABLE            = PREPROCESS_ENABLE,
+    parameter         [31:0] NPU_MODEL_BASE              = `SOC_NPU_WEIGHT_BASE,
     // Full-width v0.3 11-class package estimate: 62,720 bytes. Override
     // with the final package length emitted by the model conversion tool.
-    parameter [31:0] NPU_MODEL_BYTES     = `SOC_NPU_MODEL_BYTES,
-    parameter [23:0] NPU_MODEL_FLASH_BASE = FLASH_BASE + BOOT_IMAGE_BYTES[23:0],
-    parameter [31:0] MMIO_BASE          = `SOC_MMIO_BASE,
-    parameter [31:0] MMIO_BYTES         = `SOC_MMIO_BYTES,
-    parameter [31:0] NPU_MMIO_BASE      = `SOC_NPU_MMIO_BASE,
-    parameter [31:0] NPU_MMIO_BYTES     = `SOC_NPU_MMIO_BYTES,
-    parameter [31:0] UART0_BASE         = `SOC_UART0_BASE,
-    parameter [31:0] UART0_BYTES        = `SOC_UART0_BYTES,
-    parameter [31:0] LED_ADDR           = `SOC_LED_ADDR,
-    parameter [31:0] CAM1_MMIO_BASE     = `SOC_CAM1_MMIO_BASE,
-    parameter [31:0] CAM1_MMIO_BYTES    = `SOC_CAM1_MMIO_BYTES,
-    parameter [31:0] CAM2_MMIO_BASE     = `SOC_CAM2_MMIO_BASE,
-    parameter [31:0] CAM2_MMIO_BYTES    = `SOC_CAM2_MMIO_BYTES,
-    parameter [31:0] INT8_MMIO_BASE    = `SOC_INT8_MMIO_BASE,
-    parameter [31:0] INT8_MMIO_BYTES   = `SOC_INT8_MMIO_BYTES,
-    parameter [31:0] FPIOA_BASE         = `SOC_FPIOA_BASE,
-    parameter [31:0] FPIOA_BYTES        = `SOC_FPIOA_BYTES
+    parameter         [31:0] NPU_MODEL_BYTES             = `SOC_NPU_MODEL_BYTES,
+    parameter         [23:0] NPU_MODEL_FLASH_BASE        = FLASH_BASE + BOOT_IMAGE_BYTES[23:0],
+    parameter         [31:0] MMIO_BASE                   = `SOC_MMIO_BASE,
+    parameter         [31:0] MMIO_BYTES                  = `SOC_MMIO_BYTES,
+    parameter         [31:0] NPU_MMIO_BASE               = `SOC_NPU_MMIO_BASE,
+    parameter         [31:0] NPU_MMIO_BYTES              = `SOC_NPU_MMIO_BYTES,
+    parameter         [31:0] UART0_BASE                  = `SOC_UART0_BASE,
+    parameter         [31:0] UART0_BYTES                 = `SOC_UART0_BYTES,
+    parameter         [31:0] LED_ADDR                    = `SOC_LED_ADDR,
+    parameter         [31:0] CAM1_MMIO_BASE              = `SOC_CAM1_MMIO_BASE,
+    parameter         [31:0] CAM1_MMIO_BYTES             = `SOC_CAM1_MMIO_BYTES,
+    parameter         [31:0] CAM2_MMIO_BASE              = `SOC_CAM2_MMIO_BASE,
+    parameter         [31:0] CAM2_MMIO_BYTES             = `SOC_CAM2_MMIO_BYTES,
+    parameter         [31:0] INT8_MMIO_BASE              = `SOC_INT8_MMIO_BASE,
+    parameter         [31:0] INT8_MMIO_BYTES             = `SOC_INT8_MMIO_BYTES,
+    parameter         [31:0] FPIOA_BASE                  = `SOC_FPIOA_BASE,
+    parameter         [31:0] FPIOA_BYTES                 = `SOC_FPIOA_BYTES
 ) (
-    input  clk,
-    input  hard_rst_n,
+    input clk,
+    input hard_rst_n,
     //JTAG标准接口
-    input  JTAG_TCK,
-    input  JTAG_TMS,
-    input  JTAG_TDI,
+    input JTAG_TCK,
+    input JTAG_TMS,
+    input JTAG_TDI,
     output JTAG_TDO,
     output core_active,
-    inout  [31:0] fpioa,
+    inout [31:0] fpioa,
 
     // 双目 FMC 模块上的物理 CAM1。模块自带 24 MHz XCLK，并在模块侧处理
     // PWDN；SCCB 负责控制，DVP 接口接收 8 位 RGB565 数据。
-    inout  cam1_scl,
-    inout  cam1_sda,
+    inout cam1_scl,
+    inout cam1_sda,
     output cam1_reset_n,
-    input  cam1_pclk,
-    input  cam1_vsync,
-    input  cam1_href,
-    input  [7:0] cam1_data,
+    input cam1_pclk,
+    input cam1_vsync,
+    input cam1_href,
+    input [7:0] cam1_data,
 
     // CAM2 的 D[4:1] 中三位复用 FPIOA 专用输入球位：18=D4、29=D2、28=D1。
-    inout  cam2_scl,
-    inout  cam2_sda,
+    inout cam2_scl,
+    inout cam2_sda,
     output cam2_reset_n,
-    input  cam2_pclk,
-    input  cam2_vsync,
-    input  cam2_href,
-    input  [2:0] cam2_data_hi,
-    input  cam2_data3,
-    input  cam2_data0,
+    input cam2_pclk,
+    input cam2_vsync,
+    input cam2_href,
+    input [2:0] cam2_data_hi,
+    input cam2_data3,
+    input cam2_data0,
 
     // Abstract single-bit SPI Flash pins.  The serial clock is driven through
     // the device's dedicated configuration-clock primitive below.
-    output        flash_cs_n,
-    output        flash_cs2_n,
-    output        flash_mosi,
-    input         flash_miso,
-    output        flash_wp_n,
-    output        flash_hold_n,
+    output flash_cs_n,
+    output flash_cs2_n,
+    output flash_mosi,
+    input  flash_miso,
+    output flash_wp_n,
+    output flash_hold_n,
 
     //DDR3
     input         clk_p,
@@ -119,749 +122,790 @@ module Hfpga_soc #(
     output        mem_we_n,
     output        mem_odt,
     output [14:0] mem_a,
-    output [2:0]  mem_ba,
-    inout  [3:0]  mem_dqs,
-    inout  [3:0]  mem_dqs_n,
+    output [ 2:0] mem_ba,
+    inout  [ 3:0] mem_dqs,
+    inout  [ 3:0] mem_dqs_n,
     inout  [31:0] mem_dq,
-    output [3:0]  mem_dm
+    output [ 3:0] mem_dm
 );
 
-    generate if (CPU_MEM_BRAM == 0) begin : g_ddr_profile
+  generate
+    if (CPU_MEM_BRAM == 0) begin : g_ddr_profile
 
-    // ---------------- AXI master from the CPU / caches ----------------
-    wire [3:0]  axi_awid;
-    wire [31:0] axi_awaddr;
-    wire [7:0]  axi_awlen;
-    wire [2:0]  axi_awsize;
-    wire [1:0]  axi_awburst;
-    wire        axi_awvalid;
-    wire        axi_awready;
-    wire [3:0]  axi_wid;
-    wire [31:0] axi_wdata;
-    wire [3:0]  axi_wstrb;
-    wire        axi_wlast;
-    wire        axi_wvalid;
-    wire        axi_wready;
-    wire [3:0]  axi_bid;
-    wire [1:0]  axi_bresp;
-    wire        axi_bvalid;
-    wire        axi_bready;
-    wire [3:0]  axi_arid;
-    wire [31:0] axi_araddr;
-    wire [7:0]  axi_arlen;
-    wire [2:0]  axi_arsize;
-    wire [1:0]  axi_arburst;
-    wire        axi_arvalid;
-    wire        axi_arready;
-    wire [3:0]  axi_rid;
-    wire [31:0] axi_rdata;
-    wire [1:0]  axi_rresp;
-    wire        axi_rlast;
-    wire        axi_rvalid;
-    wire        axi_rready;
+      // ---------------- AXI master from the CPU / caches ----------------
+      wire [3:0] axi_awid;
+      wire [31:0] axi_awaddr;
+      wire [7:0] axi_awlen;
+      wire [2:0] axi_awsize;
+      wire [1:0] axi_awburst;
+      wire axi_awvalid;
+      wire axi_awready;
+      wire [3:0] axi_wid;
+      wire [31:0] axi_wdata;
+      wire [3:0] axi_wstrb;
+      wire axi_wlast;
+      wire axi_wvalid;
+      wire axi_wready;
+      wire [3:0] axi_bid;
+      wire [1:0] axi_bresp;
+      wire axi_bvalid;
+      wire axi_bready;
+      wire [3:0] axi_arid;
+      wire [31:0] axi_araddr;
+      wire [7:0] axi_arlen;
+      wire [2:0] axi_arsize;
+      wire [1:0] axi_arburst;
+      wire axi_arvalid;
+      wire axi_arready;
+      wire [3:0] axi_rid;
+      wire [31:0] axi_rdata;
+      wire [1:0] axi_rresp;
+      wire axi_rlast;
+      wire axi_rvalid;
+      wire axi_rready;
 
-    wire [31:0] pc;
-    wire [31:0] ins;
-    wire        is_ebreak;
+      wire [31:0] pc;
+      wire [31:0] ins;
+      wire is_ebreak;
 
-    // ---------------- debug / status exports (unchanged) ---------------
-    wire [31:0] debug_if_pc;
-    wire [31:0] debug_id_pc;
-    wire [31:0] debug_ex_pc;
-    wire [31:0] debug_mem_pc;
-    wire [31:0] debug_wb_pc;
-    wire [31:0] debug_if_ins;
-    wire [31:0] debug_id_ins;
-    wire [31:0] debug_ex_ins;
-    wire [31:0] debug_mem_ins;
-    wire [31:0] debug_wb_ins;
-    wire [31:0] debug_dmem_addr;
-    wire [31:0] debug_dmem_wdata;
-    wire [31:0] debug_btb_predict_next_pc;
-    wire [31:0] debug_actual_next_pc;
-    wire [31:0] debug_flush_pc;
-    wire [31:0] cpu_debug_ctrl;
+      // ---------------- debug / status exports (unchanged) ---------------
+      wire [31:0] debug_if_pc;
+      wire [31:0] debug_id_pc;
+      wire [31:0] debug_ex_pc;
+      wire [31:0] debug_mem_pc;
+      wire [31:0] debug_wb_pc;
+      wire [31:0] debug_if_ins;
+      wire [31:0] debug_id_ins;
+      wire [31:0] debug_ex_ins;
+      wire [31:0] debug_mem_ins;
+      wire [31:0] debug_wb_ins;
+      wire [31:0] debug_dmem_addr;
+      wire [31:0] debug_dmem_wdata;
+      wire [31:0] debug_btb_predict_next_pc;
+      wire [31:0] debug_actual_next_pc;
+      wire [31:0] debug_flush_pc;
+      wire [31:0] cpu_debug_ctrl;
 
-    // NPU 控制器仍在 cpu_clk 域。Task 4 将把这些 start/config 输出接到 DMA
-    // 引擎；在此之前 engine_done 固定为零，不能在可综合顶层伪造完成事件。
-    wire        npu_irq;
-    wire        npu_start_pulse;
-    wire [31:0] npu_engine_input_addr;
-    wire [31:0] npu_engine_weight_addr;
-    wire [31:0] npu_engine_output_addr;
-    wire [31:0] npu_engine_task_bytes;
-    wire        npu_engine_done = 1'b0;
+      // NPU 控制器仍在 cpu_clk 域。Task 4 将把这些 start/config 输出接到 DMA
+      // 引擎；在此之前 engine_done 固定为零，不能在可综合顶层伪造完成事件。
+      wire npu_irq;
+      wire npu_start_pulse;
+      wire [31:0] npu_engine_input_addr;
+      wire [31:0] npu_engine_weight_addr;
+      wire [31:0] npu_engine_output_addr;
+      wire [31:0] npu_engine_task_bytes;
+      wire npu_engine_done = 1'b0;
 
-    // ============ clock / reset (unchanged) =============================
-    wire cpu_clk;
-    wire pll_locked;
+      // ============ clock / reset (unchanged) =============================
+      wire cpu_clk;
+      wire pll_locked;
 
-    wire ddr_ref_clk;
-    wire ddr_core_clk;
-    wire ddr_init_done;
+      wire ddr_ref_clk;
+      wire ddr_core_clk;
+      wire ddr_init_done;
 
-    // Backend-side 32-bit DDR request channel.  ddr_axi_bridge converts one
-    // request at a time to the DDR controller's 256-bit AXI clock domain.
-    wire        ddr_req_valid;
-    wire        ddr_req_ready;
-    wire        ddr_req_write;
-    wire [31:0] ddr_req_addr;
-    wire [31:0] ddr_req_wdata;
-    wire [3:0]  ddr_req_wstrb;
-    wire        ddr_rsp_valid;
-    wire        ddr_rsp_ready;
-    wire        ddr_rsp_is_read;
-    wire [31:0] ddr_rsp_rdata;
+      // Backend-side 32-bit DDR request channel.  ddr_axi_bridge converts one
+      // request at a time to the DDR controller's 256-bit AXI clock domain.
+      wire ddr_req_valid;
+      wire ddr_req_ready;
+      wire ddr_req_write;
+      wire [31:0] ddr_req_addr;
+      wire [31:0] ddr_req_wdata;
+      wire [3:0] ddr_req_wstrb;
+      wire ddr_rsp_valid;
+      wire ddr_rsp_ready;
+      wire ddr_rsp_is_read;
+      wire [31:0] ddr_rsp_rdata;
 
-    // CPU/backend request channel.  It is isolated from the DDR bridge while
-    // the Flash loader owns the bridge-side channel above.
-    wire        run_req_valid;
-    wire        run_req_ready;
-    wire        run_req_write;
-    wire [31:0] run_req_addr;
-    wire [31:0] run_req_wdata;
-    wire [3:0]  run_req_wstrb;
-    wire        run_rsp_valid;
-    wire        run_rsp_ready;
-    wire        run_rsp_is_read;
-    wire [31:0] run_rsp_rdata;
+      // CPU/backend request channel.  It is isolated from the DDR bridge while
+      // the Flash loader owns the bridge-side channel above.
+      wire run_req_valid;
+      wire run_req_ready;
+      wire run_req_write;
+      wire [31:0] run_req_addr;
+      wire [31:0] run_req_wdata;
+      wire [3:0] run_req_wstrb;
+      wire run_rsp_valid;
+      wire run_rsp_ready;
+      wire run_rsp_is_read;
+      wire [31:0] run_rsp_rdata;
 
-    wire        boot_done;
-    wire        boot_error;
-    wire [3:0]  boot_error_code;
-    wire        boot_ddr_ready_cpu;
-    wire        flash_clk_enable;
-    wire        flash_spi_sck;
-    wire        npu_model_ready = boot_done && !boot_error;
-    reg         npu_model_ready_meta_ddr;
-    reg         npu_model_ready_ddr;
-    wire        npu_image_runtime_enable = PREPROCESS_ENABLE &&
-                                            NPU_IMAGE_ENABLE &&
-                                            npu_model_ready_ddr;
+      wire boot_done;
+      wire boot_error;
+      wire [3:0] boot_error_code;
+      wire boot_ddr_ready_cpu;
+      wire flash_clk_enable;
+      wire flash_spi_sck;
+      wire npu_model_ready = boot_done && !boot_error;
+      reg npu_model_ready_meta_ddr;
+      reg npu_model_ready_ddr;
+      wire npu_image_runtime_enable = PREPROCESS_ENABLE && NPU_IMAGE_ENABLE && npu_model_ready_ddr;
 
-    // boot_done is produced by the CPU-clock Flash loader.  Synchronize it
-    // before enabling the DDR-clock camera/NPU path.
-    always @(posedge ddr_core_clk or negedge sys_rst_n) begin
+      // boot_done is produced by the CPU-clock Flash loader.  Synchronize it
+      // before enabling the DDR-clock camera/NPU path.
+      always @(posedge ddr_core_clk or negedge sys_rst_n) begin
         if (!sys_rst_n) begin
-            npu_model_ready_meta_ddr <= 1'b0;
-            npu_model_ready_ddr <= 1'b0;
+          npu_model_ready_meta_ddr <= 1'b0;
+          npu_model_ready_ddr <= 1'b0;
         end else begin
-            npu_model_ready_meta_ddr <= npu_model_ready;
-            npu_model_ready_ddr <= npu_model_ready_meta_ddr;
+          npu_model_ready_meta_ddr <= npu_model_ready;
+          npu_model_ready_ddr <= npu_model_ready_meta_ddr;
         end
-    end
+      end
 
-    wire [29:0]  ddr_axi_awaddr;
-    wire [7:0]   ddr_axi_awid;
-    wire [7:0]   ddr_axi_awlen;
-    wire [2:0]   ddr_axi_awsize;
-    wire [1:0]   ddr_axi_awburst;
-    wire         ddr_axi_awvalid;
-    wire         ddr_axi_awready;
-    wire [255:0] ddr_axi_wdata;
-    wire [31:0]  ddr_axi_wstrb;
-    wire         ddr_axi_wlast;
-    wire         ddr_axi_wvalid;
-    wire         ddr_axi_wready;
-    wire [7:0]   ddr_axi_bid;
-    wire [1:0]   ddr_axi_bresp;
-    wire         ddr_axi_bvalid;
-    wire         ddr_axi_bready;
-    wire [29:0]  ddr_axi_araddr;
-    wire [7:0]   ddr_axi_arid;
-    wire [7:0]   ddr_axi_arlen;
-    wire [2:0]   ddr_axi_arsize;
-    wire [1:0]   ddr_axi_arburst;
-    wire         ddr_axi_arvalid;
-    wire         ddr_axi_arready;
-    wire [255:0] ddr_axi_rdata;
-    wire [7:0]   ddr_axi_rid;
-    wire [1:0]   ddr_axi_rresp;
-    wire         ddr_axi_rlast;
-    wire         ddr_axi_rvalid;
-    wire         ddr_axi_rready;
+      wire [ 29:0] ddr_axi_awaddr;
+      wire [  7:0] ddr_axi_awid;
+      wire [  7:0] ddr_axi_awlen;
+      wire [  2:0] ddr_axi_awsize;
+      wire [  1:0] ddr_axi_awburst;
+      wire         ddr_axi_awvalid;
+      wire         ddr_axi_awready;
+      wire [255:0] ddr_axi_wdata;
+      wire [ 31:0] ddr_axi_wstrb;
+      wire         ddr_axi_wlast;
+      wire         ddr_axi_wvalid;
+      wire         ddr_axi_wready;
+      wire [  7:0] ddr_axi_bid;
+      wire [  1:0] ddr_axi_bresp;
+      wire         ddr_axi_bvalid;
+      wire         ddr_axi_bready;
+      wire [ 29:0] ddr_axi_araddr;
+      wire [  7:0] ddr_axi_arid;
+      wire [  7:0] ddr_axi_arlen;
+      wire [  2:0] ddr_axi_arsize;
+      wire [  1:0] ddr_axi_arburst;
+      wire         ddr_axi_arvalid;
+      wire         ddr_axi_arready;
+      wire [255:0] ddr_axi_rdata;
+      wire [  7:0] ddr_axi_rid;
+      wire [  1:0] ddr_axi_rresp;
+      wire         ddr_axi_rlast;
+      wire         ddr_axi_rvalid;
+      wire         ddr_axi_rready;
 
-    // CPU/启动桥与 Camera DMA 分别作为 DDR AXI 主机。
-    wire [29:0]   bridge_axi_awaddr;
-    wire [7:0]    bridge_axi_awid;
-    wire [7:0]    bridge_axi_awlen;
-    wire [2:0]    bridge_axi_awsize;
-    wire [1:0]    bridge_axi_awburst;
-    wire          bridge_axi_awvalid;
-    wire          bridge_axi_awready;
-    wire [255:0]  bridge_axi_wdata;
-    wire [31:0]   bridge_axi_wstrb;
-    wire          bridge_axi_wlast;
-    wire          bridge_axi_wvalid;
-    wire          bridge_axi_wready;
-    wire [7:0]    bridge_axi_bid;
-    wire [1:0]    bridge_axi_bresp;
-    wire          bridge_axi_bvalid;
-    wire          bridge_axi_bready;
-    wire [29:0]   bridge_axi_araddr;
-    wire [7:0]    bridge_axi_arid;
-    wire [7:0]    bridge_axi_arlen;
-    wire [2:0]    bridge_axi_arsize;
-    wire [1:0]    bridge_axi_arburst;
-    wire          bridge_axi_arvalid;
-    wire          bridge_axi_arready;
-    wire [255:0]  bridge_axi_rdata;
-    wire [7:0]    bridge_axi_rid;
-    wire [1:0]    bridge_axi_rresp;
-    wire          bridge_axi_rlast;
-    wire          bridge_axi_rvalid;
-    wire          bridge_axi_rready;
-    wire [29:0]   camera_axi_awaddr;
-    wire [7:0]    camera_axi_awid;
-    wire [7:0]    camera_axi_awlen;
-    wire [2:0]    camera_axi_awsize;
-    wire [1:0]    camera_axi_awburst;
-    wire          camera_axi_awvalid;
-    wire          camera_axi_awready;
-    wire [255:0]  camera_axi_wdata;
-    wire [31:0]   camera_axi_wstrb;
-    wire          camera_axi_wlast;
-    wire          camera_axi_wvalid;
-    wire          camera_axi_wready;
-    wire [7:0]    camera_axi_bid;
-    wire [1:0]    camera_axi_bresp;
-    wire          camera_axi_bvalid;
-    wire          camera_axi_bready;
-    wire [29:0]   cam1_axi_awaddr, cam2_axi_awaddr;
-    wire [7:0]    cam1_axi_awid, cam2_axi_awid;
-    wire [7:0]    cam1_axi_awlen, cam2_axi_awlen;
-    wire [2:0]    cam1_axi_awsize, cam2_axi_awsize;
-    wire [1:0]    cam1_axi_awburst, cam2_axi_awburst;
-    wire          cam1_axi_awvalid, cam2_axi_awvalid;
-    wire          cam1_axi_awready, cam2_axi_awready;
-    wire [255:0]  cam1_axi_wdata, cam2_axi_wdata;
-    wire [31:0]   cam1_axi_wstrb, cam2_axi_wstrb;
-    wire          cam1_axi_wlast, cam2_axi_wlast;
-    wire          cam1_axi_wvalid, cam2_axi_wvalid;
-    wire          cam1_axi_wready, cam2_axi_wready;
-    wire [7:0]    cam1_axi_bid, cam2_axi_bid;
-    wire [1:0]    cam1_axi_bresp, cam2_axi_bresp;
-    wire          cam1_axi_bvalid, cam2_axi_bvalid;
-    wire          cam1_axi_bready, cam2_axi_bready;
-    wire [7:0]    cam2_data = {cam2_data_hi, fpioa[18], cam2_data3,
-                               fpioa[29], fpioa[28], cam2_data0};
+      // CPU/启动桥与 Camera DMA 分别作为 DDR AXI 主机。
+      wire [ 29:0] bridge_axi_awaddr;
+      wire [  7:0] bridge_axi_awid;
+      wire [  7:0] bridge_axi_awlen;
+      wire [  2:0] bridge_axi_awsize;
+      wire [  1:0] bridge_axi_awburst;
+      wire         bridge_axi_awvalid;
+      wire         bridge_axi_awready;
+      wire [255:0] bridge_axi_wdata;
+      wire [ 31:0] bridge_axi_wstrb;
+      wire         bridge_axi_wlast;
+      wire         bridge_axi_wvalid;
+      wire         bridge_axi_wready;
+      wire [  7:0] bridge_axi_bid;
+      wire [  1:0] bridge_axi_bresp;
+      wire         bridge_axi_bvalid;
+      wire         bridge_axi_bready;
+      wire [ 29:0] bridge_axi_araddr;
+      wire [  7:0] bridge_axi_arid;
+      wire [  7:0] bridge_axi_arlen;
+      wire [  2:0] bridge_axi_arsize;
+      wire [  1:0] bridge_axi_arburst;
+      wire         bridge_axi_arvalid;
+      wire         bridge_axi_arready;
+      wire [255:0] bridge_axi_rdata;
+      wire [  7:0] bridge_axi_rid;
+      wire [  1:0] bridge_axi_rresp;
+      wire         bridge_axi_rlast;
+      wire         bridge_axi_rvalid;
+      wire         bridge_axi_rready;
+      wire [ 29:0] camera_axi_awaddr;
+      wire [  7:0] camera_axi_awid;
+      wire [  7:0] camera_axi_awlen;
+      wire [  2:0] camera_axi_awsize;
+      wire [  1:0] camera_axi_awburst;
+      wire         camera_axi_awvalid;
+      wire         camera_axi_awready;
+      wire [255:0] camera_axi_wdata;
+      wire [ 31:0] camera_axi_wstrb;
+      wire         camera_axi_wlast;
+      wire         camera_axi_wvalid;
+      wire         camera_axi_wready;
+      wire [  7:0] camera_axi_bid;
+      wire [  1:0] camera_axi_bresp;
+      wire         camera_axi_bvalid;
+      wire         camera_axi_bready;
+      wire [29:0] cam1_axi_awaddr, cam2_axi_awaddr;
+      wire [7:0] cam1_axi_awid, cam2_axi_awid;
+      wire [7:0] cam1_axi_awlen, cam2_axi_awlen;
+      wire [2:0] cam1_axi_awsize, cam2_axi_awsize;
+      wire [1:0] cam1_axi_awburst, cam2_axi_awburst;
+      wire cam1_axi_awvalid, cam2_axi_awvalid;
+      wire cam1_axi_awready, cam2_axi_awready;
+      wire [255:0] cam1_axi_wdata, cam2_axi_wdata;
+      wire [31:0] cam1_axi_wstrb, cam2_axi_wstrb;
+      wire cam1_axi_wlast, cam2_axi_wlast;
+      wire cam1_axi_wvalid, cam2_axi_wvalid;
+      wire cam1_axi_wready, cam2_axi_wready;
+      wire [7:0] cam1_axi_bid, cam2_axi_bid;
+      wire [1:0] cam1_axi_bresp, cam2_axi_bresp;
+      wire cam1_axi_bvalid, cam2_axi_bvalid;
+      wire cam1_axi_bready, cam2_axi_bready;
+      wire [7:0] cam2_data = {
+        cam2_data_hi, fpioa[18], cam2_data3, fpioa[29], fpioa[28], cam2_data0
+      };
 
-    GTP_INBUFGDS #(
-        .IOSTANDARD("DEFAULT"),
-        .TERM_DIFF("ON")
-    ) u_ddr_refclk_buf (
-        .O  (ddr_ref_clk),
-        .I  (clk_p),
-        .IB (clk_n)
-    );
+      GTP_INBUFGDS #(
+          .IOSTANDARD("DEFAULT"),
+          .TERM_DIFF ("ON")
+      ) u_ddr_refclk_buf (
+          .O (ddr_ref_clk),
+          .I (clk_p),
+          .IB(clk_n)
+      );
 
-    clk_pll u_pll (
-        .clkin1  (clk),
-        .clkout0 (cpu_clk),
-        .lock    (pll_locked)
-    );
+      clk_pll u_pll (
+          .clkin1 (clk),
+          .clkout0(cpu_clk),
+          .lock   (pll_locked)
+      );
 
-    wire rst_async_n = hard_rst_n && pll_locked;
+      wire rst_async_n = hard_rst_n && pll_locked;
 
-    reg rst_sync_q1, rst_sync_q2;
-    always @(posedge cpu_clk or negedge rst_async_n) begin
+      reg rst_sync_q1, rst_sync_q2;
+      always @(posedge cpu_clk or negedge rst_async_n) begin
         if (!rst_async_n) begin
-            rst_sync_q1 <= 1'b0;
-            rst_sync_q2 <= 1'b0;
+          rst_sync_q1 <= 1'b0;
+          rst_sync_q2 <= 1'b0;
         end else begin
-            rst_sync_q1 <= 1'b1;
-            rst_sync_q2 <= rst_sync_q1;
+          rst_sync_q1 <= 1'b1;
+          rst_sync_q2 <= rst_sync_q1;
         end
-    end
-    wire sys_rst_n = rst_sync_q2;
+      end
+      wire sys_rst_n = rst_sync_q2;
 
-    reg [3:0] cpu_rst_cnt;
-    always @(posedge cpu_clk) begin
-        if (!sys_rst_n)               cpu_rst_cnt <= 4'd0;
+      reg [3:0] cpu_rst_cnt;
+      always @(posedge cpu_clk) begin
+        if (!sys_rst_n) cpu_rst_cnt <= 4'd0;
         else if (cpu_rst_cnt != 4'hF) cpu_rst_cnt <= cpu_rst_cnt + 4'd1;
-    end
+      end
 
-    wire jtag_cmd_valid;
-    wire jtag_cmd_ready;
-    wire [31:0] jtag_cmd_addr;
-    wire        jtag_cmd_read;
-    wire [31:0] jtag_cmd_wdata;
-    wire [3:0]  jtag_cmd_wmask;
-    wire        jtag_rsp_valid;
-    wire        jtag_rsp_ready;
-    wire        jtag_rsp_err;
-    wire [31:0] jtag_rsp_rdata;
-    wire        jtag_halt_req;
-    wire        jtag_reset_req;
+      wire jtag_cmd_valid;
+      wire jtag_cmd_ready;
+      wire [31:0] jtag_cmd_addr;
+      wire jtag_cmd_read;
+      wire [31:0] jtag_cmd_wdata;
+      wire [3:0] jtag_cmd_wmask;
+      wire jtag_rsp_valid;
+      wire jtag_rsp_ready;
+      wire jtag_rsp_err;
+      wire [31:0] jtag_rsp_rdata;
+      wire jtag_halt_req;
+      wire jtag_reset_req;
 
-    wire cpu_rst = !sys_rst_n || (cpu_rst_cnt != 4'hF) ||
+      wire cpu_rst = !sys_rst_n || (cpu_rst_cnt != 4'hF) ||
                    !boot_done || boot_error || !boot_ddr_ready_cpu ||
                    jtag_reset_req || jtag_halt_req;
 
-    // ============ CPU + caches + axi_bridge =============================
-    Htop #(
-        .RESET_PC                 (DDR_BASE),
-        .DDR_BASE                 (DDR_BASE),
-        .DDR_BYTES                (DDR_BYTES),
-        .DCACHEABLE_DDR_BASE      (CPU_CACHED_DDR_BASE),
-        .DCACHEABLE_DDR_BYTES     (CPU_CACHED_DDR_BYTES)
-    ) u_cpu (
-        .clk        (cpu_clk),
-        .rst        (cpu_rst),
-        .irq_external(npu_irq),
-        .bram_prog_valid (1'b0),
-        .bram_prog_write (1'b0),
-        .bram_prog_addr  (32'b0),
-        .bram_prog_wdata (32'b0),
-        .bram_prog_wstrb (4'b0),
-        .bram_prog_ready(),
-        .bram_prog_rdata(),
+      // ============ CPU + caches + axi_bridge =============================
+      Htop #(
+          .RESET_PC            (DDR_BASE),
+          .DDR_BASE            (DDR_BASE),
+          .DDR_BYTES           (DDR_BYTES),
+          .DCACHEABLE_DDR_BASE (CPU_CACHED_DDR_BASE),
+          .DCACHEABLE_DDR_BYTES(CPU_CACHED_DDR_BYTES)
+      ) u_cpu (
+          .clk            (cpu_clk),
+          .rst            (cpu_rst),
+          .irq_external   (npu_irq),
+          .bram_prog_valid(1'b0),
+          .bram_prog_write(1'b0),
+          .bram_prog_addr (32'b0),
+          .bram_prog_wdata(32'b0),
+          .bram_prog_wstrb(4'b0),
+          .bram_prog_ready(),
+          .bram_prog_rdata(),
 
-        .axi_awid   (axi_awid),
-        .axi_awaddr (axi_awaddr),
-        .axi_awlen  (axi_awlen),
-        .axi_awsize (axi_awsize),
-        .axi_awburst(axi_awburst),
-        .axi_awvalid(axi_awvalid),
-        .axi_awready(axi_awready),
+          .axi_awid   (axi_awid),
+          .axi_awaddr (axi_awaddr),
+          .axi_awlen  (axi_awlen),
+          .axi_awsize (axi_awsize),
+          .axi_awburst(axi_awburst),
+          .axi_awvalid(axi_awvalid),
+          .axi_awready(axi_awready),
 
-        .axi_wid    (axi_wid),
-        .axi_wdata  (axi_wdata),
-        .axi_wstrb  (axi_wstrb),
-        .axi_wlast  (axi_wlast),
-        .axi_wvalid (axi_wvalid),
-        .axi_wready (axi_wready),
+          .axi_wid   (axi_wid),
+          .axi_wdata (axi_wdata),
+          .axi_wstrb (axi_wstrb),
+          .axi_wlast (axi_wlast),
+          .axi_wvalid(axi_wvalid),
+          .axi_wready(axi_wready),
 
-        .axi_bid    (axi_bid),
-        .axi_bresp  (axi_bresp),
-        .axi_bvalid (axi_bvalid),
-        .axi_bready (axi_bready),
+          .axi_bid   (axi_bid),
+          .axi_bresp (axi_bresp),
+          .axi_bvalid(axi_bvalid),
+          .axi_bready(axi_bready),
 
-        .axi_arid   (axi_arid),
-        .axi_araddr (axi_araddr),
-        .axi_arlen  (axi_arlen),
-        .axi_arsize (axi_arsize),
-        .axi_arburst(axi_arburst),
-        .axi_arvalid(axi_arvalid),
-        .axi_arready(axi_arready),
+          .axi_arid   (axi_arid),
+          .axi_araddr (axi_araddr),
+          .axi_arlen  (axi_arlen),
+          .axi_arsize (axi_arsize),
+          .axi_arburst(axi_arburst),
+          .axi_arvalid(axi_arvalid),
+          .axi_arready(axi_arready),
 
-        .axi_rid    (axi_rid),
-        .axi_rdata  (axi_rdata),
-        .axi_rresp  (axi_rresp),
-        .axi_rlast  (axi_rlast),
-        .axi_rvalid (axi_rvalid),
-        .axi_rready (axi_rready),
+          .axi_rid   (axi_rid),
+          .axi_rdata (axi_rdata),
+          .axi_rresp (axi_rresp),
+          .axi_rlast (axi_rlast),
+          .axi_rvalid(axi_rvalid),
+          .axi_rready(axi_rready),
 
-        .pc         (pc),
-        .ins        (ins),
-        .is_ebreak  (is_ebreak),
-        .icache_miss(),
-        .dcache_miss(),
+          .pc         (pc),
+          .ins        (ins),
+          .is_ebreak  (is_ebreak),
+          .icache_miss(),
+          .dcache_miss(),
 
-        .debug_if_pc               (debug_if_pc),
-        .debug_id_pc               (debug_id_pc),
-        .debug_ex_pc               (debug_ex_pc),
-        .debug_mem_pc              (debug_mem_pc),
-        .debug_wb_pc               (debug_wb_pc),
-        .debug_if_ins              (debug_if_ins),
-        .debug_id_ins              (debug_id_ins),
-        .debug_ex_ins              (debug_ex_ins),
-        .debug_mem_ins             (debug_mem_ins),
-        .debug_wb_ins              (debug_wb_ins),
-        .debug_dmem_addr           (debug_dmem_addr),
-        .debug_dmem_wdata          (debug_dmem_wdata),
-        .debug_btb_predict_next_pc (debug_btb_predict_next_pc),
-        .debug_actual_next_pc      (debug_actual_next_pc),
-        .debug_flush_pc            (debug_flush_pc),
-        .debug_ctrl                (cpu_debug_ctrl)
-    );
+          .debug_if_pc              (debug_if_pc),
+          .debug_id_pc              (debug_id_pc),
+          .debug_ex_pc              (debug_ex_pc),
+          .debug_mem_pc             (debug_mem_pc),
+          .debug_wb_pc              (debug_wb_pc),
+          .debug_if_ins             (debug_if_ins),
+          .debug_id_ins             (debug_id_ins),
+          .debug_ex_ins             (debug_ex_ins),
+          .debug_mem_ins            (debug_mem_ins),
+          .debug_wb_ins             (debug_wb_ins),
+          .debug_dmem_addr          (debug_dmem_addr),
+          .debug_dmem_wdata         (debug_dmem_wdata),
+          .debug_btb_predict_next_pc(debug_btb_predict_next_pc),
+          .debug_actual_next_pc     (debug_actual_next_pc),
+          .debug_flush_pc           (debug_flush_pc),
+          .debug_ctrl               (cpu_debug_ctrl)
+      );
 
-    // ============ unified AXI memory backend =============================
-    wire mmio_req_valid;
-    wire mmio_req_wen;
-    wire [31:0] mmio_req_addr;
-    wire [31:0] mmio_req_wdata;
-    wire [3:0]  mmio_req_wstrb;
-    wire        mmio_req_ready;
-    wire [31:0] mmio_req_rdata;
+      // ============ unified AXI memory backend =============================
+      wire        mmio_req_valid;
+      wire        mmio_req_wen;
+      wire [31:0] mmio_req_addr;
+      wire [31:0] mmio_req_wdata;
+      wire [ 3:0] mmio_req_wstrb;
+      wire        mmio_req_ready;
+      wire [31:0] mmio_req_rdata;
 
-    wire        npu_addr_sel;
-    wire        npu_sel;
-    wire        npu_mmio_ready;
-    wire [31:0] npu_mmio_rdata;
+      wire        npu_addr_sel;
+      wire        npu_sel;
+      wire        npu_mmio_ready;
+      wire [31:0] npu_mmio_rdata;
 
-    axi_mem_backend #(
-        .MMIO_BASE  (MMIO_BASE),
-        .MMIO_BYTES (MMIO_BYTES),
-        .DDR_BASE   (DDR_BASE),
-        .DDR_BYTES  (DDR_BYTES)
-    ) u_mem (
-        .clk            (cpu_clk),
-        .rst_n          (sys_rst_n),
+      axi_mem_backend #(
+          .MMIO_BASE (MMIO_BASE),
+          .MMIO_BYTES(MMIO_BYTES),
+          .DDR_BASE  (DDR_BASE),
+          .DDR_BYTES (DDR_BYTES)
+      ) u_mem (
+          .clk  (cpu_clk),
+          .rst_n(sys_rst_n),
 
-        .axi_awid       (axi_awid),
-        .axi_awaddr     (axi_awaddr),
-        .axi_awlen      (axi_awlen),
-        .axi_awsize     (axi_awsize),
-        .axi_awburst    (axi_awburst),
-        .axi_awvalid    (axi_awvalid),
-        .axi_awready    (axi_awready),
-        .axi_wdata      (axi_wdata),
-        .axi_wstrb      (axi_wstrb),
-        .axi_wlast      (axi_wlast),
-        .axi_wvalid     (axi_wvalid),
-        .axi_wready     (axi_wready),
-        .axi_bid        (axi_bid),
-        .axi_bresp      (axi_bresp),
-        .axi_bvalid     (axi_bvalid),
-        .axi_bready     (axi_bready),
-        .axi_arid       (axi_arid),
-        .axi_araddr     (axi_araddr),
-        .axi_arlen      (axi_arlen),
-        .axi_arsize     (axi_arsize),
-        .axi_arburst    (axi_arburst),
-        .axi_arvalid    (axi_arvalid),
-        .axi_arready    (axi_arready),
-        .axi_rid        (axi_rid),
-        .axi_rdata      (axi_rdata),
-        .axi_rresp      (axi_rresp),
-        .axi_rlast      (axi_rlast),
-        .axi_rvalid     (axi_rvalid),
-        .axi_rready     (axi_rready),
+          .axi_awid   (axi_awid),
+          .axi_awaddr (axi_awaddr),
+          .axi_awlen  (axi_awlen),
+          .axi_awsize (axi_awsize),
+          .axi_awburst(axi_awburst),
+          .axi_awvalid(axi_awvalid),
+          .axi_awready(axi_awready),
+          .axi_wdata  (axi_wdata),
+          .axi_wstrb  (axi_wstrb),
+          .axi_wlast  (axi_wlast),
+          .axi_wvalid (axi_wvalid),
+          .axi_wready (axi_wready),
+          .axi_bid    (axi_bid),
+          .axi_bresp  (axi_bresp),
+          .axi_bvalid (axi_bvalid),
+          .axi_bready (axi_bready),
+          .axi_arid   (axi_arid),
+          .axi_araddr (axi_araddr),
+          .axi_arlen  (axi_arlen),
+          .axi_arsize (axi_arsize),
+          .axi_arburst(axi_arburst),
+          .axi_arvalid(axi_arvalid),
+          .axi_arready(axi_arready),
+          .axi_rid    (axi_rid),
+          .axi_rdata  (axi_rdata),
+          .axi_rresp  (axi_rresp),
+          .axi_rlast  (axi_rlast),
+          .axi_rvalid (axi_rvalid),
+          .axi_rready (axi_rready),
 
-        .mmio_req_valid (mmio_req_valid),
-        .mmio_req_wen   (mmio_req_wen),
-        .mmio_req_addr  (mmio_req_addr),
-        .mmio_req_wdata (mmio_req_wdata),
-        .mmio_req_wstrb (mmio_req_wstrb),
-        .mmio_req_ready (mmio_req_ready),
-        .mmio_req_rdata (mmio_req_rdata),
+          .mmio_req_valid(mmio_req_valid),
+          .mmio_req_wen  (mmio_req_wen),
+          .mmio_req_addr (mmio_req_addr),
+          .mmio_req_wdata(mmio_req_wdata),
+          .mmio_req_wstrb(mmio_req_wstrb),
+          .mmio_req_ready(mmio_req_ready),
+          .mmio_req_rdata(mmio_req_rdata),
 
-        .ddr_req_valid (run_req_valid),
-        .ddr_req_ready (run_req_ready),
-        .ddr_req_write (run_req_write),
-        .ddr_req_addr  (run_req_addr),
-        .ddr_req_wdata (run_req_wdata),
-        .ddr_req_wstrb (run_req_wstrb),
-        .ddr_rsp_valid (run_rsp_valid),
-        .ddr_rsp_ready (run_rsp_ready),
-        .ddr_rsp_is_read(run_rsp_is_read),
-        .ddr_rsp_rdata (run_rsp_rdata),
+          .ddr_req_valid(run_req_valid),
+          .ddr_req_ready(run_req_ready),
+          .ddr_req_write(run_req_write),
+          .ddr_req_addr(run_req_addr),
+          .ddr_req_wdata(run_req_wdata),
+          .ddr_req_wstrb(run_req_wstrb),
+          .ddr_rsp_valid(run_rsp_valid),
+          .ddr_rsp_ready(run_rsp_ready),
+          .ddr_rsp_is_read(run_rsp_is_read),
+          .ddr_rsp_rdata(run_rsp_rdata),
 
-        .jtag_cmd_valid (jtag_cmd_valid),
-        .jtag_cmd_ready (jtag_cmd_ready),
-        .jtag_cmd_addr  (jtag_cmd_addr),
-        .jtag_cmd_read  (jtag_cmd_read),
-        .jtag_cmd_wdata (jtag_cmd_wdata),
-        .jtag_cmd_wmask (jtag_cmd_wmask),
-        .jtag_rsp_valid (jtag_rsp_valid),
-        .jtag_rsp_ready (jtag_rsp_ready),
-        .jtag_rsp_err   (jtag_rsp_err),
-        .jtag_rsp_rdata (jtag_rsp_rdata)
-    );
+          .jtag_cmd_valid(jtag_cmd_valid),
+          .jtag_cmd_ready(jtag_cmd_ready),
+          .jtag_cmd_addr (jtag_cmd_addr),
+          .jtag_cmd_read (jtag_cmd_read),
+          .jtag_cmd_wdata(jtag_cmd_wdata),
+          .jtag_cmd_wmask(jtag_cmd_wmask),
+          .jtag_rsp_valid(jtag_rsp_valid),
+          .jtag_rsp_ready(jtag_rsp_ready),
+          .jtag_rsp_err  (jtag_rsp_err),
+          .jtag_rsp_rdata(jtag_rsp_rdata)
+      );
 
-    // ============ JTAG =====================================================
-    wire JTAG_TCK_in;
-    GTP_INBUF #(
-        .IOSTANDARD("DEFAULT"),
-        .TERM_DDR("ON")
-    ) GTP_INBUF_inst (
-        .O (JTAG_TCK_in),
-        .I (JTAG_TCK)
-    );
+      // ============ JTAG =====================================================
+      wire JTAG_TCK_in;
+      GTP_INBUF #(
+          .IOSTANDARD("DEFAULT"),
+          .TERM_DDR  ("ON")
+      ) GTP_INBUF_inst (
+          .O(JTAG_TCK_in),
+          .I(JTAG_TCK)
+      );
 
-    jtag_top u_jtag (
-        .clk                 (cpu_clk),
-        .jtag_rst_n          (sys_rst_n),
-        .jtag_pin_TCK        (JTAG_TCK_in),
-        .jtag_pin_TMS        (JTAG_TMS),
-        .jtag_pin_TDI        (JTAG_TDI),
-        .jtag_pin_TDO        (JTAG_TDO),
-        .reg_we_o            (),
-        .reg_addr_o          (),
-        .reg_wdata_o         (),
-        .reg_rdata_i         (32'b0),
-        .jtag_icb_cmd_valid  (jtag_cmd_valid),
-        .jtag_icb_cmd_ready  (jtag_cmd_ready),
-        .jtag_icb_cmd_addr   (jtag_cmd_addr),
-        .jtag_icb_cmd_read   (jtag_cmd_read),
-        .jtag_icb_cmd_wdata  (jtag_cmd_wdata),
-        .jtag_icb_cmd_wmask  (jtag_cmd_wmask),
-        .jtag_icb_rsp_valid  (jtag_rsp_valid),
-        .jtag_icb_rsp_ready  (jtag_rsp_ready),
-        .jtag_icb_rsp_err    (jtag_rsp_err),
-        .jtag_icb_rsp_rdata  (jtag_rsp_rdata),
-        .halt_req_o          (jtag_halt_req),
-        .reset_req_o         (jtag_reset_req)
-    );
+      jtag_top u_jtag (
+          .clk               (cpu_clk),
+          .jtag_rst_n        (sys_rst_n),
+          .jtag_pin_TCK      (JTAG_TCK_in),
+          .jtag_pin_TMS      (JTAG_TMS),
+          .jtag_pin_TDI      (JTAG_TDI),
+          .jtag_pin_TDO      (JTAG_TDO),
+          .reg_we_o          (),
+          .reg_addr_o        (),
+          .reg_wdata_o       (),
+          .reg_rdata_i       (32'b0),
+          .jtag_icb_cmd_valid(jtag_cmd_valid),
+          .jtag_icb_cmd_ready(jtag_cmd_ready),
+          .jtag_icb_cmd_addr (jtag_cmd_addr),
+          .jtag_icb_cmd_read (jtag_cmd_read),
+          .jtag_icb_cmd_wdata(jtag_cmd_wdata),
+          .jtag_icb_cmd_wmask(jtag_cmd_wmask),
+          .jtag_icb_rsp_valid(jtag_rsp_valid),
+          .jtag_icb_rsp_ready(jtag_rsp_ready),
+          .jtag_icb_rsp_err  (jtag_rsp_err),
+          .jtag_icb_rsp_rdata(jtag_rsp_rdata),
+          .halt_req_o        (jtag_halt_req),
+          .reset_req_o       (jtag_reset_req)
+      );
 
-    // ============ MMIO peripherals ========================================
-    localparam [31:0] UART0_END  = UART0_BASE + UART0_BYTES;
-    localparam [31:0] INT8_MMIO_END = INT8_MMIO_BASE + INT8_MMIO_BYTES;
-    localparam [31:0] CAM1_MMIO_END = CAM1_MMIO_BASE + CAM1_MMIO_BYTES;
-    localparam [31:0] CAM2_MMIO_END = CAM2_MMIO_BASE + CAM2_MMIO_BYTES;
-    localparam [31:0] FPIOA_END  = FPIOA_BASE + FPIOA_BYTES;
+      // ============ MMIO peripherals ========================================
+      localparam [31:0] UART0_END = UART0_BASE + UART0_BYTES;
+      localparam [31:0] INT8_MMIO_END = INT8_MMIO_BASE + INT8_MMIO_BYTES;
+      localparam [31:0] CAM1_MMIO_END = CAM1_MMIO_BASE + CAM1_MMIO_BYTES;
+      localparam [31:0] CAM2_MMIO_END = CAM2_MMIO_BASE + CAM2_MMIO_BYTES;
+      localparam [31:0] FPIOA_END = FPIOA_BASE + FPIOA_BYTES;
 
-    wire uart_addr_sel = (mmio_req_addr >= UART0_BASE) &&
-                         (mmio_req_addr <  UART0_END);
-    wire uart_sel = mmio_req_valid && uart_addr_sel;
-    wire led_sel  = mmio_req_valid && (mmio_req_addr == LED_ADDR);
-    wire cam1_sel = mmio_req_valid &&
+      wire uart_addr_sel = (mmio_req_addr >= UART0_BASE) && (mmio_req_addr < UART0_END);
+      wire uart_sel = mmio_req_valid && uart_addr_sel;
+      wire led_sel = mmio_req_valid && (mmio_req_addr == LED_ADDR);
+      wire cam1_sel = mmio_req_valid &&
                     (mmio_req_addr >= CAM1_MMIO_BASE) &&
                     (mmio_req_addr <  CAM1_MMIO_END);
-    wire cam2_sel = mmio_req_valid &&
+      wire cam2_sel = mmio_req_valid &&
                     (mmio_req_addr >= CAM2_MMIO_BASE) &&
                     (mmio_req_addr <  CAM2_MMIO_END);
-    wire fpioa_sel = mmio_req_valid &&
+      wire fpioa_sel = mmio_req_valid &&
                      (mmio_req_addr >= FPIOA_BASE) &&
                      (mmio_req_addr <  FPIOA_END);
-    wire int8_addr_sel = (mmio_req_addr>=INT8_MMIO_BASE) &&
-                         (mmio_req_addr<INT8_MMIO_END);
-    wire int8_sel = mmio_req_valid && int8_addr_sel;
-    assign npu_addr_sel = (mmio_req_addr >= NPU_MMIO_BASE) &&
+      wire int8_addr_sel = (mmio_req_addr >= INT8_MMIO_BASE) && (mmio_req_addr < INT8_MMIO_END);
+      wire int8_sel = mmio_req_valid && int8_addr_sel;
+      assign npu_addr_sel = (mmio_req_addr >= NPU_MMIO_BASE) &&
                           (mmio_req_addr < NPU_MMIO_BASE + NPU_MMIO_BYTES);
-    assign npu_sel = mmio_req_valid && npu_addr_sel;
+      assign npu_sel = mmio_req_valid && npu_addr_sel;
 
-    // UART TX data writes are the only peripheral access that can be busy.
-    wire int8_mmio_ready;
-    wire [31:0] int8_mmio_rdata;
-    assign mmio_req_ready = uart_addr_sel ? uart_ready :
+      // UART TX data writes are the only peripheral access that can be busy.
+      wire int8_mmio_ready;
+      wire [31:0] int8_mmio_rdata;
+      assign mmio_req_ready = uart_addr_sel ? uart_ready :
                             int8_addr_sel ? int8_mmio_ready :
                             npu_addr_sel  ? npu_mmio_ready : 1'b1;
 
-    wire [31:0] uart_rdata;
-    wire uart_ready;
-    wire uart_tx;
-    wire [3:0] led_value;
-    wire [31:0] fpioa_rdata;
-    wire [31:0] cam1_gpio_rdata;
-    wire [31:0] cam1_dvp_rdata;
-    wire [31:0] cam1_rdata = cam1_gpio_rdata | cam1_dvp_rdata;
-    wire cam1_capture_enable;
-    wire [31:0] cam2_gpio_rdata;
-    wire [31:0] cam2_dvp_rdata;
-    wire [31:0] cam2_rdata = cam2_gpio_rdata | cam2_dvp_rdata;
-    wire cam2_capture_enable;
+      wire [31:0] uart_rdata;
+      wire uart_ready;
+      wire uart_tx;
+      wire [3:0] led_value;
+      wire [31:0] fpioa_rdata;
+      wire [31:0] cam1_gpio_rdata;
+      wire [31:0] cam1_dvp_rdata;
+      wire [31:0] cam1_rdata = cam1_gpio_rdata | cam1_dvp_rdata;
+      wire cam1_capture_enable;
+      wire [31:0] cam2_gpio_rdata;
+      wire [31:0] cam2_dvp_rdata;
+      wire [31:0] cam2_rdata = cam2_gpio_rdata | cam2_dvp_rdata;
+      wire cam2_capture_enable;
 
 
-    Huart_tx #(
-        .CLK_HZ(`SOC_CPU_HZ), .BAUD(`SOC_UART_BAUD)
-    ) u_uart0_tx (
-        .clk        (cpu_clk),
-        .rst_n      (sys_rst_n),
-        .mmio_valid (uart_sel),
-        .mmio_wen   (mmio_req_wen),
-        .mmio_addr  (mmio_req_addr[7:0]),
-        .mmio_wdata (mmio_req_wdata),
-        .mmio_wmask (mmio_req_wstrb),
-        .mmio_rdata (uart_rdata),
-        .mmio_ready (uart_ready),
-        .tx_pin     (uart_tx)
-    );
+      Huart_tx #(
+          .CLK_HZ(`SOC_CPU_HZ),
+          .BAUD  (`SOC_UART_BAUD)
+      ) u_uart0_tx (
+          .clk       (cpu_clk),
+          .rst_n     (sys_rst_n),
+          .mmio_valid(uart_sel),
+          .mmio_wen  (mmio_req_wen),
+          .mmio_addr (mmio_req_addr[7:0]),
+          .mmio_wdata(mmio_req_wdata),
+          .mmio_wmask(mmio_req_wstrb),
+          .mmio_rdata(uart_rdata),
+          .mmio_ready(uart_ready),
+          .tx_pin    (uart_tx)
+      );
 
-    Hled #(.WIDTH(4)) u_led (
-        .clk     (cpu_clk),
-        .rst_n   (sys_rst_n),
-        .wr_en   (led_sel && mmio_req_wen),
-        .wr_data (mmio_req_wdata),
-        .wr_mask (mmio_req_wstrb),
-        .led     (led_value)
-    );
+      Hled #(
+          .WIDTH(4)
+      ) u_led (
+          .clk    (cpu_clk),
+          .rst_n  (sys_rst_n),
+          .wr_en  (led_sel && mmio_req_wen),
+          .wr_data(mmio_req_wdata),
+          .wr_mask(mmio_req_wstrb),
+          .led    (led_value)
+      );
 
-    Hfpioa_simple #(
-        .UART_TX_DEFAULT_FPIOA(UART_TX_DEFAULT_FPIOA),
-        .INPUT_ONLY_MASK(32'h3004_0000)
-    ) u_fpioa (
-        .clk        (cpu_clk),
-        .rst_n      (sys_rst_n),
-        .mmio_valid (fpioa_sel),
-        .mmio_wen   (mmio_req_wen),
-        .mmio_addr  (mmio_req_addr[7:0]),
-        .mmio_wdata (mmio_req_wdata),
-        .mmio_wmask (mmio_req_wstrb),
-        .mmio_rdata (fpioa_rdata),
-        .uart0_tx   (uart_tx),
-        .direct_led (led_value),
-        .fpioa      (fpioa)
-    );
+      Hfpioa_simple #(
+          .UART_TX_DEFAULT_FPIOA(UART_TX_DEFAULT_FPIOA),
+          .INPUT_ONLY_MASK(32'h3004_0000)
+      ) u_fpioa (
+          .clk       (cpu_clk),
+          .rst_n     (sys_rst_n),
+          .mmio_valid(fpioa_sel),
+          .mmio_wen  (mmio_req_wen),
+          .mmio_addr (mmio_req_addr[7:0]),
+          .mmio_wdata(mmio_req_wdata),
+          .mmio_wmask(mmio_req_wstrb),
+          .mmio_rdata(fpioa_rdata),
+          .uart0_tx  (uart_tx),
+          .direct_led(led_value),
+          .fpioa     (fpioa)
+      );
 
-    Hcamera_sccb_gpio u_cam1_sccb_gpio (
-        .clk          (cpu_clk),
-        .rst_n        (sys_rst_n),
-        .mmio_valid   (cam1_sel),
-        .mmio_wen     (mmio_req_wen),
-        .mmio_addr    (mmio_req_addr[7:0]),
-        .mmio_wdata   (mmio_req_wdata),
-        .mmio_wmask   (mmio_req_wstrb),
-        .mmio_rdata   (cam1_gpio_rdata),
-        .cam1_scl     (cam1_scl),
-        .cam1_sda     (cam1_sda),
-        .cam1_reset_n (cam1_reset_n),
-        .cam1_capture_enable(cam1_capture_enable)
-    );
+      Hcamera_sccb_gpio u_cam1_sccb_gpio (
+          .clk                (cpu_clk),
+          .rst_n              (sys_rst_n),
+          .mmio_valid         (cam1_sel),
+          .mmio_wen           (mmio_req_wen),
+          .mmio_addr          (mmio_req_addr[7:0]),
+          .mmio_wdata         (mmio_req_wdata),
+          .mmio_wmask         (mmio_req_wstrb),
+          .mmio_rdata         (cam1_gpio_rdata),
+          .cam1_scl           (cam1_scl),
+          .cam1_sda           (cam1_sda),
+          .cam1_reset_n       (cam1_reset_n),
+          .cam1_capture_enable(cam1_capture_enable)
+      );
 
-    Hcamera_subsystem #(
-        .DDR_BASE(DDR_BASE),
-        .DDR_BYTES(DDR_BYTES),
-        .BUFFER0_ADDR(`SOC_CAM1_BUFFER0_BASE),
-        .BUFFER1_ADDR(`SOC_CAM1_BUFFER1_BASE),
-        .AXI_ID(8'h40), .HARDWARE_CONSUMER(PREPROCESS_ENABLE)
-    ) u_cam1 (
-        .consumer_ready_mask(pre_source_ready[1:0]),
-        .consumer_frame0(pre_source_frames[31:0]), .consumer_frame1(pre_source_frames[63:32]),
-        .consumer_release_valid(pre_source_release_valid[0]),
-        .consumer_release_mask(pre_source_release_mask[1:0]),
-        .cpu_clk(cpu_clk), .mem_clk(ddr_core_clk), .rst_n(sys_rst_n),
-        .ddr_ready(ddr_init_done), .capture_enable(cam1_capture_enable),
-        .pclk(cam1_pclk), .vsync(cam1_vsync), .href(cam1_href), .data(cam1_data),
-        .mmio_valid(cam1_sel), .mmio_wen(mmio_req_wen),
-        .mmio_addr(mmio_req_addr[7:0]), .mmio_wdata(mmio_req_wdata),
-        .mmio_wmask(mmio_req_wstrb), .mmio_rdata(cam1_dvp_rdata),
-        .axi_awaddr(cam1_axi_awaddr), .axi_awid(cam1_axi_awid),
-        .axi_awlen(cam1_axi_awlen), .axi_awsize(cam1_axi_awsize),
-        .axi_awburst(cam1_axi_awburst), .axi_awvalid(cam1_axi_awvalid),
-        .axi_awready(cam1_axi_awready), .axi_wdata(cam1_axi_wdata),
-        .axi_wstrb(cam1_axi_wstrb), .axi_wlast(cam1_axi_wlast),
-        .axi_wvalid(cam1_axi_wvalid), .axi_wready(cam1_axi_wready),
-        .axi_bid(cam1_axi_bid), .axi_bresp(cam1_axi_bresp),
-        .axi_bvalid(cam1_axi_bvalid), .axi_bready(cam1_axi_bready)
-    );
+      Hcamera_subsystem #(
+          .DDR_BASE(DDR_BASE),
+          .DDR_BYTES(DDR_BYTES),
+          .BUFFER0_ADDR(`SOC_CAM1_BUFFER0_BASE),
+          .BUFFER1_ADDR(`SOC_CAM1_BUFFER1_BASE),
+          .AXI_ID(8'h40),
+          .HARDWARE_CONSUMER(PREPROCESS_ENABLE)
+      ) u_cam1 (
+          .consumer_ready_mask(pre_source_ready[1:0]),
+          .consumer_frame0(pre_source_frames[31:0]),
+          .consumer_frame1(pre_source_frames[63:32]),
+          .consumer_release_valid(pre_source_release_valid[0]),
+          .consumer_release_mask(pre_source_release_mask[1:0]),
+          .cpu_clk(cpu_clk),
+          .mem_clk(ddr_core_clk),
+          .rst_n(sys_rst_n),
+          .ddr_ready(ddr_init_done),
+          .capture_enable(cam1_capture_enable),
+          .pclk(cam1_pclk),
+          .vsync(cam1_vsync),
+          .href(cam1_href),
+          .data(cam1_data),
+          .mmio_valid(cam1_sel),
+          .mmio_wen(mmio_req_wen),
+          .mmio_addr(mmio_req_addr[7:0]),
+          .mmio_wdata(mmio_req_wdata),
+          .mmio_wmask(mmio_req_wstrb),
+          .mmio_rdata(cam1_dvp_rdata),
+          .axi_awaddr(cam1_axi_awaddr),
+          .axi_awid(cam1_axi_awid),
+          .axi_awlen(cam1_axi_awlen),
+          .axi_awsize(cam1_axi_awsize),
+          .axi_awburst(cam1_axi_awburst),
+          .axi_awvalid(cam1_axi_awvalid),
+          .axi_awready(cam1_axi_awready),
+          .axi_wdata(cam1_axi_wdata),
+          .axi_wstrb(cam1_axi_wstrb),
+          .axi_wlast(cam1_axi_wlast),
+          .axi_wvalid(cam1_axi_wvalid),
+          .axi_wready(cam1_axi_wready),
+          .axi_bid(cam1_axi_bid),
+          .axi_bresp(cam1_axi_bresp),
+          .axi_bvalid(cam1_axi_bvalid),
+          .axi_bready(cam1_axi_bready)
+      );
 
-    Hcamera_sccb_gpio u_cam2_sccb_gpio (
-        .clk(cpu_clk), 
-		.rst_n(sys_rst_n),
-		.mmio_valid(cam2_sel),
-        .mmio_wen(mmio_req_wen),
-		.mmio_addr(mmio_req_addr[7:0]),
-        .mmio_wdata(mmio_req_wdata),
-		.mmio_wmask(mmio_req_wstrb),
-        .mmio_rdata(cam2_gpio_rdata),
-		.cam1_scl(cam2_scl),
-        .cam1_sda(cam2_sda),
-		.cam1_reset_n(cam2_reset_n),
-        .cam1_capture_enable(cam2_capture_enable)
-    );
+      Hcamera_sccb_gpio u_cam2_sccb_gpio (
+          .clk(cpu_clk),
+          .rst_n(sys_rst_n),
+          .mmio_valid(cam2_sel),
+          .mmio_wen(mmio_req_wen),
+          .mmio_addr(mmio_req_addr[7:0]),
+          .mmio_wdata(mmio_req_wdata),
+          .mmio_wmask(mmio_req_wstrb),
+          .mmio_rdata(cam2_gpio_rdata),
+          .cam1_scl(cam2_scl),
+          .cam1_sda(cam2_sda),
+          .cam1_reset_n(cam2_reset_n),
+          .cam1_capture_enable(cam2_capture_enable)
+      );
 
-    Hcamera_subsystem #(
-        .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES),
-        .BUFFER0_ADDR(`SOC_CAM2_BUFFER0_BASE),
-        .BUFFER1_ADDR(`SOC_CAM2_BUFFER1_BASE), .AXI_ID(8'h41),
-        .HARDWARE_CONSUMER(PREPROCESS_ENABLE)
-    ) u_cam2 (
-        .consumer_ready_mask(pre_source_ready[3:2]),
-        .consumer_frame0(pre_source_frames[95:64]), .consumer_frame1(pre_source_frames[127:96]),
-        .consumer_release_valid(pre_source_release_valid[1]),
-        .consumer_release_mask(pre_source_release_mask[3:2]),
-        .cpu_clk(cpu_clk), .mem_clk(ddr_core_clk), .rst_n(sys_rst_n),
-        .ddr_ready(ddr_init_done), .capture_enable(cam2_capture_enable),
-        .pclk(cam2_pclk), .vsync(cam2_vsync), .href(cam2_href), .data(cam2_data),
-        .mmio_valid(cam2_sel), .mmio_wen(mmio_req_wen),
-        .mmio_addr(mmio_req_addr[7:0]), .mmio_wdata(mmio_req_wdata),
-        .mmio_wmask(mmio_req_wstrb), .mmio_rdata(cam2_dvp_rdata),
-        .axi_awaddr(cam2_axi_awaddr), .axi_awid(cam2_axi_awid),
-        .axi_awlen(cam2_axi_awlen), .axi_awsize(cam2_axi_awsize),
-        .axi_awburst(cam2_axi_awburst), .axi_awvalid(cam2_axi_awvalid),
-        .axi_awready(cam2_axi_awready), .axi_wdata(cam2_axi_wdata),
-        .axi_wstrb(cam2_axi_wstrb), .axi_wlast(cam2_axi_wlast),
-        .axi_wvalid(cam2_axi_wvalid), .axi_wready(cam2_axi_wready),
-        .axi_bid(cam2_axi_bid), .axi_bresp(cam2_axi_bresp),
-        .axi_bvalid(cam2_axi_bvalid), .axi_bready(cam2_axi_bready)
-    );
+      Hcamera_subsystem #(
+          .DDR_BASE(DDR_BASE),
+          .DDR_BYTES(DDR_BYTES),
+          .BUFFER0_ADDR(`SOC_CAM2_BUFFER0_BASE),
+          .BUFFER1_ADDR(`SOC_CAM2_BUFFER1_BASE),
+          .AXI_ID(8'h41),
+          .HARDWARE_CONSUMER(PREPROCESS_ENABLE)
+      ) u_cam2 (
+          .consumer_ready_mask(pre_source_ready[3:2]),
+          .consumer_frame0(pre_source_frames[95:64]),
+          .consumer_frame1(pre_source_frames[127:96]),
+          .consumer_release_valid(pre_source_release_valid[1]),
+          .consumer_release_mask(pre_source_release_mask[3:2]),
+          .cpu_clk(cpu_clk),
+          .mem_clk(ddr_core_clk),
+          .rst_n(sys_rst_n),
+          .ddr_ready(ddr_init_done),
+          .capture_enable(cam2_capture_enable),
+          .pclk(cam2_pclk),
+          .vsync(cam2_vsync),
+          .href(cam2_href),
+          .data(cam2_data),
+          .mmio_valid(cam2_sel),
+          .mmio_wen(mmio_req_wen),
+          .mmio_addr(mmio_req_addr[7:0]),
+          .mmio_wdata(mmio_req_wdata),
+          .mmio_wmask(mmio_req_wstrb),
+          .mmio_rdata(cam2_dvp_rdata),
+          .axi_awaddr(cam2_axi_awaddr),
+          .axi_awid(cam2_axi_awid),
+          .axi_awlen(cam2_axi_awlen),
+          .axi_awsize(cam2_axi_awsize),
+          .axi_awburst(cam2_axi_awburst),
+          .axi_awvalid(cam2_axi_awvalid),
+          .axi_awready(cam2_axi_awready),
+          .axi_wdata(cam2_axi_wdata),
+          .axi_wstrb(cam2_axi_wstrb),
+          .axi_wlast(cam2_axi_wlast),
+          .axi_wvalid(cam2_axi_wvalid),
+          .axi_wready(cam2_axi_wready),
+          .axi_bid(cam2_axi_bid),
+          .axi_bresp(cam2_axi_bresp),
+          .axi_bvalid(cam2_axi_bvalid),
+          .axi_bready(cam2_axi_bready)
+      );
 
-    // 复用同一个事务锁定仲裁器；此层 cpu/npu 口名称仅代表 CAM1/CAM2。
-    // 两路只写 DDR，读请求关闭，AW/W/B 拥有者保持到写响应完成。
-    Haxi_2m1s_arbiter u_stereo_merge (
-        .clk(ddr_core_clk), .rst_n(sys_rst_n),
-        .cpu_axi_awaddr(cam1_axi_awaddr),
-        .cpu_axi_awid(cam1_axi_awid),
-        .cpu_axi_awlen(cam1_axi_awlen),
-        .cpu_axi_awsize(cam1_axi_awsize),
-        .cpu_axi_awburst(cam1_axi_awburst),
-        .cpu_axi_awvalid(cam1_axi_awvalid),
-        .cpu_axi_awready(cam1_axi_awready),
-        .cpu_axi_wdata(cam1_axi_wdata),
-        .cpu_axi_wstrb(cam1_axi_wstrb),
-        .cpu_axi_wlast(cam1_axi_wlast),
-        .cpu_axi_wvalid(cam1_axi_wvalid),
-        .cpu_axi_wready(cam1_axi_wready),
-        .cpu_axi_bid(cam1_axi_bid),
-        .cpu_axi_bresp(cam1_axi_bresp),
-        .cpu_axi_bvalid(cam1_axi_bvalid),
-        .cpu_axi_bready(cam1_axi_bready),
-        .cpu_axi_araddr(30'b0),
-        .cpu_axi_arid(8'b0),
-        .cpu_axi_arlen(8'b0),
-        .cpu_axi_arsize(3'b0),
-        .cpu_axi_arburst(2'b0),
-        .cpu_axi_arvalid(1'b0),
-        .cpu_axi_arready(),
-        .cpu_axi_rdata(),
-        .cpu_axi_rid(),
-        .cpu_axi_rresp(),
-        .cpu_axi_rlast(),
-        .cpu_axi_rvalid(),
-        .cpu_axi_rready(1'b1),
-        .npu_axi_awaddr(cam2_axi_awaddr),
-        .npu_axi_awid(cam2_axi_awid),
-        .npu_axi_awlen(cam2_axi_awlen),
-        .npu_axi_awsize(cam2_axi_awsize),
-        .npu_axi_awburst(cam2_axi_awburst),
-        .npu_axi_awvalid(cam2_axi_awvalid),
-        .npu_axi_awready(cam2_axi_awready),
-        .npu_axi_wdata(cam2_axi_wdata),
-        .npu_axi_wstrb(cam2_axi_wstrb),
-        .npu_axi_wlast(cam2_axi_wlast),
-        .npu_axi_wvalid(cam2_axi_wvalid),
-        .npu_axi_wready(cam2_axi_wready),
-        .npu_axi_bid(cam2_axi_bid),
-        .npu_axi_bresp(cam2_axi_bresp),
-        .npu_axi_bvalid(cam2_axi_bvalid),
-        .npu_axi_bready(cam2_axi_bready),
-        .npu_axi_araddr(30'b0),
-        .npu_axi_arid(8'b0),
-        .npu_axi_arlen(8'b0),
-        .npu_axi_arsize(3'b0),
-        .npu_axi_arburst(2'b0),
-        .npu_axi_arvalid(1'b0),
-        .npu_axi_arready(),
-        .npu_axi_rdata(),
-        .npu_axi_rid(),
-        .npu_axi_rresp(),
-        .npu_axi_rlast(),
-        .npu_axi_rvalid(),
-        .npu_axi_rready(1'b1),
-        .ddr_axi_awaddr(camera_axi_awaddr),
-        .ddr_axi_awid(camera_axi_awid),
-        .ddr_axi_awlen(camera_axi_awlen),
-        .ddr_axi_awsize(camera_axi_awsize),
-        .ddr_axi_awburst(camera_axi_awburst),
-        .ddr_axi_awvalid(camera_axi_awvalid),
-        .ddr_axi_awready(camera_axi_awready),
-        .ddr_axi_wdata(camera_axi_wdata),
-        .ddr_axi_wstrb(camera_axi_wstrb),
-        .ddr_axi_wlast(camera_axi_wlast),
-        .ddr_axi_wvalid(camera_axi_wvalid),
-        .ddr_axi_wready(camera_axi_wready),
-        .ddr_axi_bid(camera_axi_bid),
-        .ddr_axi_bresp(camera_axi_bresp),
-        .ddr_axi_bvalid(camera_axi_bvalid),
-        .ddr_axi_bready(camera_axi_bready),
-        .ddr_axi_araddr(),
-        .ddr_axi_arid(),
-        .ddr_axi_arlen(),
-        .ddr_axi_arsize(),
-        .ddr_axi_arburst(),
-        .ddr_axi_arvalid(),
-        .ddr_axi_arready(1'b0),
-        .ddr_axi_rdata(256'b0),
-        .ddr_axi_rid(8'b0),
-        .ddr_axi_rresp(2'b0),
-        .ddr_axi_rlast(1'b0),
-        .ddr_axi_rvalid(1'b0),
-        .ddr_axi_rready()
-    );
+      // 复用同一个事务锁定仲裁器；此层 cpu/npu 口名称仅代表 CAM1/CAM2。
+      // 两路只写 DDR，读请求关闭，AW/W/B 拥有者保持到写响应完成。
+      Haxi_2m1s_arbiter u_stereo_merge (
+          .clk(ddr_core_clk),
+          .rst_n(sys_rst_n),
+          .cpu_axi_awaddr(cam1_axi_awaddr),
+          .cpu_axi_awid(cam1_axi_awid),
+          .cpu_axi_awlen(cam1_axi_awlen),
+          .cpu_axi_awsize(cam1_axi_awsize),
+          .cpu_axi_awburst(cam1_axi_awburst),
+          .cpu_axi_awvalid(cam1_axi_awvalid),
+          .cpu_axi_awready(cam1_axi_awready),
+          .cpu_axi_wdata(cam1_axi_wdata),
+          .cpu_axi_wstrb(cam1_axi_wstrb),
+          .cpu_axi_wlast(cam1_axi_wlast),
+          .cpu_axi_wvalid(cam1_axi_wvalid),
+          .cpu_axi_wready(cam1_axi_wready),
+          .cpu_axi_bid(cam1_axi_bid),
+          .cpu_axi_bresp(cam1_axi_bresp),
+          .cpu_axi_bvalid(cam1_axi_bvalid),
+          .cpu_axi_bready(cam1_axi_bready),
+          .cpu_axi_araddr(30'b0),
+          .cpu_axi_arid(8'b0),
+          .cpu_axi_arlen(8'b0),
+          .cpu_axi_arsize(3'b0),
+          .cpu_axi_arburst(2'b0),
+          .cpu_axi_arvalid(1'b0),
+          .cpu_axi_arready(),
+          .cpu_axi_rdata(),
+          .cpu_axi_rid(),
+          .cpu_axi_rresp(),
+          .cpu_axi_rlast(),
+          .cpu_axi_rvalid(),
+          .cpu_axi_rready(1'b1),
+          .npu_axi_awaddr(cam2_axi_awaddr),
+          .npu_axi_awid(cam2_axi_awid),
+          .npu_axi_awlen(cam2_axi_awlen),
+          .npu_axi_awsize(cam2_axi_awsize),
+          .npu_axi_awburst(cam2_axi_awburst),
+          .npu_axi_awvalid(cam2_axi_awvalid),
+          .npu_axi_awready(cam2_axi_awready),
+          .npu_axi_wdata(cam2_axi_wdata),
+          .npu_axi_wstrb(cam2_axi_wstrb),
+          .npu_axi_wlast(cam2_axi_wlast),
+          .npu_axi_wvalid(cam2_axi_wvalid),
+          .npu_axi_wready(cam2_axi_wready),
+          .npu_axi_bid(cam2_axi_bid),
+          .npu_axi_bresp(cam2_axi_bresp),
+          .npu_axi_bvalid(cam2_axi_bvalid),
+          .npu_axi_bready(cam2_axi_bready),
+          .npu_axi_araddr(30'b0),
+          .npu_axi_arid(8'b0),
+          .npu_axi_arlen(8'b0),
+          .npu_axi_arsize(3'b0),
+          .npu_axi_arburst(2'b0),
+          .npu_axi_arvalid(1'b0),
+          .npu_axi_arready(),
+          .npu_axi_rdata(),
+          .npu_axi_rid(),
+          .npu_axi_rresp(),
+          .npu_axi_rlast(),
+          .npu_axi_rvalid(),
+          .npu_axi_rready(1'b1),
+          .ddr_axi_awaddr(camera_axi_awaddr),
+          .ddr_axi_awid(camera_axi_awid),
+          .ddr_axi_awlen(camera_axi_awlen),
+          .ddr_axi_awsize(camera_axi_awsize),
+          .ddr_axi_awburst(camera_axi_awburst),
+          .ddr_axi_awvalid(camera_axi_awvalid),
+          .ddr_axi_awready(camera_axi_awready),
+          .ddr_axi_wdata(camera_axi_wdata),
+          .ddr_axi_wstrb(camera_axi_wstrb),
+          .ddr_axi_wlast(camera_axi_wlast),
+          .ddr_axi_wvalid(camera_axi_wvalid),
+          .ddr_axi_wready(camera_axi_wready),
+          .ddr_axi_bid(camera_axi_bid),
+          .ddr_axi_bresp(camera_axi_bresp),
+          .ddr_axi_bvalid(camera_axi_bvalid),
+          .ddr_axi_bready(camera_axi_bready),
+          .ddr_axi_araddr(),
+          .ddr_axi_arid(),
+          .ddr_axi_arlen(),
+          .ddr_axi_arsize(),
+          .ddr_axi_arburst(),
+          .ddr_axi_arvalid(),
+          .ddr_axi_arready(1'b0),
+          .ddr_axi_rdata(256'b0),
+          .ddr_axi_rid(8'b0),
+          .ddr_axi_rresp(2'b0),
+          .ddr_axi_rlast(1'b0),
+          .ddr_axi_rvalid(1'b0),
+          .ddr_axi_rready()
+      );
 
-    assign mmio_req_rdata =
+      assign mmio_req_rdata =
         uart_sel   ? uart_rdata        :
         int8_sel   ? int8_mmio_rdata   :
         npu_sel    ? npu_mmio_rdata    :
@@ -870,634 +914,866 @@ module Hfpga_soc #(
         cam2_sel   ? cam2_rdata        :
         fpioa_sel  ? fpioa_rdata       : 32'b0;
 
-    // ============ Debug export ============================================
-    // Keep the same externally-visible debug bundles (ILA/FIC) as before.
-    (* PAP_MARK_DEBUG="<0/t0/0>"  *) wire [31:0] dbg_if_pc;
-    (* PAP_MARK_DEBUG="<0/t1/0>"  *) wire [31:0] dbg_id_pc;
-    (* PAP_MARK_DEBUG="<0/t2/0>"  *) wire [31:0] dbg_id_ins;
-    (* PAP_MARK_DEBUG="<0/t3/0>"  *) wire [31:0] dbg_btb_predict_next_pc;
-    (* PAP_MARK_DEBUG="<0/t4/0>"  *) wire [31:0] dbg_actual_next_pc;
-    (* PAP_MARK_DEBUG="<0/t5/0>"  *) wire [31:0] dbg_flush_pc;
-    (* PAP_MARK_DEBUG="<0/t6/0>"  *) wire [30:0] dbg_ctrl;
+      // ============ Debug export ============================================
+      // Keep the same externally-visible debug bundles (ILA/FIC) as before.
+      (* PAP_MARK_DEBUG="<0/t0/0>"  *)wire [31:0] dbg_if_pc;
+      (* PAP_MARK_DEBUG="<0/t1/0>"  *)wire [31:0] dbg_id_pc;
+      (* PAP_MARK_DEBUG="<0/t2/0>"  *)wire [31:0] dbg_id_ins;
+      (* PAP_MARK_DEBUG="<0/t3/0>"  *)wire [31:0] dbg_btb_predict_next_pc;
+      (* PAP_MARK_DEBUG="<0/t4/0>"  *)wire [31:0] dbg_actual_next_pc;
+      (* PAP_MARK_DEBUG="<0/t5/0>"  *)wire [31:0] dbg_flush_pc;
+      (* PAP_MARK_DEBUG="<0/t6/0>"  *)wire [30:0] dbg_ctrl;
 
-    Debug_core u_debug_core (
-        .cpu_if_pc               (debug_if_pc),
-        .cpu_id_pc               (debug_id_pc),
-        .cpu_ex_pc               (debug_ex_pc),
-        .cpu_mem_pc              (debug_mem_pc),
-        .cpu_wb_pc               (debug_wb_pc),
-        .cpu_if_ins              (debug_if_ins),
-        .cpu_id_ins              (debug_id_ins),
-        .cpu_ex_ins              (debug_ex_ins),
-        .cpu_mem_ins             (debug_mem_ins),
-        .cpu_wb_ins              (debug_wb_ins),
-        .cpu_dmem_addr           (debug_dmem_addr),
-        .cpu_dmem_wdata          (debug_dmem_wdata),
-        .cpu_btb_predict_next_pc (debug_btb_predict_next_pc),
-        .cpu_actual_next_pc      (debug_actual_next_pc),
-        .cpu_flush_pc            (debug_flush_pc),
-        .cpu_ctrl                (cpu_debug_ctrl),
-        .if_pc                   (dbg_if_pc),
-        .id_pc                   (dbg_id_pc),
-        .ex_pc                   (),
-        .mem_pc                  (),
-        .wb_pc                   (),
-        .if_ins                  (),
-        .id_ins                  (dbg_id_ins),
-        .ex_ins                  (),
-        .mem_ins                 (),
-        .wb_ins                  (),
-        .dmem_addr               (),
-        .dmem_wdata              (),
-        .btb_predict_next_pc     (dbg_btb_predict_next_pc),
-        .actual_next_pc          (dbg_actual_next_pc),
-        .flush_pc                (dbg_flush_pc),
-        .ctrl                    (dbg_ctrl)
-    );
+      Debug_core u_debug_core (
+          .cpu_if_pc              (debug_if_pc),
+          .cpu_id_pc              (debug_id_pc),
+          .cpu_ex_pc              (debug_ex_pc),
+          .cpu_mem_pc             (debug_mem_pc),
+          .cpu_wb_pc              (debug_wb_pc),
+          .cpu_if_ins             (debug_if_ins),
+          .cpu_id_ins             (debug_id_ins),
+          .cpu_ex_ins             (debug_ex_ins),
+          .cpu_mem_ins            (debug_mem_ins),
+          .cpu_wb_ins             (debug_wb_ins),
+          .cpu_dmem_addr          (debug_dmem_addr),
+          .cpu_dmem_wdata         (debug_dmem_wdata),
+          .cpu_btb_predict_next_pc(debug_btb_predict_next_pc),
+          .cpu_actual_next_pc     (debug_actual_next_pc),
+          .cpu_flush_pc           (debug_flush_pc),
+          .cpu_ctrl               (cpu_debug_ctrl),
+          .if_pc                  (dbg_if_pc),
+          .id_pc                  (dbg_id_pc),
+          .ex_pc                  (),
+          .mem_pc                 (),
+          .wb_pc                  (),
+          .if_ins                 (),
+          .id_ins                 (dbg_id_ins),
+          .ex_ins                 (),
+          .mem_ins                (),
+          .wb_ins                 (),
+          .dmem_addr              (),
+          .dmem_wdata             (),
+          .btb_predict_next_pc    (dbg_btb_predict_next_pc),
+          .actual_next_pc         (dbg_actual_next_pc),
+          .flush_pc               (dbg_flush_pc),
+          .ctrl                   (dbg_ctrl)
+      );
 
-    // ============ DDR3 request bridge =====================================
-    // The backend is clocked by cpu_clk and emits one 32-bit request at a
-    // time. This bridge waits for DDR initialization, crosses to ddr_core_clk,
-    // expands writes to one 256-bit beat, and selects one word from each
-    // 256-bit read response.
-    flash_ddr_boot #(
-        .FLASH_BASE     (FLASH_BASE),
-        .DDR_BASE       (DDR_BASE),
-        .DDR_LIMIT      ({1'b0, DDR_BASE} + {1'b0, DDR_BYTES}),
-        .IMAGE_BYTES    (BOOT_IMAGE_BYTES),
-        .MODEL_ENABLE   (NPU_IMAGE_ENABLE),
-        .MODEL_FLASH_BASE(NPU_MODEL_FLASH_BASE),
-        .MODEL_DDR_BASE (NPU_MODEL_BASE),
-        .MODEL_BYTES    (NPU_MODEL_BYTES),
-        .SPI_CLK_DIV    (SPI_DIV),
-        .TIMEOUT_CYCLES (`SOC_BOOT_TIMEOUT_CYCLES),
-        .DDR_INIT_TIMEOUT_CYCLES (DDR_INIT_TIMEOUT_CYCLES)
-    ) u_flash_ddr_boot (
-        .clk             (cpu_clk),
-        .rst_n           (sys_rst_n),
-        .ddr_init_done   (ddr_init_done),
-        .flash_cs_n      (flash_cs_n),
-        .flash_cs2_n     (flash_cs2_n),
-        .flash_mosi      (flash_mosi),
-        .flash_miso      (flash_miso),
-        .flash_wp_n      (flash_wp_n),
-        .flash_hold_n    (flash_hold_n),
-        .flash_sck       (flash_spi_sck),
-        .run_req_valid   (run_req_valid),
-        .run_req_ready   (run_req_ready),
-        .run_req_write   (run_req_write),
-        .run_req_addr    (run_req_addr),
-        .run_req_wdata   (run_req_wdata),
-        .run_req_wstrb   (run_req_wstrb),
-        .run_rsp_valid   (run_rsp_valid),
-        .run_rsp_ready   (run_rsp_ready),
-        .run_rsp_is_read (run_rsp_is_read),
-        .run_rsp_rdata   (run_rsp_rdata),
-        .ddr_req_valid   (ddr_req_valid),
-        .ddr_req_ready   (ddr_req_ready),
-        .ddr_req_write   (ddr_req_write),
-        .ddr_req_addr    (ddr_req_addr),
-        .ddr_req_wdata   (ddr_req_wdata),
-        .ddr_req_wstrb   (ddr_req_wstrb),
-        .ddr_rsp_valid   (ddr_rsp_valid),
-        .ddr_rsp_ready   (ddr_rsp_ready),
-        .ddr_rsp_is_read (ddr_rsp_is_read),
-        .ddr_rsp_rdata   (ddr_rsp_rdata),
-        .boot_done       (boot_done),
-        .boot_error      (boot_error),
-        .boot_error_code (boot_error_code),
-        .ddr_ready_cpu   (boot_ddr_ready_cpu),
-        .flash_clk_enable(flash_clk_enable)
-    );
+      // ============ DDR3 request bridge =====================================
+      // The backend is clocked by cpu_clk and emits one 32-bit request at a
+      // time. This bridge waits for DDR initialization, crosses to ddr_core_clk,
+      // expands writes to one 256-bit beat, and selects one word from each
+      // 256-bit read response.
+      flash_ddr_boot #(
+          .FLASH_BASE             (FLASH_BASE),
+          .DDR_BASE               (DDR_BASE),
+          .DDR_LIMIT              ({1'b0, DDR_BASE} + {1'b0, DDR_BYTES}),
+          .IMAGE_BYTES            (BOOT_IMAGE_BYTES),
+          .MODEL_ENABLE           (NPU_IMAGE_ENABLE),
+          .MODEL_FLASH_BASE       (NPU_MODEL_FLASH_BASE),
+          .MODEL_DDR_BASE         (NPU_MODEL_BASE),
+          .MODEL_BYTES            (NPU_MODEL_BYTES),
+          .SPI_CLK_DIV            (SPI_DIV),
+          .TIMEOUT_CYCLES         (`SOC_BOOT_TIMEOUT_CYCLES),
+          .DDR_INIT_TIMEOUT_CYCLES(DDR_INIT_TIMEOUT_CYCLES)
+      ) u_flash_ddr_boot (
+          .clk             (cpu_clk),
+          .rst_n           (sys_rst_n),
+          .ddr_init_done   (ddr_init_done),
+          .flash_cs_n      (flash_cs_n),
+          .flash_cs2_n     (flash_cs2_n),
+          .flash_mosi      (flash_mosi),
+          .flash_miso      (flash_miso),
+          .flash_wp_n      (flash_wp_n),
+          .flash_hold_n    (flash_hold_n),
+          .flash_sck       (flash_spi_sck),
+          .run_req_valid   (run_req_valid),
+          .run_req_ready   (run_req_ready),
+          .run_req_write   (run_req_write),
+          .run_req_addr    (run_req_addr),
+          .run_req_wdata   (run_req_wdata),
+          .run_req_wstrb   (run_req_wstrb),
+          .run_rsp_valid   (run_rsp_valid),
+          .run_rsp_ready   (run_rsp_ready),
+          .run_rsp_is_read (run_rsp_is_read),
+          .run_rsp_rdata   (run_rsp_rdata),
+          .ddr_req_valid   (ddr_req_valid),
+          .ddr_req_ready   (ddr_req_ready),
+          .ddr_req_write   (ddr_req_write),
+          .ddr_req_addr    (ddr_req_addr),
+          .ddr_req_wdata   (ddr_req_wdata),
+          .ddr_req_wstrb   (ddr_req_wstrb),
+          .ddr_rsp_valid   (ddr_rsp_valid),
+          .ddr_rsp_ready   (ddr_rsp_ready),
+          .ddr_rsp_is_read (ddr_rsp_is_read),
+          .ddr_rsp_rdata   (ddr_rsp_rdata),
+          .boot_done       (boot_done),
+          .boot_error      (boot_error),
+          .boot_error_code (boot_error_code),
+          .ddr_ready_cpu   (boot_ddr_ready_cpu),
+          .flash_clk_enable(flash_clk_enable)
+      );
 
-    // GTP_CFGCLK drives the dedicated CFG_CLK pin; no ordinary SCK IO is
-    // consumed by the board pinout.
-    GTP_CFGCLK u_flash_cfgclk (
-        .CLKIN (flash_spi_sck),
-        .CE_N  (~flash_clk_enable)
-    );
+      // GTP_CFGCLK drives the dedicated CFG_CLK pin; no ordinary SCK IO is
+      // consumed by the board pinout.
+      GTP_CFGCLK u_flash_cfgclk (
+          .CLKIN(flash_spi_sck),
+          .CE_N (~flash_clk_enable)
+      );
 
-    ddr_axi_bridge u_ddr_axi_bridge (
-        .cpu_clk          (cpu_clk),
-        .ddr_clk          (ddr_core_clk),
-        // Keep the bridge transaction state aligned with the boot wrapper's
-        // sys_rst_n reset (which also asserts when the CPU PLL loses lock).
-        // The DDR controller shares this PLL-aware reset below so stale AXI
-        // transactions cannot survive a CPU clock relock.
-        .rst_n            (sys_rst_n),
-        .ddr_init_done    (ddr_init_done),
-        .cpu_req_valid    (ddr_req_valid),
-        .cpu_req_ready    (ddr_req_ready),
-        .cpu_req_write    (ddr_req_write),
-        .cpu_req_addr     (ddr_req_addr),
-        .cpu_req_wdata    (ddr_req_wdata),
-        .cpu_req_wmask    (ddr_req_wstrb),
-        .cpu_rsp_rdata    (ddr_rsp_rdata),
-        .cpu_rsp_valid    (ddr_rsp_valid),
-        .cpu_rsp_is_read  (ddr_rsp_is_read),
-        .cpu_rsp_ready    (ddr_rsp_ready),
+      ddr_axi_bridge u_ddr_axi_bridge (
+          .cpu_clk        (cpu_clk),
+          .ddr_clk        (ddr_core_clk),
+          // Keep the bridge transaction state aligned with the boot wrapper's
+          // sys_rst_n reset (which also asserts when the CPU PLL loses lock).
+          // The DDR controller shares this PLL-aware reset below so stale AXI
+          // transactions cannot survive a CPU clock relock.
+          .rst_n          (sys_rst_n),
+          .ddr_init_done  (ddr_init_done),
+          .cpu_req_valid  (ddr_req_valid),
+          .cpu_req_ready  (ddr_req_ready),
+          .cpu_req_write  (ddr_req_write),
+          .cpu_req_addr   (ddr_req_addr),
+          .cpu_req_wdata  (ddr_req_wdata),
+          .cpu_req_wmask  (ddr_req_wstrb),
+          .cpu_rsp_rdata  (ddr_rsp_rdata),
+          .cpu_rsp_valid  (ddr_rsp_valid),
+          .cpu_rsp_is_read(ddr_rsp_is_read),
+          .cpu_rsp_ready  (ddr_rsp_ready),
 
-        .axi_awaddr       (bridge_axi_awaddr),
-        .axi_awid         (bridge_axi_awid),
-        .axi_awlen        (bridge_axi_awlen),
-        .axi_awsize       (bridge_axi_awsize),
-        .axi_awburst      (bridge_axi_awburst),
-        .axi_awvalid      (bridge_axi_awvalid),
-        .axi_awready      (bridge_axi_awready),
-        .axi_wdata        (bridge_axi_wdata),
-        .axi_wstrb        (bridge_axi_wstrb),
-        .axi_wlast        (bridge_axi_wlast),
-        .axi_wvalid       (bridge_axi_wvalid),
-        .axi_wready       (bridge_axi_wready),
-        .axi_bid          (bridge_axi_bid),
-        .axi_bresp        (bridge_axi_bresp),
-        .axi_bvalid       (bridge_axi_bvalid),
-        .axi_bready       (bridge_axi_bready),
-        .axi_araddr       (bridge_axi_araddr),
-        .axi_arid         (bridge_axi_arid),
-        .axi_arlen        (bridge_axi_arlen),
-        .axi_arsize       (bridge_axi_arsize),
-        .axi_arburst      (bridge_axi_arburst),
-        .axi_arvalid      (bridge_axi_arvalid),
-        .axi_arready      (bridge_axi_arready),
-        .axi_rdata        (bridge_axi_rdata),
-        .axi_rid          (bridge_axi_rid),
-        .axi_rresp        (bridge_axi_rresp),
-        .axi_rlast        (bridge_axi_rlast),
-        .axi_rvalid       (bridge_axi_rvalid),
-        .axi_rready       (bridge_axi_rready)
-    );
+          .axi_awaddr (bridge_axi_awaddr),
+          .axi_awid   (bridge_axi_awid),
+          .axi_awlen  (bridge_axi_awlen),
+          .axi_awsize (bridge_axi_awsize),
+          .axi_awburst(bridge_axi_awburst),
+          .axi_awvalid(bridge_axi_awvalid),
+          .axi_awready(bridge_axi_awready),
+          .axi_wdata  (bridge_axi_wdata),
+          .axi_wstrb  (bridge_axi_wstrb),
+          .axi_wlast  (bridge_axi_wlast),
+          .axi_wvalid (bridge_axi_wvalid),
+          .axi_wready (bridge_axi_wready),
+          .axi_bid    (bridge_axi_bid),
+          .axi_bresp  (bridge_axi_bresp),
+          .axi_bvalid (bridge_axi_bvalid),
+          .axi_bready (bridge_axi_bready),
+          .axi_araddr (bridge_axi_araddr),
+          .axi_arid   (bridge_axi_arid),
+          .axi_arlen  (bridge_axi_arlen),
+          .axi_arsize (bridge_axi_arsize),
+          .axi_arburst(bridge_axi_arburst),
+          .axi_arvalid(bridge_axi_arvalid),
+          .axi_arready(bridge_axi_arready),
+          .axi_rdata  (bridge_axi_rdata),
+          .axi_rid    (bridge_axi_rid),
+          .axi_rresp  (bridge_axi_rresp),
+          .axi_rlast  (bridge_axi_rlast),
+          .axi_rvalid (bridge_axi_rvalid),
+          .axi_rready (bridge_axi_rready)
+      );
 
 
-    // Camera 写入、两路前处理以及 CPU 共用 DDR；引脚保持不变。
-    wire [3:0] pre_source_ready, pre_source_release_mask;
-    wire [127:0] pre_source_frames;
-    wire [1:0] pre_source_release_valid;
-    wire [1:0] pre_result_valid, pre_result_bank;
-    wire [15:0] pre_result_camera;
-    wire [63:0] pre_result_frame, pre_result_addr, pre_result_count, pre_result_stride;
-    wire [31:0] pre_result_width, pre_result_height;
-    wire [1023:0] pre_result_boxes;
-    wire [47:0] pre_result_colors;
-    wire [3:0] pre_bank_ready;
-    wire [1:0] pre_busy, pre_error;
-    wire [63:0] pre_frames, pre_empty, pre_failed, pre_bad_releases, pre_error_code, pre_last_cycles;
-    wire int8_enable_ddr, int8_clear_errors_ddr;
-    wire [1:0] int8_desc_ready, int8_roi_release_valid, int8_roi_release_bank;
-    wire [63:0] int8_roi_release_frame;
-    wire [1:0] int8_busy, int8_error, int8_wait_slot, int8_wait_ddr, int8_wait_handoff;
-    wire [1023:0] int8_stats;
-    wire [1:0] npu_image_valid_int, npu_image_ready_int;
-    wire [15:0] npu_image_camera_int, npu_image_batch_count_int, npu_image_index_int;
-    wire [63:0] npu_image_frame_int, npu_image_generation_int, npu_image_data_addr_int;
-    wire [127:0] npu_image_box_int;
-    wire [5:0] npu_image_color_int;
-    wire [3:0] npu_image_block_int;
-    wire [7:0] npu_image_position_int;
-    wire [31:0] npu_image_width_int, npu_image_height_int;
-    wire [63:0] npu_image_bytes_int;
-    wire [1:0] npu_release_valid_int, npu_release_ready_int;
-    wire [15:0] npu_release_camera_int;
-    wire [63:0] npu_release_frame_int, npu_release_generation_int;
-    wire [3:0] npu_release_block_int;
-    wire [7:0] npu_release_position_int;
-    wire [59:0] int8_lane_araddr, int8_lane_awaddr;
-    wire [15:0] int8_lane_arid, int8_lane_arlen;
-    wire [5:0] int8_lane_arsize;
-    wire [3:0] int8_lane_arburst;
-    wire [1:0] int8_lane_arvalid, int8_lane_arready;
-    wire [511:0] int8_lane_rdata, int8_lane_wdata;
-    wire [15:0] int8_lane_rid, int8_lane_bid;
-    wire [3:0] int8_lane_rresp, int8_lane_bresp;
-    wire [1:0] int8_lane_rlast, int8_lane_rvalid, int8_lane_rready;
-    wire [15:0] int8_lane_awid, int8_lane_awlen;
-    wire [5:0] int8_lane_awsize;
-    wire [3:0] int8_lane_awburst;
-    wire [1:0] int8_lane_awvalid, int8_lane_awready;
-    wire [63:0] int8_lane_wstrb;
-    wire [1:0] int8_lane_wlast, int8_lane_wvalid, int8_lane_wready;
-    wire [1:0] int8_lane_bvalid, int8_lane_bready;
-    // Hnpu_system uses the same 256-bit DDR master contract as the existing
-    // capture/preprocess path.  The local arbiter below merges both readers
-    // before the established Camera/CPU DDR arbiter.
-    wire [29:0] npu_axi_araddr, npu_axi_awaddr;
-    wire [7:0] npu_axi_arid, npu_axi_awid, npu_axi_arlen, npu_axi_awlen;
-    wire [2:0] npu_axi_arsize, npu_axi_awsize;
-    wire [1:0] npu_axi_arburst, npu_axi_awburst;
-    wire npu_axi_arvalid, npu_axi_arready, npu_axi_rlast, npu_axi_rvalid, npu_axi_rready;
-    wire [255:0] npu_axi_rdata, npu_axi_wdata;
-    wire [7:0] npu_axi_rid, npu_axi_bid;
-    wire [1:0] npu_axi_rresp, npu_axi_bresp;
-    wire npu_axi_awvalid, npu_axi_awready, npu_axi_wlast, npu_axi_wvalid, npu_axi_wready;
-    wire [31:0] npu_axi_wstrb;
-    wire npu_axi_bvalid, npu_axi_bready;
-    wire [29:0] npu_merge_araddr, npu_merge_awaddr;
-    wire [7:0] npu_merge_arid, npu_merge_awid, npu_merge_arlen, npu_merge_awlen;
-    wire [2:0] npu_merge_arsize, npu_merge_awsize;
-    wire [1:0] npu_merge_arburst, npu_merge_awburst;
-    wire npu_merge_arvalid, npu_merge_arready, npu_merge_rlast, npu_merge_rvalid, npu_merge_rready;
-    wire [255:0] npu_merge_rdata, npu_merge_wdata;
-    wire [7:0] npu_merge_rid, npu_merge_bid;
-    wire [1:0] npu_merge_rresp, npu_merge_bresp;
-    wire npu_merge_awvalid, npu_merge_awready, npu_merge_wlast, npu_merge_wvalid, npu_merge_wready;
-    wire [31:0] npu_merge_wstrb;
-    wire npu_merge_bvalid, npu_merge_bready;
-    wire [29:0] pre_axi_araddr, capture_axi_araddr;
-    wire [7:0] pre_axi_arid, capture_axi_arid;
-    wire [7:0] pre_axi_arlen, capture_axi_arlen;
-    wire [2:0] pre_axi_arsize, capture_axi_arsize;
-    wire [1:0] pre_axi_arburst, capture_axi_arburst;
-    wire pre_axi_arvalid, capture_axi_arvalid;
-    wire pre_axi_arready, capture_axi_arready;
-    wire [255:0] pre_axi_rdata, capture_axi_rdata;
-    wire [7:0] pre_axi_rid, capture_axi_rid;
-    wire [1:0] pre_axi_rresp, capture_axi_rresp;
-    wire pre_axi_rlast, capture_axi_rlast;
-    wire pre_axi_rvalid, capture_axi_rvalid;
-    wire pre_axi_rready, capture_axi_rready;
-    wire [29:0] pre_axi_awaddr, capture_axi_awaddr;
-    wire [7:0] pre_axi_awid, capture_axi_awid;
-    wire [7:0] pre_axi_awlen, capture_axi_awlen;
-    wire [2:0] pre_axi_awsize, capture_axi_awsize;
-    wire [1:0] pre_axi_awburst, capture_axi_awburst;
-    wire pre_axi_awvalid, capture_axi_awvalid;
-    wire pre_axi_awready, capture_axi_awready;
-    wire [255:0] pre_axi_wdata, capture_axi_wdata;
-    wire [31:0] pre_axi_wstrb, capture_axi_wstrb;
-    wire pre_axi_wlast, capture_axi_wlast;
-    wire pre_axi_wvalid, capture_axi_wvalid;
-    wire pre_axi_wready, capture_axi_wready;
-    wire [7:0] pre_axi_bid, capture_axi_bid;
-    wire [1:0] pre_axi_bresp, capture_axi_bresp;
-    wire pre_axi_bvalid, capture_axi_bvalid;
-    wire pre_axi_bready, capture_axi_bready;
-    wire [29:0] capture_int8_araddr, capture_int8_awaddr;
-    wire [7:0] capture_int8_arid, capture_int8_arlen, capture_int8_awid, capture_int8_awlen;
-    wire [2:0] capture_int8_arsize, capture_int8_awsize;
-    wire [1:0] capture_int8_arburst, capture_int8_awburst;
-    wire capture_int8_arvalid, capture_int8_arready, capture_int8_rlast;
-    wire [255:0] capture_int8_rdata;
-    wire [7:0] capture_int8_rid;
-    wire [1:0] capture_int8_rresp;
-    wire capture_int8_rvalid, capture_int8_rready;
-    wire capture_int8_awvalid, capture_int8_awready, capture_int8_wlast;
-    wire [255:0] capture_int8_wdata;
-    wire [31:0] capture_int8_wstrb;
-    wire capture_int8_wvalid, capture_int8_wready;
-    wire [7:0] capture_int8_bid;
-    wire [1:0] capture_int8_bresp;
-    wire capture_int8_bvalid, capture_int8_bready;
+      // Camera 写入、两路前处理以及 CPU 共用 DDR；引脚保持不变。
+      wire [3:0] pre_source_ready, pre_source_release_mask;
+      wire [127:0] pre_source_frames;
+      wire [  1:0] pre_source_release_valid;
+      wire [1:0] pre_result_valid, pre_result_bank;
+      wire [15:0] pre_result_camera;
+      wire [63:0] pre_result_frame, pre_result_addr, pre_result_count, pre_result_stride;
+      wire [31:0] pre_result_width, pre_result_height;
+      wire [1023:0] pre_result_boxes;
+      wire [47:0] pre_result_colors;
+      wire [3:0] pre_bank_ready;
+      wire [1:0] pre_busy, pre_error;
+      wire [63:0] pre_frames, pre_empty, pre_failed, pre_bad_releases, pre_error_code, pre_last_cycles;
+      wire int8_enable_ddr, int8_clear_errors_ddr;
+      wire [1:0] int8_desc_ready, int8_roi_release_valid, int8_roi_release_bank;
+      wire [63:0] int8_roi_release_frame;
+      wire [1:0] int8_busy, int8_error, int8_wait_slot, int8_wait_ddr, int8_wait_handoff;
+      wire [1023:0] int8_stats;
+      wire [1:0] npu_image_valid_int, npu_image_ready_int;
+      wire [15:0] npu_image_camera_int, npu_image_batch_count_int, npu_image_index_int;
+      wire [63:0] npu_image_frame_int, npu_image_generation_int, npu_image_data_addr_int;
+      wire [127:0] npu_image_box_int;
+      wire [  5:0] npu_image_color_int;
+      wire [  3:0] npu_image_block_int;
+      wire [  7:0] npu_image_position_int;
+      wire [31:0] npu_image_width_int, npu_image_height_int;
+      wire [63:0] npu_image_bytes_int;
+      wire [1:0] npu_release_valid_int, npu_release_ready_int;
+      wire [15:0] npu_release_camera_int;
+      wire [63:0] npu_release_frame_int, npu_release_generation_int;
+      wire [3:0] npu_release_block_int;
+      wire [7:0] npu_release_position_int;
+      wire [59:0] int8_lane_araddr, int8_lane_awaddr;
+      wire [15:0] int8_lane_arid, int8_lane_arlen;
+      wire [5:0] int8_lane_arsize;
+      wire [3:0] int8_lane_arburst;
+      wire [1:0] int8_lane_arvalid, int8_lane_arready;
+      wire [511:0] int8_lane_rdata, int8_lane_wdata;
+      wire [15:0] int8_lane_rid, int8_lane_bid;
+      wire [3:0] int8_lane_rresp, int8_lane_bresp;
+      wire [1:0] int8_lane_rlast, int8_lane_rvalid, int8_lane_rready;
+      wire [15:0] int8_lane_awid, int8_lane_awlen;
+      wire [5:0] int8_lane_awsize;
+      wire [3:0] int8_lane_awburst;
+      wire [1:0] int8_lane_awvalid, int8_lane_awready;
+      wire [63:0] int8_lane_wstrb;
+      wire [1:0] int8_lane_wlast, int8_lane_wvalid, int8_lane_wready;
+      wire [1:0] int8_lane_bvalid, int8_lane_bready;
+      // Hnpu_system uses the same 256-bit DDR master contract as the existing
+      // capture/preprocess path.  The local arbiter below merges both readers
+      // before the established Camera/CPU DDR arbiter.
+      wire [29:0] npu_axi_araddr, npu_axi_awaddr;
+      wire [7:0] npu_axi_arid, npu_axi_awid, npu_axi_arlen, npu_axi_awlen;
+      wire [2:0] npu_axi_arsize, npu_axi_awsize;
+      wire [1:0] npu_axi_arburst, npu_axi_awburst;
+      wire npu_axi_arvalid, npu_axi_arready, npu_axi_rlast, npu_axi_rvalid, npu_axi_rready;
+      wire [255:0] npu_axi_rdata, npu_axi_wdata;
+      wire [7:0] npu_axi_rid, npu_axi_bid;
+      wire [1:0] npu_axi_rresp, npu_axi_bresp;
+      wire npu_axi_awvalid, npu_axi_awready, npu_axi_wlast, npu_axi_wvalid, npu_axi_wready;
+      wire [31:0] npu_axi_wstrb;
+      wire npu_axi_bvalid, npu_axi_bready;
+      wire [29:0] npu_merge_araddr, npu_merge_awaddr;
+      wire [7:0] npu_merge_arid, npu_merge_awid, npu_merge_arlen, npu_merge_awlen;
+      wire [2:0] npu_merge_arsize, npu_merge_awsize;
+      wire [1:0] npu_merge_arburst, npu_merge_awburst;
+      wire npu_merge_arvalid, npu_merge_arready, npu_merge_rlast, npu_merge_rvalid, npu_merge_rready;
+      wire [255:0] npu_merge_rdata, npu_merge_wdata;
+      wire [7:0] npu_merge_rid, npu_merge_bid;
+      wire [1:0] npu_merge_rresp, npu_merge_bresp;
+      wire npu_merge_awvalid, npu_merge_awready, npu_merge_wlast, npu_merge_wvalid, npu_merge_wready;
+      wire [31:0] npu_merge_wstrb;
+      wire npu_merge_bvalid, npu_merge_bready;
+      wire [29:0] pre_axi_araddr, capture_axi_araddr;
+      wire [7:0] pre_axi_arid, capture_axi_arid;
+      wire [7:0] pre_axi_arlen, capture_axi_arlen;
+      wire [2:0] pre_axi_arsize, capture_axi_arsize;
+      wire [1:0] pre_axi_arburst, capture_axi_arburst;
+      wire pre_axi_arvalid, capture_axi_arvalid;
+      wire pre_axi_arready, capture_axi_arready;
+      wire [255:0] pre_axi_rdata, capture_axi_rdata;
+      wire [7:0] pre_axi_rid, capture_axi_rid;
+      wire [1:0] pre_axi_rresp, capture_axi_rresp;
+      wire pre_axi_rlast, capture_axi_rlast;
+      wire pre_axi_rvalid, capture_axi_rvalid;
+      wire pre_axi_rready, capture_axi_rready;
+      wire [29:0] pre_axi_awaddr, capture_axi_awaddr;
+      wire [7:0] pre_axi_awid, capture_axi_awid;
+      wire [7:0] pre_axi_awlen, capture_axi_awlen;
+      wire [2:0] pre_axi_awsize, capture_axi_awsize;
+      wire [1:0] pre_axi_awburst, capture_axi_awburst;
+      wire pre_axi_awvalid, capture_axi_awvalid;
+      wire pre_axi_awready, capture_axi_awready;
+      wire [255:0] pre_axi_wdata, capture_axi_wdata;
+      wire [31:0] pre_axi_wstrb, capture_axi_wstrb;
+      wire pre_axi_wlast, capture_axi_wlast;
+      wire pre_axi_wvalid, capture_axi_wvalid;
+      wire pre_axi_wready, capture_axi_wready;
+      wire [7:0] pre_axi_bid, capture_axi_bid;
+      wire [1:0] pre_axi_bresp, capture_axi_bresp;
+      wire pre_axi_bvalid, capture_axi_bvalid;
+      wire pre_axi_bready, capture_axi_bready;
+      wire [29:0] capture_int8_araddr, capture_int8_awaddr;
+      wire [7:0] capture_int8_arid, capture_int8_arlen, capture_int8_awid, capture_int8_awlen;
+      wire [2:0] capture_int8_arsize, capture_int8_awsize;
+      wire [1:0] capture_int8_arburst, capture_int8_awburst;
+      wire capture_int8_arvalid, capture_int8_arready, capture_int8_rlast;
+      wire [255:0] capture_int8_rdata;
+      wire [  7:0] capture_int8_rid;
+      wire [  1:0] capture_int8_rresp;
+      wire capture_int8_rvalid, capture_int8_rready;
+      wire capture_int8_awvalid, capture_int8_awready, capture_int8_wlast;
+      wire [255:0] capture_int8_wdata;
+      wire [ 31:0] capture_int8_wstrb;
+      wire capture_int8_wvalid, capture_int8_wready;
+      wire [7:0] capture_int8_bid;
+      wire [1:0] capture_int8_bresp;
+      wire capture_int8_bvalid, capture_int8_bready;
 
-    Hpreprocess_stereo #(.DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES)) u_preprocess_stereo (
-        .clk(ddr_core_clk), .rst_n(sys_rst_n), .enable({2{npu_image_runtime_enable}}),
-        .ddr_ready(ddr_init_done), .clear_errors(2'b0),
-        .source_ready_mask(pre_source_ready), .source_frames(pre_source_frames),
-        .source_release_valid(pre_source_release_valid), .source_release_mask(pre_source_release_mask),
-        // 首版可覆盖的联调参数，不是已训练模型的输入协议。
-        .cfg_width({2{PREPROCESS_WIDTH}}), .cfg_height({2{PREPROCESS_HEIGHT}}),
-        .cfg_colors(8'h77), .cfg_bright_min(16'h4040), .cfg_dominance(16'h4040),
-        .cfg_black_max(16'h2020), .cfg_min_pixels({2{32'd16}}),
-        .cfg_min_area({2{32'd16}}), .cfg_max_area({2{32'd307200}}),
-        .cfg_min_fill(16'h2020), .cfg_min_aspect({2{16'd64}}),
-        .cfg_max_aspect({2{16'd1024}}), .cfg_margin({2{16'd2}}),
-        // 转换器为每路保留足以容纳整批的INT8位置后才握手接收。
-        .result_valid(pre_result_valid), .result_ready(int8_desc_ready),
-        .result_camera(pre_result_camera), .result_bank(pre_result_bank),
-        .result_frame(pre_result_frame), .result_addr(pre_result_addr), .result_count(pre_result_count),
-        .result_width(pre_result_width), .result_height(pre_result_height),
-        .result_stride(pre_result_stride), .result_boxes(pre_result_boxes), .result_colors(pre_result_colors),
-        .roi_release_valid(int8_roi_release_valid), .roi_release_bank(int8_roi_release_bank),
-        .roi_release_frame(int8_roi_release_frame),
-        .bank_ready_mask(pre_bank_ready), .busy(pre_busy),
-        .frames_processed(pre_frames), .empty_frames(pre_empty), .failed_frames(pre_failed),
-        .bad_releases(pre_bad_releases), .error(pre_error), .error_code(pre_error_code),
-        .last_cycles(pre_last_cycles),
-        .axi_araddr(pre_axi_araddr),
-        .axi_arid(pre_axi_arid),
-        .axi_arlen(pre_axi_arlen),
-        .axi_arsize(pre_axi_arsize),
-        .axi_arburst(pre_axi_arburst),
-        .axi_arvalid(pre_axi_arvalid),
-        .axi_arready(pre_axi_arready),
-        .axi_rdata(pre_axi_rdata),
-        .axi_rid(pre_axi_rid),
-        .axi_rresp(pre_axi_rresp),
-        .axi_rlast(pre_axi_rlast),
-        .axi_rvalid(pre_axi_rvalid),
-        .axi_rready(pre_axi_rready),
-        .axi_awaddr(pre_axi_awaddr),
-        .axi_awid(pre_axi_awid),
-        .axi_awlen(pre_axi_awlen),
-        .axi_awsize(pre_axi_awsize),
-        .axi_awburst(pre_axi_awburst),
-        .axi_awvalid(pre_axi_awvalid),
-        .axi_awready(pre_axi_awready),
-        .axi_wdata(pre_axi_wdata),
-        .axi_wstrb(pre_axi_wstrb),
-        .axi_wlast(pre_axi_wlast),
-        .axi_wvalid(pre_axi_wvalid),
-        .axi_wready(pre_axi_wready),
-        .axi_bid(pre_axi_bid),
-        .axi_bresp(pre_axi_bresp),
-        .axi_bvalid(pre_axi_bvalid),
-        .axi_bready(pre_axi_bready)
-    );
+      Hpreprocess_stereo #(
+          .DDR_BASE (DDR_BASE),
+          .DDR_BYTES(DDR_BYTES)
+      ) u_preprocess_stereo (
+          .clk(ddr_core_clk),
+          .rst_n(sys_rst_n),
+          .enable({2{npu_image_runtime_enable}}),
+          .ddr_ready(ddr_init_done),
+          .clear_errors(2'b0),
+          .source_ready_mask(pre_source_ready),
+          .source_frames(pre_source_frames),
+          .source_release_valid(pre_source_release_valid),
+          .source_release_mask(pre_source_release_mask),
+          // 首版可覆盖的联调参数，不是已训练模型的输入协议。
+          .cfg_width({2{PREPROCESS_WIDTH}}),
+          .cfg_height({2{PREPROCESS_HEIGHT}}),
+          .cfg_colors(8'h77),
+          .cfg_bright_min(16'h4040),
+          .cfg_red_blue_bright_min(PREPROCESS_V04_REDBLUE_ONLY ? 16'h3030 : (PREPROCESS_V04_REDBLUE_28 ? 16'h2828 : (PREPROCESS_V04_CANDIDATE ? 16'h3030 : 16'h4040))),
+          .cfg_dominance(16'h4040),
+          .cfg_black_max(16'h2020),
+          .cfg_min_pixels({2{32'd64}}),
+          .cfg_min_area({2{32'd1600}}),
+          .cfg_max_area({2{32'd307200}}),
+          .cfg_min_fill((PREPROCESS_V04_REDBLUE_ONLY || PREPROCESS_V04_REDBLUE_28) ? 16'h2020 : (PREPROCESS_V04_CANDIDATE ? 16'h1818 : 16'h2020)),
+          .cfg_min_aspect({2{16'd128}}),
+          .cfg_max_aspect({2{16'd512}}),
+          .cfg_margin({2{16'd2}}),
+          // 转换器为每路保留足以容纳整批的INT8位置后才握手接收。
+          .result_valid(pre_result_valid),
+          .result_ready(int8_desc_ready),
+          .result_camera(pre_result_camera),
+          .result_bank(pre_result_bank),
+          .result_frame(pre_result_frame),
+          .result_addr(pre_result_addr),
+          .result_count(pre_result_count),
+          .result_width(pre_result_width),
+          .result_height(pre_result_height),
+          .result_stride(pre_result_stride),
+          .result_boxes(pre_result_boxes),
+          .result_colors(pre_result_colors),
+          .roi_release_valid(int8_roi_release_valid),
+          .roi_release_bank(int8_roi_release_bank),
+          .roi_release_frame(int8_roi_release_frame),
+          .bank_ready_mask(pre_bank_ready),
+          .busy(pre_busy),
+          .frames_processed(pre_frames),
+          .empty_frames(pre_empty),
+          .failed_frames(pre_failed),
+          .bad_releases(pre_bad_releases),
+          .error(pre_error),
+          .error_code(pre_error_code),
+          .last_cycles(pre_last_cycles),
+          .axi_araddr(pre_axi_araddr),
+          .axi_arid(pre_axi_arid),
+          .axi_arlen(pre_axi_arlen),
+          .axi_arsize(pre_axi_arsize),
+          .axi_arburst(pre_axi_arburst),
+          .axi_arvalid(pre_axi_arvalid),
+          .axi_arready(pre_axi_arready),
+          .axi_rdata(pre_axi_rdata),
+          .axi_rid(pre_axi_rid),
+          .axi_rresp(pre_axi_rresp),
+          .axi_rlast(pre_axi_rlast),
+          .axi_rvalid(pre_axi_rvalid),
+          .axi_rready(pre_axi_rready),
+          .axi_awaddr(pre_axi_awaddr),
+          .axi_awid(pre_axi_awid),
+          .axi_awlen(pre_axi_awlen),
+          .axi_awsize(pre_axi_awsize),
+          .axi_awburst(pre_axi_awburst),
+          .axi_awvalid(pre_axi_awvalid),
+          .axi_awready(pre_axi_awready),
+          .axi_wdata(pre_axi_wdata),
+          .axi_wstrb(pre_axi_wstrb),
+          .axi_wlast(pre_axi_wlast),
+          .axi_wvalid(pre_axi_wvalid),
+          .axi_wready(pre_axi_wready),
+          .axi_bid(pre_axi_bid),
+          .axi_bresp(pre_axi_bresp),
+          .axi_bvalid(pre_axi_bvalid),
+          .axi_bready(pre_axi_bready)
+      );
 
-    Hrgb565_int8_regs #(.AUTO_ENABLE(PREPROCESS_ENABLE && NPU_IMAGE_ENABLE)) u_int8_regs (
-        .cpu_clk(cpu_clk), .ddr_clk(ddr_core_clk), .rst_n(sys_rst_n),
-        .mmio_valid(int8_sel), .mmio_wen(mmio_req_wen),
-        .mmio_addr(mmio_req_addr[7:0]), .mmio_wdata(mmio_req_wdata),
-        .mmio_wstrb(mmio_req_wstrb), .mmio_ready(int8_mmio_ready),
-        .mmio_rdata(int8_mmio_rdata), .busy_ddr(int8_busy),
-        .wait_slot_ddr(int8_wait_slot), .wait_ddr_ddr(int8_wait_ddr),
-        .wait_handoff_ddr(int8_wait_handoff), .error_ddr(int8_error),
-        .ddr_ready_ddr(ddr_init_done), .stats_ddr(int8_stats),
-        .enable_ddr(int8_enable_ddr), .clear_errors_ddr(int8_clear_errors_ddr)
-    );
+      Hrgb565_int8_regs #(
+          .AUTO_ENABLE(PREPROCESS_ENABLE && NPU_IMAGE_ENABLE)
+      ) u_int8_regs (
+          .cpu_clk(cpu_clk),
+          .ddr_clk(ddr_core_clk),
+          .rst_n(sys_rst_n),
+          .mmio_valid(int8_sel),
+          .mmio_wen(mmio_req_wen),
+          .mmio_addr(mmio_req_addr[7:0]),
+          .mmio_wdata(mmio_req_wdata),
+          .mmio_wstrb(mmio_req_wstrb),
+          .mmio_ready(int8_mmio_ready),
+          .mmio_rdata(int8_mmio_rdata),
+          .busy_ddr(int8_busy),
+          .wait_slot_ddr(int8_wait_slot),
+          .wait_ddr_ddr(int8_wait_ddr),
+          .wait_handoff_ddr(int8_wait_handoff),
+          .error_ddr(int8_error),
+          .ddr_ready_ddr(ddr_init_done),
+          .stats_ddr(int8_stats),
+          .enable_ddr(int8_enable_ddr),
+          .clear_errors_ddr(int8_clear_errors_ddr)
+      );
 
-    Hrgb565_int8_stereo #(.DDR_BASE(DDR_BASE),.DDR_BYTES(DDR_BYTES)) u_rgb565_int8 (
-        .clk(ddr_core_clk), .rst_n(sys_rst_n),
-        .enable(npu_image_runtime_enable && ddr_init_done && int8_enable_ddr),
-        .clear_errors(int8_clear_errors_ddr),
-        .desc_valid(pre_result_valid), .desc_ready(int8_desc_ready),
-        .desc_camera(pre_result_camera), .desc_frame(pre_result_frame),
-        .desc_rgb_bank(pre_result_bank), .desc_rgb_base(pre_result_addr),
-        .desc_count(pre_result_count), .desc_width(pre_result_width),
-        .desc_height(pre_result_height), .desc_rgb_stride(pre_result_stride),
-        .desc_boxes(pre_result_boxes), .desc_colors(pre_result_colors),
-        .roi_release_valid(int8_roi_release_valid),.roi_release_bank(int8_roi_release_bank),
-        .roi_release_frame(int8_roi_release_frame),
-        .image_valid(npu_image_valid_int),.image_ready(npu_image_ready_int),
-        .image_camera(npu_image_camera_int),.image_frame(npu_image_frame_int),
-        .image_batch_count(npu_image_batch_count_int),.image_index(npu_image_index_int),
-        .image_box(npu_image_box_int),.image_color(npu_image_color_int),
-        .image_block(npu_image_block_int),.image_position(npu_image_position_int),
-        .image_generation(npu_image_generation_int),.image_data_addr(npu_image_data_addr_int),
-        .image_width(npu_image_width_int),.image_height(npu_image_height_int),
-        .image_data_bytes(npu_image_bytes_int),
-        .release_valid(npu_release_valid_int),.release_ready(npu_release_ready_int),
-        .release_camera(npu_release_camera_int),.release_frame(npu_release_frame_int),
-        .release_block(npu_release_block_int),.release_position(npu_release_position_int),
-        .release_generation(npu_release_generation_int),
-        .busy(int8_busy),.error(int8_error),.wait_slot(int8_wait_slot),
-        .wait_ddr(int8_wait_ddr),.wait_handoff(int8_wait_handoff),.stats(int8_stats),
-        .axi_araddr(int8_lane_araddr),.axi_arid(int8_lane_arid),.axi_arlen(int8_lane_arlen),
-        .axi_arsize(int8_lane_arsize),.axi_arburst(int8_lane_arburst),
-        .axi_arvalid(int8_lane_arvalid),.axi_arready(int8_lane_arready),
-        .axi_rdata(int8_lane_rdata),.axi_rid(int8_lane_rid),.axi_rresp(int8_lane_rresp),
-        .axi_rlast(int8_lane_rlast),.axi_rvalid(int8_lane_rvalid),.axi_rready(int8_lane_rready),
-        .axi_awaddr(int8_lane_awaddr),.axi_awid(int8_lane_awid),.axi_awlen(int8_lane_awlen),
-        .axi_awsize(int8_lane_awsize),.axi_awburst(int8_lane_awburst),
-        .axi_awvalid(int8_lane_awvalid),.axi_awready(int8_lane_awready),
-        .axi_wdata(int8_lane_wdata),.axi_wstrb(int8_lane_wstrb),.axi_wlast(int8_lane_wlast),
-        .axi_wvalid(int8_lane_wvalid),.axi_wready(int8_lane_wready),
-        .axi_bid(int8_lane_bid),.axi_bresp(int8_lane_bresp),
-        .axi_bvalid(int8_lane_bvalid),.axi_bready(int8_lane_bready)
-    );
+      Hrgb565_int8_stereo #(
+          .DDR_BASE (DDR_BASE),
+          .DDR_BYTES(DDR_BYTES)
+      ) u_rgb565_int8 (
+          .clk(ddr_core_clk),
+          .rst_n(sys_rst_n),
+          .enable(npu_image_runtime_enable && ddr_init_done && int8_enable_ddr),
+          .clear_errors(int8_clear_errors_ddr),
+          .desc_valid(pre_result_valid),
+          .desc_ready(int8_desc_ready),
+          .desc_camera(pre_result_camera),
+          .desc_frame(pre_result_frame),
+          .desc_rgb_bank(pre_result_bank),
+          .desc_rgb_base(pre_result_addr),
+          .desc_count(pre_result_count),
+          .desc_width(pre_result_width),
+          .desc_height(pre_result_height),
+          .desc_rgb_stride(pre_result_stride),
+          .desc_boxes(pre_result_boxes),
+          .desc_colors(pre_result_colors),
+          .roi_release_valid(int8_roi_release_valid),
+          .roi_release_bank(int8_roi_release_bank),
+          .roi_release_frame(int8_roi_release_frame),
+          .image_valid(npu_image_valid_int),
+          .image_ready(npu_image_ready_int),
+          .image_camera(npu_image_camera_int),
+          .image_frame(npu_image_frame_int),
+          .image_batch_count(npu_image_batch_count_int),
+          .image_index(npu_image_index_int),
+          .image_box(npu_image_box_int),
+          .image_color(npu_image_color_int),
+          .image_block(npu_image_block_int),
+          .image_position(npu_image_position_int),
+          .image_generation(npu_image_generation_int),
+          .image_data_addr(npu_image_data_addr_int),
+          .image_width(npu_image_width_int),
+          .image_height(npu_image_height_int),
+          .image_data_bytes(npu_image_bytes_int),
+          .release_valid(npu_release_valid_int),
+          .release_ready(npu_release_ready_int),
+          .release_camera(npu_release_camera_int),
+          .release_frame(npu_release_frame_int),
+          .release_block(npu_release_block_int),
+          .release_position(npu_release_position_int),
+          .release_generation(npu_release_generation_int),
+          .busy(int8_busy),
+          .error(int8_error),
+          .wait_slot(int8_wait_slot),
+          .wait_ddr(int8_wait_ddr),
+          .wait_handoff(int8_wait_handoff),
+          .stats(int8_stats),
+          .axi_araddr(int8_lane_araddr),
+          .axi_arid(int8_lane_arid),
+          .axi_arlen(int8_lane_arlen),
+          .axi_arsize(int8_lane_arsize),
+          .axi_arburst(int8_lane_arburst),
+          .axi_arvalid(int8_lane_arvalid),
+          .axi_arready(int8_lane_arready),
+          .axi_rdata(int8_lane_rdata),
+          .axi_rid(int8_lane_rid),
+          .axi_rresp(int8_lane_rresp),
+          .axi_rlast(int8_lane_rlast),
+          .axi_rvalid(int8_lane_rvalid),
+          .axi_rready(int8_lane_rready),
+          .axi_awaddr(int8_lane_awaddr),
+          .axi_awid(int8_lane_awid),
+          .axi_awlen(int8_lane_awlen),
+          .axi_awsize(int8_lane_awsize),
+          .axi_awburst(int8_lane_awburst),
+          .axi_awvalid(int8_lane_awvalid),
+          .axi_awready(int8_lane_awready),
+          .axi_wdata(int8_lane_wdata),
+          .axi_wstrb(int8_lane_wstrb),
+          .axi_wlast(int8_lane_wlast),
+          .axi_wvalid(int8_lane_wvalid),
+          .axi_wready(int8_lane_wready),
+          .axi_bid(int8_lane_bid),
+          .axi_bresp(int8_lane_bresp),
+          .axi_bvalid(int8_lane_bvalid),
+          .axi_bready(int8_lane_bready)
+      );
 
-    // The image-mode system consumes the converter's per-ROI handshake and
-    // returns the exact slot ownership tuple.  NPU_IMAGE_ENABLE is a build
-    // parameter so the existing camera-only profile remains backpressured
-    // until a model package is explicitly placed in NPU_MODEL_BASE.
-    Hnpu_system #(
-        .DDR_BASE(DDR_BASE), .DDR_BYTES(DDR_BYTES),
-        .NPU_MMIO_BASE(NPU_MMIO_BASE), .NPU_MMIO_BYTES(NPU_MMIO_BYTES),
-        .AXI_ID(8'h80), .QUEUE_DEPTH(4), .RESULT_DEPTH(16),
-        .RESULT_FIFO_DEPTH(8), .MAX_ROIS(8),
-        .MAX_CLASSES(11), .MAX_MODEL_BYTES(65536),
-        .IMAGE_MODE(NPU_IMAGE_ENABLE), .MODEL_BASE(NPU_MODEL_BASE),
-        .MODEL_BYTES(NPU_MODEL_BYTES)
-    ) u_npu_system (
-        .ddr_clk(ddr_core_clk), .cpu_clk(cpu_clk), .rst_n(sys_rst_n),
-        .enable(ddr_init_done && npu_image_runtime_enable && int8_enable_ddr),
-        .clear_errors(int8_clear_errors_ddr), .stop(1'b0),
-        .batch_valid(1'b0), .batch_ready(), .batch_camera(8'b0),
-        .batch_frame(32'b0), .batch_bank(1'b0), .batch_input_base(32'b0),
-        .batch_input_stride(32'b0), .batch_input_bytes(32'b0),
-        .batch_feature_count(16'b0), .batch_weight_base(32'b0),
-        .batch_weight_stride(32'b0), .batch_bias_base(32'b0),
-        .batch_model_base(32'b0), .batch_model_bytes(32'b0),
-        .batch_count(8'b0), .batch_class_count(8'b0), .batch_quant_shift(6'b0),
-        .batch_boxes(512'b0), .batch_colors(24'b0),
-        .image_valid(npu_image_valid_int), .image_ready(npu_image_ready_int),
-        .image_camera(npu_image_camera_int), .image_frame(npu_image_frame_int),
-        .image_batch_count(npu_image_batch_count_int), .image_index(npu_image_index_int),
-        .image_box(npu_image_box_int), .image_color(npu_image_color_int),
-        .image_block(npu_image_block_int), .image_position(npu_image_position_int),
-        .image_generation(npu_image_generation_int), .image_data_addr(npu_image_data_addr_int),
-        .image_width(npu_image_width_int), .image_height(npu_image_height_int),
-        .image_data_bytes(npu_image_bytes_int),
-        .int8_release_valid(), .int8_release_bank(), .int8_release_frame(),
-        .image_release_valid(npu_release_valid_int), .image_release_ready(npu_release_ready_int),
-        .image_release_camera(npu_release_camera_int), .image_release_frame(npu_release_frame_int),
-        .image_release_block(npu_release_block_int), .image_release_position(npu_release_position_int),
-        .image_release_generation(npu_release_generation_int), .busy(), .error(),
-        .error_code(), .accepted_batches(), .completed_batches(), .dropped_batches(),
-        .completed_rois(), .error_rois(), .released_banks(), .fifo_overflows(),
-        .result_reject(), .axi_araddr(npu_axi_araddr), .axi_arid(npu_axi_arid),
-        .axi_arlen(npu_axi_arlen), .axi_arsize(npu_axi_arsize), .axi_arburst(npu_axi_arburst),
-        .axi_arvalid(npu_axi_arvalid), .axi_arready(npu_axi_arready),
-        .axi_rdata(npu_axi_rdata), .axi_rid(npu_axi_rid), .axi_rresp(npu_axi_rresp),
-        .axi_rlast(npu_axi_rlast), .axi_rvalid(npu_axi_rvalid), .axi_rready(npu_axi_rready),
-        .mmio_valid(mmio_req_valid), .mmio_wen(mmio_req_wen), .mmio_addr(mmio_req_addr),
-        .mmio_wdata(mmio_req_wdata), .mmio_wstrb(mmio_req_wstrb),
-        .mmio_ready(npu_mmio_ready), .mmio_rdata(npu_mmio_rdata), .irq(npu_irq),
-        .start_pulse(npu_start_pulse), .control_engine_done(npu_engine_done),
-        .control_input_addr(npu_engine_input_addr), .control_weight_addr(npu_engine_weight_addr),
-        .control_output_addr(npu_engine_output_addr), .control_task_bytes(npu_engine_task_bytes)
-    );
+      // The image-mode system consumes the converter's per-ROI handshake and
+      // returns the exact slot ownership tuple.  NPU_IMAGE_ENABLE is a build
+      // parameter so the existing camera-only profile remains backpressured
+      // until a model package is explicitly placed in NPU_MODEL_BASE.
+      Hnpu_system #(
+          .DDR_BASE(DDR_BASE),
+          .DDR_BYTES(DDR_BYTES),
+          .NPU_MMIO_BASE(NPU_MMIO_BASE),
+          .NPU_MMIO_BYTES(NPU_MMIO_BYTES),
+          .AXI_ID(8'h80),
+          .QUEUE_DEPTH(4),
+          .RESULT_DEPTH(16),
+          .RESULT_FIFO_DEPTH(8),
+          .MAX_ROIS(8),
+          .MAX_CLASSES(20),
+          .MAX_MODEL_BYTES(65536),
+          .IMAGE_MODE(NPU_IMAGE_ENABLE),
+          .MODEL_BASE(NPU_MODEL_BASE),
+          .MODEL_BYTES(NPU_MODEL_BYTES)
+      ) u_npu_system (
+          .ddr_clk(ddr_core_clk),
+          .cpu_clk(cpu_clk),
+          .rst_n(sys_rst_n),
+          .enable(ddr_init_done && npu_image_runtime_enable && int8_enable_ddr),
+          .clear_errors(int8_clear_errors_ddr),
+          .stop(1'b0),
+          .batch_valid(1'b0),
+          .batch_ready(),
+          .batch_camera(8'b0),
+          .batch_frame(32'b0),
+          .batch_bank(1'b0),
+          .batch_input_base(32'b0),
+          .batch_input_stride(32'b0),
+          .batch_input_bytes(32'b0),
+          .batch_feature_count(16'b0),
+          .batch_weight_base(32'b0),
+          .batch_weight_stride(32'b0),
+          .batch_bias_base(32'b0),
+          .batch_model_base(32'b0),
+          .batch_model_bytes(32'b0),
+          .batch_count(8'b0),
+          .batch_class_count(8'b0),
+          .batch_quant_shift(6'b0),
+          .batch_boxes(512'b0),
+          .batch_colors(24'b0),
+          .image_valid(npu_image_valid_int),
+          .image_ready(npu_image_ready_int),
+          .image_camera(npu_image_camera_int),
+          .image_frame(npu_image_frame_int),
+          .image_batch_count(npu_image_batch_count_int),
+          .image_index(npu_image_index_int),
+          .image_box(npu_image_box_int),
+          .image_color(npu_image_color_int),
+          .image_block(npu_image_block_int),
+          .image_position(npu_image_position_int),
+          .image_generation(npu_image_generation_int),
+          .image_data_addr(npu_image_data_addr_int),
+          .image_width(npu_image_width_int),
+          .image_height(npu_image_height_int),
+          .image_data_bytes(npu_image_bytes_int),
+          .int8_release_valid(),
+          .int8_release_bank(),
+          .int8_release_frame(),
+          .image_release_valid(npu_release_valid_int),
+          .image_release_ready(npu_release_ready_int),
+          .image_release_camera(npu_release_camera_int),
+          .image_release_frame(npu_release_frame_int),
+          .image_release_block(npu_release_block_int),
+          .image_release_position(npu_release_position_int),
+          .image_release_generation(npu_release_generation_int),
+          .busy(),
+          .error(),
+          .error_code(),
+          .accepted_batches(),
+          .completed_batches(),
+          .dropped_batches(),
+          .completed_rois(),
+          .error_rois(),
+          .released_banks(),
+          .fifo_overflows(),
+          .result_reject(),
+          .axi_araddr(npu_axi_araddr),
+          .axi_arid(npu_axi_arid),
+          .axi_arlen(npu_axi_arlen),
+          .axi_arsize(npu_axi_arsize),
+          .axi_arburst(npu_axi_arburst),
+          .axi_arvalid(npu_axi_arvalid),
+          .axi_arready(npu_axi_arready),
+          .axi_rdata(npu_axi_rdata),
+          .axi_rid(npu_axi_rid),
+          .axi_rresp(npu_axi_rresp),
+          .axi_rlast(npu_axi_rlast),
+          .axi_rvalid(npu_axi_rvalid),
+          .axi_rready(npu_axi_rready),
+          .mmio_valid(mmio_req_valid),
+          .mmio_wen(mmio_req_wen),
+          .mmio_addr(mmio_req_addr),
+          .mmio_wdata(mmio_req_wdata),
+          .mmio_wstrb(mmio_req_wstrb),
+          .mmio_ready(npu_mmio_ready),
+          .mmio_rdata(npu_mmio_rdata),
+          .irq(npu_irq),
+          .start_pulse(npu_start_pulse),
+          .control_engine_done(npu_engine_done),
+          .control_input_addr(npu_engine_input_addr),
+          .control_weight_addr(npu_engine_weight_addr),
+          .control_output_addr(npu_engine_output_addr),
+          .control_task_bytes(npu_engine_task_bytes)
+      );
 
-    // Merge NPU reads with the existing capture/preprocess request stream.
-    // This is a 256-bit-to-256-bit merge; no unsafe width conversion is used.
-    Haxi_2m1s_arbiter u_npu_int8_merge (
-        .clk(ddr_core_clk), .rst_n(sys_rst_n),
-        .cpu_axi_awaddr(capture_int8_awaddr), .cpu_axi_awid(capture_int8_awid),
-        .cpu_axi_awlen(capture_int8_awlen), .cpu_axi_awsize(capture_int8_awsize),
-        .cpu_axi_awburst(capture_int8_awburst), .cpu_axi_awvalid(capture_int8_awvalid),
-        .cpu_axi_awready(capture_int8_awready), .cpu_axi_wdata(capture_int8_wdata),
-        .cpu_axi_wstrb(capture_int8_wstrb), .cpu_axi_wlast(capture_int8_wlast),
-        .cpu_axi_wvalid(capture_int8_wvalid), .cpu_axi_wready(capture_int8_wready),
-        .cpu_axi_bid(capture_int8_bid), .cpu_axi_bresp(capture_int8_bresp),
-        .cpu_axi_bvalid(capture_int8_bvalid), .cpu_axi_bready(capture_int8_bready),
-        .cpu_axi_araddr(capture_int8_araddr), .cpu_axi_arid(capture_int8_arid),
-        .cpu_axi_arlen(capture_int8_arlen), .cpu_axi_arsize(capture_int8_arsize),
-        .cpu_axi_arburst(capture_int8_arburst), .cpu_axi_arvalid(capture_int8_arvalid),
-        .cpu_axi_arready(capture_int8_arready), .cpu_axi_rdata(capture_int8_rdata),
-        .cpu_axi_rid(capture_int8_rid), .cpu_axi_rresp(capture_int8_rresp),
-        .cpu_axi_rlast(capture_int8_rlast), .cpu_axi_rvalid(capture_int8_rvalid),
-        .cpu_axi_rready(capture_int8_rready),
-        // Hnpu_system is read-only in V1. Keep the write side explicitly
-        // inactive so no undriven nets enter the shared arbiter.
-        .npu_axi_awaddr(30'b0), .npu_axi_awid(8'b0), .npu_axi_awlen(8'b0),
-        .npu_axi_awsize(3'b0), .npu_axi_awburst(2'b0), .npu_axi_awvalid(1'b0),
-        .npu_axi_awready(), .npu_axi_wdata(256'b0), .npu_axi_wstrb(32'b0),
-        .npu_axi_wlast(1'b0), .npu_axi_wvalid(1'b0), .npu_axi_wready(),
-        .npu_axi_bid(), .npu_axi_bresp(), .npu_axi_bvalid(), .npu_axi_bready(1'b0),
-        .npu_axi_araddr(npu_axi_araddr), .npu_axi_arid(npu_axi_arid),
-        .npu_axi_arlen(npu_axi_arlen), .npu_axi_arsize(npu_axi_arsize),
-        .npu_axi_arburst(npu_axi_arburst), .npu_axi_arvalid(npu_axi_arvalid),
-        .npu_axi_arready(npu_axi_arready), .npu_axi_rdata(npu_axi_rdata),
-        .npu_axi_rid(npu_axi_rid), .npu_axi_rresp(npu_axi_rresp),
-        .npu_axi_rlast(npu_axi_rlast), .npu_axi_rvalid(npu_axi_rvalid),
-        .npu_axi_rready(npu_axi_rready),
-        .ddr_axi_awaddr(npu_merge_awaddr), .ddr_axi_awid(npu_merge_awid),
-        .ddr_axi_awlen(npu_merge_awlen), .ddr_axi_awsize(npu_merge_awsize),
-        .ddr_axi_awburst(npu_merge_awburst), .ddr_axi_awvalid(npu_merge_awvalid),
-        .ddr_axi_awready(npu_merge_awready), .ddr_axi_wdata(npu_merge_wdata),
-        .ddr_axi_wstrb(npu_merge_wstrb), .ddr_axi_wlast(npu_merge_wlast),
-        .ddr_axi_wvalid(npu_merge_wvalid), .ddr_axi_wready(npu_merge_wready),
-        .ddr_axi_bid(npu_merge_bid), .ddr_axi_bresp(npu_merge_bresp),
-        .ddr_axi_bvalid(npu_merge_bvalid), .ddr_axi_bready(npu_merge_bready),
-        .ddr_axi_araddr(npu_merge_araddr), .ddr_axi_arid(npu_merge_arid),
-        .ddr_axi_arlen(npu_merge_arlen), .ddr_axi_arsize(npu_merge_arsize),
-        .ddr_axi_arburst(npu_merge_arburst), .ddr_axi_arvalid(npu_merge_arvalid),
-        .ddr_axi_arready(npu_merge_arready), .ddr_axi_rdata(npu_merge_rdata),
-        .ddr_axi_rid(npu_merge_rid), .ddr_axi_rresp(npu_merge_rresp),
-        .ddr_axi_rlast(npu_merge_rlast), .ddr_axi_rvalid(npu_merge_rvalid),
-        .ddr_axi_rready(npu_merge_rready)
-    );
+      // Merge NPU reads with the existing capture/preprocess request stream.
+      // This is a 256-bit-to-256-bit merge; no unsafe width conversion is used.
+      Haxi_2m1s_arbiter u_npu_int8_merge (
+          .clk(ddr_core_clk),
+          .rst_n(sys_rst_n),
+          .cpu_axi_awaddr(capture_int8_awaddr),
+          .cpu_axi_awid(capture_int8_awid),
+          .cpu_axi_awlen(capture_int8_awlen),
+          .cpu_axi_awsize(capture_int8_awsize),
+          .cpu_axi_awburst(capture_int8_awburst),
+          .cpu_axi_awvalid(capture_int8_awvalid),
+          .cpu_axi_awready(capture_int8_awready),
+          .cpu_axi_wdata(capture_int8_wdata),
+          .cpu_axi_wstrb(capture_int8_wstrb),
+          .cpu_axi_wlast(capture_int8_wlast),
+          .cpu_axi_wvalid(capture_int8_wvalid),
+          .cpu_axi_wready(capture_int8_wready),
+          .cpu_axi_bid(capture_int8_bid),
+          .cpu_axi_bresp(capture_int8_bresp),
+          .cpu_axi_bvalid(capture_int8_bvalid),
+          .cpu_axi_bready(capture_int8_bready),
+          .cpu_axi_araddr(capture_int8_araddr),
+          .cpu_axi_arid(capture_int8_arid),
+          .cpu_axi_arlen(capture_int8_arlen),
+          .cpu_axi_arsize(capture_int8_arsize),
+          .cpu_axi_arburst(capture_int8_arburst),
+          .cpu_axi_arvalid(capture_int8_arvalid),
+          .cpu_axi_arready(capture_int8_arready),
+          .cpu_axi_rdata(capture_int8_rdata),
+          .cpu_axi_rid(capture_int8_rid),
+          .cpu_axi_rresp(capture_int8_rresp),
+          .cpu_axi_rlast(capture_int8_rlast),
+          .cpu_axi_rvalid(capture_int8_rvalid),
+          .cpu_axi_rready(capture_int8_rready),
+          // Hnpu_system is read-only in V1. Keep the write side explicitly
+          // inactive so no undriven nets enter the shared arbiter.
+          .npu_axi_awaddr(30'b0),
+          .npu_axi_awid(8'b0),
+          .npu_axi_awlen(8'b0),
+          .npu_axi_awsize(3'b0),
+          .npu_axi_awburst(2'b0),
+          .npu_axi_awvalid(1'b0),
+          .npu_axi_awready(),
+          .npu_axi_wdata(256'b0),
+          .npu_axi_wstrb(32'b0),
+          .npu_axi_wlast(1'b0),
+          .npu_axi_wvalid(1'b0),
+          .npu_axi_wready(),
+          .npu_axi_bid(),
+          .npu_axi_bresp(),
+          .npu_axi_bvalid(),
+          .npu_axi_bready(1'b0),
+          .npu_axi_araddr(npu_axi_araddr),
+          .npu_axi_arid(npu_axi_arid),
+          .npu_axi_arlen(npu_axi_arlen),
+          .npu_axi_arsize(npu_axi_arsize),
+          .npu_axi_arburst(npu_axi_arburst),
+          .npu_axi_arvalid(npu_axi_arvalid),
+          .npu_axi_arready(npu_axi_arready),
+          .npu_axi_rdata(npu_axi_rdata),
+          .npu_axi_rid(npu_axi_rid),
+          .npu_axi_rresp(npu_axi_rresp),
+          .npu_axi_rlast(npu_axi_rlast),
+          .npu_axi_rvalid(npu_axi_rvalid),
+          .npu_axi_rready(npu_axi_rready),
+          .ddr_axi_awaddr(npu_merge_awaddr),
+          .ddr_axi_awid(npu_merge_awid),
+          .ddr_axi_awlen(npu_merge_awlen),
+          .ddr_axi_awsize(npu_merge_awsize),
+          .ddr_axi_awburst(npu_merge_awburst),
+          .ddr_axi_awvalid(npu_merge_awvalid),
+          .ddr_axi_awready(npu_merge_awready),
+          .ddr_axi_wdata(npu_merge_wdata),
+          .ddr_axi_wstrb(npu_merge_wstrb),
+          .ddr_axi_wlast(npu_merge_wlast),
+          .ddr_axi_wvalid(npu_merge_wvalid),
+          .ddr_axi_wready(npu_merge_wready),
+          .ddr_axi_bid(npu_merge_bid),
+          .ddr_axi_bresp(npu_merge_bresp),
+          .ddr_axi_bvalid(npu_merge_bvalid),
+          .ddr_axi_bready(npu_merge_bready),
+          .ddr_axi_araddr(npu_merge_araddr),
+          .ddr_axi_arid(npu_merge_arid),
+          .ddr_axi_arlen(npu_merge_arlen),
+          .ddr_axi_arsize(npu_merge_arsize),
+          .ddr_axi_arburst(npu_merge_arburst),
+          .ddr_axi_arvalid(npu_merge_arvalid),
+          .ddr_axi_arready(npu_merge_arready),
+          .ddr_axi_rdata(npu_merge_rdata),
+          .ddr_axi_rid(npu_merge_rid),
+          .ddr_axi_rresp(npu_merge_rresp),
+          .ddr_axi_rlast(npu_merge_rlast),
+          .ddr_axi_rvalid(npu_merge_rvalid),
+          .ddr_axi_rready(npu_merge_rready)
+      );
 
-    Hrgb565_int8_ddr_merge u_int8_ddr_merge (
-        .clk(ddr_core_clk),.rst_n(sys_rst_n),
-        .cap_araddr(capture_axi_araddr),.cap_arid(capture_axi_arid),
-        .cap_arlen(capture_axi_arlen),.cap_arsize(capture_axi_arsize),
-        .cap_arburst(capture_axi_arburst),.cap_arvalid(capture_axi_arvalid),
-        .cap_arready(capture_axi_arready),.cap_rdata(capture_axi_rdata),
-        .cap_rid(capture_axi_rid),.cap_rresp(capture_axi_rresp),
-        .cap_rlast(capture_axi_rlast),.cap_rvalid(capture_axi_rvalid),
-        .cap_rready(capture_axi_rready),.cap_awaddr(capture_axi_awaddr),
-        .cap_awid(capture_axi_awid),.cap_awlen(capture_axi_awlen),
-        .cap_awsize(capture_axi_awsize),.cap_awburst(capture_axi_awburst),
-        .cap_awvalid(capture_axi_awvalid),.cap_awready(capture_axi_awready),
-        .cap_wdata(capture_axi_wdata),.cap_wstrb(capture_axi_wstrb),
-        .cap_wlast(capture_axi_wlast),.cap_wvalid(capture_axi_wvalid),
-        .cap_wready(capture_axi_wready),.cap_bid(capture_axi_bid),
-        .cap_bresp(capture_axi_bresp),.cap_bvalid(capture_axi_bvalid),
-        .cap_bready(capture_axi_bready),
-        .lane_araddr(int8_lane_araddr),.lane_arid(int8_lane_arid),
-        .lane_arlen(int8_lane_arlen),.lane_arsize(int8_lane_arsize),
-        .lane_arburst(int8_lane_arburst),.lane_arvalid(int8_lane_arvalid),
-        .lane_arready(int8_lane_arready),.lane_rdata(int8_lane_rdata),
-        .lane_rid(int8_lane_rid),.lane_rresp(int8_lane_rresp),
-        .lane_rlast(int8_lane_rlast),.lane_rvalid(int8_lane_rvalid),
-        .lane_rready(int8_lane_rready),.lane_awaddr(int8_lane_awaddr),
-        .lane_awid(int8_lane_awid),.lane_awlen(int8_lane_awlen),
-        .lane_awsize(int8_lane_awsize),.lane_awburst(int8_lane_awburst),
-        .lane_awvalid(int8_lane_awvalid),.lane_awready(int8_lane_awready),
-        .lane_wdata(int8_lane_wdata),.lane_wstrb(int8_lane_wstrb),
-        .lane_wlast(int8_lane_wlast),.lane_wvalid(int8_lane_wvalid),
-        .lane_wready(int8_lane_wready),.lane_bid(int8_lane_bid),
-        .lane_bresp(int8_lane_bresp),.lane_bvalid(int8_lane_bvalid),
-        .lane_bready(int8_lane_bready),
-        .out_araddr(capture_int8_araddr),.out_arid(capture_int8_arid),
-        .out_arlen(capture_int8_arlen),.out_arsize(capture_int8_arsize),
-        .out_arburst(capture_int8_arburst),.out_arvalid(capture_int8_arvalid),
-        .out_arready(capture_int8_arready),.out_rdata(capture_int8_rdata),
-        .out_rid(capture_int8_rid),.out_rresp(capture_int8_rresp),
-        .out_rlast(capture_int8_rlast),.out_rvalid(capture_int8_rvalid),
-        .out_rready(capture_int8_rready),.out_awaddr(capture_int8_awaddr),
-        .out_awid(capture_int8_awid),.out_awlen(capture_int8_awlen),
-        .out_awsize(capture_int8_awsize),.out_awburst(capture_int8_awburst),
-        .out_awvalid(capture_int8_awvalid),.out_awready(capture_int8_awready),
-        .out_wdata(capture_int8_wdata),.out_wstrb(capture_int8_wstrb),
-        .out_wlast(capture_int8_wlast),.out_wvalid(capture_int8_wvalid),
-        .out_wready(capture_int8_wready),.out_bid(capture_int8_bid),
-        .out_bresp(capture_int8_bresp),.out_bvalid(capture_int8_bvalid),
-        .out_bready(capture_int8_bready)
-    );
+      Hrgb565_int8_ddr_merge u_int8_ddr_merge (
+          .clk(ddr_core_clk),
+          .rst_n(sys_rst_n),
+          .cap_araddr(capture_axi_araddr),
+          .cap_arid(capture_axi_arid),
+          .cap_arlen(capture_axi_arlen),
+          .cap_arsize(capture_axi_arsize),
+          .cap_arburst(capture_axi_arburst),
+          .cap_arvalid(capture_axi_arvalid),
+          .cap_arready(capture_axi_arready),
+          .cap_rdata(capture_axi_rdata),
+          .cap_rid(capture_axi_rid),
+          .cap_rresp(capture_axi_rresp),
+          .cap_rlast(capture_axi_rlast),
+          .cap_rvalid(capture_axi_rvalid),
+          .cap_rready(capture_axi_rready),
+          .cap_awaddr(capture_axi_awaddr),
+          .cap_awid(capture_axi_awid),
+          .cap_awlen(capture_axi_awlen),
+          .cap_awsize(capture_axi_awsize),
+          .cap_awburst(capture_axi_awburst),
+          .cap_awvalid(capture_axi_awvalid),
+          .cap_awready(capture_axi_awready),
+          .cap_wdata(capture_axi_wdata),
+          .cap_wstrb(capture_axi_wstrb),
+          .cap_wlast(capture_axi_wlast),
+          .cap_wvalid(capture_axi_wvalid),
+          .cap_wready(capture_axi_wready),
+          .cap_bid(capture_axi_bid),
+          .cap_bresp(capture_axi_bresp),
+          .cap_bvalid(capture_axi_bvalid),
+          .cap_bready(capture_axi_bready),
+          .lane_araddr(int8_lane_araddr),
+          .lane_arid(int8_lane_arid),
+          .lane_arlen(int8_lane_arlen),
+          .lane_arsize(int8_lane_arsize),
+          .lane_arburst(int8_lane_arburst),
+          .lane_arvalid(int8_lane_arvalid),
+          .lane_arready(int8_lane_arready),
+          .lane_rdata(int8_lane_rdata),
+          .lane_rid(int8_lane_rid),
+          .lane_rresp(int8_lane_rresp),
+          .lane_rlast(int8_lane_rlast),
+          .lane_rvalid(int8_lane_rvalid),
+          .lane_rready(int8_lane_rready),
+          .lane_awaddr(int8_lane_awaddr),
+          .lane_awid(int8_lane_awid),
+          .lane_awlen(int8_lane_awlen),
+          .lane_awsize(int8_lane_awsize),
+          .lane_awburst(int8_lane_awburst),
+          .lane_awvalid(int8_lane_awvalid),
+          .lane_awready(int8_lane_awready),
+          .lane_wdata(int8_lane_wdata),
+          .lane_wstrb(int8_lane_wstrb),
+          .lane_wlast(int8_lane_wlast),
+          .lane_wvalid(int8_lane_wvalid),
+          .lane_wready(int8_lane_wready),
+          .lane_bid(int8_lane_bid),
+          .lane_bresp(int8_lane_bresp),
+          .lane_bvalid(int8_lane_bvalid),
+          .lane_bready(int8_lane_bready),
+          .out_araddr(capture_int8_araddr),
+          .out_arid(capture_int8_arid),
+          .out_arlen(capture_int8_arlen),
+          .out_arsize(capture_int8_arsize),
+          .out_arburst(capture_int8_arburst),
+          .out_arvalid(capture_int8_arvalid),
+          .out_arready(capture_int8_arready),
+          .out_rdata(capture_int8_rdata),
+          .out_rid(capture_int8_rid),
+          .out_rresp(capture_int8_rresp),
+          .out_rlast(capture_int8_rlast),
+          .out_rvalid(capture_int8_rvalid),
+          .out_rready(capture_int8_rready),
+          .out_awaddr(capture_int8_awaddr),
+          .out_awid(capture_int8_awid),
+          .out_awlen(capture_int8_awlen),
+          .out_awsize(capture_int8_awsize),
+          .out_awburst(capture_int8_awburst),
+          .out_awvalid(capture_int8_awvalid),
+          .out_awready(capture_int8_awready),
+          .out_wdata(capture_int8_wdata),
+          .out_wstrb(capture_int8_wstrb),
+          .out_wlast(capture_int8_wlast),
+          .out_wvalid(capture_int8_wvalid),
+          .out_wready(capture_int8_wready),
+          .out_bid(capture_int8_bid),
+          .out_bresp(capture_int8_bresp),
+          .out_bvalid(capture_int8_bvalid),
+          .out_bready(capture_int8_bready)
+      );
 
-    // Capture 与预处理合并，再由下一级与 CPU/启动桥合并。
-    if (PREPROCESS_ENABLE) begin : pre_merge_enabled
-    Haxi_2m1s_arbiter u_preprocess_ddr_merge (.clk(ddr_core_clk), .rst_n(sys_rst_n),
-        .cpu_axi_araddr(30'b0),
-        .cpu_axi_arid(8'b0),
-        .cpu_axi_arlen(8'b0),
-        .cpu_axi_arsize(3'b0),
-        .cpu_axi_arburst(2'b0),
-        .cpu_axi_arvalid(1'b0),
-        .cpu_axi_arready(),
-        .cpu_axi_rdata(),
-        .cpu_axi_rid(),
-        .cpu_axi_rresp(),
-        .cpu_axi_rlast(),
-        .cpu_axi_rvalid(),
-        .cpu_axi_rready(1'b1),
-        .cpu_axi_awaddr(camera_axi_awaddr),
-        .cpu_axi_awid(camera_axi_awid),
-        .cpu_axi_awlen(camera_axi_awlen),
-        .cpu_axi_awsize(camera_axi_awsize),
-        .cpu_axi_awburst(camera_axi_awburst),
-        .cpu_axi_awvalid(camera_axi_awvalid),
-        .cpu_axi_awready(camera_axi_awready),
-        .cpu_axi_wdata(camera_axi_wdata),
-        .cpu_axi_wstrb(camera_axi_wstrb),
-        .cpu_axi_wlast(camera_axi_wlast),
-        .cpu_axi_wvalid(camera_axi_wvalid),
-        .cpu_axi_wready(camera_axi_wready),
-        .cpu_axi_bid(camera_axi_bid),
-        .cpu_axi_bresp(camera_axi_bresp),
-        .cpu_axi_bvalid(camera_axi_bvalid),
-        .cpu_axi_bready(camera_axi_bready),
-        .npu_axi_araddr(pre_axi_araddr),
-        .npu_axi_arid(pre_axi_arid),
-        .npu_axi_arlen(pre_axi_arlen),
-        .npu_axi_arsize(pre_axi_arsize),
-        .npu_axi_arburst(pre_axi_arburst),
-        .npu_axi_arvalid(pre_axi_arvalid),
-        .npu_axi_arready(pre_axi_arready),
-        .npu_axi_rdata(pre_axi_rdata),
-        .npu_axi_rid(pre_axi_rid),
-        .npu_axi_rresp(pre_axi_rresp),
-        .npu_axi_rlast(pre_axi_rlast),
-        .npu_axi_rvalid(pre_axi_rvalid),
-        .npu_axi_rready(pre_axi_rready),
-        .npu_axi_awaddr(pre_axi_awaddr),
-        .npu_axi_awid(pre_axi_awid),
-        .npu_axi_awlen(pre_axi_awlen),
-        .npu_axi_awsize(pre_axi_awsize),
-        .npu_axi_awburst(pre_axi_awburst),
-        .npu_axi_awvalid(pre_axi_awvalid),
-        .npu_axi_awready(pre_axi_awready),
-        .npu_axi_wdata(pre_axi_wdata),
-        .npu_axi_wstrb(pre_axi_wstrb),
-        .npu_axi_wlast(pre_axi_wlast),
-        .npu_axi_wvalid(pre_axi_wvalid),
-        .npu_axi_wready(pre_axi_wready),
-        .npu_axi_bid(pre_axi_bid),
-        .npu_axi_bresp(pre_axi_bresp),
-        .npu_axi_bvalid(pre_axi_bvalid),
-        .npu_axi_bready(pre_axi_bready),
-        .ddr_axi_araddr(capture_axi_araddr),
-        .ddr_axi_arid(capture_axi_arid),
-        .ddr_axi_arlen(capture_axi_arlen),
-        .ddr_axi_arsize(capture_axi_arsize),
-        .ddr_axi_arburst(capture_axi_arburst),
-        .ddr_axi_arvalid(capture_axi_arvalid),
-        .ddr_axi_arready(capture_axi_arready),
-        .ddr_axi_rdata(capture_axi_rdata),
-        .ddr_axi_rid(capture_axi_rid),
-        .ddr_axi_rresp(capture_axi_rresp),
-        .ddr_axi_rlast(capture_axi_rlast),
-        .ddr_axi_rvalid(capture_axi_rvalid),
-        .ddr_axi_rready(capture_axi_rready),
-        .ddr_axi_awaddr(capture_axi_awaddr),
-        .ddr_axi_awid(capture_axi_awid),
-        .ddr_axi_awlen(capture_axi_awlen),
-        .ddr_axi_awsize(capture_axi_awsize),
-        .ddr_axi_awburst(capture_axi_awburst),
-        .ddr_axi_awvalid(capture_axi_awvalid),
-        .ddr_axi_awready(capture_axi_awready),
-        .ddr_axi_wdata(capture_axi_wdata),
-        .ddr_axi_wstrb(capture_axi_wstrb),
-        .ddr_axi_wlast(capture_axi_wlast),
-        .ddr_axi_wvalid(capture_axi_wvalid),
-        .ddr_axi_wready(capture_axi_wready),
-        .ddr_axi_bid(capture_axi_bid),
-        .ddr_axi_bresp(capture_axi_bresp),
-        .ddr_axi_bvalid(capture_axi_bvalid),
-        .ddr_axi_bready(capture_axi_bready)
-    );
-    end else begin : pre_merge_bypass
+      // Capture 与预处理合并，再由下一级与 CPU/启动桥合并。
+      if (PREPROCESS_ENABLE) begin : pre_merge_enabled
+        Haxi_2m1s_arbiter u_preprocess_ddr_merge (
+            .clk(ddr_core_clk),
+            .rst_n(sys_rst_n),
+            .cpu_axi_araddr(30'b0),
+            .cpu_axi_arid(8'b0),
+            .cpu_axi_arlen(8'b0),
+            .cpu_axi_arsize(3'b0),
+            .cpu_axi_arburst(2'b0),
+            .cpu_axi_arvalid(1'b0),
+            .cpu_axi_arready(),
+            .cpu_axi_rdata(),
+            .cpu_axi_rid(),
+            .cpu_axi_rresp(),
+            .cpu_axi_rlast(),
+            .cpu_axi_rvalid(),
+            .cpu_axi_rready(1'b1),
+            .cpu_axi_awaddr(camera_axi_awaddr),
+            .cpu_axi_awid(camera_axi_awid),
+            .cpu_axi_awlen(camera_axi_awlen),
+            .cpu_axi_awsize(camera_axi_awsize),
+            .cpu_axi_awburst(camera_axi_awburst),
+            .cpu_axi_awvalid(camera_axi_awvalid),
+            .cpu_axi_awready(camera_axi_awready),
+            .cpu_axi_wdata(camera_axi_wdata),
+            .cpu_axi_wstrb(camera_axi_wstrb),
+            .cpu_axi_wlast(camera_axi_wlast),
+            .cpu_axi_wvalid(camera_axi_wvalid),
+            .cpu_axi_wready(camera_axi_wready),
+            .cpu_axi_bid(camera_axi_bid),
+            .cpu_axi_bresp(camera_axi_bresp),
+            .cpu_axi_bvalid(camera_axi_bvalid),
+            .cpu_axi_bready(camera_axi_bready),
+            .npu_axi_araddr(pre_axi_araddr),
+            .npu_axi_arid(pre_axi_arid),
+            .npu_axi_arlen(pre_axi_arlen),
+            .npu_axi_arsize(pre_axi_arsize),
+            .npu_axi_arburst(pre_axi_arburst),
+            .npu_axi_arvalid(pre_axi_arvalid),
+            .npu_axi_arready(pre_axi_arready),
+            .npu_axi_rdata(pre_axi_rdata),
+            .npu_axi_rid(pre_axi_rid),
+            .npu_axi_rresp(pre_axi_rresp),
+            .npu_axi_rlast(pre_axi_rlast),
+            .npu_axi_rvalid(pre_axi_rvalid),
+            .npu_axi_rready(pre_axi_rready),
+            .npu_axi_awaddr(pre_axi_awaddr),
+            .npu_axi_awid(pre_axi_awid),
+            .npu_axi_awlen(pre_axi_awlen),
+            .npu_axi_awsize(pre_axi_awsize),
+            .npu_axi_awburst(pre_axi_awburst),
+            .npu_axi_awvalid(pre_axi_awvalid),
+            .npu_axi_awready(pre_axi_awready),
+            .npu_axi_wdata(pre_axi_wdata),
+            .npu_axi_wstrb(pre_axi_wstrb),
+            .npu_axi_wlast(pre_axi_wlast),
+            .npu_axi_wvalid(pre_axi_wvalid),
+            .npu_axi_wready(pre_axi_wready),
+            .npu_axi_bid(pre_axi_bid),
+            .npu_axi_bresp(pre_axi_bresp),
+            .npu_axi_bvalid(pre_axi_bvalid),
+            .npu_axi_bready(pre_axi_bready),
+            .ddr_axi_araddr(capture_axi_araddr),
+            .ddr_axi_arid(capture_axi_arid),
+            .ddr_axi_arlen(capture_axi_arlen),
+            .ddr_axi_arsize(capture_axi_arsize),
+            .ddr_axi_arburst(capture_axi_arburst),
+            .ddr_axi_arvalid(capture_axi_arvalid),
+            .ddr_axi_arready(capture_axi_arready),
+            .ddr_axi_rdata(capture_axi_rdata),
+            .ddr_axi_rid(capture_axi_rid),
+            .ddr_axi_rresp(capture_axi_rresp),
+            .ddr_axi_rlast(capture_axi_rlast),
+            .ddr_axi_rvalid(capture_axi_rvalid),
+            .ddr_axi_rready(capture_axi_rready),
+            .ddr_axi_awaddr(capture_axi_awaddr),
+            .ddr_axi_awid(capture_axi_awid),
+            .ddr_axi_awlen(capture_axi_awlen),
+            .ddr_axi_awsize(capture_axi_awsize),
+            .ddr_axi_awburst(capture_axi_awburst),
+            .ddr_axi_awvalid(capture_axi_awvalid),
+            .ddr_axi_awready(capture_axi_awready),
+            .ddr_axi_wdata(capture_axi_wdata),
+            .ddr_axi_wstrb(capture_axi_wstrb),
+            .ddr_axi_wlast(capture_axi_wlast),
+            .ddr_axi_wvalid(capture_axi_wvalid),
+            .ddr_axi_wready(capture_axi_wready),
+            .ddr_axi_bid(capture_axi_bid),
+            .ddr_axi_bresp(capture_axi_bresp),
+            .ddr_axi_bvalid(capture_axi_bvalid),
+            .ddr_axi_bready(capture_axi_bready)
+        );
+      end else begin : pre_merge_bypass
         assign capture_axi_araddr = 30'b0;
         assign capture_axi_arid = 8'b0;
         assign capture_axi_arlen = 8'b0;
@@ -1532,243 +1808,273 @@ module Hfpga_soc #(
         assign camera_axi_bvalid = capture_axi_bvalid;
         assign pre_axi_bvalid = 1'b0;
         assign capture_axi_bready = camera_axi_bready;
-    end
-    // 第二个历史命名为npu的端口接Camera、前处理和INT8转换器公平合并后的通道。
-    // A的真实NPU DDR读主设备仍需后续接入，当前没有完整推理计算通路。
-    Haxi_2m1s_arbiter u_camera_ddr_arbiter (
-        .clk(ddr_core_clk), .rst_n(sys_rst_n),
-        .cpu_axi_awaddr(bridge_axi_awaddr),
-        .cpu_axi_awid(bridge_axi_awid),
-        .cpu_axi_awlen(bridge_axi_awlen),
-        .cpu_axi_awsize(bridge_axi_awsize),
-        .cpu_axi_awburst(bridge_axi_awburst),
-        .cpu_axi_awvalid(bridge_axi_awvalid),
-        .cpu_axi_awready(bridge_axi_awready),
-        .cpu_axi_wdata(bridge_axi_wdata),
-        .cpu_axi_wstrb(bridge_axi_wstrb),
-        .cpu_axi_wlast(bridge_axi_wlast),
-        .cpu_axi_wvalid(bridge_axi_wvalid),
-        .cpu_axi_wready(bridge_axi_wready),
-        .cpu_axi_bid(bridge_axi_bid),
-        .cpu_axi_bresp(bridge_axi_bresp),
-        .cpu_axi_bvalid(bridge_axi_bvalid),
-        .cpu_axi_bready(bridge_axi_bready),
-        .cpu_axi_araddr(bridge_axi_araddr),
-        .cpu_axi_arid(bridge_axi_arid),
-        .cpu_axi_arlen(bridge_axi_arlen),
-        .cpu_axi_arsize(bridge_axi_arsize),
-        .cpu_axi_arburst(bridge_axi_arburst),
-        .cpu_axi_arvalid(bridge_axi_arvalid),
-        .cpu_axi_arready(bridge_axi_arready),
-        .cpu_axi_rdata(bridge_axi_rdata),
-        .cpu_axi_rid(bridge_axi_rid),
-        .cpu_axi_rresp(bridge_axi_rresp),
-        .cpu_axi_rlast(bridge_axi_rlast),
-        .cpu_axi_rvalid(bridge_axi_rvalid),
-        .cpu_axi_rready(bridge_axi_rready),
-        .npu_axi_awaddr(npu_merge_awaddr),
-        .npu_axi_awid(npu_merge_awid),
-        .npu_axi_awlen(npu_merge_awlen),
-        .npu_axi_awsize(npu_merge_awsize),
-        .npu_axi_awburst(npu_merge_awburst),
-        .npu_axi_awvalid(npu_merge_awvalid),
-        .npu_axi_awready(npu_merge_awready),
-        .npu_axi_wdata(npu_merge_wdata),
-        .npu_axi_wstrb(npu_merge_wstrb),
-        .npu_axi_wlast(npu_merge_wlast),
-        .npu_axi_wvalid(npu_merge_wvalid),
-        .npu_axi_wready(npu_merge_wready),
-        .npu_axi_bid(npu_merge_bid),
-        .npu_axi_bresp(npu_merge_bresp),
-        .npu_axi_bvalid(npu_merge_bvalid),
-        .npu_axi_bready(npu_merge_bready),
-        .npu_axi_araddr(npu_merge_araddr),
-        .npu_axi_arid(npu_merge_arid),
-        .npu_axi_arlen(npu_merge_arlen),
-        .npu_axi_arsize(npu_merge_arsize),
-        .npu_axi_arburst(npu_merge_arburst),
-        .npu_axi_arvalid(npu_merge_arvalid),
-        .npu_axi_arready(npu_merge_arready),
-        .npu_axi_rdata(npu_merge_rdata),
-        .npu_axi_rid(npu_merge_rid),
-        .npu_axi_rresp(npu_merge_rresp),
-        .npu_axi_rlast(npu_merge_rlast),
-        .npu_axi_rvalid(npu_merge_rvalid),
-        .npu_axi_rready(npu_merge_rready),
-        .ddr_axi_awaddr(ddr_axi_awaddr),
-        .ddr_axi_awid(ddr_axi_awid),
-        .ddr_axi_awlen(ddr_axi_awlen),
-        .ddr_axi_awsize(ddr_axi_awsize),
-        .ddr_axi_awburst(ddr_axi_awburst),
-        .ddr_axi_awvalid(ddr_axi_awvalid),
-        .ddr_axi_awready(ddr_axi_awready),
-        .ddr_axi_wdata(ddr_axi_wdata),
-        .ddr_axi_wstrb(ddr_axi_wstrb),
-        .ddr_axi_wlast(ddr_axi_wlast),
-        .ddr_axi_wvalid(ddr_axi_wvalid),
-        .ddr_axi_wready(ddr_axi_wready),
-        .ddr_axi_bid(ddr_axi_bid),
-        .ddr_axi_bresp(ddr_axi_bresp),
-        .ddr_axi_bvalid(ddr_axi_bvalid),
-        .ddr_axi_bready(ddr_axi_bready),
-        .ddr_axi_araddr(ddr_axi_araddr),
-        .ddr_axi_arid(ddr_axi_arid),
-        .ddr_axi_arlen(ddr_axi_arlen),
-        .ddr_axi_arsize(ddr_axi_arsize),
-        .ddr_axi_arburst(ddr_axi_arburst),
-        .ddr_axi_arvalid(ddr_axi_arvalid),
-        .ddr_axi_arready(ddr_axi_arready),
-        .ddr_axi_rdata(ddr_axi_rdata),
-        .ddr_axi_rid(ddr_axi_rid),
-        .ddr_axi_rresp(ddr_axi_rresp),
-        .ddr_axi_rlast(ddr_axi_rlast),
-        .ddr_axi_rvalid(ddr_axi_rvalid),
-        .ddr_axi_rready(ddr_axi_rready)
-    );
+      end
+      // 第二个历史命名为npu的端口接Camera、前处理和INT8转换器公平合并后的通道。
+      // A的真实NPU DDR读主设备仍需后续接入，当前没有完整推理计算通路。
+      Haxi_2m1s_arbiter u_camera_ddr_arbiter (
+          .clk(ddr_core_clk),
+          .rst_n(sys_rst_n),
+          .cpu_axi_awaddr(bridge_axi_awaddr),
+          .cpu_axi_awid(bridge_axi_awid),
+          .cpu_axi_awlen(bridge_axi_awlen),
+          .cpu_axi_awsize(bridge_axi_awsize),
+          .cpu_axi_awburst(bridge_axi_awburst),
+          .cpu_axi_awvalid(bridge_axi_awvalid),
+          .cpu_axi_awready(bridge_axi_awready),
+          .cpu_axi_wdata(bridge_axi_wdata),
+          .cpu_axi_wstrb(bridge_axi_wstrb),
+          .cpu_axi_wlast(bridge_axi_wlast),
+          .cpu_axi_wvalid(bridge_axi_wvalid),
+          .cpu_axi_wready(bridge_axi_wready),
+          .cpu_axi_bid(bridge_axi_bid),
+          .cpu_axi_bresp(bridge_axi_bresp),
+          .cpu_axi_bvalid(bridge_axi_bvalid),
+          .cpu_axi_bready(bridge_axi_bready),
+          .cpu_axi_araddr(bridge_axi_araddr),
+          .cpu_axi_arid(bridge_axi_arid),
+          .cpu_axi_arlen(bridge_axi_arlen),
+          .cpu_axi_arsize(bridge_axi_arsize),
+          .cpu_axi_arburst(bridge_axi_arburst),
+          .cpu_axi_arvalid(bridge_axi_arvalid),
+          .cpu_axi_arready(bridge_axi_arready),
+          .cpu_axi_rdata(bridge_axi_rdata),
+          .cpu_axi_rid(bridge_axi_rid),
+          .cpu_axi_rresp(bridge_axi_rresp),
+          .cpu_axi_rlast(bridge_axi_rlast),
+          .cpu_axi_rvalid(bridge_axi_rvalid),
+          .cpu_axi_rready(bridge_axi_rready),
+          .npu_axi_awaddr(npu_merge_awaddr),
+          .npu_axi_awid(npu_merge_awid),
+          .npu_axi_awlen(npu_merge_awlen),
+          .npu_axi_awsize(npu_merge_awsize),
+          .npu_axi_awburst(npu_merge_awburst),
+          .npu_axi_awvalid(npu_merge_awvalid),
+          .npu_axi_awready(npu_merge_awready),
+          .npu_axi_wdata(npu_merge_wdata),
+          .npu_axi_wstrb(npu_merge_wstrb),
+          .npu_axi_wlast(npu_merge_wlast),
+          .npu_axi_wvalid(npu_merge_wvalid),
+          .npu_axi_wready(npu_merge_wready),
+          .npu_axi_bid(npu_merge_bid),
+          .npu_axi_bresp(npu_merge_bresp),
+          .npu_axi_bvalid(npu_merge_bvalid),
+          .npu_axi_bready(npu_merge_bready),
+          .npu_axi_araddr(npu_merge_araddr),
+          .npu_axi_arid(npu_merge_arid),
+          .npu_axi_arlen(npu_merge_arlen),
+          .npu_axi_arsize(npu_merge_arsize),
+          .npu_axi_arburst(npu_merge_arburst),
+          .npu_axi_arvalid(npu_merge_arvalid),
+          .npu_axi_arready(npu_merge_arready),
+          .npu_axi_rdata(npu_merge_rdata),
+          .npu_axi_rid(npu_merge_rid),
+          .npu_axi_rresp(npu_merge_rresp),
+          .npu_axi_rlast(npu_merge_rlast),
+          .npu_axi_rvalid(npu_merge_rvalid),
+          .npu_axi_rready(npu_merge_rready),
+          .ddr_axi_awaddr(ddr_axi_awaddr),
+          .ddr_axi_awid(ddr_axi_awid),
+          .ddr_axi_awlen(ddr_axi_awlen),
+          .ddr_axi_awsize(ddr_axi_awsize),
+          .ddr_axi_awburst(ddr_axi_awburst),
+          .ddr_axi_awvalid(ddr_axi_awvalid),
+          .ddr_axi_awready(ddr_axi_awready),
+          .ddr_axi_wdata(ddr_axi_wdata),
+          .ddr_axi_wstrb(ddr_axi_wstrb),
+          .ddr_axi_wlast(ddr_axi_wlast),
+          .ddr_axi_wvalid(ddr_axi_wvalid),
+          .ddr_axi_wready(ddr_axi_wready),
+          .ddr_axi_bid(ddr_axi_bid),
+          .ddr_axi_bresp(ddr_axi_bresp),
+          .ddr_axi_bvalid(ddr_axi_bvalid),
+          .ddr_axi_bready(ddr_axi_bready),
+          .ddr_axi_araddr(ddr_axi_araddr),
+          .ddr_axi_arid(ddr_axi_arid),
+          .ddr_axi_arlen(ddr_axi_arlen),
+          .ddr_axi_arsize(ddr_axi_arsize),
+          .ddr_axi_arburst(ddr_axi_arburst),
+          .ddr_axi_arvalid(ddr_axi_arvalid),
+          .ddr_axi_arready(ddr_axi_arready),
+          .ddr_axi_rdata(ddr_axi_rdata),
+          .ddr_axi_rid(ddr_axi_rid),
+          .ddr_axi_rresp(ddr_axi_rresp),
+          .ddr_axi_rlast(ddr_axi_rlast),
+          .ddr_axi_rvalid(ddr_axi_rvalid),
+          .ddr_axi_rready(ddr_axi_rready)
+      );
 
-    ddr3_ctrl_v116 u_ddr3_ctrl (
-        .ref_clk                 (ddr_ref_clk),
-        .resetn                  (sys_rst_n),
-        .core_clk                (ddr_core_clk),
-        .pll_lock                (),
-        .phy_pll_lock            (),
-        .gpll_lock               (),
-        .rst_gpll_lock           (),
-        .ddrphy_cpd_lock         (),
-        .ddr_init_done           (ddr_init_done),
+      ddr3_ctrl_v116 u_ddr3_ctrl (
+          .ref_clk        (ddr_ref_clk),
+          .resetn         (sys_rst_n),
+          .core_clk       (ddr_core_clk),
+          .pll_lock       (),
+          .phy_pll_lock   (),
+          .gpll_lock      (),
+          .rst_gpll_lock  (),
+          .ddrphy_cpd_lock(),
+          .ddr_init_done  (ddr_init_done),
 
-        .axi_awaddr              (ddr_axi_awaddr),
-        .axi_awid                (ddr_axi_awid),
-        .axi_awlen               (ddr_axi_awlen),
-        .axi_awsize              (ddr_axi_awsize),
-        .axi_awburst             (ddr_axi_awburst),
-        .axi_awready             (ddr_axi_awready),
-        .axi_awvalid             (ddr_axi_awvalid),
-        .axi_wdata               (ddr_axi_wdata),
-        .axi_wstrb               (ddr_axi_wstrb),
-        .axi_wlast               (ddr_axi_wlast),
-        .axi_wvalid              (ddr_axi_wvalid),
-        .axi_wready              (ddr_axi_wready),
-        .axi_bready              (ddr_axi_bready),
-        .axi_bid                 (ddr_axi_bid),
-        .axi_bresp               (ddr_axi_bresp),
-        .axi_bvalid              (ddr_axi_bvalid),
-        .axi_araddr              (ddr_axi_araddr),
-        .axi_arid                (ddr_axi_arid),
-        .axi_arlen               (ddr_axi_arlen),
-        .axi_arsize              (ddr_axi_arsize),
-        .axi_arburst             (ddr_axi_arburst),
-        .axi_arready             (ddr_axi_arready),
-        .axi_arvalid             (ddr_axi_arvalid),
-        .axi_rready              (ddr_axi_rready),
-        .axi_rdata               (ddr_axi_rdata),
-        .axi_rid                 (ddr_axi_rid),
-        .axi_rlast               (ddr_axi_rlast),
-        .axi_rvalid              (ddr_axi_rvalid),
-        .axi_rresp               (ddr_axi_rresp),
+          .axi_awaddr (ddr_axi_awaddr),
+          .axi_awid   (ddr_axi_awid),
+          .axi_awlen  (ddr_axi_awlen),
+          .axi_awsize (ddr_axi_awsize),
+          .axi_awburst(ddr_axi_awburst),
+          .axi_awready(ddr_axi_awready),
+          .axi_awvalid(ddr_axi_awvalid),
+          .axi_wdata  (ddr_axi_wdata),
+          .axi_wstrb  (ddr_axi_wstrb),
+          .axi_wlast  (ddr_axi_wlast),
+          .axi_wvalid (ddr_axi_wvalid),
+          .axi_wready (ddr_axi_wready),
+          .axi_bready (ddr_axi_bready),
+          .axi_bid    (ddr_axi_bid),
+          .axi_bresp  (ddr_axi_bresp),
+          .axi_bvalid (ddr_axi_bvalid),
+          .axi_araddr (ddr_axi_araddr),
+          .axi_arid   (ddr_axi_arid),
+          .axi_arlen  (ddr_axi_arlen),
+          .axi_arsize (ddr_axi_arsize),
+          .axi_arburst(ddr_axi_arburst),
+          .axi_arready(ddr_axi_arready),
+          .axi_arvalid(ddr_axi_arvalid),
+          .axi_rready (ddr_axi_rready),
+          .axi_rdata  (ddr_axi_rdata),
+          .axi_rid    (ddr_axi_rid),
+          .axi_rlast  (ddr_axi_rlast),
+          .axi_rvalid (ddr_axi_rvalid),
+          .axi_rresp  (ddr_axi_rresp),
 
-        .apb_clk                 (1'b0),
-        .apb_rst_n               (1'b1),
-        .apb_sel                 (1'b0),
-        .apb_enable              (1'b0),
-        .apb_addr                (8'd0),
-        .apb_write               (1'b0),
-        .apb_ready               (),
-        .apb_wdata               (16'd0),
-        .apb_rdata               (),
+          .apb_clk   (1'b0),
+          .apb_rst_n (1'b1),
+          .apb_sel   (1'b0),
+          .apb_enable(1'b0),
+          .apb_addr  (8'd0),
+          .apb_write (1'b0),
+          .apb_ready (),
+          .apb_wdata (16'd0),
+          .apb_rdata (),
 
-        .mem_rst_n               (mem_rst_n),
-        .mem_ck                  (mem_ck),
-        .mem_ck_n                (mem_ck_n),
-        .mem_cke                 (mem_cke),
-        .mem_cs_n                (mem_cs_n),
-        .mem_ras_n               (mem_ras_n),
-        .mem_cas_n               (mem_cas_n),
-        .mem_we_n                (mem_we_n),
-        .mem_odt                 (mem_odt),
-        .mem_a                   (mem_a),
-        .mem_ba                  (mem_ba),
-        .mem_dqs                 (mem_dqs),
-        .mem_dqs_n               (mem_dqs_n),
-        .mem_dq                  (mem_dq),
-        .mem_dm                  (mem_dm),
+          .mem_rst_n(mem_rst_n),
+          .mem_ck   (mem_ck),
+          .mem_ck_n (mem_ck_n),
+          .mem_cke  (mem_cke),
+          .mem_cs_n (mem_cs_n),
+          .mem_ras_n(mem_ras_n),
+          .mem_cas_n(mem_cas_n),
+          .mem_we_n (mem_we_n),
+          .mem_odt  (mem_odt),
+          .mem_a    (mem_a),
+          .mem_ba   (mem_ba),
+          .mem_dqs  (mem_dqs),
+          .mem_dqs_n(mem_dqs_n),
+          .mem_dq   (mem_dq),
+          .mem_dm   (mem_dm),
 
-        .dbg_gate_start          (1'b0),
-        .dbg_cpd_start           (1'b0),
-        .dbg_ddrphy_rst_n        (1'b1),
-        .dbg_gpll_scan_rst       (1'b0),
-        .samp_position_dyn_adj   (1'b0),
-        .init_samp_position_even (32'd0),
-        .wrcal_position_dyn_adj  (1'b0),
-        .init_wrcal_position     (32'd0),
-        .force_read_clk_ctrl     (1'b0),
-        .init_slip_step          (16'd0),
-        .init_read_clk_ctrl      (12'd0),
-        .debug_calib_ctrl        (),
-        .dbg_slice_status        (),
-        .dbg_slice_state         (),
-        .debug_data              (),
-        .dbg_dll_upd_state       (),
-        .debug_gpll_dps_phase    (),
-        .dbg_rst_dps_state       (),
-        .dbg_tran_err_rst_cnt    (),
-        .dbg_ddrphy_init_fail    (),
-        .debug_cpd_offset_adj    (1'b0),
-        .debug_cpd_offset_dir    (1'b0),
-        .debug_cpd_offset        (10'd0),
-        .debug_dps_cnt_dir0      (),
-        .debug_dps_cnt_dir1      (),
-        .ck_dly_en               (1'b0),
-        .init_ck_dly_step        (8'd0),
-        .ck_dly_set_bin          (),
-        .dq_idly_bin             (),
-        .dq_odly_bin             (),
-        .align_error             (),
-        .debug_rst_state         (),
-        .debug_cpd_state         ()
-    );
+          .dbg_gate_start         (1'b0),
+          .dbg_cpd_start          (1'b0),
+          .dbg_ddrphy_rst_n       (1'b1),
+          .dbg_gpll_scan_rst      (1'b0),
+          .samp_position_dyn_adj  (1'b0),
+          .init_samp_position_even(32'd0),
+          .wrcal_position_dyn_adj (1'b0),
+          .init_wrcal_position    (32'd0),
+          .force_read_clk_ctrl    (1'b0),
+          .init_slip_step         (16'd0),
+          .init_read_clk_ctrl     (12'd0),
+          .debug_calib_ctrl       (),
+          .dbg_slice_status       (),
+          .dbg_slice_state        (),
+          .debug_data             (),
+          .dbg_dll_upd_state      (),
+          .debug_gpll_dps_phase   (),
+          .dbg_rst_dps_state      (),
+          .dbg_tran_err_rst_cnt   (),
+          .dbg_ddrphy_init_fail   (),
+          .debug_cpd_offset_adj   (1'b0),
+          .debug_cpd_offset_dir   (1'b0),
+          .debug_cpd_offset       (10'd0),
+          .debug_dps_cnt_dir0     (),
+          .debug_dps_cnt_dir1     (),
+          .ck_dly_en              (1'b0),
+          .init_ck_dly_step       (8'd0),
+          .ck_dly_set_bin         (),
+          .dq_idly_bin            (),
+          .dq_odly_bin            (),
+          .align_error            (),
+          .debug_rst_state        (),
+          .debug_cpd_state        ()
+      );
 
-    assign core_active = ddr_init_done;
+      assign core_active = ddr_init_done;
 
     end else begin : g_bram_profile
-        Hfpga_soc_bram_profile #(
-            .MEM_FILE(MEM_FILE),
-            .FLASH_BASE(FLASH_BASE),
-            .BOOT_IMAGE_BYTES(BOOT_IMAGE_BYTES),
-            .SPI_DIV(SPI_DIV),
-            .UART_TX_DEFAULT_FPIOA(UART_TX_DEFAULT_FPIOA),
-            .IRAM_BASE(`SOC_IRAM_BASE),
-            .IRAM_BYTES(`SOC_IRAM_BYTES),
-            .DRAM_BASE(`SOC_DRAM_BASE),
-            .DRAM_BYTES(`SOC_DRAM_BYTES),
-            .MMIO_BASE(MMIO_BASE),
-            .MMIO_BYTES(MMIO_BYTES),
-            .UART0_BASE(UART0_BASE),
-            .UART0_BYTES(UART0_BYTES),
-            .LED_ADDR(LED_ADDR),
-            .FPIOA_BASE(FPIOA_BASE),
-            .FPIOA_BYTES(FPIOA_BYTES)
-        ) u_bram_profile (
-            .clk(clk), .hard_rst_n(hard_rst_n),
-            .JTAG_TCK(JTAG_TCK), .JTAG_TMS(JTAG_TMS), .JTAG_TDI(JTAG_TDI),
-            .JTAG_TDO(JTAG_TDO), .core_active(core_active), .fpioa(fpioa),
-            .cam1_scl(cam1_scl), .cam1_sda(cam1_sda), .cam1_reset_n(cam1_reset_n),
-            .cam1_pclk(cam1_pclk), .cam1_vsync(cam1_vsync),
-            .cam1_href(cam1_href), .cam1_data(cam1_data),
-            .cam2_scl(cam2_scl), .cam2_sda(cam2_sda), .cam2_reset_n(cam2_reset_n),
-            .cam2_pclk(cam2_pclk), .cam2_vsync(cam2_vsync),
-            .cam2_href(cam2_href), .cam2_data_hi(cam2_data_hi),
-            .cam2_data3(cam2_data3), .cam2_data0(cam2_data0),
-            .flash_cs_n(flash_cs_n), .flash_cs2_n(flash_cs2_n),
-            .flash_mosi(flash_mosi), .flash_miso(flash_miso),
-            .flash_wp_n(flash_wp_n), .flash_hold_n(flash_hold_n),
-            .clk_p(clk_p), .clk_n(clk_n), .mem_rst_n(mem_rst_n),
-            .mem_ck(mem_ck), .mem_ck_n(mem_ck_n), .mem_cke(mem_cke),
-            .mem_cs_n(mem_cs_n), .mem_ras_n(mem_ras_n), .mem_cas_n(mem_cas_n),
-            .mem_we_n(mem_we_n), .mem_odt(mem_odt), .mem_a(mem_a),
-            .mem_ba(mem_ba), .mem_dqs(mem_dqs), .mem_dqs_n(mem_dqs_n),
-            .mem_dq(mem_dq), .mem_dm(mem_dm)
-        );
-    end endgenerate
+      Hfpga_soc_bram_profile #(
+          .MEM_FILE(MEM_FILE),
+          .FLASH_BASE(FLASH_BASE),
+          .BOOT_IMAGE_BYTES(BOOT_IMAGE_BYTES),
+          .SPI_DIV(SPI_DIV),
+          .UART_TX_DEFAULT_FPIOA(UART_TX_DEFAULT_FPIOA),
+          .IRAM_BASE(`SOC_IRAM_BASE),
+          .IRAM_BYTES(`SOC_IRAM_BYTES),
+          .DRAM_BASE(`SOC_DRAM_BASE),
+          .DRAM_BYTES(`SOC_DRAM_BYTES),
+          .MMIO_BASE(MMIO_BASE),
+          .MMIO_BYTES(MMIO_BYTES),
+          .UART0_BASE(UART0_BASE),
+          .UART0_BYTES(UART0_BYTES),
+          .LED_ADDR(LED_ADDR),
+          .FPIOA_BASE(FPIOA_BASE),
+          .FPIOA_BYTES(FPIOA_BYTES)
+      ) u_bram_profile (
+          .clk(clk),
+          .hard_rst_n(hard_rst_n),
+          .JTAG_TCK(JTAG_TCK),
+          .JTAG_TMS(JTAG_TMS),
+          .JTAG_TDI(JTAG_TDI),
+          .JTAG_TDO(JTAG_TDO),
+          .core_active(core_active),
+          .fpioa(fpioa),
+          .cam1_scl(cam1_scl),
+          .cam1_sda(cam1_sda),
+          .cam1_reset_n(cam1_reset_n),
+          .cam1_pclk(cam1_pclk),
+          .cam1_vsync(cam1_vsync),
+          .cam1_href(cam1_href),
+          .cam1_data(cam1_data),
+          .cam2_scl(cam2_scl),
+          .cam2_sda(cam2_sda),
+          .cam2_reset_n(cam2_reset_n),
+          .cam2_pclk(cam2_pclk),
+          .cam2_vsync(cam2_vsync),
+          .cam2_href(cam2_href),
+          .cam2_data_hi(cam2_data_hi),
+          .cam2_data3(cam2_data3),
+          .cam2_data0(cam2_data0),
+          .flash_cs_n(flash_cs_n),
+          .flash_cs2_n(flash_cs2_n),
+          .flash_mosi(flash_mosi),
+          .flash_miso(flash_miso),
+          .flash_wp_n(flash_wp_n),
+          .flash_hold_n(flash_hold_n),
+          .clk_p(clk_p),
+          .clk_n(clk_n),
+          .mem_rst_n(mem_rst_n),
+          .mem_ck(mem_ck),
+          .mem_ck_n(mem_ck_n),
+          .mem_cke(mem_cke),
+          .mem_cs_n(mem_cs_n),
+          .mem_ras_n(mem_ras_n),
+          .mem_cas_n(mem_cas_n),
+          .mem_we_n(mem_we_n),
+          .mem_odt(mem_odt),
+          .mem_a(mem_a),
+          .mem_ba(mem_ba),
+          .mem_dqs(mem_dqs),
+          .mem_dqs_n(mem_dqs_n),
+          .mem_dq(mem_dq),
+          .mem_dm(mem_dm)
+      );
+    end
+  endgenerate
 
 endmodule

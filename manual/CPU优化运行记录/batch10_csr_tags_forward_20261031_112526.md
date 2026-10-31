@@ -1,0 +1,1065 @@
+# CPU WNS 优化运行记录：batch10_csr_tags_forward_20261031_112526
+
+配置：Full DDR，CPU 70 MHz，第二屏幕 PDS GUI。当前轮没有修改频率、约束或 NPU/DDR RTL。
+
+```json
+{
+  "name": "batch10_csr_tags_forward_20261031_112526",
+  "stages": {
+    "compile": true,
+    "synthesis": true,
+    "mapping": true,
+    "pnr": true,
+    "timing": true,
+    "bitstream": true
+  },
+  "all_constraints_met": false,
+  "setup_slow": [
+    {
+      "launch": "JTAG_CLK",
+      "capture": "JTAG_CLK",
+      "wns_ns": 46.551,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "CAM1_PCLK",
+      "capture": "CAM1_PCLK",
+      "wns_ns": 1.961,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "CAM2_PCLK",
+      "capture": "CAM2_PCLK",
+      "wns_ns": 0.87,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "cpu_clk",
+      "capture": "cpu_clk",
+      "wns_ns": 0.271,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "ddr_core_clk",
+      "wns_ns": -2.485,
+      "tns_ns": -9417.415,
+      "failing_endpoints": 10455
+    },
+    {
+      "launch": "phy_dq_sysclk_1",
+      "capture": "ddr_core_clk",
+      "wns_ns": 4.166,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "phy_dq_sysclk_0",
+      "capture": "ddr_core_clk",
+      "wns_ns": 5.13,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 4.901,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "phy_dq_sysclk_0",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 5.179,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_sysclk_0",
+      "wns_ns": 2.327,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_sysclk_1",
+      "wns_ns": 0.359,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    }
+  ],
+  "setup_fast": [
+    {
+      "launch": "JTAG_CLK",
+      "capture": "JTAG_CLK",
+      "wns_ns": 47.953,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "CAM1_PCLK",
+      "capture": "CAM1_PCLK",
+      "wns_ns": 5.187,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "CAM2_PCLK",
+      "capture": "CAM2_PCLK",
+      "wns_ns": 4.514,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "cpu_clk",
+      "capture": "cpu_clk",
+      "wns_ns": 5.934,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "ddr_core_clk",
+      "wns_ns": 1.783,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "phy_dq_sysclk_1",
+      "capture": "ddr_core_clk",
+      "wns_ns": 5.537,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "phy_dq_sysclk_0",
+      "capture": "ddr_core_clk",
+      "wns_ns": 6.115,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 6.182,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "phy_dq_sysclk_0",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 5.48,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_sysclk_0",
+      "wns_ns": 4.547,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_sysclk_1",
+      "wns_ns": 3.078,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    }
+  ],
+  "hold_slow": [
+    {
+      "launch": "JTAG_CLK",
+      "capture": "JTAG_CLK",
+      "wns_ns": 0.214,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "CAM1_PCLK",
+      "capture": "CAM1_PCLK",
+      "wns_ns": 0.299,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "CAM2_PCLK",
+      "capture": "CAM2_PCLK",
+      "wns_ns": 0.22,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "cpu_clk",
+      "capture": "cpu_clk",
+      "wns_ns": 0.148,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "ddr_core_clk",
+      "wns_ns": 0.132,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "phy_dq_sysclk_1",
+      "capture": "ddr_core_clk",
+      "wns_ns": 0.36,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "phy_dq_sysclk_0",
+      "capture": "ddr_core_clk",
+      "wns_ns": 0.725,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 0.213,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "phy_dq_sysclk_0",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 0.82,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_sysclk_0",
+      "wns_ns": 0.288,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_sysclk_1",
+      "wns_ns": 0.316,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    }
+  ],
+  "hold_fast": [
+    {
+      "launch": "JTAG_CLK",
+      "capture": "JTAG_CLK",
+      "wns_ns": 0.199,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "CAM1_PCLK",
+      "capture": "CAM1_PCLK",
+      "wns_ns": 0.186,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "CAM2_PCLK",
+      "capture": "CAM2_PCLK",
+      "wns_ns": 0.149,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "cpu_clk",
+      "capture": "cpu_clk",
+      "wns_ns": 0.103,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "ddr_core_clk",
+      "wns_ns": 0.1,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "phy_dq_sysclk_1",
+      "capture": "ddr_core_clk",
+      "wns_ns": 0.1,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "phy_dq_sysclk_0",
+      "capture": "ddr_core_clk",
+      "wns_ns": 0.268,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 0.148,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "phy_dq_sysclk_0",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 1.053,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_sysclk_0",
+      "wns_ns": 0.102,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_sysclk_1",
+      "wns_ns": 0.106,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    }
+  ],
+  "cpu_hz": 70000000,
+  "testbench_run": false,
+  "board_programmed": false,
+  "recovery_slow": [
+    {
+      "launch": "CAM1_PCLK",
+      "capture": "CAM1_PCLK",
+      "wns_ns": 5.335,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "CAM2_PCLK",
+      "capture": "CAM2_PCLK",
+      "wns_ns": 5.085,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "cpu_clk",
+      "capture": "cpu_clk",
+      "wns_ns": 4.083,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "ddr_core_clk",
+      "wns_ns": 3.022,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 6.327,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_clk_0",
+      "wns_ns": -4.418,
+      "tns_ns": -129.94,
+      "failing_endpoints": 34
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_clk_0",
+      "wns_ns": -4.0,
+      "tns_ns": -11.141,
+      "failing_endpoints": 3
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_sysclk_0",
+      "wns_ns": -3.202,
+      "tns_ns": -89.375,
+      "failing_endpoints": 35
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_clk_1",
+      "wns_ns": -4.337,
+      "tns_ns": -308.314,
+      "failing_endpoints": 84
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_clk_1",
+      "wns_ns": -4.023,
+      "tns_ns": -14.758,
+      "failing_endpoints": 4
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_sysclk_1",
+      "wns_ns": -3.229,
+      "tns_ns": -213.302,
+      "failing_endpoints": 84
+    }
+  ],
+  "recovery_fast": [
+    {
+      "launch": "CAM1_PCLK",
+      "capture": "CAM1_PCLK",
+      "wns_ns": 7.079,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "CAM2_PCLK",
+      "capture": "CAM2_PCLK",
+      "wns_ns": 7.044,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "cpu_clk",
+      "capture": "cpu_clk",
+      "wns_ns": 7.885,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "ddr_core_clk",
+      "wns_ns": 4.907,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 6.973,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_clk_0",
+      "wns_ns": -2.681,
+      "tns_ns": -71.599,
+      "failing_endpoints": 34
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_clk_0",
+      "wns_ns": -2.875,
+      "tns_ns": -8.121,
+      "failing_endpoints": 3
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_sysclk_0",
+      "wns_ns": -1.261,
+      "tns_ns": -32.941,
+      "failing_endpoints": 35
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_clk_1",
+      "wns_ns": -2.614,
+      "tns_ns": -167.817,
+      "failing_endpoints": 84
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_clk_1",
+      "wns_ns": -2.936,
+      "tns_ns": -10.863,
+      "failing_endpoints": 4
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_sysclk_1",
+      "wns_ns": -1.297,
+      "tns_ns": -76.661,
+      "failing_endpoints": 84
+    }
+  ],
+  "removal_slow": [
+    {
+      "launch": "CAM1_PCLK",
+      "capture": "CAM1_PCLK",
+      "wns_ns": 1.879,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "CAM2_PCLK",
+      "capture": "CAM2_PCLK",
+      "wns_ns": 1.612,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "cpu_clk",
+      "capture": "cpu_clk",
+      "wns_ns": 0.316,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "ddr_core_clk",
+      "wns_ns": 0.283,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 0.389,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_clk_0",
+      "wns_ns": 2.543,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_clk_0",
+      "wns_ns": 2.253,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_sysclk_0",
+      "wns_ns": 8.335,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_clk_1",
+      "wns_ns": 2.083,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_clk_1",
+      "wns_ns": 1.815,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_sysclk_1",
+      "wns_ns": 8.135,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    }
+  ],
+  "removal_fast": [
+    {
+      "launch": "CAM1_PCLK",
+      "capture": "CAM1_PCLK",
+      "wns_ns": 1.24,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "CAM2_PCLK",
+      "capture": "CAM2_PCLK",
+      "wns_ns": 0.991,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "cpu_clk",
+      "capture": "cpu_clk",
+      "wns_ns": 0.216,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "ddr_core_clk",
+      "wns_ns": 0.19,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "ddr_rst_clk",
+      "wns_ns": 0.249,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_clk_0",
+      "wns_ns": 1.562,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_clk_0",
+      "wns_ns": 1.859,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_sysclk_0",
+      "wns_ns": 7.464,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_clk_1",
+      "wns_ns": 1.315,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_core_clk",
+      "capture": "phy_dq_clk_1",
+      "wns_ns": 1.586,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    },
+    {
+      "launch": "ddr_rst_clk",
+      "capture": "phy_dq_sysclk_1",
+      "wns_ns": 7.336,
+      "tns_ns": 0.0,
+      "failing_endpoints": 0
+    }
+  ],
+  "cpu_setup_slow": {
+    "launch": "cpu_clk",
+    "capture": "cpu_clk",
+    "wns_ns": 0.271,
+    "tns_ns": 0.0,
+    "failing_endpoints": 0
+  },
+  "cpu_setup_fast": {
+    "launch": "cpu_clk",
+    "capture": "cpu_clk",
+    "wns_ns": 5.934,
+    "tns_ns": 0.0,
+    "failing_endpoints": 0
+  },
+  "cpu_hold_slow": {
+    "launch": "cpu_clk",
+    "capture": "cpu_clk",
+    "wns_ns": 0.148,
+    "tns_ns": 0.0,
+    "failing_endpoints": 0
+  },
+  "cpu_hold_fast": {
+    "launch": "cpu_clk",
+    "capture": "cpu_clk",
+    "wns_ns": 0.103,
+    "tns_ns": 0.0,
+    "failing_endpoints": 0
+  },
+  "cpu_recovery_slow": {
+    "launch": "cpu_clk",
+    "capture": "cpu_clk",
+    "wns_ns": 4.083,
+    "tns_ns": 0.0,
+    "failing_endpoints": 0
+  },
+  "cpu_recovery_fast": {
+    "launch": "cpu_clk",
+    "capture": "cpu_clk",
+    "wns_ns": 7.885,
+    "tns_ns": 0.0,
+    "failing_endpoints": 0
+  },
+  "cpu_removal_slow": {
+    "launch": "cpu_clk",
+    "capture": "cpu_clk",
+    "wns_ns": 0.316,
+    "tns_ns": 0.0,
+    "failing_endpoints": 0
+  },
+  "cpu_removal_fast": {
+    "launch": "cpu_clk",
+    "capture": "cpu_clk",
+    "wns_ns": 0.216,
+    "tns_ns": 0.0,
+    "failing_endpoints": 0
+  },
+  "resources": {
+    "module_LUT": 44860,
+    "FF": 47571,
+    "Distributed_RAM": 1151,
+    "APM": 69,
+    "DRM": 35
+  },
+  "cpu_resources": {
+    "module_LUT": 5256,
+    "FF": 3683,
+    "Distributed_RAM": 45,
+    "APM": 4,
+    "DRM": 10
+  },
+  "worst_cpu_paths": [
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/redirect_taken_q/opit_0_L6Q_perm/I5",
+      "slack_ns": "0.271"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/icache_cancel_q/opit_0_L6Q_perm/I4",
+      "slack_ns": "0.311"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[4]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.398"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[6]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.398"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_pc[22]/opit_0/CE",
+      "slack_ns": "0.451"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_pc[29]/opit_0/CE",
+      "slack_ns": "0.451"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[29]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.485"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[31]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.485"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mtvec[23]/opit_0/CE",
+      "slack_ns": "0.495"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mtvec[30]/opit_0/CE",
+      "slack_ns": "0.495"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/icache_cancel_q/opit_0_L6Q_perm/I2",
+      "slack_ns": "0.522"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_csr_addr[5]/opit_0_L6QL5Q_perm/CE",
+      "slack_ns": "0.572"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_csr_addr[7]/opit_0_L6QL5Q_perm/CE",
+      "slack_ns": "0.572"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mtvec[27]/opit_0/CE",
+      "slack_ns": "0.572"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mtvec[29]/opit_0/CE",
+      "slack_ns": "0.572"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[29]/opit_0/CE",
+      "slack_ns": "0.579"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[30]/opit_0/CE",
+      "slack_ns": "0.579"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_csr_addr[9]/opit_0_L6QL5Q_perm/CE",
+      "slack_ns": "0.585"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_pc[26]/opit_0/CE",
+      "slack_ns": "0.585"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_csr_addr[11]/opit_0_L6QL5Q_perm/CE",
+      "slack_ns": "0.590"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_csr_op[1]/opit_0_L6QL5Q_perm/CE",
+      "slack_ns": "0.590"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[17]/opit_0/CE",
+      "slack_ns": "0.599"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[21]/opit_0/CE",
+      "slack_ns": "0.599"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[22]/opit_0/CE",
+      "slack_ns": "0.599"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[9]/opit_0/CE",
+      "slack_ns": "0.601"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[25]/opit_0/CE",
+      "slack_ns": "0.601"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[26]/opit_0/CE",
+      "slack_ns": "0.601"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[28]/opit_0/CE",
+      "slack_ns": "0.601"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[24]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.602"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_csr_addr[1]/opit_0_L6QL5Q_perm/CE",
+      "slack_ns": "0.605"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_csr_addr[3]/opit_0_L6QL5Q_perm/CE",
+      "slack_ns": "0.605"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[27]/opit_0/CE",
+      "slack_ns": "0.611"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[0]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.615"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[14]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.615"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[23]/opit_0/CE",
+      "slack_ns": "0.615"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[24]/opit_0/CE",
+      "slack_ns": "0.615"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[5]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.620"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[7]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.620"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mtvec[24]/opit_0/CE",
+      "slack_ns": "0.632"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[22]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.635"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[25]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.635"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[1]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.639"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[2]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.639"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_is_ecall/opit_0_L6QL5Q_perm/CE",
+      "slack_ns": "0.640"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_is_mret/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.640"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_pc[1]/opit_0/CE",
+      "slack_ns": "0.640"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[13]/opit_0/CE",
+      "slack_ns": "0.640"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[20]/opit_0/CE",
+      "slack_ns": "0.640"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[23]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.642"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[27]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.642"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[9]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.653"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[10]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.653"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mtvec[9]/opit_0/CE",
+      "slack_ns": "0.656"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mtvec[25]/opit_0/CE",
+      "slack_ns": "0.656"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mtvec[26]/opit_0/CE",
+      "slack_ns": "0.656"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[4]/opit_0/CE",
+      "slack_ns": "0.660"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[16]/opit_0/CE",
+      "slack_ns": "0.660"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[18]/opit_0/CE",
+      "slack_ns": "0.667"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[31]/opit_0/CE",
+      "slack_ns": "0.667"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[28]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.669"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[30]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.669"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/u_csr/csr_mscratch[2]/opit_0/CE",
+      "slack_ns": "0.670"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[8]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.671"
+    },
+    {
+      "startpoint": "g_ddr_profile.u_cpu/gen_dcache.u_dcache/tagv_ram_way[1].u/u_ram/U_ipml_spram_TagvRAM/ADDR_LOOP[0].DATA_LOOP[0].U_GTP_DRM18K/gopdrm_18k_inv/CLKB",
+      "endpoint": "g_ddr_profile.u_cpu/u_exu/ex_src1[11]/opit_0_L6Q_perm/CE",
+      "slack_ns": "0.671"
+    }
+  ],
+  "bitstream_sha256": "f1fb0e518281d7b5a90d75d6894c9a42a01f58ab18d32d64551449726ddc5a5d",
+  "cpu_timing_positive": true,
+  "cpu_recovery_removal_pass": true,
+  "cpu_pulse_width_slow": {
+    "worst_slack_ns": 6.182,
+    "total_negative_slack_ns": 0.0,
+    "failing_endpoints": 0,
+    "total_endpoints": 6220
+  },
+  "cpu_pulse_width_fast": {
+    "worst_slack_ns": 6.487,
+    "total_negative_slack_ns": 0.0,
+    "failing_endpoints": 0,
+    "total_endpoints": 6220
+  },
+  "cpu_all_reported_checks_pass": true
+}
+```
+
+源码、哈希、报告及阶段日志：build/cpu_wns_20261030/batch10_csr_tags_forward_20261031_112526/。
+
+没有运行 testbench 或 RTL 仿真，没有烧录；时序通过不等于完成指令功能、CoreMark 或识别实板验证。

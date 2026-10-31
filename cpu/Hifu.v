@@ -10,6 +10,9 @@ module Hifu #(
     input              id_allowin,
     input              flush,
     input       [31:0] redirect_pc,
+    // These fields describe the preceding edge's redirect, sampled by Htop.
+    input              redirect_sample_valid,
+    input       [31:0] redirect_sample_pc,
 
     input       [31:0] imem_rdata,
     input              imem_resp_valid,
@@ -66,8 +69,13 @@ module Hifu #(
 	// DDR 版允许冲刷当拍的旧预测地址被 ICache 暂存；延迟取消会在 lookup
 	// 阶段丢弃它，forced_fetch_pc 则保留正确 redirect 供下一次真实握手。
 	// 连续取指仍在冲刷当拍直接给出 redirect_pc。
+	// A fresh sampled redirect supplies the target immediately in the cycle
+	// after flush. The holding register takes over on the following cycle if
+	// request backpressure persists; no extra redirect handshake is inserted.
+	wire [31:0] held_redirect_pc = redirect_sample_valid ?
+	                               redirect_sample_pc : forced_fetch_pc;
 	assign imem_addr         = (CONTINUOUS_FETCH && flush) ? redirect_pc :
-	                             force_fetch ? forced_fetch_pc :
+	                             force_fetch ? held_redirect_pc :
 	                             if_predict_next_pc;
 	assign imem_req_valid    = CONTINUOUS_FETCH ? (flush || fetch_room) :
 	                             (!fetch_pending && if_allowin);
@@ -109,12 +117,33 @@ module Hifu #(
         end
     end
 
+    // This is request payload, not request validity. In DDR mode a flush
+    // discards any same-edge old request through fetch_pending/cancellation;
+    // its PC may still be sampled and is overwritten by the next handshake.
+    // In continuous mode a flush makes imem_req_valid high and imem_addr is
+    // already redirect_pc, preserving the immediate redirect handshake.
+    // Keep the late branch decision out of the DDR payload clock enable.
+    always @(posedge clk) begin
+        if (rst)
+            fetch_pc_reg <= 32'b0;
+        else if (imem_req_valid && imem_req_ready)
+            fetch_pc_reg <= imem_addr;
+    end
+
+    // Htop samples redirect components and validity on the flush edge. Save
+    // their assembled target here for arbitrary request backpressure. On back-
+    // to-back flushes the fresh input still wins over the older holding value.
+    always @(posedge clk) begin
+        if (rst)
+            forced_fetch_pc <= RESET_PC;
+        else if (redirect_sample_valid)
+            forced_fetch_pc <= redirect_sample_pc;
+    end
+
     // Transaction and validity state; flush retains its original priority.
     always @(posedge clk) begin
         if (rst) begin
-            fetch_pc_reg    <= 32'b0;
             fetch_pending   <= 1'b0;
-            forced_fetch_pc <= RESET_PC;
             force_fetch     <= 1'b1;
             skid_valid      <= 1'b0;
             if_valid        <= 1'b0;
@@ -122,15 +151,11 @@ module Hifu #(
             // Invalidate both delivery slots. Keep redirect and request state
             // handling here; payload values are irrelevant while valid is low.
             fetch_pending <= CONTINUOUS_FETCH && imem_req_ready;
-            if (CONTINUOUS_FETCH && imem_req_ready)
-                fetch_pc_reg <= redirect_pc;
-            forced_fetch_pc <= redirect_pc;
             force_fetch     <= !(CONTINUOUS_FETCH && imem_req_ready);
             skid_valid      <= 1'b0;
             if_valid        <= 1'b0;
         end else if (CONTINUOUS_FETCH) begin
             if (imem_req_valid && imem_req_ready) begin
-                fetch_pc_reg  <= imem_addr;
                 fetch_pending <= 1'b1;
                 force_fetch   <= 1'b0;
             end else begin
@@ -155,7 +180,6 @@ module Hifu #(
                 if_valid <= 1'b0;
 
             if (imem_req_valid && imem_req_ready) begin
-                fetch_pc_reg <= imem_addr;
                 fetch_pending <= 1'b1;
                 force_fetch <= 1'b0;
             end

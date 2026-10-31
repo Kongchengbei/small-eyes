@@ -1,0 +1,19 @@
+来源：用户于 2026-10-27 在对话中提供的串口文本；本文件是转录件，不是串口软件原始导出或截图。crcstate 的两次串口分包在下方合并为 0x8e3a。
+
+Start CoreMark CPU=70000000 Hz UART=115200 TX_FPIOA=0
+2K performance run parameters for coremark.
+CoreMark Size    : 666
+Total ticks      : 1123158039
+Total time (secs): 16.04511
+Iterations/Sec   : 186.97280
+Iterations       : 3000
+Compiler version : GCC10.2.0
+Compiler flags   : --specs=picolibc.specs -march=rv32im -mabi=ilp32 -mcmodel=medlow -ffunction-sections -fdata-sections -fno-builtin-printf -fno-builtin-malloc -O2 -Wall -Wextra
+Memory location  : STATIC
+seedcrc          : 0xe9f5
+[0]crclist       : 0xe714
+[0]crcmatrix     : 0x1fd7
+[0]crcstate      : 0x8e3a
+[0]crcfinal      : 0xcc42
+Correct operation validated. See readme.txt for run and reporting rules.
+SparrowRV Coremark = 2.67104 CoreMark/MHz

@@ -22,6 +22,15 @@ module ReturnAddressStack (
     assign valid    = (depth != 4'd0);
     assign top_addr = valid ? entries[top_idx] : 32'd0;
 
+    // Entry data is irrelevant after reset/clear empties the stack. Permit a
+    // speculative same-edge push without putting the late clear on every RAM
+    // write enable. Future pushes overwrite each slot before it becomes valid.
+    wire [2:0] write_idx = (pop && (depth != 4'd0)) ? top_idx : next_idx;
+    always @(posedge clk) begin
+        if (push)
+            entries[write_idx] <= push_addr;
+    end
+
     // `next_idx` points to the next insertion slot; the current top is the
     // preceding slot. Depth saturates at eight while the circular index wraps.
     always @(posedge clk) begin
@@ -35,16 +44,12 @@ module ReturnAddressStack (
             if (depth == 4'd0) begin
                 // An empty pop has no effect; the simultaneous push creates
                 // the first entry.
-                entries[next_idx] <= push_addr;
                 next_idx          <= next_idx + 3'd1;
                 depth             <= 4'd1;
-            end else begin
-                // Coroutine-style transfer: replace the current top and keep
-                // the depth and insertion pointer unchanged.
-                entries[top_idx] <= push_addr;
             end
+            // A nonempty coroutine-style transfer replaces the current top
+            // in the data block above, keeping depth and pointer unchanged.
         end else if (push) begin
-            entries[next_idx] <= push_addr;
             next_idx          <= next_idx + 3'd1;
             if (depth != 4'd8)
                 depth <= depth + 4'd1;

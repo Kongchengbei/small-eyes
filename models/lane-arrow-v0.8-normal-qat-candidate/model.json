@@ -1,0 +1,95 @@
+{
+  "version": "lane-arrow-v0.8-normal-qat-candidate",
+  "classes": [
+    "left",
+    "straight",
+    "right",
+    "u_turn_left",
+    "u_turn_right",
+    "straight_left",
+    "straight_right",
+    "left_right",
+    "straight_left_right",
+    "non_arrow",
+    "unknown_arrow"
+  ],
+  "input": {
+    "size": 32,
+    "layout": "HWC4 int8: R,G,B,0 per pixel, (y*32+x)*4+c",
+    "value": "u8 XOR 0x80 = u8-128",
+    "scale": "2^-7"
+  },
+  "conv": "acc = b + sum(w*x), zero padding 1; out = clamp(acc >> shift, 0, 127)",
+  "layers": [
+    {
+      "name": "L1",
+      "weight_shape": [
+        16,
+        3,
+        3,
+        4
+      ],
+      "shift": 9,
+      "f_in": 7,
+      "f_weight": 5,
+      "f_out": 3,
+      "pool_after": true
+    },
+    {
+      "name": "L2",
+      "weight_shape": [
+        32,
+        3,
+        3,
+        16
+      ],
+      "shift": 8,
+      "f_in": 3,
+      "f_weight": 8,
+      "f_out": 3,
+      "pool_after": true
+    },
+    {
+      "name": "L3",
+      "weight_shape": [
+        64,
+        3,
+        3,
+        32
+      ],
+      "shift": 8,
+      "f_in": 3,
+      "f_weight": 8,
+      "f_out": 3,
+      "pool_after": true
+    },
+    {
+      "name": "L4",
+      "weight_shape": [
+        64,
+        3,
+        3,
+        64
+      ],
+      "shift": 7,
+      "f_in": 3,
+      "f_weight": 7,
+      "f_out": 3,
+      "pool_after": false
+    }
+  ],
+  "fc": {
+    "weight_shape": [
+      11,
+      64
+    ],
+    "logit_frac": 10
+  },
+  "gap": "(sum of 4x4 + 8) >> 4",
+  "output": "class = first index of the max logit; margin = max - second max",
+  "margin_threshold_counts": 0,
+  "calibration_source": "training split only",
+  "test_partition_loaded": false,
+  "dataset_license": "mixed user-provided, MapDR CC-BY-NC-SA-4.0, and TPD public research download with redistribution terms unspecified",
+  "dataset_citation": "Chang et al., CVPR 2025, MapDR; Chinese Traffic Panel Database (TPD), NLPR/CASIA"
+}

@@ -96,6 +96,7 @@ module Htop #(
     // pipeline control wires (kept from the previous Htop)
     // ------------------------------------------------------------------
     wire        if_to_id_valid;
+    wire        if_to_id_valid_raw;
     wire [31:0] if_pc;
     wire [31:0] if_ins;
     wire [31:0] if_req_pc;
@@ -141,6 +142,9 @@ module Htop #(
     wire [1:0]  id_wb_sel;
     wire        id_flush_req;
     wire [31:0] id_redirect_pc;
+    wire [31:0] id_redirect_base;
+    wire        id_redirect_is_jalr;
+    wire        id_actual_taken;
 
     wire [31:0] ex_pc;
     wire [31:0] ex_ins;
@@ -198,6 +202,9 @@ module Htop #(
         else
             icache_cancel_q <= flush;
     end
+    // Suppress the discarded IF payload during the registered squash cycle.
+    // Hidu also masks issue in this cycle before clearing its stored valid.
+    assign if_to_id_valid = if_to_id_valid_raw && !icache_cancel_q;
 
     wire [31:0] btb_lookup_pc;
     wire [31:0] if_btb_lookup_pc;
@@ -215,6 +222,28 @@ module Htop #(
     wire        btb_update_taken;
     wire [31:0] btb_predict_next_pc;
     wire [31:0] actual_next_pc;
+
+    // Sample address components and selection bits independently. The late
+    // branch result drives one D input instead of selecting a 32-bit bus
+    // before the capture edge. JALR addition also moves after base capture.
+    // icache_cancel_q is the registered flush validity for this same edge.
+    reg [31:0] redirect_base_q, redirect_imm_q;
+    reg [31:0] redirect_sequential_q, redirect_exception_pc_q;
+    reg redirect_jalr_q, redirect_taken_q, redirect_exception_q;
+    always @(posedge clk) begin
+        redirect_base_q <= id_redirect_base;
+        redirect_imm_q <= id_imm;
+        redirect_sequential_q <= id_pc + 32'd4;
+        redirect_exception_pc_q <= ex_flush_pc;
+        redirect_jalr_q <= id_redirect_is_jalr;
+        redirect_taken_q <= id_actual_taken;
+        redirect_exception_q <= ex_flush_req;
+    end
+    wire [31:0] redirect_sample_target = (redirect_base_q + redirect_imm_q) &
+                                         (redirect_jalr_q ? ~32'd1 : ~32'd0);
+    wire [31:0] redirect_sample_pc = redirect_exception_q ? redirect_exception_pc_q :
+                                    redirect_taken_q ? redirect_sample_target :
+                                                       redirect_sequential_q;
 
     // ---- LSU / cache buses -------------------------------------------
     wire        dmem_valid;
@@ -289,8 +318,13 @@ module Htop #(
         .clk            (clk),
         .rst            (rst),
         .id_allowin     (id_allowin),
-        .flush          (flush),
+        // DDR already blocks request handshakes in the cancellation cycle.
+        // Align IF state invalidation with it; the first new request remains
+        // at the same edge. BRAM retains its immediate redirect handshake.
+        .flush          (BRAM_MODE ? flush : icache_cancel_q),
         .redirect_pc    (flush_pc),
+        .redirect_sample_valid(icache_cancel_q),
+        .redirect_sample_pc(redirect_sample_pc),
         .imem_rdata     (BRAM_MODE ? bram_if_resp_data : if_resp_data),
         .imem_resp_valid(BRAM_MODE ? bram_if_resp_valid : if_resp_valid),
         .imem_req_ready (BRAM_MODE ? bram_if_ready :
@@ -303,7 +337,7 @@ module Htop #(
         .imem_addr      (if_req_pc),
         .if_ins         (if_ins),
         .if_pc          (if_pc),
-        .if_to_id_valid (if_to_id_valid),
+        .if_to_id_valid (if_to_id_valid_raw),
         .btb_lookup_pc  (if_btb_lookup_pc),
         .dbg_if_valid   (dbg_if_valid),
         .dbg_if_allowin (dbg_if_allowin)
@@ -434,24 +468,47 @@ module Htop #(
         .clk       (clk),
         .rst       (rst),
         .clear     (ex_flush_req),
-        .push      (btb_update_valid && ras_push_hint),
-        .pop       (btb_update_valid && ras_pop_hint),
+        // clear has priority over push/pop inside the RAS, so masking these
+        // events with !ex_flush_req is redundant and lengthens the enable.
+        .push      (btb_update_valid_id && ras_push_hint),
+        .pop       (btb_update_valid_id && ras_pop_hint),
         .push_addr (id_pc + 32'd4),
         .valid     (ras_valid),
         .top_addr  (ras_target)
     );
     assign fetch_predict_target = (btb_lookup_is_return && ras_valid) ?
                                    ras_target : btb_look_up_target;
+
+    // Pipeline only predictor training, not instruction retirement. The EX
+    // exception mask remains on the resolved ID event, but now ends at one
+    // valid D input rather than every BTB table write enable. Capture all
+    // payload fields without that late enable; train_valid_q qualifies them.
+    reg btb_train_valid_q;
+    reg [31:0] btb_train_pc_q;
+    reg btb_train_conditional_q, btb_train_return_q, btb_train_taken_q;
+    always @(posedge clk) begin
+        if (rst)
+            btb_train_valid_q <= 1'b0;
+        else
+            btb_train_valid_q <= btb_update_valid;
+        btb_train_pc_q <= btb_update_pc;
+        btb_train_conditional_q <= btb_update_is_conditional;
+        btb_train_return_q <= btb_update_is_return;
+        btb_train_taken_q <= btb_update_taken;
+    end
+
     Btb u_btb (
         .clk            (clk),
         .rst            (rst),
         .lookup_pc      (btb_lookup_pc),
-        .update_valid   (btb_update_valid),
-        .update_pc      (btb_update_pc),
-        .update_target  (btb_update_target),
-        .update_is_conditional (btb_update_is_conditional),
-        .update_is_return (btb_update_is_return),
-        .update_taken   (btb_update_taken),
+        .update_valid   (btb_train_valid_q),
+        .update_pc      (btb_train_pc_q),
+        // Same resolved ID event as train_valid_q; use the sampled address
+        // components, including JALR bit-zero clearing, for its target.
+        .update_target  (redirect_sample_target),
+        .update_is_conditional (btb_train_conditional_q),
+        .update_is_return (btb_train_return_q),
+        .update_taken   (btb_train_taken_q),
         .lookup_match   (btb_lookup_match),
         .lookup_predict_taken (btb_lookup_predict_taken),
         .lookup_hit     (btb_lookup_hit),
@@ -484,7 +541,7 @@ module Htop #(
         .mem_alu_forward_valid(mem_alu_forward_valid),
         .mem_alu_forward_data (mem_alu_forward_data),
         .ex_allowin         (ex_allowin),
-        .flush              (flush),
+        .flush              (icache_cancel_q),
         .wb_reg_wen         (wb_reg_wen),
         .wb_rd_addr         (wb_rd_addr),
         .wb_data            (wb_data),
@@ -522,6 +579,9 @@ module Htop #(
         .id_wb_sel          (id_wb_sel),
         .id_flush_req       (id_flush_req),
         .id_redirect_pc     (id_redirect_pc),
+        .id_redirect_base   (id_redirect_base),
+        .id_redirect_is_jalr(id_redirect_is_jalr),
+        .id_actual_taken    (id_actual_taken),
         //btb
         .btb_update_pc      (btb_update_pc),
         .btb_update_valid   (btb_update_valid_id),

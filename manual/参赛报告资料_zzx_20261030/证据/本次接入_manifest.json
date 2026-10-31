@@ -1,0 +1,50 @@
+{
+  "head": "a00aa3b83a107b6fac714205e7ca39c967e65a57",
+  "cpu_source": "78cd22d87291476988d868bc3b048407293a4dbc",
+  "cpu_files": [
+    "cpu/Btb.v",
+    "cpu/Hexu.v",
+    "cpu/Hidu.v",
+    "cpu/Hifu.v",
+    "cpu/Htop.v",
+    "cpu/ReturnAddressStack.v",
+    "cpu/div.v",
+    "cpu/icache.v"
+  ],
+  "protected_sha256": {
+    "soc/Hfpga_soc.v": "42c5b1f362318087d1c82335b4f03ebb82aed0f214ea888fd0c051fdc5d78c74",
+    "soc/Hnpu_image_service.v": "97b195e63eb3a2136cfd03ee63eef2bf098dea9f6a9ca9890b47b59d6af7e639",
+    "soc/soc_addr_map.vh": "ca39d369d5a37f098ec150ce2770604f1961571c6076355db1f9e317ee361485",
+    "soc.fdc": "4ec78aaa1f5387f0638f49991cd38d858cb790e5e69dfafa0f80efced4560bcd",
+    "build/menuconfig/.config": "63399eaf9dab20f1f6e88978da8053fac5c08cc529c244301305e9807ed92d41"
+  },
+  "absent_before": [
+    "cpu/ReturnAddressStack.v"
+  ],
+  "imported_sha256": {
+    "cpu/Btb.v": "ddafa57513211657375165bc0a8fa92675a45e3cc0b1e4a08b8458ad0f45e18b",
+    "cpu/Hexu.v": "fc3c3b65fa47dfa57e60b353261c4b44b3700183459c7c46af549175d444de85",
+    "cpu/Hidu.v": "dfc820de8389b0f7b50082468480617ebe82873915a18667ba888afe11afb3f1",
+    "cpu/Hifu.v": "7c6441abadd0684578bb7db00966d1a0fdbd8d9c8a9db317b304cea0f0f822fd",
+    "cpu/Htop.v": "b489d0b1cee7725f6ed44010b582783b599cf7187fe539c540b3e3a3bc4bc254",
+    "cpu/ReturnAddressStack.v": "4b5d5d954a751b23fe336749d69fc23b62e4d5267ceb9676777f95319d0b8955",
+    "cpu/div.v": "11b653e5424f3f08ee0d5aa3ac171aa551c01f53c42ebd8f1cd3c4bdf5cec615",
+    "cpu/icache.v": "80840ecd403b8a6b18affd3fb717b53a126691d79a27aec7e31846b410d85995"
+  },
+  "checks": {
+    "cpu_bram_static_compile": true,
+    "cpu_ddr_static_compile": true,
+    "soc_full_verilator_lint_exit": 0,
+    "soc_lint_warning_counts": {
+      "IMPLICIT": 3,
+      "WIDTHTRUNC": 41,
+      "WIDTHCONCAT": 2,
+      "WIDTHEXPAND": 86,
+      "CASEINCOMPLETE": 6,
+      "LATCH": 8
+    },
+    "testbench_run": false,
+    "pds_run": false,
+    "bitstream_updated": false
+  }
+}

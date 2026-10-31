@@ -1,0 +1,78 @@
+%Warning-WIDTHTRUNC: cpu/Htop.v:346:18: Logical operator LOGNOT expects 1 bit on the LHS, but LHS's VARREF 'BRAM_MODE' generates 32 bits.
+                                      : ... In instance Htop
+  346 |     generate if (!BRAM_MODE) begin: gen_icache
+      |                  ^
+                     ... For warning description see https://verilator.org/warn/WIDTHTRUNC?v=5.008
+                     ... Use "/* verilator lint_off WIDTHTRUNC */" and lint_on around source to disable this message.
+%Warning-WIDTHTRUNC: cpu/Htop.v:391:14: Logical operator GENIF expects 1 bit on the If, but If's VARREF 'BRAM_MODE' generates 32 bits.
+                                      : ... In instance Htop
+  391 |     generate if (BRAM_MODE) begin: gen_cpu_bram
+      |              ^~
+%Warning-WIDTHTRUNC: cpu/Htop.v:667:18: Logical operator LOGNOT expects 1 bit on the LHS, but LHS's VARREF 'BRAM_MODE' generates 32 bits.
+                                      : ... In instance Htop
+  667 |     generate if (!BRAM_MODE) begin: gen_dcache
+      |                  ^
+%Warning-WIDTHTRUNC: cpu/Hifu.v:64:47: Logical operator COND expects 1 bit on the Conditional Test, but Conditional Test's VARREF 'CONTINUOUS_FETCH' generates 32 bits.
+                                     : ... In instance Htop.u_ifu
+   64 |                             (CONTINUOUS_FETCH ? (fetch_pc_reg + 32'd4) : (if_pc_reg + 32'd4));
+      |                                               ^
+%Warning-WIDTHTRUNC: cpu/Hifu.v:65:42: Logical operator COND expects 1 bit on the Conditional Test, but Conditional Test's VARREF 'CONTINUOUS_FETCH' generates 32 bits.
+                                     : ... In instance Htop.u_ifu
+   65 |  assign btb_lookup_pc = CONTINUOUS_FETCH ? fetch_pc_reg : if_pc_reg;
+      |                                          ^
+%Warning-WIDTHTRUNC: cpu/Hifu.v:77:47: Logical operator LOGAND expects 1 bit on the LHS, but LHS's VARREF 'CONTINUOUS_FETCH' generates 32 bits.
+                                     : ... In instance Htop.u_ifu
+   77 |  assign imem_addr         = (CONTINUOUS_FETCH && flush) ? redirect_pc :
+      |                                               ^~
+%Warning-WIDTHTRUNC: cpu/Hifu.v:80:46: Logical operator COND expects 1 bit on the Conditional Test, but Conditional Test's VARREF 'CONTINUOUS_FETCH' generates 32 bits.
+                                     : ... In instance Htop.u_ifu
+   80 |  assign imem_req_valid    = CONTINUOUS_FETCH ? (flush || fetch_room) :
+      |                                              ^
+%Warning-WIDTHTRUNC: cpu/Hifu.v:94:18: Logical operator IF expects 1 bit on the If, but If's VARREF 'CONTINUOUS_FETCH' generates 32 bits.
+                                     : ... In instance Htop.u_ifu
+   94 |         end else if (CONTINUOUS_FETCH) begin
+      |                  ^~
+%Warning-WIDTHTRUNC: cpu/Hifu.v:153:47: Logical operator LOGAND expects 1 bit on the LHS, but LHS's VARREF 'CONTINUOUS_FETCH' generates 32 bits.
+                                      : ... In instance Htop.u_ifu
+  153 |             fetch_pending <= CONTINUOUS_FETCH && imem_req_ready;
+      |                                               ^~
+%Warning-WIDTHTRUNC: cpu/Hifu.v:154:51: Logical operator LOGAND expects 1 bit on the LHS, but LHS's VARREF 'CONTINUOUS_FETCH' generates 32 bits.
+                                      : ... In instance Htop.u_ifu
+  154 |             force_fetch     <= !(CONTINUOUS_FETCH && imem_req_ready);
+      |                                                   ^~
+%Warning-WIDTHTRUNC: cpu/Hifu.v:157:18: Logical operator IF expects 1 bit on the If, but If's VARREF 'CONTINUOUS_FETCH' generates 32 bits.
+                                      : ... In instance Htop.u_ifu
+  157 |         end else if (CONTINUOUS_FETCH) begin
+      |                  ^~
+%Warning-WIDTHTRUNC: cpu/Hifu.v:198:44: Logical operator COND expects 1 bit on the Conditional Test, but Conditional Test's VARREF 'CONTINUOUS_FETCH' generates 32 bits.
+                                      : ... In instance Htop.u_ifu
+  198 |  assign predict_next_pc = CONTINUOUS_FETCH ? if_pred_next_pc : if_predict_next_pc;
+      |                                            ^
+%Warning-WIDTHEXPAND: cpu/Btb.v:79:44: Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'update_index' generates 4 bits.
+                                     : ... In instance Htop.u_btb
+   79 |          if (update_valid && (update_index == i)) begin
+      |                                            ^~
+%Warning-WIDTHTRUNC: cpu/Htop.v:264:20: Logical operator LOGNOT expects 1 bit on the LHS, but LHS's VARREF 'BRAM_MODE' generates 32 bits.
+                                      : ... In instance Htop
+  264 |         if (rst || !BRAM_MODE) begin
+      |                    ^
+%Warning-WIDTHTRUNC: cpu/Htop.v:324:36: Logical operator COND expects 1 bit on the Conditional Test, but Conditional Test's VARREF 'BRAM_MODE' generates 32 bits.
+                                      : ... In instance Htop
+  324 |         .flush          (BRAM_MODE ? flush : icache_cancel_q),
+      |                                    ^
+%Warning-WIDTHTRUNC: cpu/Htop.v:328:36: Logical operator COND expects 1 bit on the Conditional Test, but Conditional Test's VARREF 'BRAM_MODE' generates 32 bits.
+                                      : ... In instance Htop
+  328 |         .imem_rdata     (BRAM_MODE ? bram_if_resp_data : if_resp_data),
+      |                                    ^
+%Warning-WIDTHTRUNC: cpu/Htop.v:329:36: Logical operator COND expects 1 bit on the Conditional Test, but Conditional Test's VARREF 'BRAM_MODE' generates 32 bits.
+                                      : ... In instance Htop
+  329 |         .imem_resp_valid(BRAM_MODE ? bram_if_resp_valid : if_resp_valid),
+      |                                    ^
+%Warning-WIDTHTRUNC: cpu/Htop.v:330:36: Logical operator COND expects 1 bit on the Conditional Test, but Conditional Test's VARREF 'BRAM_MODE' generates 32 bits.
+                                      : ... In instance Htop
+  330 |         .imem_req_ready (BRAM_MODE ? bram_if_ready :
+      |                                    ^
+%Warning-WIDTHTRUNC: cpu/Htop.v:450:38: Logical operator COND expects 1 bit on the Conditional Test, but Conditional Test's VARREF 'BRAM_MODE' generates 32 bits.
+                                      : ... In instance Htop
+  450 |     assign btb_lookup_pc = BRAM_MODE ? if_btb_lookup_pc : if_pc;
+      |                                      ^

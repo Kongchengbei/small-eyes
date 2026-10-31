@@ -1,0 +1,13 @@
+﻿配置,指标,值,单位,状态
+BRAM历史实板,CoreMark/MHz,2.67104,CoreMark/MHz,用户日志自校验通过；不代表最新RTL
+BRAM历史实板,Iterations/Sec,186.97280,iterations/s,70MHz；3000次迭代
+BRAM历史09,模块LUT,4494,LUT,历史PDS报告；不是当前FullDDR资源
+FullDDR最新10,SoC模块LUT,44860,LUT,2026-10-31布线后
+FullDDR最新10,CPU模块LUT,5256,LUT,同一轮
+FullDDR最新10,SoC FF,47571,FF,同一轮
+FullDDR最新10,CPU FF,3683,FF,同一轮
+FullDDR最新10,物理LUT,48412,LUT,CLMA36917+CLMS11495
+FullDDR最新10,CPU setup slow WNS,0.271,ns,通过；TNS0；失败端点0
+FullDDR最新10,CPU hold fast WNS,0.103,ns,通过；TNS0；失败端点0
+FullDDR最新10,DDR core setup slow WNS,-2.485,ns,未通过；整机仍有违例
+FullDDR最新10,新RTL的CoreMark和识别实测,待测,,位流已生成，未烧录

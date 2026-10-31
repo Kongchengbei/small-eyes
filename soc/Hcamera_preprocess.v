@@ -42,7 +42,8 @@ module Hcamera_preprocess #(
     input [15:0] cfg_width,
 	input [15:0] cfg_height,
     input [3:0] cfg_colors,
-    input [7:0] cfg_bright_min, input [7:0] cfg_dominance, input [7:0] cfg_black_max,
+    input [7:0] cfg_bright_min, input [7:0] cfg_red_blue_bright_min,
+    input [7:0] cfg_dominance, input [7:0] cfg_black_max,
     input [31:0] cfg_min_pixels, input [31:0] cfg_min_area, input [31:0] cfg_max_area,
     input [7:0] cfg_min_fill,
     input [15:0] cfg_min_aspect, input [15:0] cfg_max_aspect, input [15:0] cfg_margin,
@@ -113,7 +114,7 @@ module Hcamera_preprocess #(
     reg [31:0] cycle_count, wait_count;
     reg [15:0] out_width, out_height, margin;
     reg [3:0] colors_enabled;
-    reg [7:0] bright_min, dominance, black_max, min_fill;
+    reg [7:0] bright_min, red_blue_bright_min, dominance, black_max, min_fill;
     reg [31:0] min_pixels, min_area, max_area;
     reg [15:0] min_aspect, max_aspect;
     reg [31:0] read_address, write_address;
@@ -259,7 +260,8 @@ module Hcamera_preprocess #(
     (* keep *) wire config_valid = cfg_basic_ok && cfg_area_le && cfg_aspect_le;
 
     Hpreprocess_color u_color (.pixel(pix_reg), .color_enable(colors_enabled),
-        .bright_min(bright_min), .dominance(dominance), .black_max(black_max), .color(pixel_color));
+        .bright_min(bright_min), .red_blue_bright_min(red_blue_bright_min),
+        .dominance(dominance), .black_max(black_max), .color(pixel_color));
     wire [N-1:0] rg_valid;
     wire [N*3-1:0] rg_color;
     wire [N*16-1:0] rg_x0, rg_y0, rg_x1, rg_y1;
@@ -492,7 +494,7 @@ module Hcamera_preprocess #(
             bank_ready_mask<=0; bank_owned<=0; bank_frames[0]<=0; bank_frames[1]<=0;
             frames_processed<=0; empty_frames<=0; failed_frames<=0; bad_releases<=0;
             error<=0; last_cycles<=0; frame_bad<=0; cycle_count<=0; wait_count<=0;
-            out_width<=0; out_height<=0; colors_enabled<=0; bright_min<=0; dominance<=0;
+            out_width<=0; out_height<=0; colors_enabled<=0; bright_min<=0; red_blue_bright_min<=0; dominance<=0;
             black_max<=0; min_fill<=0; min_pixels<=0; min_area<=0; max_area<=0;
             min_aspect<=0; max_aspect<=0; margin<=0;
             read_address<=0; write_address<=0; read_cache<=0; write_pack<=0;
@@ -536,7 +538,8 @@ module Hcamera_preprocess #(
                     frame_bad<=!config_valid; cycle_count<=0; cache_valid<=0;
                     out_width<=cfg_width; out_height<=cfg_height; colors_enabled<=cfg_colors;
                     out_wm1<={1'b0,cfg_width}-17'd1; out_hm1<={1'b0,cfg_height}-17'd1;
-                    bright_min<=cfg_bright_min; dominance<=cfg_dominance; black_max<=cfg_black_max;
+                    bright_min<=cfg_bright_min; red_blue_bright_min<=cfg_red_blue_bright_min;
+                    dominance<=cfg_dominance; black_max<=cfg_black_max;
                     min_pixels<=cfg_min_pixels; min_area<=cfg_min_area; max_area<=cfg_max_area;
                     min_fill<=cfg_min_fill; min_aspect<=cfg_min_aspect; max_aspect<=cfg_max_aspect;
                     margin<=cfg_margin;

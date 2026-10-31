@@ -65,6 +65,9 @@ module Hidu (
     output wire [1:0]  id_wb_sel,
     output wire        id_flush_req,
     output wire [31:0] id_redirect_pc,
+    output wire [31:0] id_redirect_base,
+    output wire        id_redirect_is_jalr,
+    output wire        id_actual_taken,
     //btb
      output wire        btb_update_valid,
      output wire [31:0] btb_update_pc,
@@ -296,8 +299,23 @@ module Hidu (
     // Execution forwarding is independent of the selected memory backend.
     // Branch/JALR operands use the same newest-writer priority as ALU inputs.
     // Loads remain subject to the ID dependency stalls below.
-    wire [31:0] id_br_src1 = id_src1;
-    wire [31:0] id_br_src2 = id_src2;
+    // Control-flow data selection depends on registered producer ownership,
+    // not on a late cache response qualifying ex_forward_valid. id_fire still
+    // waits for EX to advance and for pending MEM loads; therefore an unready
+    // speculative operand cannot redirect or train the predictor.
+    wire br_ex_rs1 = ex_valid && ex_reg_wen && ex_rd_addr != 5'd0 &&
+                     ex_rd_addr == id_rs1_addr;
+    wire br_ex_rs2 = ex_valid && ex_reg_wen && ex_rd_addr != 5'd0 &&
+                     ex_rd_addr == id_rs2_addr;
+    wire br_mem_writer = mem_load_valid || mem_alu_forward_valid;
+    wire br_mem_rs1 = br_mem_writer && mem_forward_rd_addr != 5'd0 &&
+                      mem_forward_rd_addr == id_rs1_addr;
+    wire br_mem_rs2 = br_mem_writer && mem_forward_rd_addr != 5'd0 &&
+                      mem_forward_rd_addr == id_rs2_addr;
+    wire [31:0] id_br_src1 = br_ex_rs1 ? ex_forward_data :
+                               br_mem_rs1 ? mem_forward_data : id_rs1_data;
+    wire [31:0] id_br_src2 = br_ex_rs2 ? ex_forward_data :
+                               br_mem_rs2 ? mem_forward_data : id_rs2_data;
 
     // Branches and JALR still consume operands in ID. Other EX consumers
     // may carry an immediately preceding load dependency into EX. EX waits
@@ -316,12 +334,19 @@ module Hidu (
     assign id_mem_pending_rd_addr = (id_src1_mem_pending || id_src2_mem_pending) ?
                                     ex_rd_addr : 5'b0;
 
-    wire branch_taken = id_is_beq ? (id_br_src1 == id_br_src2) :
-                        id_is_bne ? (id_br_src1 != id_br_src2) :
-                        (id_is_bge  && ($signed(id_br_src1) >= $signed(id_br_src2))) ||
-                        (id_is_bgeu && (        id_br_src1  >=         id_br_src2))  ||
-                        (id_is_blt  && ($signed(id_br_src1) < $signed(id_br_src2)))  ||
-                        (id_is_bltu && (id_br_src1 < id_br_src2));
+    // Share one native equality/magnitude comparator across branch forms.
+    // Let the mapper use the device's comparison/carry operators rather than
+    // placing separate four-bit groups and their equality merge network.
+    wire branch_equal = id_br_src1 == id_br_src2;
+    wire branch_unsigned_less = id_br_src1 < id_br_src2;
+    wire branch_signed_less = (id_br_src1[31] != id_br_src2[31]) ?
+                              id_br_src1[31] : branch_unsigned_less;
+    wire branch_less = funct3[1] ? branch_unsigned_less : branch_signed_less;
+    wire branch_condition = funct3[2] ? branch_less : branch_equal;
+    // Reserved branch funct3 010/011 continue to resolve as not taken.
+    wire branch_encoding_valid = type_b && (funct3[2] || !funct3[1]);
+    wire branch_taken = branch_encoding_valid &&
+                        (branch_condition ^ funct3[0]);
 	//阻塞
     wire id_ex_load_match_rs1 = ex_valid && ex_is_load && (ex_rd_addr != 5'd0) &&
                                 id_uses_rs1 && (id_rs1_addr == ex_rd_addr);
@@ -341,18 +366,36 @@ module Hidu (
     wire id_stall = id_valid && (ex_load_stall || mem_load_stall);
 
 	//控制信号
-    wire   id_ready_go      = !id_stall;
+    // flush is the registered squash from the preceding resolution edge.
+    // A speculatively captured younger entry must not issue in this cycle,
+    // even though its stored valid bit is cleared only at the next edge.
+    wire   id_ready_go      = !id_stall && !flush;
     assign id_allowin       = !id_valid || (id_ready_go && ex_allowin);
     assign id_to_ex_valid   = id_valid && id_ready_go;
 
-    assign dbg_id_valid     = id_valid;
+    assign dbg_id_valid     = id_valid && !flush;
     assign dbg_id_stall     = id_stall;
     assign dbg_id_ready_go  = id_ready_go;
 
     wire id_fire  = id_valid && id_ready_go && ex_allowin;//已经正确，ID具备向下执行的条件
     assign id_flush_req =  mispredict;//(id_fire &&(id_is_jal || id_is_jalr ||(id_is_branch && branch_taken))) || mispredict;
+    wire [31:0] direct_target_pc = id_pc_reg + id_imm;
+    // (rs1 + imm) & ~1 == predicted iff predicted is even and the
+    // unmasked sum is predicted or predicted|1. Both inverse sums depend
+    // only on ID registers; the late forwarded rs1 sees equality logic.
+    // All operations wrap modulo 2^32, including address overflow.
+    wire [31:0] jalr_expected_even = id_predict_next_pc - id_imm;
+    wire [31:0] jalr_expected_odd = (id_predict_next_pc | 32'd1) - id_imm;
+    wire jalr_target_match = !id_predict_next_pc[0] &&
+                            ((id_br_src1 == jalr_expected_even) ||
+                             (id_br_src1 == jalr_expected_odd));
     assign id_redirect_pc = id_is_jalr ? ((id_br_src1 + id_imm) & ~32'd1) :
-                                         (id_pc_reg + id_imm);
+                                         direct_target_pc;
+    // Export raw address components for the registered redirect/BTB stage.
+    // That stage adds the immediate after capturing a late forwarded base.
+    assign id_redirect_base = id_is_jalr ? id_br_src1 : id_pc_reg;
+    assign id_redirect_is_jalr = id_is_jalr;
+    assign id_actual_taken = actual_taken;
 
 	assign id_ins = id_ins_reg;
 
@@ -373,13 +416,13 @@ module Hidu (
     generate
         for (pc_group = 0; pc_group < 10; pc_group = pc_group + 1) begin: gen_pc_compare
             assign target_pc_group_equal[pc_group] =
-                (id_redirect_pc[pc_group*3 +: 3] == id_predict_next_pc[pc_group*3 +: 3]);
+                (direct_target_pc[pc_group*3 +: 3] == id_predict_next_pc[pc_group*3 +: 3]);
             assign sequential_pc_group_equal[pc_group] =
                 (sequential_pc[pc_group*3 +: 3] == id_predict_next_pc[pc_group*3 +: 3]);
         end
     endgenerate
     assign target_pc_group_equal[10] =
-        (id_redirect_pc[31:30] == id_predict_next_pc[31:30]);
+        (direct_target_pc[31:30] == id_predict_next_pc[31:30]);
     assign sequential_pc_group_equal[10] =
         (sequential_pc[31:30] == id_predict_next_pc[31:30]);
 
@@ -399,13 +442,29 @@ module Hidu (
         ((sequential_pc_group_equal[6] && sequential_pc_group_equal[7]) &&
          (sequential_pc_group_equal[8] && sequential_pc_group_equal[9])) &&
         sequential_pc_group_equal[10];
-    assign target_pc_match = target_pc_match_low && target_pc_match_high;
+    assign target_pc_match = id_is_jalr ? jalr_target_match :
+                            (target_pc_match_low && target_pc_match_high);
     assign sequential_pc_match = sequential_pc_match_low && sequential_pc_match_high;
+
+    // Select prediction expectations from the early opcode/funct3 and PC
+    // matches. A late forwarded branch comparison then only selects between
+    // these two expectations, without passing through actual_taken decoding.
+    // Jumps use the target in either case; nonbranches/reserved branches use
+    // the sequential PC in either case. Inverted branch forms swap the cases.
+    wire predict_target_if_condition_true = id_is_jal || id_is_jalr ||
+                                             (branch_encoding_valid && !funct3[0]);
+    wire predict_target_if_condition_false = id_is_jal || id_is_jalr ||
+                                              (branch_encoding_valid && funct3[0]);
+    wire predict_match_if_condition_true = predict_target_if_condition_true ?
+                                             target_pc_match : sequential_pc_match;
+    wire predict_match_if_condition_false = predict_target_if_condition_false ?
+                                              target_pc_match : sequential_pc_match;
 
 /*在硬件中，方向是二进制的，因此只有两个候选匹配项会进入选择器
 保留原始四状态模拟结果，喂入选择器。保留原始的四状态模拟结果*/
     always @(*) begin
-        chosen_pc_match = actual_taken ? target_pc_match : sequential_pc_match;
+        chosen_pc_match = branch_condition ? predict_match_if_condition_true :
+                                             predict_match_if_condition_false;
         // synthesis translate_off
         if ((actual_taken !== 1'b0) && (actual_taken !== 1'b1))
             chosen_pc_match = (actual_next_pc == id_predict_next_pc);

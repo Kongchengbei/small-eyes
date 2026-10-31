@@ -29,16 +29,19 @@ model_bytes=$(wc -c < "$tmp_dir/road.npu" | tr -d ' ')
 hexdump_bytes "$tmp_dir/road.npu" "$tmp_dir/model.hex"
 
 if [[ -f "$model_dir/classes.csv" ]]; then
-    python3 - "$model_dir/classes.csv" <<'PY'
+    python3 - "$model_dir/classes.csv" "$tmp_dir/road.npu" <<'PY'
 import csv
 import pathlib
 import sys
 
-rows = list(csv.DictReader(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8-sig").splitlines()))
-ids = [int(row["index"]) for row in rows]
-if ids != list(range(11)):
-    raise SystemExit(f"classes.csv IDs must be 0..10, got {ids}")
-print("NPU_CLASSES_CHECK_PASS count=11")
+with pathlib.Path(sys.argv[1]).open(newline="", encoding="utf-8-sig") as stream:
+    rows = list(csv.DictReader(stream))
+field = "id" if rows and "id" in rows[0] else "index"
+ids = [int(row[field]) for row in rows]
+package_classes = pathlib.Path(sys.argv[2]).read_bytes()[0x16]
+if ids != list(range(len(rows))) or len(rows) != package_classes:
+    raise SystemExit(f"classes.csv does not match package class count={package_classes}: ids={ids}")
+print(f"NPU_CLASSES_CHECK_PASS count={package_classes}")
 PY
 fi
 
@@ -61,7 +64,9 @@ hexdump_bytes "$tmp_dir/in32.bin" "$tmp_dir/in32.hex"
 hexdump_bytes "$tmp_dir/in96.bin" "$tmp_dir/in96.hex"
 if [[ -f "$tmp_dir/reference/layers.bin" ]]; then
     hexdump_bytes "$tmp_dir/reference/layers.bin" "$tmp_dir/layers.hex"
-    [[ "$(wc -c < "$tmp_dir/reference/layers.bin" | tr -d ' ')" -eq $((roi_count * 36972)) ]] || {
+    class_count=$(od -An -j 22 -N 1 -tu1 "$tmp_dir/road.npu" | tr -d ' ')
+    expected_layer_bytes=$((roi_count * (36928 + class_count * 4)))
+    [[ "$(wc -c < "$tmp_dir/reference/layers.bin" | tr -d ' ')" -eq "$expected_layer_bytes" ]] || {
         echo "逐层参考长度不对" >&2
         exit 1
     }
@@ -76,7 +81,7 @@ for mode in 32 96; do
         -Wno-fatal -Wno-BLKLOOPINIT "${defs[@]}" \
         --top-module tb_npu_road_model_v03 -j "${SIM_JOBS:-2}" \
         --Mdir "$obj" -o simulator \
-        -GMODEL_BYTES="$model_bytes" -GROI_COUNT="$roi_count" \
+        -GMODEL_BYTES="$model_bytes" -GROI_COUNT="$roi_count" -GCLASS_COUNT="$class_count" \
         soc/Hnpu_cnn_engine.v temp/tests/tb_npu_road_model_v03.sv \
         > "$tmp_dir/build$mode.log" 2>&1 || {
             tail -40 "$tmp_dir/build$mode.log" >&2

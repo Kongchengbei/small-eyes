@@ -20,21 +20,29 @@ mapfile -t rtl_sources < <(find cpu soc jtag -type f \
 
 # Board IP is stubbed here. This checks RTL elaboration and the top-level
 # signal widths; it is not a replacement for PDS synthesis or timing closure.
-if ! lint_output=$(verilator --lint-only --timing --language 1800-2012 \
-    -I. -Isoc -Wno-fatal -Wno-BLKLOOPINIT \
-    --top-module Hfpga_soc -GCPU_MEM_BRAM=0 -GPREPROCESS_ENABLE=1 \
-    "${rtl_sources[@]}" sim/board_ip_lint_stubs.v 2>&1); then
-    printf '%s\n' "$lint_output" >&2
-    echo "NPU_SOC_LINT_FAIL elaboration" >&2
-    exit 1
-fi
+for profile_flags in \
+    '' \
+    '-GPREPROCESS_V04_CANDIDATE=0 -GPREPROCESS_V04_REDBLUE_ONLY=0 -GPREPROCESS_V04_REDBLUE_28=0' \
+    '-GPREPROCESS_V04_REDBLUE_ONLY=1' \
+    '-GPREPROCESS_V04_REDBLUE_28=1' \
+    '-GPREPROCESS_V04_CANDIDATE=1 -GPREPROCESS_V04_REDBLUE_ONLY=0 -GPREPROCESS_V04_REDBLUE_28=0'; do
+    read -r -a profile_options <<< "$profile_flags"
+    if ! lint_output=$(verilator --lint-only --timing --language 1800-2012 \
+        -I. -Isoc -Wno-fatal -Wno-BLKLOOPINIT \
+        --top-module Hfpga_soc -GCPU_MEM_BRAM=0 -GPREPROCESS_ENABLE=1 \
+        "${profile_options[@]}" "${rtl_sources[@]}" sim/board_ip_lint_stubs.v 2>&1); then
+        printf '%s\n' "$lint_output" >&2
+        echo "NPU_SOC_LINT_FAIL elaboration: $profile_flags" >&2
+        exit 1
+    fi
 
-if printf '%s\n' "$lint_output" |
-    rg -q '^%Warning-(WIDTHTRUNC|WIDTHEXPAND): soc/Hfpga_soc.v:'; then
-    printf '%s\n' "$lint_output" |
-        rg '^%Warning-(WIDTHTRUNC|WIDTHEXPAND): soc/Hfpga_soc.v:' >&2
-    echo "NPU_SOC_LINT_FAIL top-level width mismatch" >&2
-    exit 1
-fi
+    if printf '%s\n' "$lint_output" |
+        rg -q '^%Warning-(WIDTHTRUNC|WIDTHEXPAND): soc/Hfpga_soc.v:'; then
+        printf '%s\n' "$lint_output" |
+            rg '^%Warning-(WIDTHTRUNC|WIDTHEXPAND): soc/Hfpga_soc.v:' >&2
+        echo "NPU_SOC_LINT_FAIL top-level width mismatch: $profile_flags" >&2
+        exit 1
+    fi
+done
 
-echo 'NPU_SOC_LINT_PASS PDS_sources=complete top=Hfpga_soc'
+echo 'NPU_SOC_LINT_PASS PDS_sources=complete top=Hfpga_soc profiles=default-full-candidate,legacy,redblue-only,redblue-28,full-candidate'

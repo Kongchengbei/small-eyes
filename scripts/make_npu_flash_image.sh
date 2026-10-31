@@ -23,6 +23,8 @@ repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 addr_map="$repo_root/soc/soc_addr_map.vh"
 map_bytes=$(sed -n "s/^\`define SOC_BOOT_IMAGE_BYTES[[:space:]]*32'd\([0-9][0-9]*\).*/\1/p" "$addr_map")
 [[ -n "$map_bytes" ]] || { echo "SOC_BOOT_IMAGE_BYTES not found in $addr_map" >&2; exit 1; }
+model_map_bytes=$(sed -n "s/^\`define SOC_NPU_MODEL_BYTES[[:space:]]*32'd\([0-9][0-9]*\).*/\1/p" "$addr_map")
+[[ -n "$model_map_bytes" ]] || { echo "SOC_NPU_MODEL_BYTES not found in $addr_map" >&2; exit 1; }
 cpu_bytes=${4:-$map_bytes}
 
 [[ -f "$cpu_image" ]] || { echo "CPU image not found: $cpu_image" >&2; exit 1; }
@@ -43,6 +45,11 @@ model_size=$(wc -c < "$model_npu" | tr -d ' ')
 }
 (( model_size > 0 && model_size % 4 == 0 )) || {
     echo "model.npu must be non-empty and 4-byte aligned" >&2
+    exit 1
+}
+(( model_size == model_map_bytes )) || {
+    echo "model.npu is $model_size bytes, but SOC_NPU_MODEL_BYTES=$model_map_bytes;" \
+        "the boot loader and NPU service must use the same model length" >&2
     exit 1
 }
 

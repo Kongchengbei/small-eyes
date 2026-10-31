@@ -131,8 +131,13 @@ module Hexu (
 	                         (mem_forward_rd_addr == ex_mem_pending_rd_addr);
 	wire ex_operands_ready = (!ex_src1_mem_pending || ex_src1_mem_match) &&
 	                         (!ex_src2_mem_pending || ex_src2_mem_match);
-	wire [31:0] ex_src1_value = ex_src1_mem_match ? mem_forward_data : ex_src1;
-	wire [31:0] ex_src2_value = ex_src2_mem_match ? mem_forward_data : ex_src2;
+	// Select pending-load payload from registered ownership, independently of
+	// the late response-valid/rd-match qualification. ex_operands_ready retains
+	// that qualification for issue, CSR effects, memory requests and forwarding.
+	// If EX is held when the response arrives, the capture block below saves it
+	// and clears the pending flag before its MEM producer can disappear.
+	wire [31:0] ex_src1_value = ex_src1_mem_pending ? mem_forward_data : ex_src1;
+	wire [31:0] ex_src2_value = ex_src2_mem_pending ? mem_forward_data : ex_src2;
 	//M指令
 	wire ex_m_valid = ex_valid && (ex_m_op != M_NONE);
 	//mul
@@ -232,10 +237,15 @@ module Hexu (
     );
 
 	//csr
-    wire csr_valid    = ex_valid && ex_is_csr   && ex_allowin && ex_operands_ready;
-    wire csr_is_ecall = ex_valid && ex_is_ecall && ex_allowin && ex_operands_ready;
-    wire csr_is_ebreak= ex_valid && ex_is_ebreak&& ex_allowin && ex_operands_ready;
-    wire csr_is_mret  = ex_valid && ex_is_mret  && ex_allowin && ex_operands_ready;
+    // SYSTEM instructions are mutually exclusive with loads/stores and M
+    // operations in the registered ID decode. Their retirement needs operand
+    // readiness and MEM capacity, never the current ALU-to-DCache handshake.
+    // Keep the generic ex_allowin for ordinary-instruction IRQ boundaries.
+    wire csr_retire = ex_valid && mem_allowin && ex_operands_ready;
+    wire csr_valid    = csr_retire && ex_is_csr;
+    wire csr_is_ecall = csr_retire && ex_is_ecall;
+    wire csr_is_ebreak= csr_retire && ex_is_ebreak;
+    wire csr_is_mret  = csr_retire && ex_is_mret;
     // Taking an asynchronous interrupt after the current EX instruction
     // lets that instruction finish once; mepc will point at its successor.
     // CSR writes are left to complete first, then the following instruction
@@ -376,15 +386,22 @@ module Hexu (
                 ex_valid <= id_to_ex_valid;
             end
 
-            if (!flush && id_to_ex_valid && ex_allowin) begin
+            // A flush clears ex_valid above. Sampling a discarded ID payload
+            // on the same edge cannot execute it; the next valid transfer
+            // overwrites every field. Keep the late IRQ/exception decision
+            // out of the wide payload clock enables.
+            if (id_to_ex_valid && ex_allowin) begin
                 ex_pc          <= id_pc;
 				ex_ins         <= id_ins;
                 ex_imm         <= id_imm;
                 ex_src1        <= id_src1;
                 ex_src2        <= id_src2;
-                ex_src1_mem_pending <= id_src1_mem_pending;
-                ex_src2_mem_pending <= id_src2_mem_pending;
-                ex_mem_pending_rd_addr <= id_mem_pending_rd_addr;
+                // Preserve the original flush priority for dependency state.
+                if (!flush) begin
+                    ex_src1_mem_pending <= id_src1_mem_pending;
+                    ex_src2_mem_pending <= id_src2_mem_pending;
+                    ex_mem_pending_rd_addr <= id_mem_pending_rd_addr;
+                end
                 ex_rd_addr     <= id_rd_addr;
                 ex_alu_op      <= id_alu_op;
                 ex_alu_en      <= id_alu_en;
@@ -408,7 +425,9 @@ module Hexu (
 
 			// Preserve a returned load value if another pipeline condition keeps
 			// this EX entry in place after its MEM producer has advanced.
-			if (!flush && ex_valid && !ex_allowin) begin
+			// A coincident flush invalidates the entry, so retaining a returned
+			// operand is harmless and needs no extra wide flush qualification.
+			if (ex_valid && !ex_allowin) begin
 				if (ex_src1_mem_match) begin
 					ex_src1 <= mem_forward_data;
 					ex_src1_mem_pending <= 1'b0;

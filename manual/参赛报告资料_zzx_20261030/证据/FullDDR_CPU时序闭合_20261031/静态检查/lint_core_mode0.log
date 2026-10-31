@@ -1,0 +1,6 @@
+%Warning-WIDTHEXPAND: cpu/Btb.v:79:44: Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'update_index' generates 4 bits.
+                                     : ... In instance Htop.u_btb
+   79 |          if (update_valid && (update_index == i)) begin
+      |                                            ^~
+                      ... For warning description see https://verilator.org/warn/WIDTHEXPAND?v=5.008
+                      ... Use "/* verilator lint_off WIDTHEXPAND */" and lint_on around source to disable this message.

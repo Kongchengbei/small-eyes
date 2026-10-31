@@ -68,25 +68,26 @@ module mul (
     assign product_next = p00_aligned + p01_aligned +
                           p10_aligned + p11_aligned;
 
+    // Keep the late issue/exception handshake on stage1_valid only. Every
+    // edge samples partial products; stage 2 consumes the preceding edge's
+    // products only when that sample was marked valid. Nonblocking updates
+    // preserve this alignment, including back-to-back starts. Invalid samples
+    // cannot change product_q or done, and no DSP clock enable depends on start.
+    always @(posedge clk) begin
+        p00_q <= p00_calc;
+        p01_q <= p01_calc;
+        p10_q <= p10_calc;
+        p11_q <= p11_calc;
+    end
+
     always @(posedge clk) begin
         if (rst) begin
-            p00_q        <= 32'b0;
-            p01_q        <= 34'sd0;
-            p10_q        <= 34'sd0;
-            p11_q        <= 34'sd0;
             stage1_valid <= 1'b0;
             product_q    <= 66'sd0;
             done_q       <= 1'b0;
         end else begin
             done_q       <= stage1_valid;
             stage1_valid <= start;
-
-            if (start) begin
-                p00_q <= p00_calc;
-                p01_q <= p01_calc;
-                p10_q <= p10_calc;
-                p11_q <= p11_calc;
-            end
 
             if (stage1_valid) begin
                 product_q <= product_next;
