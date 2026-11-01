@@ -985,10 +985,19 @@ static const char *ddr_profile_io_ports[] = {
 /* DDR profile clocks, written as in the DDR IP's pnr/ddr_test.fdc. PDS infers
  * the DQ PHY clocks only after reading this file, so they are defined here,
  * copied from the commands PDS ran when inferring them (same pins and
- * waveforms). ddr_core_clk to the divided PHY clocks is checked over two
- * cycles as in the vendor file; hold keeps the default that follows. The
- * vendor's 0.4 ns uncertainty and extra clock groups are left out: with them
- * PDS place & route did not complete (10/17).
+ * waveforms). ddr_core_clk to the divided PHY clocks remains checked over two
+ * cycles; hold keeps the default that follows.
+ *
+ * Keep the vendor's 0.4 ns uncertainty omitted: the 10/17 P&R candidate with
+ * that uncertainty and asynchronous groups did not complete. This change
+ * adopts only the IP's three independent single-group declarations for its
+ * reset and PHY root clocks. PDS defines each single group as asynchronous
+ * to clocks outside it; clocks that both remain outside are not thereby made
+ * asynchronous to each other. The existing core_clk -> phy_dq_sysclk_N
+ * multicycle paths are therefore expected to remain timed, but their 196/420
+ * endpoint counts and Multicycle Path Setup -end 2 classification were
+ * verified in the 2026-10-31 DDR timing run before adoption. Future reports
+ * must retain those data checks.
  * The BRAM profile has no DDR controller, so its SOC_DDR_CLOCK block is left
  * empty. */
 static const char ddr_clock_block[] =
@@ -1031,7 +1040,14 @@ static const char ddr_clock_block[] =
     "    [get_pins {g_ddr_profile.u_ddr3_ctrl/u_ddrphy_top/ddrphy_slice_top/i_dqs_bank[1].u_ddrphy_ioclkdiv:CLKDIVOUT}]\n"
     "set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_0}]\n"
     "set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_1}]\n"
-    "set_clock_groups -asynchronous -group [get_clocks {ddr_ref_clk ddr_core_clk}] -group [get_clocks {ddr_rst_clk}] -group [get_clocks {clk cpu_clk}] -group [get_clocks {JTAG_CLK}] -group [get_clocks {CAM1_PCLK}] -group [get_clocks {CAM2_PCLK}]\n";
+    "set_clock_groups -asynchronous -group [get_clocks {ddr_ref_clk ddr_core_clk}] -group [get_clocks {ddr_rst_clk}] -group [get_clocks {clk cpu_clk}] -group [get_clocks {JTAG_CLK}] -group [get_clocks {CAM1_PCLK}] -group [get_clocks {CAM2_PCLK}]\n"
+    "# Vendor DDR IP uses independent SINGLE-group declarations here.\n"
+    "# Source: IP/ddr3_ctrl_v116/pnr/ddr_test.fdc:35-37.\n"
+    "# core_clk and phy_dq_sysclk_N are outside these groups; preserve their\n"
+    "# explicit two-cycle checks. This candidate must retain all 196/420 endpoints.\n"
+    "set_clock_groups -name DDR_IP_RST_ASYNC -asynchronous -group [get_clocks {ddr_rst_clk}]\n"
+    "set_clock_groups -name DDR_IP_PHY0_ASYNC -asynchronous -group [get_clocks {phy_dq_clk_0}]\n"
+    "set_clock_groups -name DDR_IP_PHY1_ASYNC -asynchronous -group [get_clocks {phy_dq_clk_1}]\n";
 
 /* Generate scopes use '.', module instance scopes use '/' in PDS compile
  * names. Update owned CPU/JTAG/DDR clock blocks and only the ten listed DDR IO

@@ -1,0 +1,463 @@
+`timescale 1ns / 1ps
+
+module Hexu (
+    input             clk,
+    input             rst,
+    // Aggregated platform interrupt (camera/DMA/etc. will connect here).
+    input             irq_external,
+
+    input             id_to_ex_valid,
+    input             mem_allowin,
+    input             flush,
+
+	//传递
+    input      [31:0] id_pc,
+    input      [31:0] id_imm,
+    input      [31:0] id_src1,
+    input      [31:0] id_src2,
+    input             id_mul_early_ready,
+    input      [31:0] id_mul_early_src1,
+    input      [31:0] id_mul_early_src2,
+    input             id_src1_mem_pending,
+    input             id_src2_mem_pending,
+    input      [4:0]  id_mem_pending_rd_addr,
+    input             mem_forward_valid,
+    input      [4:0]  mem_forward_rd_addr,
+    input      [31:0] mem_forward_data,
+    input      [4:0]  id_rd_addr,
+    input      [3:0]  id_alu_op,
+    input             id_alu_en,
+	input      [3:0]  id_m_op,
+    input             id_src1_is_pc,
+    input             id_src1_is_zero,
+    input             id_src2_is_imm,
+    input             id_is_load,
+    input             id_is_store,
+    input      [2:0]  id_mem_funct3,
+    input             id_reg_wen,
+    input      [1:0]  id_wb_sel,
+    input             id_is_csr,
+    input      [2:0]  id_csr_op,
+    input      [11:0] id_csr_addr,
+    input      [4:0]  id_csr_imm,
+    input             id_is_ecall,
+    input             id_is_mret,
+    input             id_is_ebreak,
+	input  [31:0]     id_ins,
+	input dmem_ready,
+
+    output reg         ex_valid,
+    output wire        ex_allowin,
+    output wire        ex_to_mem_valid,
+    output reg  [31:0] ex_pc,
+    output reg  [31:0] ex_ins,
+    output reg  [4:0]  ex_rd_addr,
+    output reg         ex_is_load,
+    output reg  [2:0]  ex_mem_funct3,
+    output reg         ex_reg_wen,
+    output reg  [1:0]  ex_wb_sel,
+    output reg         ex_is_ebreak,
+
+    output wire [31:0] ex_result,
+    output wire        ex_forward_valid,
+    output wire [4:0]  ex_forward_rd_addr,
+    output wire [31:0] ex_forward_data,
+    output wire        ex_flush_req,
+    output wire [31:0] ex_flush_pc,
+    output wire [31:0] ex_wb_value,
+
+    // 调试观测：EX 级完成条件
+    output wire        dbg_ex_ready_go,
+
+    //EX阶段生成Dmem请求
+    output wire        dmem_valid,
+    output wire        dmem_wen,
+    output wire [31:0] dmem_addr,
+    output wire [31:0] dmem_wdata,
+    output wire [3:0]  dmem_wmask
+);
+    localparam [1:0] WB_ALU  = 2'b00;
+    localparam [1:0] WB_LOAD = 2'b01;
+    localparam [1:0] WB_PC4  = 2'b10;
+    localparam [1:0] WB_CSR  = 2'b11;
+	
+	localparam [3:0] M_NONE   = 4'd0;
+	localparam [3:0] M_MUL    = 4'd1;
+	localparam [3:0] M_MULH   = 4'd2;
+	localparam [3:0] M_MULHSU = 4'd3;
+	localparam [3:0] M_MULHU  = 4'd4;
+	localparam [3:0] M_DIV    = 4'd5;
+	localparam [3:0] M_DIVU   = 4'd6;
+	localparam [3:0] M_REM    = 4'd7;
+	localparam [3:0] M_REMU   = 4'd8;
+
+	reg [3:0]  ex_m_op;
+
+	//div状态
+	reg        ex_div_started;
+	reg        ex_div_done;
+	//乘法器为固定两拍流水，EX 在结果有效前保持本条指令。
+	reg        ex_mul_started;
+	reg        ex_mul_done;
+
+
+    reg [31:0] ex_imm;
+    reg [31:0] ex_src1;
+    reg [31:0] ex_src2;
+    reg        ex_src1_mem_pending;
+    reg        ex_src2_mem_pending;
+    reg [4:0]  ex_mem_pending_rd_addr;
+    reg [3:0]  ex_alu_op;
+    reg        ex_alu_en;
+    reg        ex_src1_is_pc;
+    reg        ex_src1_is_zero;
+    reg        ex_src2_is_imm;
+    reg        ex_is_store;
+    reg        ex_is_csr;
+    reg [2:0]  ex_csr_op;
+    reg [11:0] ex_csr_addr;
+    reg [4:0]  ex_csr_imm;
+    reg        ex_is_ecall;
+    reg        ex_is_mret;
+	wire [31:0] ex_csr_data;
+
+
+	wire       ex_ready_go;
+	// 访存请求：只看 ex_valid 和指令类型，不看 ready_go —— 这是打断组合环的关键
+    wire ex_mem_req = ex_valid && (ex_is_load || ex_is_store);
+	wire ex_src1_mem_match = ex_src1_mem_pending && mem_forward_valid &&
+	                         (mem_forward_rd_addr == ex_mem_pending_rd_addr);
+	wire ex_src2_mem_match = ex_src2_mem_pending && mem_forward_valid &&
+	                         (mem_forward_rd_addr == ex_mem_pending_rd_addr);
+	wire ex_operands_ready = (!ex_src1_mem_pending || ex_src1_mem_match) &&
+	                         (!ex_src2_mem_pending || ex_src2_mem_match);
+	// Select pending-load payload from registered ownership, independently of
+	// the late response-valid/rd-match qualification. ex_operands_ready retains
+	// that qualification for issue, CSR effects, memory requests and forwarding.
+	// If EX is held when the response arrives, the capture block below saves it
+	// and clears the pending flag before its MEM producer can disappear.
+	wire [31:0] ex_src1_value = ex_src1_mem_pending ? mem_forward_data : ex_src1;
+	wire [31:0] ex_src2_value = ex_src2_mem_pending ? mem_forward_data : ex_src2;
+	//M指令
+	wire ex_m_valid = ex_valid && (ex_m_op != M_NONE);
+	//mul
+	wire ex_m_is_mul = ex_m_valid &&(ex_m_op == M_MUL   ||
+	                                 ex_m_op == M_MULH  ||
+	                                 ex_m_op == M_MULHSU||
+	                                 ex_m_op == M_MULHU);
+
+	wire mul_x_signed =(ex_m_op == M_MUL)||(ex_m_op == M_MULH)||(ex_m_op == M_MULHSU);
+	wire mul_y_signed =(ex_m_op == M_MUL)||(ex_m_op == M_MULH);
+	wire mul_ex_start = ex_m_is_mul && ex_operands_ready &&
+	                    !ex_mul_started && !ex_mul_done;
+    wire id_m_is_mul = id_m_op == M_MUL || id_m_op == M_MULH ||
+                       id_m_op == M_MULHSU || id_m_op == M_MULHU;
+    // Select ID data independently of the issue handshake, keeping ready/flush
+    // control out of the partial-product data path. An occupied EX multiplier
+    // retains ownership, including on its completion edge.
+    wire mul_id_select = !ex_m_is_mul &&
+        id_m_is_mul && id_mul_early_ready &&
+        !id_src1_mem_pending && !id_src2_mem_pending;
+    // Capture partial products on the same edge that accepts this ID entry.
+    wire mul_early_start = mul_id_select && !flush && id_to_ex_valid && ex_allowin;
+    wire mul_start = mul_ex_start || mul_early_start;
+    wire mul_input_x_signed = mul_id_select ?
+        (id_m_op == M_MUL || id_m_op == M_MULH || id_m_op == M_MULHSU) : mul_x_signed;
+    wire mul_input_y_signed = mul_id_select ?
+        (id_m_op == M_MUL || id_m_op == M_MULH) : mul_y_signed;
+	wire mul_done;
+	wire mul_done_fire = ex_m_is_mul && ex_mul_started && mul_done;
+	// mul_done 是脉冲。若 MEM 可接收，直接放行；若 MEM 背压，则把
+	// 完成状态锁存到 ex_mul_done，直到本条指令离开 EX。
+	wire ex_mul_ready = ex_mul_done || mul_done_fire;
+	wire [31:0] mul_result_selected = (ex_m_op == M_MUL) ? mul_result[31:0] : mul_result[63:32];
+
+	wire [63:0] mul_result;
+	mul u_mul (
+	    .clk          (clk),
+	    .rst          (rst),
+	    .start        (mul_start),
+	    .x_signed     (mul_input_x_signed),
+	    .y_signed     (mul_input_y_signed),
+	    .x            (mul_id_select ? id_mul_early_src1 : ex_src1_value),
+	    .y            (mul_id_select ? id_mul_early_src2 : ex_src2_value),
+	    .result       (mul_result),
+	    .done         (mul_done)
+	);
+
+	//div
+	wire ex_m_is_div = ex_m_valid && (ex_m_op == M_DIV ||
+	                                  ex_m_op == M_DIVU ||
+	                                  ex_m_op == M_REM ||
+	                                  ex_m_op == M_REMU);
+
+	wire div_start     = ex_m_is_div && ex_operands_ready &&
+	                     !ex_div_started && !ex_div_done;
+	wire div_done_fire = ex_m_is_div && ex_div_started && div_done;
+	wire ex_div_ready = ex_div_done || div_done_fire;
+	wire div_signed    =(ex_m_op == M_DIV) || (ex_m_op == M_REM);
+	wire [31:0] div_result_selected =(ex_m_op == M_DIV || ex_m_op == M_DIVU)? div_quotient : div_remainder;
+
+	wire [31:0] div_quotient;
+	wire [31:0] div_remainder;
+	wire        div_done;
+	div u_div (
+	    .div_clk    (clk),
+	    .reset      (rst),
+	    .start      (div_start),
+	    .div_signed (div_signed),
+	    .x          (ex_src1_value),
+	    .y          (ex_src2_value),
+	    .s          (div_quotient),
+	    .r          (div_remainder),
+	    .done       (div_done)
+	);
+
+	//控制信号。乘法、除法和访存均可让 EX 保持当前指令。
+	assign ex_ready_go     = ex_operands_ready
+						   && (!ex_valid || !ex_m_is_mul || ex_mul_ready)
+						   && (!ex_valid || !ex_m_is_div || ex_div_ready)
+						   && (!ex_mem_req || dmem_ready);
+    assign dbg_ex_ready_go = ex_ready_go;
+    assign ex_allowin      = !ex_valid || (ex_ready_go && mem_allowin);
+    assign ex_to_mem_valid = ex_valid && ex_ready_go;
+
+	
+	//alu计算
+    wire [31:0] alu_src1 = ex_src1_is_pc   ? ex_pc :
+	                       ex_src1_is_zero ? 32'b0 : ex_src1_value;
+    wire [31:0] alu_src2 = ex_src2_is_imm ? ex_imm : ex_src2_value;
+
+    Halu u_alu (
+        .src1   (alu_src1),
+        .src2   (alu_src2),
+        .alu_op (ex_alu_op),
+        .alu_en (ex_alu_en),
+        .result (ex_result)
+    );
+
+	//csr
+    // SYSTEM instructions are mutually exclusive with loads/stores and M
+    // operations in the registered ID decode. Their retirement needs operand
+    // readiness and MEM capacity, never the current ALU-to-DCache handshake.
+    // Keep the generic ex_allowin for ordinary-instruction IRQ boundaries.
+    wire csr_retire = ex_valid && mem_allowin && ex_operands_ready;
+    wire csr_valid    = csr_retire && ex_is_csr;
+    wire csr_is_ecall = csr_retire && ex_is_ecall;
+    wire csr_is_ebreak= csr_retire && ex_is_ebreak;
+    wire csr_is_mret  = csr_retire && ex_is_mret;
+    // Taking an asynchronous interrupt after the current EX instruction
+    // lets that instruction finish once; mepc will point at its successor.
+    // CSR writes are left to complete first, then the following instruction
+    // is the interrupt boundary, so an enable write is never lost.
+    wire csr_interrupt_boundary = ex_valid && ex_allowin && ex_operands_ready &&
+                                  !ex_is_csr && !ex_is_ecall &&
+                                  !ex_is_ebreak && !ex_is_mret &&
+                                  // A branch/jump's architectural successor
+                                  // is its resolved target, not ex_pc + 4.
+                                  (ex_ins[6:0] != 7'b1100011) &&
+                                  (ex_ins[6:0] != 7'b1101111) &&
+                                  (ex_ins[6:0] != 7'b1100111);
+    wire        csr_redirect_valid;
+    wire [31:0] csr_redirect_pc;
+
+    Hcsr u_csr (
+        .clk            (clk),
+        .rst            (rst),
+        .csr_valid      (csr_valid),
+        .csr_op         (ex_csr_op),
+        .csr_addr       (ex_csr_addr),
+        .csr_rs1_data   (ex_src1_value),
+        .csr_imm        (ex_csr_imm),
+        .is_ecall       (csr_is_ecall),
+        .is_ebreak      (csr_is_ebreak),
+        .is_mret        (csr_is_mret),
+        .interrupt_boundary(csr_interrupt_boundary),
+        .irq_external   (irq_external),
+        .current_pc     (ex_pc),
+        .csr_rdata      (ex_csr_data),
+        .redirect_valid (csr_redirect_valid),
+        .redirect_pc    (csr_redirect_pc)
+    );
+
+    assign ex_flush_req = csr_redirect_valid;
+    assign ex_flush_pc  = csr_redirect_pc;
+
+    assign ex_wb_value =  ex_m_is_mul            ? mul_result_selected :
+	                      ex_m_is_div            ? div_result_selected :
+						  (ex_wb_sel == WB_PC4)  ? ex_pc + 32'd4 :
+                          (ex_wb_sel == WB_CSR)  ? ex_csr_data   :
+                          (ex_wb_sel == WB_ALU)  ? ex_result     :
+                                                       32'b0;
+    assign ex_forward_valid   = ex_valid && ex_reg_wen && !ex_is_load &&
+                                (ex_rd_addr != 5'd0) &&
+								(!ex_m_is_mul || ex_mul_ready) &&
+	                                (!ex_m_is_div || ex_div_ready) &&
+	                                ex_operands_ready;
+
+    assign ex_forward_rd_addr = ex_rd_addr;
+    assign ex_forward_data    = ex_wb_value;
+
+
+    // A memory side effect is accepted only when MEM can take this EX entry.
+    // Otherwise an older stalled MEM load could cause the held EX operation
+    // to be issued repeatedly while the pipeline is back-pressured.
+    assign dmem_valid = ex_to_mem_valid && ex_operands_ready && mem_allowin &&
+                        (ex_is_load || ex_is_store);
+    assign dmem_wen   = dmem_valid && ex_is_store;
+    assign dmem_addr  = ex_result;
+
+	// Store formatting is written as explicit combinations instead of
+	// variable shifts.  Some Fabric Compiler releases incorrectly optimize
+	// the old always/case mux into a second driver of the internal GND net.
+    wire        store_active = dmem_valid && dmem_wen;
+    wire        store_byte   = store_active && (ex_mem_funct3 == 3'b000);
+    wire        store_half   = store_active && (ex_mem_funct3 == 3'b001);
+    wire        store_word   = store_active && (ex_mem_funct3 == 3'b010);
+
+    wire [3:0] store_byte_mask =
+        (ex_result[1:0] == 2'd0) ? 4'b0001 :
+        (ex_result[1:0] == 2'd1) ? 4'b0010 :
+        (ex_result[1:0] == 2'd2) ? 4'b0100 : 4'b1000;
+    wire [3:0] store_half_mask =
+        (ex_result[1:0] == 2'd0) ? 4'b0011 :
+        (ex_result[1:0] == 2'd1) ? 4'b0110 :
+        (ex_result[1:0] == 2'd2) ? 4'b1100 : 4'b1000;
+
+    wire [31:0] store_byte_data =
+        (ex_result[1:0] == 2'd0) ? {24'b0, ex_src2_value[7:0]} :
+        (ex_result[1:0] == 2'd1) ? {16'b0, ex_src2_value[7:0], 8'b0} :
+        (ex_result[1:0] == 2'd2) ? {8'b0, ex_src2_value[7:0], 16'b0} :
+                                    {ex_src2_value[7:0], 24'b0};
+    wire [31:0] store_half_data =
+        (ex_result[1:0] == 2'd0) ? {16'b0, ex_src2_value[15:0]} :
+        (ex_result[1:0] == 2'd1) ? {8'b0, ex_src2_value[15:0], 8'b0} :
+        (ex_result[1:0] == 2'd2) ? {ex_src2_value[15:0], 16'b0} :
+                                    {ex_src2_value[7:0], 24'b0};
+
+    assign dmem_wmask = store_word ? 4'b1111 :
+                        store_half ? store_half_mask :
+                        store_byte ? store_byte_mask : 4'b0000;
+    assign dmem_wdata = store_word ? ex_src2_value :
+                        store_half ? store_half_data :
+                        store_byte ? store_byte_data : 32'b0;
+
+    always @(posedge clk) begin
+        if (rst) begin
+            ex_valid        <= 1'b0;
+            ex_pc           <= 32'b0;
+            ex_imm          <= 32'b0;
+            ex_src1         <= 32'b0;
+            ex_src2         <= 32'b0;
+            ex_src1_mem_pending <= 1'b0;
+            ex_src2_mem_pending <= 1'b0;
+            ex_mem_pending_rd_addr <= 5'b0;
+            ex_rd_addr      <= 5'b0;
+            ex_alu_op       <= 4'b1111;
+            ex_alu_en       <= 1'b0;
+            ex_src1_is_pc   <= 1'b0;
+            ex_src1_is_zero <= 1'b0;
+            ex_src2_is_imm  <= 1'b0;
+            ex_is_load      <= 1'b0;
+            ex_is_store     <= 1'b0;
+            ex_mem_funct3   <= 3'b0;
+            ex_reg_wen      <= 1'b0;
+            ex_wb_sel       <= WB_ALU;
+            ex_is_csr       <= 1'b0;
+            ex_csr_op       <= 3'b0;
+            ex_csr_addr     <= 12'b0;
+            ex_csr_imm      <= 5'b0;
+            ex_is_ecall     <= 1'b0;
+            ex_is_mret      <= 1'b0;
+            ex_is_ebreak    <= 1'b0;
+				ex_ins          <= 32'h0000_0013;
+				ex_m_op         <= M_NONE;
+				ex_div_started  <= 1'b0;
+				ex_div_done     <= 1'b0;
+				ex_mul_started  <= 1'b0;
+				ex_mul_done     <= 1'b0;
+        end else begin
+            if (flush) begin
+				ex_valid      <= 1'b0;
+				ex_src1_mem_pending <= 1'b0;
+				ex_src2_mem_pending <= 1'b0;
+				ex_mem_pending_rd_addr <= 5'b0;
+            end else if (ex_allowin) begin
+                ex_valid <= id_to_ex_valid;
+            end
+
+            // A flush clears ex_valid above. Sampling a discarded ID payload
+            // on the same edge cannot execute it; the next valid transfer
+            // overwrites every field. Keep the late IRQ/exception decision
+            // out of the wide payload clock enables.
+            if (id_to_ex_valid && ex_allowin) begin
+                ex_pc          <= id_pc;
+				ex_ins         <= id_ins;
+                ex_imm         <= id_imm;
+                ex_src1        <= id_src1;
+                ex_src2        <= id_src2;
+                // Preserve the original flush priority for dependency state.
+                if (!flush) begin
+                    ex_src1_mem_pending <= id_src1_mem_pending;
+                    ex_src2_mem_pending <= id_src2_mem_pending;
+                    ex_mem_pending_rd_addr <= id_mem_pending_rd_addr;
+                end
+                ex_rd_addr     <= id_rd_addr;
+                ex_alu_op      <= id_alu_op;
+                ex_alu_en      <= id_alu_en;
+                ex_src1_is_pc  <= id_src1_is_pc;
+                ex_src1_is_zero<= id_src1_is_zero;
+                ex_src2_is_imm <= id_src2_is_imm;
+                ex_is_load     <= id_is_load;
+                ex_is_store    <= id_is_store;
+                ex_mem_funct3  <= id_mem_funct3;
+                ex_reg_wen     <= id_reg_wen;
+                ex_wb_sel      <= id_wb_sel;
+                ex_is_csr      <= id_is_csr;
+                ex_csr_op      <= id_csr_op;
+                ex_csr_addr    <= id_csr_addr;
+                ex_csr_imm     <= id_csr_imm;
+                ex_is_ecall    <= id_is_ecall;
+                ex_is_mret     <= id_is_mret;
+                ex_is_ebreak   <= id_is_ebreak;
+				ex_m_op        <= id_m_op;
+            end
+
+			// Preserve a returned load value if another pipeline condition keeps
+			// this EX entry in place after its MEM producer has advanced.
+			// A coincident flush invalidates the entry, so retaining a returned
+			// operand is harmless and needs no extra wide flush qualification.
+			if (ex_valid && !ex_allowin) begin
+				if (ex_src1_mem_match) begin
+					ex_src1 <= mem_forward_data;
+					ex_src1_mem_pending <= 1'b0;
+				end
+				if (ex_src2_mem_match) begin
+					ex_src2 <= mem_forward_data;
+					ex_src2_mem_pending <= 1'b0;
+				end
+			end
+
+			//div的状态寄存器
+			if (flush || ex_allowin) begin
+				ex_div_started <= 1'b0;
+				ex_div_done    <= 1'b0;
+			end else if (div_done_fire) begin
+				ex_div_done   <= 1'b1;
+			end else if (div_start) begin
+				ex_div_started <= 1'b1;
+			end
+
+			// 乘法状态寄存器，行为与除法握手一致。
+			if (flush || ex_allowin) begin
+				ex_mul_started <= !flush && mul_early_start;
+				ex_mul_done    <= 1'b0;
+			end else if (mul_done_fire) begin
+				ex_mul_done    <= 1'b1;
+			end else if (mul_ex_start) begin
+				ex_mul_started <= 1'b1;
+			end
+			// M-EXT MODIFIED END
+        end
+    end
+endmodule

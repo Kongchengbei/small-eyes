@@ -1,0 +1,20 @@
+{
+  "compile": 0,
+  "lint": 0,
+  "protected_mismatches": [],
+  "fdc_matches_accepted_candidate": true,
+  "warning_counts": {
+    "IMPLICIT": 3,
+    "WIDTHTRUNC": 38,
+    "WIDTHCONCAT": 2,
+    "WIDTHEXPAND": 82,
+    "CASEINCOMPLETE": 6,
+    "LATCH": 4
+  },
+  "forbidden_warning_classes": [],
+  "source_sha256": {
+    "soc/Hnpu_cnn_engine.v": "bbc2d84be1e577e2e42e8040f27dcbf3bee7d61eab2efb85201295072722f795",
+    "soc/Hrgb565_int8_lane.v": "ee3de1820f2c69bcf59ad8f000832dcf2bde909b4862973ad0aa44c33d1ad32e",
+    "soc.fdc": "9e1b7ff357675616e2e37828d9ca550b90065488fa4d8db60457f7fc972be053"
+  }
+}

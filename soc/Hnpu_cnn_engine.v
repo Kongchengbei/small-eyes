@@ -136,14 +136,27 @@ module Hnpu_cnn_engine #(
     // flush states retire the final product after the last issue cycle.
     localparam [5:0] ST_CONV_MAC_FLUSH = 6'd31;
     localparam [5:0] ST_FC_MAC_FLUSH = 6'd32;
-    // Layer dispatch is split over three cycles so that no cycle contains a
+    // Layer dispatch and shape metadata are staged so no cycle contains a
     // multiplier chain followed by the 30-term descriptor predicate:
     //   ST_LAYER_FETCH : latch descriptor fields + first-level products
     //   ST_DISPATCH    : second-level products -> layer_* constants
+    //   ST_METADATA_*  : weight requirement and shape arithmetic/checks
     //   ST_CHECK       : predicates -> error/state only
-    // Costs one clock per layer (144 clocks on the 144-layer road model,
-    // 0.0038% of an inference) and adds no logic.
+    // The original split added one clock per layer; the metadata stages below
+    // add two more and do not add cycles to the MAC issue loops.
     localparam [5:0] ST_CHECK = 6'd33;
+    // Model-header validation is pipelined to keep the size multipliers off
+    // the format-check/error-control path. Preserve the original 16-bit
+    // truncation between H*W and (H*W)*C.
+    localparam [5:0] ST_VALIDATE_FORMAT = 6'd34;
+    localparam [5:0] ST_VALIDATE_SHAPE_HW = 6'd35;
+    localparam [5:0] ST_VALIDATE_SHAPE = 6'd36;
+    localparam [5:0] ST_LEGACY_SCRATCH_PARTIAL = 6'd37;
+    localparam [5:0] ST_LEGACY_SCRATCH_ACCUM = 6'd38;
+    localparam [5:0] ST_LEGACY_SCRATCH_ROUND = 6'd39;
+    localparam [5:0] ST_METADATA_ARITH = 6'd40;
+    localparam [5:0] ST_METADATA_COMPARE = 6'd41;
+    localparam [5:0] ST_VALIDATE_ELEMENTS = 6'd42;
 
     reg [5:0] state;
     reg signed [7:0] model_mem [0:MAX_MODEL_BYTES-1];
@@ -183,6 +196,8 @@ module Hnpu_cnn_engine #(
     reg model_cache_valid_reg;
     reg [31:0] model_cache_base_reg, model_cache_bytes_reg;
     reg [31:0] model_cache_crc_reg;
+    reg [31:0] model_input_hw_reg;
+    reg [31:0] model_input_elements_reg;
     reg [31:0] input_addr_reg;
     reg [31:0] input_bytes_reg;
     reg [31:0] input_source_bytes_reg;
@@ -198,6 +213,10 @@ module Hnpu_cnn_engine #(
     reg legacy_flags_consistent;
     reg [31:0] legacy_expected_scratch;
     reg legacy_model_encoding_valid;
+    reg [31:0] legacy_scratch_hw;
+    reg [15:0] legacy_scratch_c;
+    reg [31:0] legacy_scratch_lo, legacy_scratch_hi;
+    reg [31:0] legacy_scratch_product;
 
     reg [7:0] layer_count_reg, class_count_reg, layer_index;
     reg [7:0] model_layout_reg;
@@ -211,6 +230,8 @@ module Hnpu_cnn_engine #(
     reg [7:0] layer_kh, layer_kw, layer_sh, layer_sw;
     reg [7:0] layer_pad_top, layer_pad_left, layer_pad_bottom, layer_pad_right;
     reg [31:0] layer_weight_offset, layer_bias_offset;
+    // Running 32-bit base of the current output channel's weight row.
+    reg [31:0] weight_base;
     reg [31:0] layer_weight_bytes, layer_bias_bytes;
     reg signed [31:0] layer_multiplier;
     reg [7:0] layer_shift;
@@ -245,6 +266,16 @@ module Hnpu_cnn_engine #(
     reg [31:0] layer_conv_weight_req; // layer_kernel_size * layer_out_c
     reg [31:0] layer_fc_weight_req;   // layer_out_c * layer_in_c
     reg [15:0] layer_out_hw;          // layer_out_h * layer_out_w
+    reg [23:0] meta_lower_h, meta_lower_w;
+    reg [17:0] meta_conv_extent_h, meta_conv_extent_w;
+    reg [17:0] meta_pool_extent_h, meta_pool_extent_w;
+    reg meta_conv_room_h, meta_conv_room_w;
+    reg meta_pool_room_h, meta_pool_room_w;
+    reg meta_conv_h_valid, meta_conv_w_valid;
+    reg meta_pool_h_valid, meta_pool_w_valid;
+    reg meta_common_dimensions_ok;
+    reg meta_common_capacity_ok;
+    reg meta_common_descriptor_ok;
     // Address-space scaling: 1 for CHW, layer_in_c for HWC4, because
     //   CHW  addr = ic*H*W + y*W + x
     //   HWC4 addr = (y*W + x)*C + ic
@@ -274,7 +305,7 @@ module Hnpu_cnn_engine #(
     // removes a duplicate bounds cone from the mac_product path.
     reg tensor_valid_q;
 
-    // ---- Three-stage layer dispatch ----------------------------------------
+    // ---- Layer dispatch and metadata ---------------------------------------
     // ST_DISPATCH used to evaluate sixteen 16x16 / 32x16 multiplier trees and
     // the thirty-term descriptor predicate in the same cycle, so that
     // predicate drove the clock enable of 143 data registers
@@ -286,7 +317,8 @@ module Hnpu_cnn_engine #(
     //   ST_LAYER_FETCH : ds_* straight from descriptor_bits, first-level
     //                    products latched into d1_*
     //   ST_DISPATCH    : second-level products latched into layer_*
-    //   ST_CHECK       : comparisons only; the result drives state/error
+    //   ST_METADATA_*  : extent/lower-bound arithmetic, then validity flags
+    //   ST_CHECK       : descriptor predicates drive state/error
     //
     // Every reassociation below is unsigned mod-2^16 / mod-2^32 arithmetic,
     // where multiplication is associative and commutative, so each value is
@@ -337,8 +369,6 @@ module Hnpu_cnn_engine #(
         mul_u32_u16_no_dsp(d1_ohw, layer_out_c);
     wire [31:0] disp_kernel_size =
         mul_u32_u16_no_dsp({16'b0, d1_khkw}, layer_in_c);
-    wire [31:0] disp_conv_weight_req =
-        mul_u32_u16_no_dsp(disp_kernel_size, layer_out_c);
     wire [31:0] disp_fc_weight_req = mul_u16_no_dsp(layer_out_c, layer_in_c);
     wire [23:0] disp_row_step24 = mul_u16_u8_no_dsp(d1_wc, layer_sh);
     wire [15:0] disp_row_step   = disp_row_step24[15:0];
@@ -350,6 +380,22 @@ module Hnpu_cnn_engine #(
     wire [15:0] disp_row0_a   = disp_row0_a24[15:0];
     wire [31:0] disp_out_hw32 = mul_u16_no_dsp(layer_out_h, layer_out_w);
     wire [15:0] disp_out_hw   = disp_out_hw32[15:0];
+
+    // Spatial metadata is prepared after ST_DISPATCH has registered the
+    // output-dimension decrements. Stage 1 registers the products/extents;
+    // Stage 2 compares them and registers the four validity bits.
+    wire [17:0] meta_conv_padded_h = {2'b0, layer_in_h} +
+                                      {10'b0, layer_pad_top} +
+                                      {10'b0, layer_pad_bottom};
+    wire [17:0] meta_conv_padded_w = {2'b0, layer_in_w} +
+                                      {10'b0, layer_pad_left} +
+                                      {10'b0, layer_pad_right};
+    wire [17:0] meta_pool_padded_h = {2'b0, layer_in_h};
+    wire [17:0] meta_pool_padded_w = {2'b0, layer_in_w};
+    wire [17:0] meta_conv_kernel_h = {10'b0, layer_kh};
+    wire [17:0] meta_conv_kernel_w = {10'b0, layer_kw};
+    wire [17:0] meta_pool_kernel_h = {10'b0, layer_kh};
+    wire [17:0] meta_pool_kernel_w = {10'b0, layer_kw};
 
     // Loop counters.  Every one of them is bounded by a 16-bit descriptor
     // dimension, so 32-bit integers only added carry chains and clock-enable
@@ -674,10 +720,6 @@ module Hnpu_cnn_engine #(
     wire [32:0] header_desc_end = {1'b0, model_u32(24)} + {1'b0, model_u32(28)};
     wire [32:0] header_weight_end = {1'b0, model_u32(32)} + {1'b0, model_u32(36)};
     wire [32:0] header_bias_end = {1'b0, model_u32(40)} + {1'b0, model_u32(44)};
-    wire [31:0] model_input_hw = mul_u16_no_dsp(model_u16(12), model_u16(14));
-    wire [31:0] model_input_elements_32 =
-        mul_u16_no_dsp(model_input_hw[15:0], model_u16(16));
-    wire [63:0] model_input_elements = {32'b0, model_input_elements_32};
     wire start_config_ok = (model_bytes >= 32'd128) &&
                            (model_bytes <= MAX_MODEL_BYTES) &&
                            (model_bytes[4:0] == 0) &&
@@ -723,19 +765,11 @@ module Hnpu_cnn_engine #(
                 (((layer_op == OP_FC) ? fc_output : out_c) << 2);
             ST_BIAS_FETCH: model_read_addr = layer_bias_offset +
                 ((((layer_op == OP_FC) ? fc_output : out_c) << 2) + bias_lane + 1'b1);
-            ST_WEIGHT_PRIME: begin
-                if (layer_op == OP_FC)
-                model_read_addr = layer_weight_offset +
-                        mul_u32_u16_no_dsp(fc_output[15:0], layer_in_c);
-                else
-                    model_read_addr = layer_weight_offset +
-                        mul_u32_u16_no_dsp(out_c[15:0], layer_kernel_size);
-            end
-            ST_CONV_MAC: model_read_addr = layer_weight_offset +
-                mul_u32_u16_no_dsp(out_c[15:0], layer_kernel_size) +
-                kernel_index + 1;
-            ST_FC_MAC: model_read_addr = layer_weight_offset +
-                mul_u32_u16_no_dsp(fc_output[15:0], layer_in_c) + fc_index + 1;
+            // weight_base advances once per FC output or CONV output channel;
+            // per-MAC addressing then needs only the loop index increment.
+            ST_WEIGHT_PRIME: model_read_addr = weight_base;
+            ST_CONV_MAC: model_read_addr = weight_base + kernel_index + 1;
+            ST_FC_MAC: model_read_addr = weight_base + fc_index + 1;
             default: model_read_addr = 0;
         endcase
     end
@@ -777,8 +811,7 @@ module Hnpu_cnn_engine #(
                     // the current one.  Only precomputed strides are added
                     // here; the two products that used to be on this path
                     // (y*W and ic*H*W) are now registered offsets.
-                    if (state == ST_CONV_MAC &&
-                        kernel_index != layer_kernel_size_m1) begin
+                    if (state == ST_CONV_MAC) begin
                         if (conv_ic_reg == layer_in_c_m1) begin
                             tensor_addr_ic = 0;
                             tensor_addr_ic_off = 0;
@@ -799,12 +832,12 @@ module Hnpu_cnn_engine #(
                     end
                     tensor_addr_y = pix_base_y + tensor_addr_ky;
                     tensor_addr_x = pix_base_x + tensor_addr_kx;
-                    // Zero padding: a tap outside the input tensor reads
-                    // address 0 and its product is forced to zero.
-                    if (!tensor_addr_y[15] && tensor_addr_y < layer_in_h &&
-                        !tensor_addr_x[15] && tensor_addr_x < layer_in_w)
-                        tensor_read_addr = pix_origin_a + tensor_addr_kern_off +
-                                           tensor_addr_ic_off;
+                    // Keep address generation independent of the bounds test.
+                    // Padding taps may read outside the allocated tensor RAM;
+                    // tensor_valid_q records validity for this same address,
+                    // and the CONV consumer forces invalid products to zero.
+                    tensor_read_addr = pix_origin_a + tensor_addr_kern_off +
+                                       tensor_addr_ic_off;
                 end
             end
             ST_FC_MAC: tensor_read_addr = fc_index + 1;
@@ -815,7 +848,7 @@ module Hnpu_cnn_engine #(
                 tensor_addr_kx = pool_kx_reg;
                 tensor_addr_kern_off = pool_kern_off;
                 tensor_addr_ic_off = pool_ic_off;
-                if (state == ST_POOL && pool_index != layer_kh_kw_m1) begin
+                if (state == ST_POOL) begin
                     if (pool_kx_reg == layer_kw_m1) begin
                         tensor_addr_kx = 0;
                         tensor_addr_ky = pool_ky_reg + 16'd1;
@@ -827,10 +860,10 @@ module Hnpu_cnn_engine #(
                 end
                 tensor_addr_y = pix_base_y + tensor_addr_ky;
                 tensor_addr_x = pix_base_x + tensor_addr_kx;
-                if (!tensor_addr_y[15] && tensor_addr_y < layer_in_h &&
-                    !tensor_addr_x[15] && tensor_addr_x < layer_in_w)
-                    tensor_read_addr = pix_origin_a + tensor_addr_kern_off +
-                                       tensor_addr_ic_off;
+                // Padding taps may read outside the allocated tensor RAM;
+                // tensor_valid_q gates their contribution in ST_POOL.
+                tensor_read_addr = pix_origin_a + tensor_addr_kern_off +
+                                   tensor_addr_ic_off;
             end
             ST_GAP_PRIME, ST_GAP: begin
                 tensor_addr_index = (state == ST_GAP_PRIME) ? gap_position : gap_position + 1;
@@ -892,6 +925,7 @@ module Hnpu_cnn_engine #(
             model_cache_base_reg <= 0;
             model_cache_bytes_reg <= 0;
             model_cache_crc_reg <= 0;
+            weight_base <= 0;
             descriptor_bits <= 0;
             descriptor_read_index <= 0;
             descriptor_scan_legacy <= 1'b0;
@@ -1208,7 +1242,13 @@ module Hnpu_cnn_engine #(
                     end else if (model_u16(4) != 1 || model_u16(6) != 1) begin
                         error <= 1'b1; error_code <= ERR_MODEL_VERSION;
                         busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
-                    end else if (model_u16(8) != HEADER_BYTES || model_u16(10) != DESC_BYTES ||
+                    end else begin
+                        state <= ST_VALIDATE_FORMAT;
+                    end
+                end
+
+                ST_VALIDATE_FORMAT: begin
+                    if (model_u16(8) != HEADER_BYTES || model_u16(10) != DESC_BYTES ||
                                  (model_header_mem[18] != LAYOUT_CHW && model_header_mem[18] != LAYOUT_HWC4) ||
                                  (model_header_mem[18] == LAYOUT_HWC4 && model_u16(16) != 4) ||
                                  model_header_mem[19] != 1 || model_header_mem[20] != 1 ||
@@ -1232,7 +1272,24 @@ module Hnpu_cnn_engine #(
                                  model_u32(60) < model_u32(56) || (model_u32(60) % 32) != 0) begin
                         error <= 1'b1; error_code <= ERR_MODEL_FORMAT;
                         busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
-                    end else if (model_input_elements > input_bytes_reg) begin
+                    end else begin
+                        state <= ST_VALIDATE_SHAPE_HW;
+                    end
+                end
+
+                ST_VALIDATE_SHAPE_HW: begin
+                    model_input_hw_reg <= mul_u16_no_dsp(model_u16(12), model_u16(14));
+                    state <= ST_VALIDATE_ELEMENTS;
+                end
+
+                ST_VALIDATE_ELEMENTS: begin
+                    model_input_elements_reg <=
+                        mul_u16_no_dsp(model_input_hw_reg[15:0], model_u16(16));
+                    state <= ST_VALIDATE_SHAPE;
+                end
+
+                ST_VALIDATE_SHAPE: begin
+                    if (model_input_elements_reg > input_bytes_reg) begin
                         error <= 1'b1; error_code <= ERR_MODEL_SHAPE;
                         busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                     end else begin
@@ -1289,15 +1346,41 @@ module Hnpu_cnn_engine #(
                             legacy_tail_valid <= 1'b0;
                         if ((descriptor_bits[0*8 +: 8] == OP_GAP) &&
                             (legacy_expected_scratch == 0)) begin
-                            legacy_expected_scratch <=
-                                ((mul_u32_u16_no_dsp(
-                                    mul_u16_no_dsp(desc_u16(2), desc_u16(4)),
-                                    desc_u16(6)) + 31) >> 5) << 6;
+                            // Keep the historical 32-bit H*W result and
+                            // defer C multiplication/rounding to later states.
+                            legacy_scratch_hw <= mul_u16_no_dsp(desc_u16(2), desc_u16(4));
+                            legacy_scratch_c <= desc_u16(6);
+                            state <= ST_LEGACY_SCRATCH_PARTIAL;
+                        end else begin
+                            legacy_scan_index <= legacy_scan_index + 1'b1;
+                            state <= (legacy_scan_index + 1'b1 >= layer_count_reg) ?
+                                     ST_LEGACY_DONE : ST_DESC_PRIME;
                         end
-                        legacy_scan_index <= legacy_scan_index + 1'b1;
-                        state <= (legacy_scan_index + 1'b1 >= layer_count_reg) ?
-                                 ST_LEGACY_DONE : ST_DESC_PRIME;
                     end
+                end
+
+                ST_LEGACY_SCRATCH_PARTIAL: begin
+                    // Split the 32x16 product into two parallel 16x16
+                    // products; only the low 32 bits are architecturally used.
+                    legacy_scratch_lo <= mul_u16_no_dsp(legacy_scratch_hw[15:0], legacy_scratch_c);
+                    legacy_scratch_hi <= mul_u16_no_dsp(legacy_scratch_hw[31:16], legacy_scratch_c);
+                    state <= ST_LEGACY_SCRATCH_ACCUM;
+                end
+
+                ST_LEGACY_SCRATCH_ACCUM: begin
+                    legacy_scratch_product <= legacy_scratch_lo +
+                                              {legacy_scratch_hi[15:0], 16'b0};
+                    state <= ST_LEGACY_SCRATCH_ROUND;
+                end
+
+                ST_LEGACY_SCRATCH_ROUND: begin
+                    // Preserve the original 32-bit wrap before the +31
+                    // ceiling-to-32-byte calculation and 64-byte scaling.
+                    legacy_expected_scratch <=
+                        ((legacy_scratch_product + 32'd31) >> 5) << 6;
+                    legacy_scan_index <= legacy_scan_index + 1'b1;
+                    state <= (legacy_scan_index + 1'b1 >= layer_count_reg) ?
+                             ST_LEGACY_DONE : ST_DESC_PRIME;
                 end
 
                 ST_LEGACY_DONE: begin
@@ -1339,6 +1422,7 @@ module Hnpu_cnn_engine #(
                         layer_pad_bottom <= descriptor_bits[20*8 +: 8];
                         layer_pad_right <= descriptor_bits[21*8 +: 8];
                         layer_weight_offset <= desc_u32(32);
+                        weight_base <= desc_u32(32);
                         layer_bias_offset <= desc_u32(36);
                         layer_weight_bytes <= desc_u32(40);
                         layer_bias_bytes <= desc_u32(44);
@@ -1382,7 +1466,6 @@ module Hnpu_cnn_engine #(
                     layer_kernel_size    <= disp_kernel_size;
                     layer_elements       <= disp_elements;
                     layer_out_elements   <= disp_out_elements;
-                    layer_conv_weight_req <= disp_conv_weight_req;
                     layer_fc_weight_req   <= disp_fc_weight_req;
                     layer_ic_stride <= (model_layout_reg == LAYOUT_HWC4) ?
                                        16'd1 : d1_hw[15:0];
@@ -1402,6 +1485,89 @@ module Hnpu_cnn_engine #(
                     pix_origin_a <= 16'd0 - (disp_row0_a + d1_plc);
                     conv_kern_off <= 0; conv_ic_off <= 0;
                     pool_kern_off <= 0; pool_ic_off <= 0;
+                    state <= ST_METADATA_ARITH;
+                end
+
+                ST_METADATA_ARITH: begin
+                    // layer_kernel_size was registered in ST_DISPATCH, so
+                    // this product cannot consume the previous layer's value.
+                    layer_conv_weight_req <=
+                        mul_u32_u16_no_dsp(layer_kernel_size, layer_out_c);
+
+                    // Pre-register the common predicates to keep their long
+                    // error/control cone out of the loop-counter enables.
+                    meta_common_dimensions_ok <=
+                        layer_in_h != 0 && layer_in_w != 0 && layer_in_c != 0 &&
+                        layer_out_h != 0 && layer_out_w != 0 && layer_out_c != 0 &&
+                        layer_in_h == expected_in_h && layer_in_w == expected_in_w &&
+                        layer_in_c == expected_in_c;
+                    meta_common_capacity_ok <=
+                        !($signed(layer_elements) > MAX_TENSOR_BYTES) &&
+                        !($signed(layer_out_elements) > MAX_TENSOR_BYTES) &&
+                        !((!legacy_model_encoding_valid) &&
+                          model_u32(52) < (layer_out_elements << 1));
+
+                    meta_lower_h <= mul_u16_u8_no_dsp(layer_out_h_m1, layer_sh);
+                    meta_lower_w <= mul_u16_u8_no_dsp(layer_out_w_m1, layer_sw);
+
+                    meta_conv_room_h <= (layer_sh != 0) && (layer_out_h != 0) &&
+                                         (meta_conv_padded_h >= meta_conv_kernel_h);
+                    meta_conv_room_w <= (layer_sw != 0) && (layer_out_w != 0) &&
+                                         (meta_conv_padded_w >= meta_conv_kernel_w);
+                    meta_pool_room_h <= (layer_sh != 0) && (layer_out_h != 0) &&
+                                         (meta_pool_padded_h >= meta_pool_kernel_h);
+                    meta_pool_room_w <= (layer_sw != 0) && (layer_out_w != 0) &&
+                                         (meta_pool_padded_w >= meta_pool_kernel_w);
+
+                    meta_conv_extent_h <=
+                        (meta_conv_padded_h >= meta_conv_kernel_h) ?
+                        meta_conv_padded_h - meta_conv_kernel_h : 18'b0;
+                    meta_conv_extent_w <=
+                        (meta_conv_padded_w >= meta_conv_kernel_w) ?
+                        meta_conv_padded_w - meta_conv_kernel_w : 18'b0;
+                    meta_pool_extent_h <=
+                        (meta_pool_padded_h >= meta_pool_kernel_h) ?
+                        meta_pool_padded_h - meta_pool_kernel_h : 18'b0;
+                    meta_pool_extent_w <=
+                        (meta_pool_padded_w >= meta_pool_kernel_w) ?
+                        meta_pool_padded_w - meta_pool_kernel_w : 18'b0;
+                    state <= ST_METADATA_COMPARE;
+                end
+
+                ST_METADATA_COMPARE: begin
+                    meta_common_descriptor_ok <=
+                        desc_u32(24) == 0 && desc_u32(28) == 0 &&
+                        descriptor_reserved_compatible(1'b0) && layer_shift <= 31 &&
+                        !(layer_weight_bytes != 0 && layer_weight_offset[4:0] != 0) &&
+                        !(layer_bias_bytes != 0 && layer_bias_offset[4:0] != 0) &&
+                        !(layer_weight_bytes == 0 && layer_weight_offset != 0) &&
+                        !(layer_bias_bytes == 0 && layer_bias_offset != 0) &&
+                        !(layer_weight_bytes != 0 &&
+                          ({1'b0, layer_weight_offset} < {1'b0, model_u32(32)} ||
+                           ({1'b0, layer_weight_offset} + {1'b0, layer_weight_bytes}) > header_weight_end)) &&
+                        !(layer_bias_bytes != 0 &&
+                          ({1'b0, layer_bias_offset} < {1'b0, model_u32(40)} ||
+                           ({1'b0, layer_bias_offset} + {1'b0, layer_bias_bytes}) > header_bias_end)) &&
+                        !(({1'b0, layer_weight_offset} + {1'b0, layer_weight_bytes}) >
+                          {1'b0, model_bytes_reg}) &&
+                        !(({1'b0, layer_bias_offset} + {1'b0, layer_bias_bytes}) >
+                          {1'b0, model_bytes_reg});
+                    meta_conv_h_valid <= meta_conv_room_h &&
+                        ({6'b0, meta_conv_extent_h} >= meta_lower_h) &&
+                        ({6'b0, meta_conv_extent_h} <
+                         (meta_lower_h + {16'b0, layer_sh}));
+                    meta_conv_w_valid <= meta_conv_room_w &&
+                        ({6'b0, meta_conv_extent_w} >= meta_lower_w) &&
+                        ({6'b0, meta_conv_extent_w} <
+                         (meta_lower_w + {16'b0, layer_sw}));
+                    meta_pool_h_valid <= meta_pool_room_h &&
+                        ({6'b0, meta_pool_extent_h} >= meta_lower_h) &&
+                        ({6'b0, meta_pool_extent_h} <
+                         (meta_lower_h + {16'b0, layer_sh}));
+                    meta_pool_w_valid <= meta_pool_room_w &&
+                        ({6'b0, meta_pool_extent_w} >= meta_lower_w) &&
+                        ({6'b0, meta_pool_extent_w} <
+                         (meta_lower_w + {16'b0, layer_sw}));
                     state <= ST_CHECK;
                 end
 
@@ -1416,32 +1582,9 @@ module Hnpu_cnn_engine #(
                         layer_op != OP_FC && layer_op != OP_ARGMAX) begin
                         error <= 1'b1; error_code <= ERR_UNSUPPORTED_OP;
                         busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
-                    end else if (layer_in_h == 0 || layer_in_w == 0 || layer_in_c == 0 ||
-                                 layer_out_h == 0 || layer_out_w == 0 || layer_out_c == 0 ||
-                                 layer_in_h != expected_in_h || layer_in_w != expected_in_w ||
-                                 layer_in_c != expected_in_c ||
-                                 $signed(layer_elements) > MAX_TENSOR_BYTES ||
-                                 $signed(layer_out_elements) > MAX_TENSOR_BYTES ||
-                                 ((!legacy_model_encoding_valid) &&
-                                  model_u32(52) < (layer_out_elements << 1)) ||
-                                 desc_u32(24) != 0 ||
-                                 desc_u32(28) != 0 ||
-                                 !descriptor_reserved_compatible(1'b0) ||
-                                 layer_shift > 31 ||
-                                 (layer_weight_bytes != 0 && layer_weight_offset[4:0] != 0) ||
-                                 (layer_bias_bytes != 0 && layer_bias_offset[4:0] != 0) ||
-                                 (layer_weight_bytes == 0 && layer_weight_offset != 0) ||
-                                 (layer_bias_bytes == 0 && layer_bias_offset != 0) ||
-                                 (layer_weight_bytes != 0 &&
-                                  ({1'b0, layer_weight_offset} < {1'b0, model_u32(32)} ||
-                                   ({1'b0, layer_weight_offset} + {1'b0, layer_weight_bytes}) > header_weight_end)) ||
-                                 (layer_bias_bytes != 0 &&
-                                  ({1'b0, layer_bias_offset} < {1'b0, model_u32(40)} ||
-                                   ({1'b0, layer_bias_offset} + {1'b0, layer_bias_bytes}) > header_bias_end)) ||
-                                 ({1'b0, layer_weight_offset} + {1'b0, layer_weight_bytes}) >
-                                     {1'b0, model_bytes_reg} ||
-                                 ({1'b0, layer_bias_offset} + {1'b0, layer_bias_bytes}) >
-                                     {1'b0, model_bytes_reg}) begin
+                    end else if (!meta_common_dimensions_ok ||
+                                 !meta_common_capacity_ok ||
+                                 !meta_common_descriptor_ok) begin
                         error <= 1'b1; error_code <= ERR_MODEL_SHAPE;
                         busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                     end else if (layer_op == OP_CONV2D) begin
@@ -1454,10 +1597,7 @@ module Hnpu_cnn_engine #(
                         end else if (layer_kh == 0 || layer_kw == 0 || layer_sh == 0 || layer_sw == 0 ||
                             layer_weight_bytes < layer_conv_weight_req ||
                             layer_bias_bytes < ({16'b0, layer_out_c} << 2) ||
-                            !shape_dimension_valid(layer_in_h, layer_out_h, layer_kh,
-                                layer_sh, layer_pad_top, layer_pad_bottom) ||
-                            !shape_dimension_valid(layer_in_w, layer_out_w, layer_kw,
-                                layer_sw, layer_pad_left, layer_pad_right)) begin
+                            !meta_conv_h_valid || !meta_conv_w_valid) begin
                             error <= 1'b1; error_code <= ERR_MODEL_SHAPE;
                             busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                         end else begin
@@ -1471,10 +1611,7 @@ module Hnpu_cnn_engine #(
                     end else if (layer_op == OP_MAXPOOL) begin
                         if (layer_kh == 0 || layer_kw == 0 || layer_sh == 0 || layer_sw == 0 ||
                             layer_out_c != layer_in_c ||
-                            !shape_dimension_valid(layer_in_h, layer_out_h, layer_kh,
-                                layer_sh, 8'b0, 8'b0) ||
-                            !shape_dimension_valid(layer_in_w, layer_out_w, layer_kw,
-                                layer_sw, 8'b0, 8'b0)) begin
+                            !meta_pool_h_valid || !meta_pool_w_valid) begin
                             error <= 1'b1; error_code <= ERR_MODEL_SHAPE;
                             busy <= 1'b0; done_pulse <= 1'b1; state <= ST_IDLE;
                         end else begin
@@ -1630,6 +1767,9 @@ module Hnpu_cnn_engine #(
                                 state <= ST_WRITE_DRAIN;
                             else begin
                                 out_c <= out_c + 1;
+                                // The next CONV output channel owns the next
+                                // contiguous kernel_size weight row.
+                                weight_base <= weight_base + layer_kernel_size;
                                 state <= ST_BIAS_PRIME;
                             end
                         end else begin
@@ -1829,6 +1969,8 @@ module Hnpu_cnn_engine #(
                         state <= ST_LAYER_NEXT;
                     else begin
                         fc_output <= fc_output + 1;
+                        // FC rows are contiguous input-channel vectors.
+                        weight_base <= weight_base + layer_in_c;
                         state <= ST_BIAS_PRIME;
                     end
                 end

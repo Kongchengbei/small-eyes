@@ -1,0 +1,12 @@
+{
+  "cpu": true,
+  "bsp": true,
+  "tools": true,
+  "project/project.pds": true,
+  "soc/soc_addr_map.vh": true,
+  "head_matches_run": true,
+  "branch": "main",
+  "all_snapshot_sources_match": true,
+  "fdc_matches_snapshot": true,
+  "checked_at": "2026-11-01T14:03:35"
+}

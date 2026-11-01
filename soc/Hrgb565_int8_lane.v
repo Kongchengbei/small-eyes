@@ -43,7 +43,7 @@ module Hrgb565_int8_lane #(
     output reg [31:0] write_data_wait_cycles, output reg [31:0] write_resp_wait_cycles,
     output reg [31:0] handoff_wait_cycles,
     output reg [31:0] used_slots, output reg [31:0] peak_slots,
-    output reg [31:0] ddr_error_count, output reg [31:0] bad_release_count,
+    output reg [31:0] ddr_error_count, output wire [31:0] bad_release_count,
     output reg [31:0] failed_batches, output reg [31:0] last_failure_frame,
     output reg [7:0] last_failure_index, output reg [7:0] last_failure_cause,
 
@@ -96,6 +96,8 @@ module Hrgb565_int8_lane #(
     reg [31:0] batch_timer;
     reg [31:0] watchdog;
     reg batch_failed;
+    reg [31:0] bad_count_base;
+    reg bad_event_q;
     reg [2:0] fifo_wr_ptr, fifo_rd_ptr;
     reg [3:0] fifo_count;
     reg [7:0] fifo_index [0:7];
@@ -106,7 +108,9 @@ module Hrgb565_int8_lane #(
     reg [2:0] fifo_color [0:7];
     reg [31:0] fifo_frame [0:7];
     reg [7:0] fifo_batch_count [0:7];
-    wire [5:0] free_count;
+    // Exact allocatable-slot count, updated alongside slot_state writes.
+    // It avoids rebuilding a 56-slot popcount on the descriptor ready path.
+    reg [5:0] free_count;
     // ---- 释放流水寄存器 ----
     // slot_state 有 5 个"变址写者"（释放/pop/push/ST_ALLOC/ST_CLEAN），且释放还要
     // 变址读 slot_state/slot_generation/slot_frame 再和消息比较。原来这几件事挤在
@@ -144,20 +148,7 @@ module Hrgb565_int8_lane #(
     wire [6:0] alloc_group_valid;
     wire [6:0] alloc_group_first;
     wire [2:0] alloc_group_index;
-    wire [27:0] alloc_group_count;
-    wire [4:0] free_pair01 = {1'b0,alloc_group_count[3:0]} +
-        {1'b0,alloc_group_count[7:4]};
-    wire [4:0] free_pair23 = {1'b0,alloc_group_count[11:8]} +
-        {1'b0,alloc_group_count[15:12]};
-    wire [4:0] free_pair45 = {1'b0,alloc_group_count[19:16]} +
-        {1'b0,alloc_group_count[23:20]};
-    wire [5:0] free_pair0123 = {1'b0,free_pair01} + {1'b0,free_pair23};
-    wire [5:0] free_pair456 = {1'b0,free_pair45} +
-        {2'b0,alloc_group_count[27:24]};
-    // Occupancy is the complement of the allocatable count: the former
-    // 7x popcount8 + adder tree over slot_state is no longer built at all.
-    // Every state==0 slot is allocatable in normal operation, so this is
-    // bit-identical to counting slot_state!=0, with the same register lag.
+    // Occupancy is the complement of the registered allocatable count.
     wire [5:0] used_count_next = 6'd56 - free_count;
 
     // 释放消息的解析（组合）。candidate 只有 6 位：block∈0..3、position∈0..13，
@@ -171,25 +162,17 @@ module Hrgb565_int8_lane #(
         (slot_generation[rel_candidate] == release_generation) &&
         (slot_frame[rel_candidate] == release_frame);
 
-    function [3:0] popcount8;
-        input [7:0] value;
-        reg [1:0] pair0, pair1, pair2, pair3;
-        reg [2:0] half0, half1;
-        begin
-            pair0={1'b0,value[0]}+{1'b0,value[1]};
-            pair1={1'b0,value[2]}+{1'b0,value[3]};
-            pair2={1'b0,value[4]}+{1'b0,value[5]};
-            pair3={1'b0,value[6]}+{1'b0,value[7]};
-            half0={1'b0,pair0}+{1'b0,pair1};
-            half1={1'b0,pair2}+{1'b0,pair3};
-            popcount8={1'b0,half0}+{1'b0,half1};
-        end
-    endfunction
-
     function [31:0] sat_inc;
         input [31:0] value;
         begin sat_inc = (&value) ? value : value + 1'b1; end
     endfunction
+
+    // Commit the previous cycle's pending event into the base, then project
+    // the current pending bit combinationally so the visible count stays
+    // cycle-exact. Late tuple matching drives only this one-bit event register,
+    // not the 32-bit counter's clock enable.
+    wire bad_release_event = release_valid && !release_hit;
+    assign bad_release_count = bad_event_q ? sat_inc(bad_count_base) : bad_count_base;
 
     function [31:0] rgb565_to_int8x4;
         input [15:0] px;
@@ -256,8 +239,6 @@ module Hrgb565_int8_lane #(
         for (alloc_gen=0;alloc_gen<7;alloc_gen=alloc_gen+1) begin: gen_alloc_group
             assign alloc_group_valid[alloc_gen] =
                 |alloc_free_mask[alloc_gen*8 +: 8];
-            assign alloc_group_count[alloc_gen*4 +: 4] =
-                popcount8(allocatable_mask[alloc_gen*8 +: 8]);
             if (alloc_gen==0) begin: gen_first_group
                 assign alloc_group_first[alloc_gen] = alloc_group_valid[alloc_gen];
             end else begin: gen_later_group
@@ -285,8 +266,6 @@ module Hrgb565_int8_lane #(
         alloc_sel_local_onehot[5] | alloc_sel_local_onehot[7]
     };
     assign alloc_sel_addr=block_base(alloc_sel_index);
-    assign free_count=free_pair0123+free_pair456;
-
     // SOC_PRE_ROI_STRIDE_BYTES == 32768 == 2^15.  desc_last_end 只在
     // desc_rgb_stride == 该常量时才被判定使用（见 desc_geometry_ok），所以这里的
     // 32x32->64 乘法退化成移位：省 4 个 APM 和一条 64 位加法链。
@@ -366,6 +345,23 @@ module Hrgb565_int8_lane #(
     wire pop_image = image_valid && image_ready;
     wire timeout_hit = (state!=ST_IDLE) && (image_cycles==TIMEOUT_CYCLES);
 
+    // Keep the registered capacity in lockstep with the actual allocatable
+    // slot transitions. Two independent frees can coincide (release + CLEAN),
+    // and allocation may coincide with either; combine their deltas once.
+    wire alloc_credit_take = state==ST_ALLOC && alloc_gok_q;
+    // A hit is pipelined, so its target may already be free by the write
+    // cycle (for example, two identical releases in adjacent cycles). Count
+    // only a nonempty->free transition, and account for the later ST_ALLOC
+    // assignment winning over either clear when addresses coincide.
+    wire alloc_credit_release = rel_hit_q && (slot_state[rel_slot_q]!=2'd0) &&
+        !(alloc_credit_take && alloc_sel_index==rel_slot_q);
+    wire alloc_credit_clean = clean_hit_q && (slot_state[clean_slot_q]!=2'd0) &&
+        !(alloc_credit_take && alloc_sel_index==clean_slot_q) &&
+        !(alloc_credit_release && rel_slot_q==clean_slot_q);
+    wire alloc_epoch_saturates = (state==ST_ALLOC) &&
+        (gen_epoch==32'hffff_fffe) &&
+        (!alloc_gok_q || ({1'b0,alloc_position}+4'd1 >= batch_count_reg[3:0]));
+
     always @* begin
         for (i=0;i<16;i=i+1)
             converted_word[i*32 +: 32]=rgb565_to_int8x4(read_word[i*16 +: 16]);
@@ -384,11 +380,12 @@ module Hrgb565_int8_lane #(
             read_addr_wait_cycles<=0; read_data_wait_cycles<=0;
             write_addr_wait_cycles<=0; write_data_wait_cycles<=0;
             write_resp_wait_cycles<=0; handoff_wait_cycles<=0;
-            used_slots<=0; peak_slots<=0; ddr_error_count<=0; bad_release_count<=0;
+            used_slots<=0; peak_slots<=0; ddr_error_count<=0;
+            bad_count_base<=0; bad_event_q<=1'b0;
             failed_batches<=0; last_failure_frame<=0; last_failure_index<=0;
             last_failure_cause<=0;
             rel_hit_q<=1'b0; rel_slot_q<=6'd0;
-            alloc_free_mask<=0; alloc_position<=0; gen_epoch<=32'd1;
+            alloc_free_mask<=0; alloc_position<=0; free_count<=6'd56; gen_epoch<=32'd1;
             alloc_gok_q<=1'b0; alloc_gsel_q<=3'd0; alloc_lsel_q<=3'd0;
             clean_hit_q<=1'b0; clean_slot_q<=6'd0; clean_index<=4'd0;
             batch_gen_epoch<=32'd1;
@@ -426,6 +423,15 @@ module Hrgb565_int8_lane #(
                 fifo_batch_count[fifo_wr_ptr]<=batch_count_reg;
             end
 
+            // If the generation epoch reaches its terminal value, every slot
+            // becomes permanently ineligible, including still-free slots.
+            // Otherwise mirror each real free/reserve state write exactly.
+            if (alloc_epoch_saturates || gen_epoch==32'hffff_ffff)
+                free_count<=6'd0;
+            else
+                free_count<=free_count + {5'b0,alloc_credit_release} +
+                    {5'b0,alloc_credit_clean} - {5'b0,alloc_credit_take};
+
             used_slots<={26'b0,used_count_next};
             if ({26'b0,used_count_next}>peak_slots) peak_slots<={26'b0,used_count_next};
 
@@ -436,7 +442,8 @@ module Hrgb565_int8_lane #(
             // 重复消息与过期消息照旧只累加 bad_release_count。
             rel_hit_q  <= release_hit;
             rel_slot_q <= rel_candidate;
-            if (release_valid && !release_hit) bad_release_count<=sat_inc(bad_release_count);
+            bad_event_q<=bad_release_event;
+            if (bad_event_q) bad_count_base<=sat_inc(bad_count_base);
             for (rel_k=0;rel_k<SLOT_COUNT;rel_k=rel_k+1)
                 if (rel_hit_q && rel_slot_q==rel_k[5:0]) slot_state[rel_k]<=2'd0;
             if (clean_hit_q) slot_state[clean_slot_q]<=2'd0;

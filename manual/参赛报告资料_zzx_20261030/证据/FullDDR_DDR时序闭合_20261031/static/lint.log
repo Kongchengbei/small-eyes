@@ -1,0 +1,536 @@
+%Warning-IMPLICIT: jtag/jtag_dm.v:329:8: Signal definition not found, creating implicitly: 'dmi_w_sbaddress0'
+                                       : ... Suggested alternative: 'sbaddress0'
+  329 | assign dmi_w_sbaddress0 = dmi_addr==SBADDRESS0 && dmi_op==DTM_OP_WRITE && state==STATE_EXE; 
+      |        ^~~~~~~~~~~~~~~~
+                   ... For warning description see https://verilator.org/warn/IMPLICIT?v=5.008
+                   ... Use "/* verilator lint_off IMPLICIT */" and lint_on around source to disable this message.
+%Warning-IMPLICIT: jtag/jtag_dm.v:330:8: Signal definition not found, creating implicitly: 'dmi_w_sbdata0'
+                                       : ... Suggested alternative: 'dmi_data'
+  330 | assign dmi_w_sbdata0 = dmi_addr==SBDATA0 && dmi_op==DTM_OP_WRITE && state==STATE_EXE; 
+      |        ^~~~~~~~~~~~~
+%Warning-IMPLICIT: jtag/jtag_dm.v:331:8: Signal definition not found, creating implicitly: 'dmi_r_sbdata0'
+                                       : ... Suggested alternative: 'dmi_w_sbdata0'
+  331 | assign dmi_r_sbdata0 = dmi_addr==SBDATA0 && dmi_op==DTM_OP_READ && state==STATE_EXE; 
+      |        ^~~~~~~~~~~~~
+%Warning-WIDTHTRUNC: soc/Hfpga_soc.v:40:30: Operator VAR 'PREPROCESS_ENABLE' expects 1 bits on the Initial value, but Initial value's CONST '32'h1' generates 32 bits.
+                                          : ... In instance Hfpga_soc
+   40 |     parameter         [ 0:0] PREPROCESS_ENABLE           = 1,
+      |                              ^~~~~~~~~~~~~~~~~
+%Warning-WIDTHTRUNC: soc/Huart_tx.v:21:23: Operator VAR 'DEFAULT_DIV' expects 16 bits on the Initial value, but Initial value's SUB generates 32 bits.
+                                         : ... In instance Hfpga_soc.g_ddr_profile.u_uart0_tx
+   21 |     localparam [15:0] DEFAULT_DIV = (CLK_HZ / BAUD) - 1;
+      |                       ^~~~~~~~~~~
+%Warning-WIDTHCONCAT: soc/Hcamera_dma.v:62:42: Unsized numbers/parameters not allowed in concatenations.
+                                             : ... In instance Hfpga_soc.g_ddr_profile.u_cam1.u_dma
+   62 | localparam [63:0] FRAME_PIXELS_C = {32'b0, FRAME_WIDTH} * {32'b0, FRAME_HEIGHT};
+      |                                          ^
+%Warning-WIDTHCONCAT: soc/Hcamera_dma.v:62:65: Unsized numbers/parameters not allowed in concatenations.
+                                             : ... In instance Hfpga_soc.g_ddr_profile.u_cam1.u_dma
+   62 | localparam [63:0] FRAME_PIXELS_C = {32'b0, FRAME_WIDTH} * {32'b0, FRAME_HEIGHT};
+      |                                                                 ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:98:23: Operator VAR 'DRAIN_TIMEOUT_LIMIT' expects 16 bits on the Initial value, but Initial value's COND generates 32 bits.
+                                                : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+   98 |     localparam [15:0] DRAIN_TIMEOUT_LIMIT = (R_DRAIN_TIMEOUT > 0) ?
+      |                       ^~~~~~~~~~~~~~~~~~~
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:757:43: Operator ASSIGN expects 16 bits on the Assign RHS, but Assign RHS's VARREF 'HEADER_BYTES' generates 32 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  757 |             ST_CRC_PRIME: model_read_addr = HEADER_BYTES;
+      |                                           ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:758:37: Operator ASSIGN expects 16 bits on the Assign RHS, but Assign RHS's ADD generates 32 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  758 |             ST_CRC: model_read_addr = crc_index + 1'b1;
+      |                                     ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:760:50: Operator COND expects 8 bits on the Conditional True, but Conditional True's VARREF 'legacy_scan_index' generates 5 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  760 |                 ({24'b0, (descriptor_scan_legacy ? legacy_scan_index : layer_index)} << 6);
+      |                                                  ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:759:44: Operator ASSIGN expects 16 bits on the Assign RHS, but Assign RHS's ADD generates 32 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  759 |             ST_DESC_PRIME: model_read_addr = HEADER_BYTES +
+      |                                            ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:762:50: Operator COND expects 8 bits on the Conditional True, but Conditional True's VARREF 'legacy_scan_index' generates 5 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  762 |                 ({24'b0, (descriptor_scan_legacy ? legacy_scan_index : layer_index)} << 6) +
+      |                                                  ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:762:92: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'descriptor_read_index' generates 6 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  762 |                 ({24'b0, (descriptor_scan_legacy ? legacy_scan_index : layer_index)} << 6) +
+      |                                                                                            ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:761:43: Operator ASSIGN expects 16 bits on the Assign RHS, but Assign RHS's ADD generates 32 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  761 |             ST_DESC_READ: model_read_addr = HEADER_BYTES +
+      |                                           ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:765:39: Operator COND expects 32 bits on the Conditional True, but Conditional True's VARREF 'fc_output' generates 16 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  765 |                 (((layer_op == OP_FC) ? fc_output : out_c) << 2);
+      |                                       ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:765:39: Operator COND expects 32 bits on the Conditional False, but Conditional False's VARREF 'out_c' generates 16 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  765 |                 (((layer_op == OP_FC) ? fc_output : out_c) << 2);
+      |                                       ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:764:44: Operator ASSIGN expects 16 bits on the Assign RHS, but Assign RHS's ADD generates 32 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  764 |             ST_BIAS_PRIME: model_read_addr = layer_bias_offset +
+      |                                            ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:767:40: Operator COND expects 32 bits on the Conditional True, but Conditional True's VARREF 'fc_output' generates 16 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  767 |                 ((((layer_op == OP_FC) ? fc_output : out_c) << 2) + bias_lane + 1'b1);
+      |                                        ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:767:40: Operator COND expects 32 bits on the Conditional False, but Conditional False's VARREF 'out_c' generates 16 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  767 |                 ((((layer_op == OP_FC) ? fc_output : out_c) << 2) + bias_lane + 1'b1);
+      |                                        ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:767:67: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'bias_lane' generates 2 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  767 |                 ((((layer_op == OP_FC) ? fc_output : out_c) << 2) + bias_lane + 1'b1);
+      |                                                                   ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:766:44: Operator ASSIGN expects 16 bits on the Assign RHS, but Assign RHS's ADD generates 32 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  766 |             ST_BIAS_FETCH: model_read_addr = layer_bias_offset +
+      |                                            ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:770:46: Operator ASSIGN expects 16 bits on the Assign RHS, but Assign RHS's VARREF 'weight_base' generates 32 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  770 |             ST_WEIGHT_PRIME: model_read_addr = weight_base;
+      |                                              ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:771:56: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'kernel_index' generates 17 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  771 |             ST_CONV_MAC: model_read_addr = weight_base + kernel_index + 1;
+      |                                                        ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:771:42: Operator ASSIGN expects 16 bits on the Assign RHS, but Assign RHS's ADD generates 32 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  771 |             ST_CONV_MAC: model_read_addr = weight_base + kernel_index + 1;
+      |                                          ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:772:54: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'fc_index' generates 16 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  772 |             ST_FC_MAC: model_read_addr = weight_base + fc_index + 1;
+      |                                                      ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:772:40: Operator ASSIGN expects 16 bits on the Assign RHS, but Assign RHS's ADD generates 32 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  772 |             ST_FC_MAC: model_read_addr = weight_base + fc_index + 1;
+      |                                        ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:818:45: Operator EQ expects 16 bits on the RHS, but RHS's VARREF 'layer_kw_m1' generates 8 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  818 |                             if (conv_kx_reg == layer_kw_m1) begin
+      |                                             ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:852:37: Operator EQ expects 16 bits on the RHS, but RHS's VARREF 'layer_kw_m1' generates 8 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  852 |                     if (pool_kx_reg == layer_kw_m1) begin
+      |                                     ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:869:61: Operator COND expects 32 bits on the Conditional True, but Conditional True's VARREF 'gap_position' generates 16 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  869 |                 tensor_addr_index = (state == ST_GAP_PRIME) ? gap_position : gap_position + 1;
+      |                                                             ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:869:91: Operator ADD expects 32 bits on the LHS, but LHS's VARREF 'gap_position' generates 16 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  869 |                 tensor_addr_index = (state == ST_GAP_PRIME) ? gap_position : gap_position + 1;
+      |                                                                                           ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:872:67: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'gap_channel' generates 16 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  872 |                                                       layer_in_c) + gap_channel;
+      |                                                                   ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:871:38: Operator ASSIGN expects 16 bits on the Assign RHS, but Assign RHS's ADD generates 32 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  871 |                     tensor_read_addr = mul_u16_no_dsp(tensor_addr_index[15:0],
+      |                                      ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:874:38: Operator ASSIGN expects 16 bits on the Assign RHS, but Assign RHS's ADD generates 32 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  874 |                     tensor_read_addr = mul_u16_no_dsp(gap_channel[15:0],
+      |                                      ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:900:21: Bit extraction of array[16383:0] requires 14 bit index, not 16 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  900 |             tensor_a[tensor_write_addr] <= tensor_write_data;
+      |                     ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:902:21: Bit extraction of array[16383:0] requires 14 bit index, not 16 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  902 |             tensor_b[tensor_write_addr] <= tensor_write_data;
+      |                     ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:903:39: Bit extraction of array[16383:0] requires 14 bit index, not 16 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  903 |         tensor_a_read_data <= tensor_a[tensor_read_addr];
+      |                                       ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:904:39: Bit extraction of array[16383:0] requires 14 bit index, not 16 bits.
+                                                 : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+  904 |         tensor_b_read_data <= tensor_b[tensor_read_addr];
+      |                                       ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1109:83: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'unpack_lane' generates 5 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1109 |                     source_offset = read_offset + ({27'b0, read_beat_index} << 5) + unpack_lane;
+      |                                                                                   ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1116:48: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's VARREF 'downsample_dest_index' generates 13 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1116 |                             tensor_write_index = downsample_dest_index;
+      |                                                ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1118:75: Operator LT expects 32 bits on the LHS, but LHS's VARREF 'downsample_dest_index' generates 13 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1118 |                                 input_store_valid = downsample_dest_index < input_bytes_reg;
+      |                                                                           ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:1145:47: Operator ASSIGNDLY expects 16 bits on the Assign RHS, but Assign RHS's VARREF 'tensor_write_index' generates 32 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1145 |                             tensor_write_addr <= tensor_write_index;
+      |                                               ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1173:78: Operator SUB expects 32 bits on the RHS, but RHS's VARREF 'burst_beats' generates 5 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1173 |                                 read_remaining_beats <= read_remaining_beats - burst_beats;
+      |                                                                              ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1175:80: Operator SUB expects 32 bits on the RHS, but RHS's VARREF 'burst_beats' generates 5 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1175 |                                 burst_beats <= calc_burst(read_remaining_beats - burst_beats,
+      |                                                                                ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1163:63: Operator EQ expects 32 bits on the RHS, but RHS's VARREF 'burst_beats' generates 5 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1163 |                             end else if (read_remaining_beats == burst_beats) begin
+      |                                                               ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1251:38: Operator NEQ expects 32 bits on the LHS, but LHS's FUNCREF 'model_u16' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1251 |                     if (model_u16(8) != HEADER_BYTES || model_u16(10) != DESC_BYTES ||
+      |                                      ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1251:71: Operator NEQ expects 32 bits on the LHS, but LHS's FUNCREF 'model_u16' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1251 |                     if (model_u16(8) != HEADER_BYTES || model_u16(10) != DESC_BYTES ||
+      |                                                                       ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1255:113: Operator GTS expects 32 bits on the LHS, but LHS's ARRAYSEL generates 8 bits.
+                                                    : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1255 |                                  model_header_mem[21] == 0 || model_header_mem[22] == 0 || model_header_mem[21] > MAX_LAYERS ||
+      |                                                                                                                 ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1256:55: Operator GTS expects 32 bits on the LHS, but LHS's ARRAYSEL generates 8 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1256 |                                  model_header_mem[22] > MAX_CLASSES || model_u32(48) != model_bytes_reg ||
+      |                                                       ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1326:47: Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'descriptor_read_index' generates 6 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1326 |                     if (descriptor_read_index == DESC_BYTES - 1)
+      |                                               ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1356:57: Operator ADD expects 8 bits on the LHS, but LHS's VARREF 'legacy_scan_index' generates 5 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1356 |                             state <= (legacy_scan_index + 1'b1 >= layer_count_reg) ?
+      |                                                         ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1333:43: Operator GTE expects 8 bits on the LHS, but LHS's VARREF 'legacy_scan_index' generates 5 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1333 |                     if (legacy_scan_index >= layer_count_reg) begin
+      |                                           ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1382:49: Operator ADD expects 8 bits on the LHS, but LHS's VARREF 'legacy_scan_index' generates 5 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1382 |                     state <= (legacy_scan_index + 1'b1 >= layer_count_reg) ?
+      |                                                 ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1631:41: Operator ASSIGNDLY expects 17 bits on the Assign RHS, but Assign RHS's SEL generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1631 |                             gap_divisor <= d1_hw[15:0];
+      |                                         ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1714:45: Operator EQ expects 16 bits on the RHS, but RHS's VARREF 'layer_kw_m1' generates 8 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1714 |                             if (conv_kx_reg == layer_kw_m1) begin
+      |                                             ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1706:38: Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'kernel_index' generates 17 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1706 |                     if (kernel_index == layer_kernel_size_m1) begin
+      |                                      ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1740:29: Operator FUNCREF 'mul_u32_u16_no_dsp' expects 32 bits on the Function Argument, but Function Argument's SEL generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1740 |                             mul_u32_u16_no_dsp(out_y[15:0], layer_out_w) + out_x,
+      |                             ^~~~~~~~~~~~~~~~~~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1740:74: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'out_x' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1740 |                             mul_u32_u16_no_dsp(out_y[15:0], layer_out_w) + out_x,
+      |                                                                          ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1741:42: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'out_c' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1741 |                             layer_out_c) + out_c;
+      |                                          ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1743:46: Operator FUNCREF 'mul_u32_u16_no_dsp' expects 32 bits on the Function Argument, but Function Argument's SEL generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1743 |                         tensor_write_index = mul_u32_u16_no_dsp(out_c[15:0],
+      |                                              ^~~~~~~~~~~~~~~~~~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1745:29: Operator FUNCREF 'mul_u32_u16_no_dsp' expects 32 bits on the Function Argument, but Function Argument's SEL generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1745 |                             mul_u32_u16_no_dsp(out_y[15:0], layer_out_w) + out_x;
+      |                             ^~~~~~~~~~~~~~~~~~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1745:74: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'out_x' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1745 |                             mul_u32_u16_no_dsp(out_y[15:0], layer_out_w) + out_x;
+      |                                                                          ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:1748:39: Operator ASSIGNDLY expects 16 bits on the Assign RHS, but Assign RHS's VARREF 'tensor_write_index' generates 32 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1748 |                     tensor_write_addr <= tensor_write_index;
+      |                                       ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1791:38: Operator LT expects 32 bits on the LHS, but LHS's VARREF 'tensor_index' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1791 |                     if (tensor_index < layer_elements) begin
+      |                                      ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1812:33: Operator FUNCREF 'mul_u32_u16_no_dsp' expects 32 bits on the Function Argument, but Function Argument's SEL generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1812 |                                 mul_u32_u16_no_dsp(out_y[15:0], layer_out_w) + out_x,
+      |                                 ^~~~~~~~~~~~~~~~~~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1812:78: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'out_x' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1812 |                                 mul_u32_u16_no_dsp(out_y[15:0], layer_out_w) + out_x,
+      |                                                                              ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1813:46: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'out_c' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1813 |                                 layer_out_c) + out_c;
+      |                                              ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1815:50: Operator FUNCREF 'mul_u32_u16_no_dsp' expects 32 bits on the Function Argument, but Function Argument's SEL generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1815 |                             tensor_write_index = mul_u32_u16_no_dsp(out_c[15:0],
+      |                                                  ^~~~~~~~~~~~~~~~~~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1817:33: Operator FUNCREF 'mul_u32_u16_no_dsp' expects 32 bits on the Function Argument, but Function Argument's SEL generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1817 |                                 mul_u32_u16_no_dsp(out_y[15:0], layer_out_w) + out_x;
+      |                                 ^~~~~~~~~~~~~~~~~~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1817:78: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'out_x' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1817 |                                 mul_u32_u16_no_dsp(out_y[15:0], layer_out_w) + out_x;
+      |                                                                              ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:1820:43: Operator ASSIGNDLY expects 16 bits on the Assign RHS, but Assign RHS's VARREF 'tensor_write_index' generates 32 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1820 |                         tensor_write_addr <= tensor_write_index;
+      |                                           ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1863:41: Operator EQ expects 16 bits on the RHS, but RHS's VARREF 'layer_kw_m1' generates 8 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1863 |                         if (pool_kx_reg == layer_kw_m1) begin
+      |                                         ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1876:45: Operator FUNCREF 'mul_u32_u16_no_dsp' expects 32 bits on the Function Argument, but Function Argument's SEL generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1876 |                         tensor_read_index = mul_u32_u16_no_dsp(
+      |                                             ^~~~~~~~~~~~~~~~~~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1877:61: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'gap_channel' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1877 |                             gap_position[15:0], layer_in_c) + gap_channel;
+      |                                                             ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1880:39: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'gap_position' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1880 |                             layer_hw) + gap_position;
+      |                                       ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1927:29: Operator NEGATE expects 64 bits on the LHS, but LHS's SIGNED generates 33 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1927 |                             -$signed({1'b0, gap_div_quotient_next}) :
+      |                             ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1926:72: Operator COND expects 64 bits on the Conditional False, but Conditional False's SIGNED generates 33 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1926 |                         tensor_write_data <= clamp_i8(gap_div_negative ?
+      |                                                                        ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1942:36: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's VARREF 'fc_index' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1942 |                     fc_input_index = fc_index;
+      |                                    ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1943:39: Operator FUNCREF 'mul_u32_u16_no_dsp' expects 32 bits on the Function Argument, but Function Argument's SEL generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1943 |                     fc_weight_index = mul_u32_u16_no_dsp(fc_output[15:0], layer_in_c) + fc_index;
+      |                                       ^~~~~~~~~~~~~~~~~~
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1943:87: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'fc_index' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1943 |                     fc_weight_index = mul_u32_u16_no_dsp(fc_output[15:0], layer_in_c) + fc_index;
+      |                                                                                       ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:1967:34: Bit extraction of array[19:0] requires 5 bit index, not 16 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1967 |                     fc_output_mem[fc_output] <= next_accumulator[31:0];
+      |                                  ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1973:52: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'layer_in_c' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1973 |                         weight_base <= weight_base + layer_in_c;
+      |                                                    ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1979:39: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's VARREF 'arg_index' generates 16 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1979 |                     tensor_read_index = arg_index;
+      |                                       ^
+%Warning-WIDTHTRUNC: soc/Hnpu_cnn_engine.v:1981:56: Bit extraction of array[19:0] requires 5 bit index, not 16 bits.
+                                                  : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1981 |                         candidate_score = fc_output_mem[arg_index];
+      |                                                        ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:1983:41: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's VARREF 'tensor_read_data' generates 8 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 1983 |                         candidate_score = tensor_read_data;
+      |                                         ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:2000:59: Operator SUB expects 64 bits on the LHS, but LHS's VARREF 'new_best_score' generates 32 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 2000 |                             final_margin = new_best_score - new_second_score;
+      |                                                           ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:2000:59: Operator SUB expects 64 bits on the RHS, but RHS's VARREF 'new_second_score' generates 32 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 2000 |                             final_margin = new_best_score - new_second_score;
+      |                                                           ^
+%Warning-WIDTHEXPAND: soc/Hnpu_cnn_engine.v:2008:56: Operator LT expects 64 bits on the RHS, but RHS's VARREF 'reject_threshold_reg' generates 32 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine
+ 2008 |                         result_reject <= (final_margin < reject_threshold_reg);
+      |                                                        ^
+%Warning-WIDTHTRUNC: jtag/jtag_dm.v:232:57: Operator ASSIGNDLY expects 5 bits on the Assign RHS, but Assign RHS's SUB generates 16 bits.
+                                          : ... In instance Hfpga_soc.g_ddr_profile.u_jtag.u_jtag_dm
+  232 |                                             dm_reg_addr <= dmi_data[15:0] - 16'h1000;  
+      |                                                         ^~
+%Warning-WIDTHEXPAND: cpu/Btb.v:79:44: Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'update_index' generates 4 bits.
+                                     : ... In instance Hfpga_soc.g_ddr_profile.u_cpu.u_btb
+   79 |          if (update_valid && (update_index == i)) begin
+      |                                            ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:162:40: Operator ADD expects 32 bits on the LHS, but LHS's VARREF 'result_count' generates 5 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  162 |   wire result_capacity = (result_count + result_reserved < RESULT_DEPTH);
+      |                                        ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:162:40: Operator ADD expects 32 bits on the RHS, but RHS's VARREF 'result_reserved' generates 6 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  162 |   wire result_capacity = (result_count + result_reserved < RESULT_DEPTH);
+      |                                        ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:163:42: Operator ADD expects 32 bits on the LHS, but LHS's REPLICATE generates 6 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  163 |   wire release_capacity = ({5'b0, rel_v} + {1'b0, q_count[0]} + {1'b0, q_count[1]} +
+      |                                          ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:163:42: Operator ADD expects 32 bits on the RHS, but RHS's REPLICATE generates 5 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  163 |   wire release_capacity = ({5'b0, rel_v} + {1'b0, q_count[0]} + {1'b0, q_count[1]} +
+      |                                          ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:163:63: Operator ADD expects 32 bits on the RHS, but RHS's REPLICATE generates 5 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  163 |   wire release_capacity = ({5'b0, rel_v} + {1'b0, q_count[0]} + {1'b0, q_count[1]} +
+      |                                                               ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:163:84: Operator ADD expects 32 bits on the RHS, but RHS's REPLICATE generates 5 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  163 |   wire release_capacity = ({5'b0, rel_v} + {1'b0, q_count[0]} + {1'b0, q_count[1]} +
+      |                                                                                    ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:165:51: Operator LT expects 32 bits on the LHS, but LHS's ARRAYSEL generates 4 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  165 |   wire input_cap0 = image_valid[0] && (q_count[0] < QUEUE_DEPTH) &&
+      |                                                   ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:167:51: Operator LT expects 32 bits on the LHS, but LHS's ARRAYSEL generates 4 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  167 |   wire input_cap1 = image_valid[1] && (q_count[1] < QUEUE_DEPTH) &&
+      |                                                   ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:325:21: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's ARRAYSEL generates 4 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  325 |       q_count_next0 = q_count[0];
+      |                     ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:326:21: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's ARRAYSEL generates 4 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  326 |       q_count_next1 = q_count[1];
+      |                     ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:327:25: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's VARREF 'result_count' generates 5 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  327 |       result_count_next = result_count;
+      |                         ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:328:20: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's VARREF 'result_reserved' generates 6 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  328 |       reserve_next = result_reserved;
+      |                    ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:335:41: Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'result_rd_ptr' generates 4 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  335 |         result_rd_ptr <= (result_rd_ptr == RESULT_DEPTH - 1) ? 0 : result_rd_ptr + 1'b1;
+      |                                         ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:342:17: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's ARRAYSEL generates 3 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  342 |         q_index = q_tail[accept_cam];
+      |                 ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:353:51: Operator EQ expects 32 bits on the LHS, but LHS's ARRAYSEL generates 3 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  353 |         q_tail[accept_cam] <= (q_tail[accept_cam] == QUEUE_DEPTH-1) ? 0 : q_tail[accept_cam] + 1'b1;
+      |                                                   ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:361:17: Operator ASSIGN expects 32 bits on the Assign RHS, but Assign RHS's ARRAYSEL generates 3 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  361 |         q_index = q_head[take_cam];
+      |                 ^
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:375:47: Operator EQ expects 32 bits on the LHS, but LHS's ARRAYSEL generates 3 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  375 |         q_head[take_cam] <= (q_head[take_cam] == QUEUE_DEPTH - 1) ? 0 : q_head[take_cam] + 1'b1;
+      |                                               ^~
+%Warning-WIDTHEXPAND: soc/Hnpu_image_service.v:394:43: Operator EQ expects 32 bits on the LHS, but LHS's VARREF 'result_wr_ptr' generates 4 bits.
+                                                     : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  394 |           result_wr_ptr <= (result_wr_ptr == RESULT_DEPTH - 1) ? 0 : result_wr_ptr + 1'b1;
+      |                                           ^~
+%Warning-WIDTHTRUNC: soc/Hnpu_image_service.v:422:23: Operator ASSIGNDLY expects 6 bits on the Assign RHS, but Assign RHS's VARREF 'reserve_next' generates 32 bits.
+                                                    : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  422 |       result_reserved <= reserve_next;
+      |                       ^~
+%Warning-WIDTHTRUNC: soc/Hnpu_image_service.v:423:20: Operator ASSIGNDLY expects 5 bits on the Assign RHS, but Assign RHS's VARREF 'result_count_next' generates 32 bits.
+                                                    : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  423 |       result_count <= result_count_next;
+      |                    ^~
+%Warning-WIDTHTRUNC: soc/Hnpu_image_service.v:424:18: Operator ASSIGNDLY expects 4 bits on the Assign RHS, but Assign RHS's VARREF 'q_count_next0' generates 32 bits.
+                                                    : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  424 |       q_count[0] <= q_count_next0;
+      |                  ^~
+%Warning-WIDTHTRUNC: soc/Hnpu_image_service.v:425:18: Operator ASSIGNDLY expects 4 bits on the Assign RHS, but Assign RHS's VARREF 'q_count_next1' generates 32 bits.
+                                                    : ... In instance Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service
+  425 |       q_count[1] <= q_count_next1;
+      |                  ^~
+%Warning-WIDTHTRUNC: soc/Hrgb565_int8_lane.v:213:30: Operator ASSIGN expects 4 bits on the Assign RHS, but Assign RHS's SUB generates 6 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_rgb565_int8.lane[1].u_lane
+  213 |             slot_position_of = slot - block14;
+      |                              ^
+%Warning-WIDTHEXPAND: soc/Hrgb565_int8_lane.v:292:20: Operator GTE expects 6 bits on the RHS, but RHS's SEL generates 4 bits.
+                                                    : ... In instance Hfpga_soc.g_ddr_profile.u_rgb565_int8.lane[1].u_lane
+  292 |          free_count>=desc_count[3:0]);
+      |                    ^~
+%Warning-WIDTHEXPAND: soc/Hrgb565_int8_lane.v:296:54: Operator LT expects 6 bits on the RHS, but RHS's SEL generates 4 bits.
+                                                    : ... In instance Hfpga_soc.g_ddr_profile.u_rgb565_int8.lane[1].u_lane
+  296 |         desc_count<=8 && state==ST_IDLE && free_count<desc_count[3:0];
+      |                                                      ^
+%Warning-WIDTHTRUNC: soc/Hrgb565_int8_lane.v:321:25: Operator ASSIGN expects 30 bits on the Assign RHS, but Assign RHS's SUB generates 32 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_rgb565_int8.lane[1].u_lane
+  321 |         read_local_addr = (image_rgb_base + input_beat*32) - DDR_BASE;
+      |                         ^
+%Warning-WIDTHTRUNC: soc/Hrgb565_int8_lane.v:322:44: Bit extraction of array[7:0] requires 3 bit index, not 8 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_rgb565_int8.lane[1].u_lane
+  322 |         write_local_addr = (batch_slot_addr[image_index_reg] + input_beat*64) - DDR_BASE;
+      |                                            ^
+%Warning-WIDTHTRUNC: soc/Hrgb565_int8_lane.v:322:26: Operator ASSIGN expects 30 bits on the Assign RHS, but Assign RHS's SUB generates 32 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_rgb565_int8.lane[1].u_lane
+  322 |         write_local_addr = (batch_slot_addr[image_index_reg] + input_beat*64) - DDR_BASE;
+      |                          ^
+%Warning-WIDTHTRUNC: soc/Hrgb565_int8_lane.v:414:44: Bit extraction of array[7:0] requires 3 bit index, not 8 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_rgb565_int8.lane[1].u_lane
+  414 |                 slot_state[batch_slot_index[image_index_reg]]<=3;
+      |                                            ^
+%Warning-WIDTHTRUNC: soc/Hrgb565_int8_lane.v:417:57: Bit extraction of array[7:0] requires 3 bit index, not 8 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_rgb565_int8.lane[1].u_lane
+  417 |                 fifo_slot[fifo_wr_ptr]<=batch_slot_index[image_index_reg];
+      |                                                         ^
+%Warning-WIDTHTRUNC: soc/Hrgb565_int8_lane.v:419:59: Bit extraction of array[7:0] requires 3 bit index, not 8 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_rgb565_int8.lane[1].u_lane
+  419 |                 fifo_address[fifo_wr_ptr]<=batch_slot_addr[image_index_reg];
+      |                                                           ^
+%Warning-WIDTHTRUNC: soc/Hrgb565_int8_lane.v:631:59: Bit extraction of array[7:0] requires 3 bit index, not 4 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_rgb565_int8.lane[1].u_lane
+  631 |                             clean_slot_q<=batch_slot_index[clean_index];
+      |                                                           ^
+%Warning-WIDTHTRUNC: soc/Hrgb565_int8_lane.v:632:70: Bit extraction of array[7:0] requires 3 bit index, not 4 bits.
+                                                   : ... In instance Hfpga_soc.g_ddr_profile.u_rgb565_int8.lane[1].u_lane
+  632 |                             clean_hit_q<=(slot_state[batch_slot_index[clean_index]]==2'd1);
+      |                                                                      ^
+%Warning-WIDTHEXPAND: soc/Hrgb565_int8_lane.v:630:40: Operator LT expects 8 bits on the LHS, but LHS's VARREF 'clean_index' generates 4 bits.
+                                                    : ... In instance Hfpga_soc.g_ddr_profile.u_rgb565_int8.lane[1].u_lane
+  630 |                         if (clean_index<batch_count_reg) begin
+      |                                        ^
+%Warning-WIDTHTRUNC: soc/Huart_tx.v:52:24: Operator ASSIGNDLY expects 4 bits on the Assign RHS, but Assign RHS's CONST '32'h1' generates 32 bits.
+                                         : ... In instance Hfpga_soc.g_ddr_profile.u_uart0_tx
+   52 |             uart_ctrl  <= 32'h0000_0001;
+      |                        ^~
+%Warning-CASEINCOMPLETE: jtag/jtag_driver.v:127:5: Case values incompletely covered (example pattern 0x0)
+  127 |     case (jtag_state)
+      |     ^~~~
+%Warning-CASEINCOMPLETE: jtag/full_handshake_tx.v:99:13: Case values incompletely covered (example pattern 0x0)
+   99 |             case (state)
+      |             ^~~~
+%Warning-CASEINCOMPLETE: jtag/full_handshake_rx.v:89:13: Case values incompletely covered (example pattern 0x0)
+   89 |             case (state)
+      |             ^~~~
+%Warning-CASEINCOMPLETE: jtag/jtag_dm.v:188:25: Case values incompletely covered (example pattern 0x0)
+  188 |                         case (dmi_addr)
+      |                         ^~~~
+%Warning-CASEINCOMPLETE: jtag/jtag_dm.v:151:17: Case values incompletely covered (example pattern 0x3)
+  151 |                 case (dmi_op)
+      |                 ^~~~
+%Warning-CASEINCOMPLETE: jtag/jtag_dm.v:141:9: Case values incompletely covered (example pattern 0x0)
+  141 |         case (state)
+      |         ^~~~
+%Warning-LATCH: soc/Hnpu_cnn_engine.v:788:5: Latch inferred for signal 'Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine.mul_u16_no_dsp__Vstatic__partial' (not all control paths of combinational always assign a value)
+                                           : ... Suggest use of always_latch for intentional latches
+  788 |     always @* begin
+      |     ^~~~~~
+%Warning-LATCH: soc/Hnpu_cnn_engine.v:788:5: Latch inferred for signal 'Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine.mul_u16_no_dsp__Vstatic__level1' (not all control paths of combinational always assign a value)
+                                           : ... Suggest use of always_latch for intentional latches
+  788 |     always @* begin
+      |     ^~~~~~
+%Warning-LATCH: soc/Hnpu_cnn_engine.v:788:5: Latch inferred for signal 'Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine.mul_u16_no_dsp__Vstatic__level2' (not all control paths of combinational always assign a value)
+                                           : ... Suggest use of always_latch for intentional latches
+  788 |     always @* begin
+      |     ^~~~~~
+%Warning-LATCH: soc/Hnpu_cnn_engine.v:788:5: Latch inferred for signal 'Hfpga_soc.g_ddr_profile.u_npu_system.g_image_service.u_service.u_engine.mul_u16_no_dsp__Vstatic__level3' (not all control paths of combinational always assign a value)
+                                           : ... Suggest use of always_latch for intentional latches
+  788 |     always @* begin
+      |     ^~~~~~

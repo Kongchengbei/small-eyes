@@ -86,6 +86,13 @@ create_generated_clock -name phy_dq_sysclk_1 \
 set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_0}]
 set_multicycle_path 2 -from [get_clocks {ddr_core_clk}] -to [get_clocks {phy_dq_sysclk_1}]
 set_clock_groups -asynchronous -group [get_clocks {ddr_ref_clk ddr_core_clk}] -group [get_clocks {ddr_rst_clk}] -group [get_clocks {clk cpu_clk}] -group [get_clocks {JTAG_CLK}] -group [get_clocks {CAM1_PCLK}] -group [get_clocks {CAM2_PCLK}]
+# Vendor DDR IP uses independent SINGLE-group declarations here.
+# Source: IP/ddr3_ctrl_v116/pnr/ddr_test.fdc:35-37.
+# core_clk and phy_dq_sysclk_N are outside these groups; preserve their
+# explicit two-cycle checks. This candidate must retain all 196/420 endpoints.
+set_clock_groups -name DDR_IP_RST_ASYNC -asynchronous -group [get_clocks {ddr_rst_clk}]
+set_clock_groups -name DDR_IP_PHY0_ASYNC -asynchronous -group [get_clocks {phy_dq_clk_0}]
+set_clock_groups -name DDR_IP_PHY1_ASYNC -asynchronous -group [get_clocks {phy_dq_clk_1}]
 # END SOC_DDR_CLOCK
 
 # IO 引脚约束：这里只保留 Hfpga_soc 顶层实际存在的外部端口。

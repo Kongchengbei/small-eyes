@@ -1,0 +1,10 @@
+soc/Hcamera_preprocess.v:256: warning: Attributes are not supported on net declaration assignments and will be discarded.
+soc/Hcamera_preprocess.v:258: warning: Attributes are not supported on net declaration assignments and will be discarded.
+soc/Hcamera_preprocess.v:259: warning: Attributes are not supported on net declaration assignments and will be discarded.
+soc/Hcamera_preprocess.v:260: warning: Attributes are not supported on net declaration assignments and will be discarded.
+soc/Hcamera_preprocess.v:454: warning: Attributes are not supported on net declaration assignments and will be discarded.
+soc/Hcamera_preprocess.v:457: warning: Attributes are not supported on net declaration assignments and will be discarded.
+soc/Hcamera_preprocess.v:467: warning: Attributes are not supported on net declaration assignments and will be discarded.
+soc/Hcamera_preprocess.v:469: warning: Attributes are not supported on net declaration assignments and will be discarded.
+soc/Hcamera_preprocess.v:470: warning: Attributes are not supported on net declaration assignments and will be discarded.
+soc/Hcamera_preprocess.v:474: warning: Attributes are not supported on net declaration assignments and will be discarded.

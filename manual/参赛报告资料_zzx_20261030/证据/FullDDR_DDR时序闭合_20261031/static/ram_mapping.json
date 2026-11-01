@@ -1,0 +1,167 @@
+{
+  "source_netlist": "/mnt/c/Users/LEGION/AppData/Local/Temp/socfpga_ddr_wns_20261031/ddr04_running_addresses_stats_20261101_133951/project/synthesize/Hfpga_soc_syn.vm",
+  "banks": [
+    {
+      "bank": "tensor_a_0",
+      "read_address_bits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "read_port_write_enable_zero": true
+    },
+    {
+      "bank": "tensor_a_1",
+      "read_address_bits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "read_port_write_enable_zero": true
+    },
+    {
+      "bank": "tensor_a_2",
+      "read_address_bits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "read_port_write_enable_zero": true
+    },
+    {
+      "bank": "tensor_a_3",
+      "read_address_bits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "read_port_write_enable_zero": true
+    },
+    {
+      "bank": "tensor_b_0",
+      "read_address_bits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "read_port_write_enable_zero": true
+    },
+    {
+      "bank": "tensor_b_1",
+      "read_address_bits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "read_port_write_enable_zero": true
+    },
+    {
+      "bank": "tensor_b_2",
+      "read_address_bits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "read_port_write_enable_zero": true
+    },
+    {
+      "bank": "tensor_b_3",
+      "read_address_bits": [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "read_port_write_enable_zero": true
+    }
+  ],
+  "all_pass": true,
+  "note": "Read-only synthesis netlist inspection, no simulation. All tensor bank read ports physically address existing RAM using low 14 bits; invalid tap data remains masked by tensor_valid_q."
+}

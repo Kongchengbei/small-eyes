@@ -1,0 +1,7 @@
+{
+  "apply_bram": 0,
+  "check_bram": 0,
+  "bram_ddr_timing_commands": [],
+  "only_isolated_host_configuration_commands": true,
+  "testbench_run": false
+}

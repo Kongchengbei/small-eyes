@@ -1,0 +1,13 @@
+{
+  "pds_run": "ddr04_running_addresses_stats_20261101_133951",
+  "pds_git_baseline": "9481c57b5f954b3e1df256531036d1406b0b2107",
+  "source_sha256": {
+    "soc/Hnpu_cnn_engine.v": "bbc2d84be1e577e2e42e8040f27dcbf3bee7d61eab2efb85201295072722f795",
+    "soc/Hrgb565_int8_lane.v": "ee3de1820f2c69bcf59ad8f000832dcf2bde909b4862973ad0aa44c33d1ad32e",
+    "soc.fdc": "9e1b7ff357675616e2e37828d9ca550b90065488fa4d8db60457f7fc972be053"
+  },
+  "generator_sha256": "5501505ab950f8d6119fe2d91e18e194aebef826c2086377d0e1d13e43220128",
+  "local_bram_profile_and_comment_preserved": true,
+  "no_testbench_or_simulation_run": true,
+  "board_programmed": false
+}

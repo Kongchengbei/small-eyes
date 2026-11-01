@@ -1,0 +1,23 @@
+{
+  "source_run": "ddr02_metadata_vendor_candidate_20261031_191558",
+  "fdc_sha256": "9e1b7ff357675616e2e37828d9ca550b90065488fa4d8db60457f7fc972be053",
+  "vendor_group_checks": {
+    "checks": {
+      "phy_dq_sysclk_0_setup_slow": true,
+      "phy_dq_sysclk_0_setup_fast": true,
+      "phy_dq_sysclk_0_hold_slow": true,
+      "phy_dq_sysclk_0_hold_fast": true,
+      "phy_dq_sysclk_0_explicit_two_cycle": true,
+      "phy_dq_sysclk_1_setup_slow": true,
+      "phy_dq_sysclk_1_setup_fast": true,
+      "phy_dq_sysclk_1_hold_slow": true,
+      "phy_dq_sysclk_1_hold_fast": true,
+      "phy_dq_sysclk_1_explicit_two_cycle": true,
+      "named_vendor_groups_present": true
+    },
+    "all_pass": true
+  },
+  "negative_async_paths": 0,
+  "no_clock_period_change": true,
+  "baseline_uncertainty_unchanged": true
+}
